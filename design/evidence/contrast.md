@@ -23,8 +23,8 @@ Lightness is held constant across each ramp (D-02/D-03); every hue is checked an
 
 | Ramp | Pairing | Threshold | Worst hue | Ratio | Verdict |
 |---|---|---|---|---|---|
-| vivid-light | vs light paper | 3:1 | health | 3.55:1 | PASS |
-| vivid-dark | vs dark paper | 3:1 | community | 8.77:1 | PASS |
-| block | vs --block-ink (worst theme: dark) | 4.5:1 | health | 5.66:1 | PASS |
+| vivid-light | vs light paper | 3:1 | health | 3.63:1 | PASS |
+| vivid-dark | vs dark paper | 3:1 | community | 8.65:1 | PASS |
+| block | vs --block-ink (worst theme: dark) | 4.5:1 | health | 5.73:1 | PASS |
 
 **Overall: PASS**

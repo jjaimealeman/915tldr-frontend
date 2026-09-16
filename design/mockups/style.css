@@ -266,61 +266,61 @@
   --rule-thin: 1px;
   --rule-thick: 4px;
 
+  /* palette:start */
   /* palette stops (D-02/D-03) — shared by all eight hues; hue alone carries identity */
   --stop-vivid-light-l: 0.600;
   --stop-vivid-light-c: 0.150;
   --stop-block-l: 0.460;
-  --stop-block-c: 0.100;
+  --stop-block-c: 0.150;
   --stop-vivid-dark-l: 0.780;
-  --stop-vivid-dark-c: 0.110;
+  --stop-vivid-dark-c: 0.150;
 
-  /* palette:start */
-  --hue-crime: 28.0;
-  --cat-crime-vivid-light: oklch(0.600 0.150 28.0);
-  --cat-crime-block: oklch(0.460 0.100 28.0);
-  --cat-crime-vivid-dark: oklch(0.780 0.110 28.0);
+  --hue-crime: 24.7;
+  --cat-crime-vivid-light: oklch(0.600 0.150 24.7);
+  --cat-crime-block: oklch(0.460 0.150 24.7);
+  --cat-crime-vivid-dark: oklch(0.780 0.128 24.7);
   --cat-crime: var(--cat-crime-vivid-light);
 
-  --hue-politics: 275.0;
-  --cat-politics-vivid-light: oklch(0.600 0.150 275.0);
-  --cat-politics-block: oklch(0.460 0.100 275.0);
-  --cat-politics-vivid-dark: oklch(0.780 0.110 275.0);
+  --hue-politics: 269.5;
+  --cat-politics-vivid-light: oklch(0.600 0.150 269.5);
+  --cat-politics-block: oklch(0.460 0.150 269.5);
+  --cat-politics-vivid-dark: oklch(0.780 0.111 269.5);
   --cat-politics: var(--cat-politics-vivid-light);
 
-  --hue-sports: 55.0;
-  --cat-sports-vivid-light: oklch(0.600 0.148 55.0);
-  --cat-sports-block: oklch(0.460 0.100 55.0);
-  --cat-sports-vivid-dark: oklch(0.780 0.110 55.0);
+  --hue-sports: 49.4;
+  --cat-sports-vivid-light: oklch(0.600 0.150 49.4);
+  --cat-sports-block: oklch(0.460 0.122 49.4);
+  --cat-sports-vivid-dark: oklch(0.780 0.141 49.4);
   --cat-sports: var(--cat-sports-vivid-light);
 
-  --hue-business: 85.0;
-  --cat-business-vivid-light: oklch(0.600 0.122 85.0);
-  --cat-business-block: oklch(0.460 0.094 85.0);
-  --cat-business-vivid-dark: oklch(0.780 0.110 85.0);
+  --hue-business: 94.5;
+  --cat-business-vivid-light: oklch(0.600 0.123 94.5);
+  --cat-business-block: oklch(0.460 0.094 94.5);
+  --cat-business-vivid-dark: oklch(0.780 0.150 94.5);
   --cat-business: var(--cat-business-vivid-light);
 
-  --hue-education: 305.0;
-  --cat-education-vivid-light: oklch(0.600 0.150 305.0);
-  --cat-education-block: oklch(0.460 0.100 305.0);
-  --cat-education-vivid-dark: oklch(0.780 0.110 305.0);
+  --hue-education: 295.9;
+  --cat-education-vivid-light: oklch(0.600 0.150 295.9);
+  --cat-education-block: oklch(0.460 0.150 295.9);
+  --cat-education-vivid-dark: oklch(0.780 0.126 295.9);
   --cat-education: var(--cat-education-vivid-light);
 
-  --hue-community: 350.0;
-  --cat-community-vivid-light: oklch(0.600 0.150 350.0);
-  --cat-community-block: oklch(0.460 0.100 350.0);
-  --cat-community-vivid-dark: oklch(0.780 0.110 350.0);
+  --hue-community: 359.9;
+  --cat-community-vivid-light: oklch(0.600 0.150 359.9);
+  --cat-community-block: oklch(0.460 0.150 359.9);
+  --cat-community-vivid-dark: oklch(0.780 0.140 359.9);
   --cat-community: var(--cat-community-vivid-light);
 
-  --hue-health: 145.0;
-  --cat-health-vivid-light: oklch(0.600 0.150 145.0);
-  --cat-health-block: oklch(0.460 0.100 145.0);
-  --cat-health-vivid-dark: oklch(0.780 0.110 145.0);
+  --hue-health: 124.7;
+  --cat-health-vivid-light: oklch(0.600 0.150 124.7);
+  --cat-health-block: oklch(0.460 0.115 124.7);
+  --cat-health-vivid-dark: oklch(0.780 0.150 124.7);
   --cat-health: var(--cat-health-vivid-light);
 
-  --hue-weather: 195.0;
-  --cat-weather-vivid-light: oklch(0.600 0.102 195.0);
-  --cat-weather-block: oklch(0.460 0.078 195.0);
-  --cat-weather-vivid-dark: oklch(0.780 0.110 195.0);
+  --hue-weather: 242.5;
+  --cat-weather-vivid-light: oklch(0.600 0.143 242.5);
+  --cat-weather-block: oklch(0.460 0.110 242.5);
+  --cat-weather-vivid-dark: oklch(0.780 0.122 242.5);
   --cat-weather: var(--cat-weather-vivid-light);
   /* palette:end */
 }
