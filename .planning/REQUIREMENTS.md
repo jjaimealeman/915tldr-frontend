@@ -1,0 +1,257 @@
+# Requirements: 915 TLDR v2 Rebuild
+
+**Defined:** 2026-09-16
+**Core Value:** Zero D1 reads on the public request path — architecturally zero, enforced structurally at build time.
+
+## v1 Requirements
+
+### Architecture & Read Budget
+
+- [ ] **ARCH-01**: A public page request completes with zero D1 row reads, verified against Cloudflare D1 analytics
+- [ ] **ARCH-02**: The build fails if any public route, island component, middleware, or endpoint can reach the D1 binding
+- [ ] **ARCH-03**: The D1-import assertion scans island component files and `/_server-islands/*` paths, not only `.astro` pages
+- [ ] **ARCH-04**: Bindings are accessed via `import { env } from 'cloudflare:workers'`; no use of the removed `Astro.locals.runtime.env`
+- [ ] **ARCH-05**: Astro config uses `output: 'static'` with per-route `export const prerender = false`; `'hybrid'` appears nowhere
+- [ ] **ARCH-06**: `imageService` is set explicitly to `{ build: 'compile', runtime: 'passthrough' }` rather than inheriting the `cloudflare-binding` default
+- [ ] **ARCH-07**: Total D1 reads per day stay under 2,000,000 for 7 consecutive days
+- [ ] **ARCH-08**: A public request performs at most 1 KV read and under 5ms Worker CPU
+
+### Content Loading & Render
+
+- [ ] **REND-01**: A hand-written `astro/loaders` Loader reads articles from the D1 REST API at build time
+- [ ] **REND-02**: The loader throws and fails the build when it returns zero or fewer rows than expected — an empty result never ships as a successful build
+- [ ] **REND-03**: A regression test reproduces the `/changelog` empty-state failure and proves the loader rejects it
+- [ ] **REND-04**: Homepage, category pages, tag indexes and static pages regenerate on each cron cycle via a new Worker deployment
+- [ ] **REND-05**: Only new and changed articles re-render; unchanged articles are not recomputed
+- [ ] **REND-06**: A render manifest in KV records what has been rendered and at which version
+- [ ] **REND-07**: Articles outside the hot window are rendered once to R2 and served from there
+- [ ] **REND-08**: A request for an archived article falls through the static-asset layer to the Worker and is served from R2
+- [ ] **REND-09**: Tag pages default to the archive tier; only top-N tags by article count are promoted to hot static
+- [ ] **REND-10**: The hot-content cutoff is derived from measured request traffic, not a fixed guess
+- [ ] **REND-11**: Total deployed static-asset file count is reported daily and alarms before 100,000
+- [ ] **REND-12**: A full archive re-render completes without exceeding Worker CPU limits
+
+### Content Quality
+
+- [ ] **CONT-01**: Content extraction no longer truncates mid-article; the `[...]` marker rate drops to near zero on newly ingested articles
+- [ ] **CONT-02**: Summary length is proportional to source length, with no fixed word floor
+- [ ] **CONT-03**: The prompt explicitly prohibits advisories, calls to action, impact analysis, and editorial framing absent from the source
+- [ ] **CONT-04**: An automated grounding check flags any summary containing a claim not traceable to its source
+- [ ] **CONT-05**: The grounding check catches the known production example (the fabricated "urged to remain vigilant" advisory), which is length-compliant
+- [ ] **CONT-06**: An automated check flags any summary longer than its source
+- [ ] **CONT-07**: Thin sources produce a short summary or attributed excerpt without resorting to verbatim-heavy quoting
+- [ ] **CONT-08**: Summarisation runs on `gpt-5.6-luna`
+- [ ] **CONT-09**: A dry run reports exact row count and projected cost before any re-processing run
+- [ ] **CONT-10**: The affected archive is re-processed once, via the Batch API, after explicit approval
+- [ ] **CONT-11**: Batch jobs handle the 24-hour cancellation window — unfinished work is detected and resubmitted, not silently lost
+
+### Bilingual
+
+- [ ] **I18N-01**: Each article carries an English and a Spanish summary, generated in the same model call
+- [ ] **I18N-02**: Source language is detected at ingest and stored
+- [ ] **I18N-03**: Spanish-language articles render with `lang="es"` on the appropriate element
+- [ ] **I18N-04**: `/es/...` routes exist for every public page type
+- [ ] **I18N-05**: Every page emits correct `hreflang` pairs including `x-default`
+- [ ] **I18N-06**: Separate sitemaps and RSS feeds exist per language
+- [ ] **I18N-07**: Card and headline layouts survive Spanish text running 15-25% longer without overflow or clipping
+- [ ] **I18N-08**: Language is chosen by the reader, never by IP or browser auto-redirect
+- [ ] **I18N-09**: Spanish summaries carry the same AI-generation disclosure as English
+- [ ] **I18N-10**: `Accept-Language` is logged at the edge to inform the `/es` launch decision
+
+### Design
+
+- [ ] **DSGN-01**: Static HTML/CSS mockups exist and are approved before any Astro component work begins
+- [ ] **DSGN-02**: Mockups pass contrast and keyboard review before the design is accepted
+- [ ] **DSGN-03**: Display type is Instrument Serif, body is Source Serif 4; neither Playfair Display nor Merriweather appears
+- [ ] **DSGN-04**: Each of the eight categories owns a distinct colour from a Chihuahuan desert palette
+- [ ] **DSGN-05**: Light and dark themes are both fully designed, light being the default
+- [ ] **DSGN-06**: The article grid renders as pure HTML, not as a hydrated island
+- [ ] **DSGN-07**: `/changelog` receives an editorial treatment rather than a bulleted list, with history preserved
+
+### Accessibility
+
+- [ ] **A11Y-01**: Body text meets 4.5:1 contrast and large text/UI components meet 3:1, verified in both themes
+- [ ] **A11Y-02**: Every interactive element is keyboard reachable and operable with a visible, unclipped focus indicator
+- [ ] **A11Y-03**: A working skip link is present and the tab order is logical
+- [ ] **A11Y-04**: Each page has exactly one `h1` with a correct heading hierarchy and landmark regions
+- [ ] **A11Y-05**: Interactive controls are real `<button>`/`<a>` elements, not clickable `div`s
+- [ ] **A11Y-06**: Content images carry meaningful `alt`; decorative images carry `alt=""`; generated imagery derives alt text from the article
+- [ ] **A11Y-07**: `prefers-reduced-motion` is honoured by every transition and animation
+- [ ] **A11Y-08**: Form labels are tied to inputs and errors are announced
+- [ ] **A11Y-09**: The site is usable at 200% zoom and 320px width with no horizontal scroll or content loss
+- [ ] **A11Y-10**: Lighthouse accessibility scores 100 across home, category, article, changelog and contact
+- [ ] **A11Y-11**: A manual keyboard and screen-reader pass is completed and recorded
+
+### Performance
+
+- [ ] **PERF-01**: LCP p75 mobile is under 1.5s
+- [ ] **PERF-02**: INP is under 100ms
+- [ ] **PERF-03**: CLS is under 0.05
+- [ ] **PERF-04**: FCP is under 1.0s and lab TBT under 100ms
+- [ ] **PERF-05**: Lighthouse performance is at least 95 across the representative page set
+- [ ] **PERF-06**: Lighthouse CI fails the build below the blocking thresholds
+- [ ] **PERF-07**: Fonts are self-hosted, subset including Spanish diacritics, woff2 only, with `size-adjust` metric-compatible fallbacks
+- [ ] **PERF-08**: The LCP image carries `fetchpriority="high"` and is not lazy-loaded
+- [ ] **PERF-09**: Every image has explicit `width`/`height`
+- [ ] **PERF-10**: Responsive images emit `srcset`/`sizes` with AVIF and WebP plus fallback
+
+### SEO
+
+- [ ] **SEO-01**: Every article emits valid `NewsArticle` structured data, validated not merely emitted
+- [ ] **SEO-02**: `BreadcrumbList`, `Organization` and `WebSite` structured data are present and valid
+- [ ] **SEO-03**: A Google News sitemap covers articles from the last 48 hours
+- [ ] **SEO-04**: Every page has a canonical URL and existing `/[category]/[slug]-[uuid]` URLs still resolve
+- [ ] **SEO-05**: The existing per-bot `robots.txt` policy, including AI-crawler and `Content-signal` rules, is preserved
+- [ ] **SEO-06**: `/rss.xml` is preserved
+- [ ] **SEO-07**: Canonical links to the originating outlet are prominent on every article
+- [ ] **SEO-08**: The 404 suggestion endpoint carries over
+- [ ] **SEO-09**: Lighthouse SEO scores 100 across the representative page set
+
+### Social Sharing
+
+- [ ] **SOC-01**: Every page emits `og:title`, `og:description`, `og:url`, `og:site_name`, `og:type` and `og:locale` with `og:locale:alternate`
+- [ ] **SOC-02**: Every page emits `og:image` with explicit `width`, `height`, `alt` and `type`
+- [ ] **SOC-03**: Articles emit `article:published_time`, `article:modified_time`, `article:section`, `article:tag` and `article:author`
+- [ ] **SOC-04**: Twitter card tags are present with `summary_large_image`
+- [ ] **SOC-05**: Every article has a 1200×630 share card under 5MB at an absolute HTTPS URL
+- [ ] **SOC-06**: Share cards are produced by deterministic composition, not AI generation, and no article shares blank or generic
+- [ ] **SOC-07**: Cards are validated by human inspection in the Facebook debugger, X validator, iMessage, WhatsApp and Slack
+- [ ] **SOC-08**: Generated card file size is verified against WhatsApp's real ceiling
+
+### Imagery
+
+- [ ] **IMG-01**: An ingest filter rejects emoji sprites, known generic placeholders and undersized images
+- [ ] **IMG-02**: The filter is applied retroactively, reclassifying the existing 1,098 junk images
+- [ ] **IMG-03**: Zero articles display an emoji sprite or unbranded placeholder
+- [ ] **IMG-04**: Articles without a usable source image receive a generated image via Workers AI Flux-Schnell
+- [ ] **IMG-05**: A 10-image quality test gates the backfill; the decision is made by looking at the images
+- [ ] **IMG-06**: The 15,624-article backfill runs only after explicit approval, with a dry run first
+- [ ] **IMG-07**: Ongoing per-article generation stays inside the free 10,000 neurons/day allocation
+- [ ] **IMG-08**: Eight category hero images share one visual identity, generated via reference images on `gpt-image-2.5-flare`
+- [ ] **IMG-09**: Real per-image cost is measured from `usage.output_tokens` and recorded, not estimated
+- [ ] **IMG-10**: Generated images are stored in R2 and their assignments recorded in D1 so they survive rebuilds
+
+### Search
+
+- [ ] **SRCH-01**: Readers can search articles from the public site
+- [ ] **SRCH-02**: The search backend is chosen by measurement against the real corpus in both languages
+- [ ] **SRCH-03**: If the chosen backend reads D1, the exception is explicitly scoped and capped in the budget; otherwise zero D1 reads holds without exception
+
+### Interactivity
+
+- [ ] **ISL-01**: Weather and a 7-day forecast render as server islands from the existing NWS response with no additional API calls
+- [ ] **ISL-02**: An "updated Xm ago" indicator renders as a server island
+- [ ] **ISL-03**: Islands supply an explicit `slot="fallback"` and degrade visibly when upstream is slow or down
+- [ ] **ISL-04**: `ASTRO_KEY` is pinned as a stable secret so island prop decryption survives rolling deploys and CDN caching
+- [ ] **ISL-05**: Island encrypted props stay under 2048 bytes so requests remain cacheable GETs
+- [ ] **ISL-06**: Page transitions use `<ClientRouter />` from `astro:transitions`
+- [ ] **ISL-07**: The theme toggle island hydrates without a mismatch warning
+- [ ] **ISL-08**: Islands are limited to search, category filter, theme toggle, load-more and weather
+
+### Reader Subscription
+
+- [ ] **SUB-01**: A reader can submit an email address to subscribe
+- [ ] **SUB-02**: Subscription is confirmed by double opt-in
+- [ ] **SUB-03**: A subscriber can select any of the eight categories
+- [ ] **SUB-04**: A subscriber can follow named entities from the existing 46,090
+- [ ] **SUB-05**: A subscriber selects a preferred language
+- [ ] **SUB-06**: Every subscriber row carries an unsubscribe token and a working unsubscribe link
+- [ ] **SUB-07**: Preference changes go through a magic link with no password or session
+- [ ] **SUB-08**: The subscribe path performs writes only and never a D1 read on the public request path
+
+### Identity & Disclosure
+
+- [ ] **IDNT-01**: The About page names a real person, with photo, written in first person
+- [ ] **IDNT-02**: The About page explains in plain English what is automated, what is summarised and where the reporting comes from
+- [ ] **IDNT-03**: Each article carries AI-generation disclosure at point of consumption, not only on the About page
+- [ ] **IDNT-04**: Original outlets are prominently attributed on every article
+- [ ] **IDNT-05**: A contact route exists that is not a form-only dead end
+- [ ] **IDNT-06**: Links to `jjaimealeman.com` and `915website.com` are present
+
+### Operations
+
+- [ ] **OPS-01**: The public site serves from `915tldr.com` on the Astro worker
+- [ ] **OPS-02**: `dev.915tldr.com` returns `X-Robots-Tag: noindex` at the edge, verified by response header
+- [ ] **OPS-03**: The Nuxt pipeline and admin serve from `admin.915tldr.com` behind Cloudflare Access
+- [ ] **OPS-04**: Better Auth, its four tables, `/admin/login` and all session handling are removed
+- [ ] **OPS-05**: The deployed short commit hash and build timestamp appear in the public footer
+- [ ] **OPS-06**: `/version.json` exposes the build hash for scripted checks
+- [ ] **OPS-07**: A daily routine reports D1 reads, spend, OpenAI balance, static-asset file count and Core Web Vitals against budget
+- [ ] **OPS-08**: The read budget is stated in the README
+- [ ] **OPS-09**: Rollback to the existing worker is a route change and is verified before cutover
+- [ ] **OPS-10**: The cron run triggers the public site's incremental build
+- [ ] **OPS-11**: No operation costing more than $1 runs without prior approval and an estimate
+
+### Known Defect Fixes
+
+- [ ] **FIX-01**: `reprocess-all.post.ts` no longer binds an unbounded ID list across `inArray` calls; D1's 100-parameter ceiling is respected
+- [ ] **FIX-02**: `pnpm deploy` and `pnpm deploy:dev` resolve `wrangler` as a real dependency
+- [ ] **FIX-03**: The Prettier error at `app/pages/privacy.vue:164` is resolved
+- [ ] **FIX-04**: Category index routes resolve (`/crime` as well as `/crime/**`)
+- [ ] **FIX-05**: `/changelog` renders its content reliably
+
+## v2 Requirements
+
+Deferred. Tracked, not in this roadmap.
+
+### Content Sources
+- **SRC-01**: Diagnose why El Paso Matters produces 595 articles against KVIA's 25,284
+- **SRC-02**: Survey El Paso and Las Cruces print, radio, university, government and Spanish-language outlets
+- **SRC-03**: Evaluate `fetch_method: 'scrape'` for outlets without usable RSS
+- **SRC-04**: Re-tune duplicate detection for a larger source set
+- **SRC-05**: Source-level trust weighting for the lead story
+
+### Product Surface
+- **PROD-01**: Entity pages for the top few hundred entities by article count
+- **PROD-02**: Story threads grouping repeated coverage of one event over time
+- **PROD-03**: Border wait times, ported from `logistics.915website.com/server/utils/border.ts`
+- **PROD-04**: Air quality as part of an "El Paso right now" strip
+- **PROD-05**: Semantic related articles via Vectorize
+- **PROD-06**: "On this day" from the fourteen-month archive
+- **PROD-07**: Civic layer — council agendas, elections, public meeting calendars
+
+### Messaging
+- **MSG-01**: Daily or weekly digest sending via Cloudflare Email Service
+- **MSG-02**: Breaking-news alerts, sequenced ahead of scheduled digests
+- **MSG-03**: SPF, DKIM, DMARC, one-click `List-Unsubscribe`, bounce and complaint handling
+
+### Pipeline
+- **PIPE-01**: Workers AI vs OpenAI summarisation comparison on the fixed prompt
+
+## Out of Scope
+
+| Feature | Reason |
+|---------|--------|
+| Rewriting RSS ingestion, duplicate detection, embeddings | Nine months of tuning; where regression risk lives. Only extraction and the summary prompt are opened |
+| Rewriting the admin UI | ~30 working endpoints seen by one person |
+| Migrating or reshaping D1 data | Same database, schema and bindings; additive changes only |
+| Better Auth or any auth framework | 1 user, 0 signup routes, no digest code. Cloudflare Access replaces it |
+| Digest sending in v1 | A daily email to three people is not worth the deliverability commitment |
+| Expanding news sources | Would confound architecture validation, which needs a stable ingest rate |
+| Programmatic advertising | Incompatible with Lighthouse 100 and LCP under 1.5s |
+| Comments | Unbounded moderation commitment for a solo operator |
+| Coverage-gap analysis | Turns a neutral aggregator into a media critic and picks fights with source outlets |
+| Push notifications | Native app surface; no app, and web push is a poor fit for this audience |
+| Reader accounts, personalisation, mobile app | v3+ material |
+| Switching LLM providers | One vendor, one bill; no new integration surface |
+| FlareCMS / `flareLoader` | Unfinished project, not usable; `@flare-cms/astro` unpublished |
+| Autoplay video, popups, interstitials | Performance budget and reader trust |
+| IP or browser-based `/es` auto-redirect | Language is the reader's choice |
+| Regional Spanish hreflang variants | Over-fragmentation with no audience benefit |
+
+## Traceability
+
+Filled during roadmap creation.
+
+| Requirement | Phase | Status |
+|-------------|-------|--------|
+| — | — | Pending |
+
+**Coverage:**
+- v1 requirements: 137 total
+- Mapped to phases: 0
+- Unmapped: 137 ⚠️
+
+---
+*Requirements defined: 2026-09-16*
+*Last updated: 2026-09-16 after initialization*
