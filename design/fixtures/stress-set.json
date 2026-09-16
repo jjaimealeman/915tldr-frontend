@@ -2,6 +2,1119 @@
   "cases": {
     "tracer-pair": [
       {
+        "uuid": "326af4d4-ff96-4dec-8da2-a02085a802b3",
+        "title": "Get Your Spooky $3 Halloween Mini Totes at Trader Joe's",
+        "summary": "Trader Joe's has launched its latest collection of $3 mini tote bags, featuring festive Halloween designs. These limited-edition totes are expected to be popular among shoppers, especially those looking to celebrate the spooky season. The bags are available for purchase at Trader Joe's locations, and fans are encouraged to visit soon, as these items tend to sell out quickly. This initiative not only adds a fun element to Halloween shopping but also promotes sustainability through reusable bags.\n\n**Key Details:**\n• Mini tote bags are priced at $3 each.\n• Available in Halloween-themed colors and designs.\n• Visit your local Trader Joe's to purchase before they sell out.",
+        "image_url": "https://www.ktsm.com/wp-content/uploads/sites/38/2026/09/FEATURE_Trader-Joes-3-Halloween-mini-totes-are-returning-so-prepare-for-chaos.jpg?w=900",
+        "url": "https://www.ktsm.com/news/lifestyle-news/shopping/trader-joes-unveils-3-halloween-mini-totes-heres-how-to-get-one/",
+        "published_at": "2026-09-16T13:49:20-06:00",
+        "status": "processed",
+        "is_duplicate": 0,
+        "source_name": "KTSM",
+        "category_slug": "community",
+        "category_name": "Community"
+      },
+      {
+        "uuid": "5deacd9f-9618-4f2e-b5a0-41d0bfcd79b8",
+        "title": "Anthony Elementary Hosts 5th Grade Pledge Ceremony on September 16, 2026",
+        "summary": "Anthony Elementary School is set to hold a significant 5th Grade Pledge ceremony on September 16, 2026. This event is an important tradition that marks the transition of students as they prepare to advance to middle school. The ceremony aims to instill a sense of responsibility and commitment among the students. Families and community members are encouraged to attend and support the students during this milestone event.\n\n**Key Details:**\n• Date of the ceremony: September 16, 2026\n• Location: Anthony Elementary School\n• Encouragement for families and community to attend",
+        "image_url": "https://kvia.com/wp-content/uploads/2025/08/NEW-KVIA-Generic-Thumbnail.png",
+        "url": "https://kvia.com/lifestyle/2026/09/16/anthony-elementary-5th-grade-pledge-9-16-26/",
+        "published_at": "2026-09-16T13:27:08-06:00",
+        "status": "processed",
+        "is_duplicate": 0,
+        "source_name": "KVIA",
+        "category_slug": "education",
+        "category_name": "Education"
+      }
+    ],
+    "longest-headline": {
+      "uuid": "f63b5753-90b6-4a54-b78d-160461c08bf8",
+      "title": "Ucrania intensifica ofensiva contra la infraestructura petrolera rusa en medio de ganancias inesperadas del Kremlin",
+      "summary": "El Ejército de Ucrania ha intensificado sus ataques a la infraestructura energética de Rusia, apuntando a refinerías y terminales de exportación en un esfuerzo por debilitar una de las principales fuentes de ingresos del Kremlin. En las últimas semanas, se han llevado a cabo al menos diez ataques significativos, incluyendo uno en una refinería en Yaroslavl, que resultó en daños a edificios residenciales. Mientras tanto, Rusia ha visto un aumento en los precios del petróleo, beneficiándose de la flexibilización de algunas sanciones estadounidenses. El presidente ucraniano, Volodymyr Zelensky, ha criticado estas medidas, argumentando que permiten a Rusia continuar sus ataques. Se espera que el gobierno ruso reintroduzca una prohibición a las exportaciones de gasolina a partir del 1 de abril debido a los efectos en el mercado interno.\n\n**Key Details:**\n• Ucrania ha realizado al menos 10 ataques significativos a la infraestructura energética rusa este mes.\n• El último ataque fue a una refinería en Yaroslavl, causando un incendio y daños a edificios cercanos.\n• Se espera que Rusia reintroduzca una prohibición a las exportaciones de gasolina a partir del 1 de abril.\n• El presupuesto estatal de Rusia depende de los ingresos petroleros, que han aumentado en el último mes.",
+      "image_url": null,
+      "url": "https://kvia.com/news/noticias/cnn-spanish/2026/03/28/ucrania-intensifica-ataques-a-la-industria-petrolera-rusa-mientras-el-kremlin-obtiene-ganancias-inesperadas-por-exportaciones/",
+      "published_at": "2026-03-28T18:40:54-06:00",
+      "status": "processed",
+      "is_duplicate": 0,
+      "source_name": "KVIA",
+      "category_slug": "politics",
+      "category_name": "Politics",
+      "tags": [
+        {
+          "name": "rusia",
+          "slug": "rusia"
+        },
+        {
+          "name": "sanciones",
+          "slug": "sanciones"
+        },
+        {
+          "name": "petroleo",
+          "slug": "petroleo"
+        },
+        {
+          "name": "ucrania",
+          "slug": "ucrania"
+        },
+        {
+          "name": "guerra",
+          "slug": "guerra"
+        }
+      ]
+    },
+    "shortest-headline": {
+      "uuid": "5f20c478-64a2-44f6-8cc4-cc9478c3c449",
+      "title": "Catch KTSM+ at 4 PM for Local News Updates",
+      "summary": "Tune in to KTSM+ at 4 p.m. for the latest news and updates from El Paso. The program will feature Monica Cortez and Tirza Ortiz, who will cover important local stories and events. This is a great opportunity for residents to stay informed about what's happening in their community.",
+      "image_url": "https://www.ktsm.com/wp-content/uploads/sites/38/2025/07/basic-graphic.jpg?w=900",
+      "url": "https://www.ktsm.com/news/local-news/ktsm-at-4-p-m-with-monica-cortez-tirza-ortiz-5/",
+      "published_at": "2026-05-07T15:50:23-06:00",
+      "status": "processed",
+      "is_duplicate": 0,
+      "source_name": "KTSM",
+      "category_slug": "community",
+      "category_name": "Community",
+      "tags": [
+        {
+          "name": "local-news",
+          "slug": "local-news"
+        },
+        {
+          "name": "ktsm",
+          "slug": "ktsm"
+        },
+        {
+          "name": "monica cortez",
+          "slug": "monica-cortez"
+        },
+        {
+          "name": "tirza-ortiz",
+          "slug": "tirza-ortiz"
+        }
+      ]
+    },
+    "longest-summary": {
+      "uuid": "e8d5c5fe-9795-403e-9f5d-dd776540a2db",
+      "title": "Crisis de agua en EE.UU.: Niveles históricos bajos en embalses clave afectan a millones",
+      "summary": "Los niveles de agua en Lake Powell y Lake Mead han alcanzado cifras históricamente bajas, lo que representa un grave problema para el suministro de agua y energía en el suroeste de EE.UU. A partir del 12 de julio, Lake Powell estaba a 3,524 pies y Lake Mead a 1,043 pies, rompiendo récords anteriores. Estos embalses son cruciales, ya que abastecen agua a 40 millones de personas y generan electricidad para 700,000 hogares. Con el 95% de la cuenca del río Colorado en sequía, se prevé que los niveles sigan cayendo, lo que podría llevar a una crisis en la gestión del agua entre los siete estados que dependen de este recurso. Las negociaciones para compartir el agua se complican, y se espera que nuevas directrices operativas se publiquen en las próximas semanas para abordar la crisis.\n\n**Key Details:**\n• Lake Powell actualmente al 23% de su capacidad, y Lake Mead al 27%.\n• Se espera que ambos embalses establezcan nuevos mínimos históricos diariamente hasta la primavera de 2024.\n• Se impuso una fecha límite en febrero para que los estados llegaran a un acuerdo sobre la gestión del agua, pero no se alcanzó un consenso.\n• El Secretario del Interior, Doug Burgum, se reunió con los gobernadores de los siete estados para discutir soluciones.\n• Se anticipa que El Niño podría traer alivio a la sequía en otoño e invierno.",
+      "image_url": null,
+      "url": "https://kvia.com/news/noticias/cnn-spanish/2026/07/22/nivel-historicamente-bajo-en-dos-embalses-claves-de-ee-uu-amenaza-al-sistema-de-agua-y-energia-de-millones/",
+      "published_at": "2026-07-22T16:49:45-06:00",
+      "status": "processed",
+      "is_duplicate": 0,
+      "source_name": "KVIA",
+      "category_slug": "community",
+      "category_name": "Community",
+      "tags": [
+        {
+          "name": "negociaciones",
+          "slug": "negociaciones"
+        },
+        {
+          "name": "agua",
+          "slug": "agua"
+        },
+        {
+          "name": "sequia",
+          "slug": "sequia"
+        },
+        {
+          "name": "embalses",
+          "slug": "embalses"
+        },
+        {
+          "name": "río-colorado",
+          "slug": "ro-colorado"
+        }
+      ]
+    },
+    "shortest-summary": {
+      "uuid": "adf5f53b-ddb1-4741-be5e-7a75fe847a50",
+      "title": "KTSM+ Broadcasts at 4 PM Featuring Tirza Ortiz",
+      "summary": "KTSM+ will air its program at 4 PM, showcasing Tirza Ortiz. This segment is anticipated to cover various local topics relevant to the El Paso community. Viewers can expect engaging discussions and updates that reflect current events and issues affecting the area.",
+      "image_url": "https://www.ktsm.com/wp-content/uploads/sites/38/2020/04/KTSM9-Logo.png?w=753",
+      "url": "https://www.ktsm.com/news/local-news/ktsm-at-4-with-tirza-ortiz-2/",
+      "published_at": "2026-07-22T15:58:44-06:00",
+      "status": "processed",
+      "is_duplicate": 0,
+      "source_name": "KTSM",
+      "category_slug": "community",
+      "category_name": "Community",
+      "tags": [
+        {
+          "name": "media",
+          "slug": "media"
+        },
+        {
+          "name": "local-news",
+          "slug": "local-news"
+        },
+        {
+          "name": "broadcast",
+          "slug": "broadcast"
+        }
+      ]
+    },
+    "no-summary": {
+      "absent": true,
+      "reason": "no public row matches"
+    },
+    "five-tags": {
+      "uuid": "a90c2be1-600a-4f16-ad94-9118e1d50088",
+      "title": "USPS Launches Operation Santa, Inviting El Pasoans to Adopt Holiday Letters",
+      "summary": "The U.S. Postal Service has begun its annual Operation Santa, inviting residents to send letters to Santa Claus. This cherished initiative, which has been running since 1912, allows individuals to adopt letters from children and fulfill their holiday wishes. This year, El Pasoans are encouraged to participate and spread joy during the festive season. The program not only brings smiles to children's faces but also fosters community spirit by connecting donors with those in need.",
+      "image_url": "https://www.ktsm.com/wp-content/uploads/sites/38/2026/09/GettyImages-171625842-e1789581942639.jpg?w=900",
+      "url": "https://www.ktsm.com/news/national-news/usps-operation-santa-now-accepting-christmas-letters-seeking-adopters/",
+      "published_at": "2026-09-16T13:06:48-06:00",
+      "status": "processed",
+      "is_duplicate": 0,
+      "source_name": "KTSM",
+      "category_slug": "community",
+      "category_name": "Community",
+      "tags": [
+        {
+          "name": "holiday",
+          "slug": "holiday"
+        },
+        {
+          "name": "community",
+          "slug": "community"
+        },
+        {
+          "name": "charity",
+          "slug": "charity"
+        },
+        {
+          "name": "usps",
+          "slug": "usps"
+        },
+        {
+          "name": "operation-santa",
+          "slug": "operation-santa"
+        }
+      ]
+    },
+    "max-tags": {
+      "uuid": "0aca34eb-b9d5-44f2-8515-1ac28972a992",
+      "title": "Ex-Federal Prosecutor Sues Trump Over Sudden Dismissal After Appointment",
+      "summary": "Roger Rogoff, a former federal prosecutor in Washington, has filed a lawsuit against the Trump administration after being removed from his position just minutes after a panel of federal judges appointed him. The lawsuit argues that federal judges have the authority to select interim federal prosecutors until a Senate-confirmed appointee is in place. Rogoff's dismissal raises concerns about the administration's control over federal justice appointments and the legality of such actions. This case highlights ongoing tensions between federal judges and the Trump administration regarding the appointment and confirmation process for federal prosecutors.\n\n**Key Details:**\n• Rogoff was appointed by federal judges but dismissed within an hour on the same day.\n• The lawsuit claims the dismissal violates constitutional law regarding judicial appointments.\n• Rogoff's case is part of a larger pattern of conflicts between federal judges and the Trump administration over prosecutor appointments.",
+      "image_url": null,
+      "url": "https://kvia.com/news/noticias/cnn-spanish/2026/07/21/fiscal-federal-al-que-trump-destituyo-minutos-despues-de-asumir-el-cargo-demanda-para-recuperarlo/",
+      "published_at": "2026-07-21T18:23:13-06:00",
+      "status": "processed",
+      "is_duplicate": 0,
+      "source_name": "KVIA",
+      "category_slug": "politics",
+      "category_name": "Politics",
+      "tags": [
+        {
+          "name": "trump",
+          "slug": "trump"
+        },
+        {
+          "name": "government",
+          "slug": "government"
+        },
+        {
+          "name": "lawsuit",
+          "slug": "lawsuit"
+        },
+        {
+          "name": "prosecutor",
+          "slug": "prosecutor"
+        },
+        {
+          "name": "appointment",
+          "slug": "appointment"
+        },
+        {
+          "name": "federal-justice",
+          "slug": "federal-justice"
+        },
+        {
+          "name": "federal-prosecutor",
+          "slug": "federal-prosecutor"
+        },
+        {
+          "name": "judicial-appointment",
+          "slug": "judicial-appointment"
+        }
+      ]
+    },
+    "zero-tags": {
+      "uuid": "05aa587f-0446-46da-8cb3-05dd64d0add0",
+      "title": "Trump Faces Backlash from Hardliners Over Iran Agreement Negotiations",
+      "summary": "Former President Donald Trump is facing criticism from hardline Republicans as he seeks to distance himself from an unpopular war with Iran. Concerns are growing that he may concede too much in negotiations, potentially leading to a nuclear agreement reminiscent of the 2015 deal criticized by both Trump and his allies. Key figures like Senator Lindsey Graham and Fox News host Mark Levin have expressed their worries about the lack of transparency regarding the agreement's details. The White House has indicated that the text of the agreement will be released soon, but critics remain skeptical about its implications for U.S. interests. This situation highlights the tension within Trump's base as he attempts to balance between interventionists and non-interventionists.\n\n**Key Details:**\n• Trump's agreement with Iran is under scrutiny from Republican hardliners.\n• Senator Lindsey Graham emphasized the need for Congressional approval of any deal.\n• The White House plans to release the agreement's text within 24 to 48 hours.\n• Concerns are raised about allowing Iran to enrich uranium and the potential for a $300 billion reconstruction fund.",
+      "image_url": null,
+      "url": "https://kvia.com/news/noticias/cnn-spanish/2026/06/16/trump-se-rindio-ante-iran-algunos-republicanos-de-linea-dura-temen-que-trump-haya-cedido/",
+      "published_at": "2026-06-16T06:25:04-06:00",
+      "status": "processed",
+      "is_duplicate": 0,
+      "source_name": "KVIA",
+      "category_slug": "politics",
+      "category_name": "Politics",
+      "tags": []
+    },
+    "no-image": {
+      "uuid": "8b86f8d7-4ce1-477f-9dcd-e73f2193ca01",
+      "title": "Congress Holds Leon Black in Contempt Amid Epstein Investigation",
+      "summary": "The House of Representatives has held billionaire investor Leon Black in contempt for failing to comply with subpoenas related to the investigation of Jeffrey Epstein. This decision, which follows a unanimous vote by the House Oversight Committee, now sends the matter to the Justice Department for potential criminal prosecution. Black's refusal to provide documents and testify has raised concerns among lawmakers, particularly regarding a $180 million payment he made to Epstein. Black's legal team is contesting the subpoenas, claiming they are illegitimate and an abuse of power, while lawmakers argue that accountability is essential for Epstein's survivors. The situation underscores the ongoing scrutiny of high-profile individuals connected to Epstein's network.\n\n**Key Details:**\n• House held Leon Black in contempt on Wednesday.\n• The case is now with the Justice Department for possible prosecution.\n• Black is accused of refusing to comply with subpoenas for documents and testimony.\n• Lawmakers are pressing for answers about a $180 million payment to Epstein.",
+      "image_url": null,
+      "url": "https://kvia.com/politics/cnn-us-politics/2026/09/16/house-holds-billionaire-investor-leon-black-in-contempt-over-epstein-probe/",
+      "published_at": "2026-09-16T12:49:05-06:00",
+      "status": "processed",
+      "is_duplicate": 0,
+      "source_name": "KVIA",
+      "category_slug": "politics",
+      "category_name": "Politics",
+      "tags": [
+        {
+          "name": "legal",
+          "slug": "legal"
+        },
+        {
+          "name": "epstein",
+          "slug": "epstein"
+        },
+        {
+          "name": "justice",
+          "slug": "justice"
+        },
+        {
+          "name": "investigation",
+          "slug": "investigation"
+        },
+        {
+          "name": "congress",
+          "slug": "congress"
+        }
+      ]
+    },
+    "junk-image": {
+      "uuid": "f87bc4d7-b0ad-4c43-8ae6-d7bba2b059f0",
+      "title": "Key Updates for El Paso Residents: August 21 Highlights",
+      "summary": "On August 21, several significant topics are making headlines, including the unexpected return of Prince Harry and Meghan to the UK, which is stirring public interest. The Democratic strategy to support independent candidates in Republican states for the 2026 Senate elections could lead to more competitive races, especially in Idaho, Nebraska, and South Dakota. Additionally, the Salvadoran community in the U.S. is awaiting a crucial decision regarding the Temporary Protected Status for El Salvador, amid ongoing immigration debates. The article also touches on a tragic incident in New York involving a boat captain and a bomb attack, as well as the impact of the El Niño phenomenon on winter weather in the U.S.\n\n**Key Details:**\n• Monitor developments regarding the Senate elections in Idaho, Nebraska, and South Dakota for 2026.\n• Stay informed about the status of Temporary Protected Status for Salvadorans in the U.S.\n• Be aware of the potential effects of El Niño on winter weather patterns across the country.",
+      "image_url": "https://s.w.org/images/core/emoji/17.0.2/72x72/1f399.png",
+      "url": "https://kvia.com/news/noticias/cnn-spanish/2026/08/21/las-5-cosas-que-debes-saber-este-21-de-agosto/",
+      "published_at": "2026-08-21T03:42:46-06:00",
+      "status": "processed",
+      "is_duplicate": 0,
+      "source_name": "KVIA",
+      "category_slug": "community",
+      "category_name": "Community",
+      "tags": [
+        {
+          "name": "community",
+          "slug": "community"
+        },
+        {
+          "name": "immigration",
+          "slug": "immigration"
+        },
+        {
+          "name": "royalty",
+          "slug": "royalty"
+        },
+        {
+          "name": "el-nino",
+          "slug": "el-nino"
+        },
+        {
+          "name": "senate-elections",
+          "slug": "senate-elections"
+        }
+      ]
+    },
+    "usable-image": {
+      "chosen": {
+        "uuid": "326af4d4-ff96-4dec-8da2-a02085a802b3",
+        "title": "Get Your Spooky $3 Halloween Mini Totes at Trader Joe's",
+        "summary": "Trader Joe's has launched its latest collection of $3 mini tote bags, featuring festive Halloween designs. These limited-edition totes are expected to be popular among shoppers, especially those looking to celebrate the spooky season. The bags are available for purchase at Trader Joe's locations, and fans are encouraged to visit soon, as these items tend to sell out quickly. This initiative not only adds a fun element to Halloween shopping but also promotes sustainability through reusable bags.\n\n**Key Details:**\n• Mini tote bags are priced at $3 each.\n• Available in Halloween-themed colors and designs.\n• Visit your local Trader Joe's to purchase before they sell out.",
+        "image_url": "https://www.ktsm.com/wp-content/uploads/sites/38/2026/09/FEATURE_Trader-Joes-3-Halloween-mini-totes-are-returning-so-prepare-for-chaos.jpg?w=900",
+        "url": "https://www.ktsm.com/news/lifestyle-news/shopping/trader-joes-unveils-3-halloween-mini-totes-heres-how-to-get-one/",
+        "published_at": "2026-09-16T13:49:20-06:00",
+        "status": "processed",
+        "is_duplicate": 0,
+        "source_name": "KTSM",
+        "category_slug": "community",
+        "category_name": "Community",
+        "tags": [
+          {
+            "name": "community",
+            "slug": "community"
+          },
+          {
+            "name": "shopping",
+            "slug": "shopping"
+          },
+          {
+            "name": "trader-joes",
+            "slug": "trader-joes"
+          },
+          {
+            "name": "halloween",
+            "slug": "halloween"
+          }
+        ],
+        "imageCheck": {
+          "headStatus": 200,
+          "contentType": "image/jpeg"
+        }
+      },
+      "rejected": [
+        {
+          "uuid": "5deacd9f-9618-4f2e-b5a0-41d0bfcd79b8",
+          "url": "https://kvia.com/wp-content/uploads/2025/08/NEW-KVIA-Generic-Thumbnail.png",
+          "headStatus": null,
+          "reason": "not checked — chosen candidate found first"
+        },
+        {
+          "uuid": "a90c2be1-600a-4f16-ad94-9118e1d50088",
+          "url": "https://www.ktsm.com/wp-content/uploads/sites/38/2026/09/GettyImages-171625842-e1789581942639.jpg?w=900",
+          "headStatus": null,
+          "reason": "not checked — chosen candidate found first"
+        },
+        {
+          "uuid": "3b53a85d-feea-454c-a707-da861aa6dc81",
+          "url": "https://kvia.b-cdn.net/2024/04/EPISD.jpg",
+          "headStatus": null,
+          "reason": "not checked — chosen candidate found first"
+        },
+        {
+          "uuid": "aee43053-15ad-41e3-8560-2e86a6dc114e",
+          "url": "https://kvia.com/wp-content/uploads/2026/09/fredd-young.webp",
+          "headStatus": null,
+          "reason": "not checked — chosen candidate found first"
+        }
+      ]
+    },
+    "spanish-headline": {
+      "rows": [
+        {
+          "uuid": "f63b5753-90b6-4a54-b78d-160461c08bf8",
+          "title": "Ucrania intensifica ofensiva contra la infraestructura petrolera rusa en medio de ganancias inesperadas del Kremlin",
+          "summary": "El Ejército de Ucrania ha intensificado sus ataques a la infraestructura energética de Rusia, apuntando a refinerías y terminales de exportación en un esfuerzo por debilitar una de las principales fuentes de ingresos del Kremlin. En las últimas semanas, se han llevado a cabo al menos diez ataques significativos, incluyendo uno en una refinería en Yaroslavl, que resultó en daños a edificios residenciales. Mientras tanto, Rusia ha visto un aumento en los precios del petróleo, beneficiándose de la flexibilización de algunas sanciones estadounidenses. El presidente ucraniano, Volodymyr Zelensky, ha criticado estas medidas, argumentando que permiten a Rusia continuar sus ataques. Se espera que el gobierno ruso reintroduzca una prohibición a las exportaciones de gasolina a partir del 1 de abril debido a los efectos en el mercado interno.\n\n**Key Details:**\n• Ucrania ha realizado al menos 10 ataques significativos a la infraestructura energética rusa este mes.\n• El último ataque fue a una refinería en Yaroslavl, causando un incendio y daños a edificios cercanos.\n• Se espera que Rusia reintroduzca una prohibición a las exportaciones de gasolina a partir del 1 de abril.\n• El presupuesto estatal de Rusia depende de los ingresos petroleros, que han aumentado en el último mes.",
+          "image_url": null,
+          "url": "https://kvia.com/news/noticias/cnn-spanish/2026/03/28/ucrania-intensifica-ataques-a-la-industria-petrolera-rusa-mientras-el-kremlin-obtiene-ganancias-inesperadas-por-exportaciones/",
+          "published_at": "2026-03-28T18:40:54-06:00",
+          "status": "processed",
+          "is_duplicate": 0,
+          "source_name": "KVIA",
+          "category_slug": "politics",
+          "category_name": "Politics",
+          "tags": [
+            {
+              "name": "rusia",
+              "slug": "rusia"
+            },
+            {
+              "name": "sanciones",
+              "slug": "sanciones"
+            },
+            {
+              "name": "petroleo",
+              "slug": "petroleo"
+            },
+            {
+              "name": "ucrania",
+              "slug": "ucrania"
+            },
+            {
+              "name": "guerra",
+              "slug": "guerra"
+            }
+          ],
+          "confirmedSpanish": true,
+          "note": "Fully Spanish headline (Ukraine/Russia oil-infrastructure story) — longest genuinely Spanish candidate in this set."
+        },
+        {
+          "uuid": "923a6674-6681-42ef-bde0-2825212d8b13",
+          "title": "Colombian Presidential Candidate Abelardo de la Espriella Advocates for Security and Economic Reform",
+          "summary": "Abelardo de la Espriella, a controversial independent candidate in Colombia's upcoming elections, is campaigning on a platform focused on restoring security and economic reform. With the first round of voting set for May 31, de la Espriella, known as 'El Tigre,' emphasizes the urgent need to combat crime and corruption, citing a surge in violence and extortion in the country. He aims to strengthen relations with the U.S. to tackle drug trafficking and proposes a radical approach to governance, promising to cut bureaucracy and taxes. His campaign has been marked by threats and violence, highlighting the dangerous political climate in Colombia. Voters are urged to consider his proposals as they head to the polls.\n\n**Key Details:**\n• First round of voting in Colombia on May 31, 2025.\n• De la Espriella proposes a 'Plan Colombia 2.0' to address health and security issues.\n• Increased security measures for candidates due to threats and violence in the political landscape.",
+          "image_url": null,
+          "url": "https://kvia.com/news/noticias/cnn-spanish/2026/05/27/abelardo-de-la-espriella-a-cnn-estados-unidos-nos-necesita-tanto-a-nosotros-como-nosotros-a-ellos/",
+          "published_at": "2026-05-27T08:12:10-06:00",
+          "status": "processed",
+          "is_duplicate": 0,
+          "source_name": "KVIA",
+          "category_slug": "politics",
+          "category_name": "Politics",
+          "tags": [
+            {
+              "name": "economy",
+              "slug": "economy"
+            },
+            {
+              "name": "elections",
+              "slug": "elections"
+            },
+            {
+              "name": "drug-trafficking",
+              "slug": "drug-trafficking"
+            },
+            {
+              "name": "security",
+              "slug": "security"
+            },
+            {
+              "name": "corruption",
+              "slug": "corruption"
+            }
+          ],
+          "confirmedSpanish": false,
+          "note": "English headline. Matched \"% de la %\" only because \"de la Espriella\" is a Colombian surname, not Spanish prose."
+        },
+        {
+          "uuid": "63d76e51-b69e-4b64-b996-d8559004395f",
+          "title": "Nueva Zelandia enfrenta desafíos persistentes con pandillas a pesar de la prohibición de distintivos",
+          "summary": "Calen Morris, un miembro de la pandilla 'Head Hunters', fue arrestado por violar una nueva ley en Nueva Zelandia que prohíbe el uso de distintivos de pandillas en espacios públicos. Esta legislación, implementada para combatir el aumento de la criminalidad asociada a pandillas, ha llevado a la incautación de 192 distintivos en su primer año y más de 850 cargos por incumplimiento. Aunque el gobierno reporta una disminución del 23% en delitos violentos, los pandilleros afirman que la prohibición es solo superficial y que las actividades delictivas continúan. La ley, que puede resultar en seis meses de prisión o multas, no ha logrado erradicar la presencia de pandillas, que siguen siendo responsables de un porcentaje significativo de delitos violentos en el país.\n\n**Key Details:**\n• La ley de prohibición de distintivos se implementó en octubre de 2024.\n• Más de 850 cargos han sido presentados por incumplimiento de la ley en su primer año.\n• Las penas por violar la prohibición incluyen hasta seis meses de prisión o multas de hasta 5,000 NZD.\n• Los distintivos son considerados sagrados para los miembros de pandillas, y perder uno puede tener graves consecuencias.",
+          "image_url": null,
+          "url": "https://kvia.com/news/noticias/cnn-spanish/2025/12/25/nueva-zelandia-les-prohibio-a-estas-pandillas-usar-sus-distintivos-pero-cambio-eso-algo/",
+          "published_at": "2025-12-25T08:03:41-07:00",
+          "status": "processed",
+          "is_duplicate": 0,
+          "source_name": "KVIA",
+          "category_slug": "crime",
+          "category_name": "Crime",
+          "tags": [
+            {
+              "name": "arresto",
+              "slug": "arresto"
+            },
+            {
+              "name": "pandillas",
+              "slug": "pandillas"
+            },
+            {
+              "name": "ley",
+              "slug": "ley"
+            },
+            {
+              "name": "criminalidad",
+              "slug": "criminalidad"
+            },
+            {
+              "name": "nueva-zelandia",
+              "slug": "nueva-zelandia"
+            }
+          ],
+          "confirmedSpanish": true,
+          "note": "Fully Spanish headline (New Zealand gang-patch ban story)."
+        },
+        {
+          "uuid": "a1c5e6c9-6dd5-457d-b4b7-4fbe66102b48",
+          "title": "Colombia's Political Shift: Petro's Farewell Trip to Cuba Amid De La Espriella's Inauguration Plans",
+          "summary": "Colombian President Gustavo Petro is set to make his final international trip to Cuba, emphasizing the importance of sovereignty and life in the Caribbean. This visit coincides with the upcoming inauguration of President-elect Abelardo De La Espriella on August 7, who plans to close 14 embassies and sever ties with Cuba and Nicaragua. The inauguration will take place at the USC Arena in Cali, a departure from traditional ceremonies in Bogotá, reflecting a significant ideological divide in Colombian politics. Security measures are being implemented in Cali to ensure a safe event, as the city has been a focal point of recent violence. This transition marks a pivotal moment in Colombia's political landscape, highlighting contrasting governance styles and priorities.\n\n**Key Details:**\n• Inauguration of Abelardo De La Espriella on August 7 at USC Arena, Cali.\n• Petro's trip to Cuba emphasizes national sovereignty amidst political changes.\n• De La Espriella plans to close 14 embassies, including those in Cuba and Nicaragua.\n• Enhanced security measures in Cali due to recent violence.\n• International guests include leaders from Ecuador, Argentina, and the U.S.",
+          "image_url": null,
+          "url": "https://kvia.com/news/noticias/cnn-spanish/2026/07/31/los-dos-gestos-que-definen-la-polarizacion-en-colombia-petro-viaja-a-cuba-y-de-la-espriella-se-prepara-para-asumir-en-cali/",
+          "published_at": "2026-07-31T06:35:03-06:00",
+          "status": "processed",
+          "is_duplicate": 0,
+          "source_name": "KVIA",
+          "category_slug": "politics",
+          "category_name": "Politics",
+          "tags": [
+            {
+              "name": "politics",
+              "slug": "politics"
+            },
+            {
+              "name": "diplomacy",
+              "slug": "diplomacy"
+            },
+            {
+              "name": "security",
+              "slug": "security"
+            },
+            {
+              "name": "cuba",
+              "slug": "cuba"
+            },
+            {
+              "name": "inauguration",
+              "slug": "inauguration"
+            }
+          ],
+          "confirmedSpanish": false,
+          "note": "English headline. \"De La Espriella\" is the same Colombian surname as the 923a6674 row, not Spanish prose."
+        },
+        {
+          "uuid": "442973c4-24ce-48a8-a469-bc47d182fb42",
+          "title": "Propuesta de confidencialidad para empleados federales genera controversia en el Gobierno de Trump",
+          "summary": "La Casa Blanca ha presentado una propuesta de acuerdo de confidencialidad que todos los trabajadores federales deberán firmar para proteger la información gubernamental sensible. Este acuerdo busca frenar las filtraciones a los medios de comunicación y se publicará oficialmente en el Registro Federal, con un período de comentarios de 30 días. La medida ha sido criticada por la Federación Estadounidense de Empleados Gubernamentales, que la considera un intento de silenciar a los empleados y restringir su derecho a informar sobre irregularidades. La propuesta se basa en incidentes recientes donde se filtró información sensible, poniendo en riesgo la seguridad de los empleados. La administración asegura que no se crearán nuevas restricciones sustantivas, pero el sindicato advierte sobre posibles despidos a quienes se nieguen a firmar.\n\n**Key Details:**\n• La propuesta se publicará oficialmente el miércoles, con un período de comentarios de 30 días.\n• La Federación Estadounidense de Empleados Gubernamentales critica la propuesta como un intento de silenciar a los empleados.\n• El acuerdo abarca una amplia gama de información confidencial, incluyendo operaciones internas y asuntos de personal.\n• Se reportó un incidente donde se filtró información personal de 4,500 empleados del Servicio de Inmigración y Control de Aduanas.",
+          "image_url": null,
+          "url": "https://kvia.com/news/noticias/cnn-spanish/2026/05/26/el-gobierno-de-trump-propone-que-todos-los-trabajadores-federales-firmen-acuerdos-de-confidencialidad/",
+          "published_at": "2026-05-26T15:11:50-06:00",
+          "status": "processed",
+          "is_duplicate": 0,
+          "source_name": "KVIA",
+          "category_slug": "politics",
+          "category_name": "Politics",
+          "tags": [
+            {
+              "name": "confidencialidad",
+              "slug": "confidencialidad"
+            },
+            {
+              "name": "empleados-federales",
+              "slug": "empleados-federales"
+            },
+            {
+              "name": "filtraciones",
+              "slug": "filtraciones"
+            },
+            {
+              "name": "gobierno-trump",
+              "slug": "gobierno-trump"
+            },
+            {
+              "name": "sindicatos",
+              "slug": "sindicatos"
+            }
+          ],
+          "confirmedSpanish": true,
+          "note": "Fully Spanish headline (federal employee confidentiality proposal story)."
+        },
+        {
+          "uuid": "6b85b2ef-e5dd-48f2-9e29-edadd0a79b5a",
+          "title": "Propuesta para renombrar aeropuerto en Florida genera controversia por posibles beneficios a Trump",
+          "summary": "La Legislatura de Florida está considerando un proyecto de ley para renombrar el Aeropuerto Internacional de Palm Beach en honor al expresidente Donald Trump. La propuesta, que ya fue aprobada por la Cámara estatal con 81 votos a favor, ha suscitado preocupaciones entre algunos legisladores sobre solicitudes de marcas registradas presentadas por la Organización Trump, que podrían permitir a la familia Trump beneficiarse económicamente. A pesar de las afirmaciones de un portavoz de la Organización Trump de que no recibirán regalías por el cambio de nombre, la situación ha generado un intenso debate. La enmienda presentada para evitar que la Organización Trump se beneficie no fue aprobada, y el proyecto ahora se dirige al Senado de Florida para su consideración.\n\n**Key Details:**\n• La propuesta fue aprobada por la Cámara estatal con 81 votos a favor y 30 en contra.\n• Las solicitudes de marcas registradas incluyen nombres como 'AEROPUERTO INTERNACIONAL DONALD J. TRUMP'.\n• El proyecto de ley se dirige ahora al Senado de Florida para su consideración.\n• Un portavoz de la Organización Trump asegura que no recibirán regalías por el cambio de nombre.",
+          "image_url": null,
+          "url": "https://kvia.com/news/noticias/cnn-spanish/2026/02/18/trump-quiere-renombrar-el-aeropuerto-de-florida-en-su-honor-y-criticos-alegan-que-beneficiaria-economicamente-a-su-familia/",
+          "published_at": "2026-02-18T15:27:18-07:00",
+          "status": "processed",
+          "is_duplicate": 0,
+          "source_name": "KVIA",
+          "category_slug": "politics",
+          "category_name": "Politics",
+          "tags": [
+            {
+              "name": "trump",
+              "slug": "trump"
+            },
+            {
+              "name": "aeropuerto",
+              "slug": "aeropuerto"
+            },
+            {
+              "name": "legislacion",
+              "slug": "legislacion"
+            },
+            {
+              "name": "marca",
+              "slug": "marca"
+            },
+            {
+              "name": "controversia",
+              "slug": "controversia"
+            }
+          ],
+          "confirmedSpanish": true,
+          "note": "Fully Spanish headline (Florida airport renaming controversy story)."
+        },
+        {
+          "uuid": "0309da28-3cc7-46d3-9149-3cf7bbff2578",
+          "title": "Trump Se Preparara para Solicitar Revisión de la Ciudadanía por Nacimiento ante la Corte Suprema",
+          "summary": "El presidente Donald Trump anunció su intención de pedir a la Corte Suprema de EE.UU. que reconsidere su reciente fallo que mantiene la ciudadanía por nacimiento, una decisión que podría afectar a cientos de miles de bebés nacidos en el país cada año. La Corte dictó una decisión 6-3 que impide al gobierno de Trump eliminar la ciudadanía automática, un revés significativo para su agenda de inmigración. Trump tiene 25 días para presentar su solicitud y ha instado al Congreso a actuar para eliminar esta ciudadanía por ley. La situación ha generado un debate en el Congreso, con el presidente de la Cámara de Representantes, Mike Johnson, reconociendo la necesidad de abordar el tema.\n\n**Key Details:**\n• Trump tiene 25 días para solicitar una nueva audiencia ante la Corte Suprema.\n• La decisión de la Corte reafirma la ciudadanía automática por nacimiento según la 14ª Enmienda.\n• El presidente ha instado al Congreso a trabajar en una ley para eliminar la ciudadanía por nacimiento.\n• Mike Johnson, presidente de la Cámara, reconoce la necesidad de abordar el tema en el Congreso.",
+          "image_url": null,
+          "url": "https://kvia.com/news/noticias/cnn-spanish/2026/07/09/trump-dice-que-pedira-a-la-corte-suprema-que-tome-el-raro-paso-de-volver-a-escuchar-el-caso-de-ciudadania-por-nacimiento/",
+          "published_at": "2026-07-09T00:17:02-06:00",
+          "status": "processed",
+          "is_duplicate": 0,
+          "source_name": "KVIA",
+          "category_slug": "politics",
+          "category_name": "Politics",
+          "tags": [
+            {
+              "name": "trump",
+              "slug": "trump"
+            },
+            {
+              "name": "inmigracion",
+              "slug": "inmigracion"
+            },
+            {
+              "name": "congreso",
+              "slug": "congreso"
+            },
+            {
+              "name": "ciudadania",
+              "slug": "ciudadania"
+            },
+            {
+              "name": "corte-suprema",
+              "slug": "corte-suprema"
+            }
+          ],
+          "confirmedSpanish": true,
+          "note": "Fully Spanish headline (birthright citizenship / Supreme Court story); source capitalized it in an odd title-case style, but every word is genuine Spanish."
+        },
+        {
+          "uuid": "a17db148-82b6-4c73-a8ad-8ff9abd995e8",
+          "title": "Benefit Concert 'Unidos por los Nuestros' Supports Earthquake Relief for Colombia and Venezuela",
+          "summary": "The benefit concert previously known as 'Unidos por Venezuela' has been renamed 'Unidos por los nuestros' in response to a devastating 7.4 magnitude earthquake that struck Colombia. Scheduled for Sunday, August 16, the event will feature over 30 artists, including renowned names like Chayanne, Luis Fonsi, and Marc Anthony, with proceeds directed towards victims in both Venezuela and Colombia. The concert will take place at the Kaseya Center in Miami at 6:00 p.m. ET, and viewers can watch it live on Univisión, with opportunities to donate during the broadcast. This initiative highlights the solidarity and support for those affected by natural disasters in the region.\n\n**Key Details:**\n• Concert date: Sunday, August 16, 6:00 p.m. ET\n• Location: Kaseya Center, Miami\n• Artists performing include Chayanne, Marc Anthony, and Luis Fonsi\n• Viewers can donate during the live broadcast on Univisión",
+          "image_url": null,
+          "url": "https://kvia.com/news/noticias/cnn-spanish/2026/08/11/concierto-benefico-en-solidaridad-con-venezuela-se-suma-al-apoyo-a-colombia-tras-terremoto/",
+          "published_at": "2026-08-11T17:39:10-06:00",
+          "status": "processed",
+          "is_duplicate": 0,
+          "source_name": "KVIA",
+          "category_slug": "community",
+          "category_name": "Community",
+          "tags": [
+            {
+              "name": "charity",
+              "slug": "charity"
+            },
+            {
+              "name": "venezuela",
+              "slug": "venezuela"
+            },
+            {
+              "name": "colombia",
+              "slug": "colombia"
+            },
+            {
+              "name": "concert",
+              "slug": "concert"
+            },
+            {
+              "name": "earthquake",
+              "slug": "earthquake"
+            }
+          ],
+          "confirmedSpanish": false,
+          "note": "English headline with an embedded Spanish concert title in quotes (\"Unidos por los Nuestros\") — the headline prose itself is English."
+        },
+        {
+          "uuid": "88ec8092-509e-4dd4-af70-3e1e9bc9dc22",
+          "title": "Investigación del Departamento de Educación sobre la admisión de mujeres trans en Smith College",
+          "summary": "El Departamento de Educación de EE. UU. ha comenzado una investigación contra Smith College por su política de admisión de mujeres trans, alegando que podría violar el Título IX, que prohíbe la discriminación por sexo en instituciones educativas. Smith College, que ha admitido a mujeres trans desde 2015, defiende su enfoque inclusivo y argumenta que su misión es apoyar a todas las mujeres, incluidas las trans y no binarias. La investigación surge tras una denuncia de la organización conservadora Defending Education, lo que ha generado preocupaciones sobre la posible limitación de derechos para las personas trans en el ámbito educativo. Este caso podría tener implicaciones significativas para otras universidades que también admiten a estudiantes trans.\n\n**Key Details:**\n• Smith College ha admitido a mujeres trans desde 2015.\n• La investigación se basa en una denuncia de Defending Education.\n• El Título IX prohíbe la discriminación por sexo en instituciones que reciben fondos federales.",
+          "image_url": null,
+          "url": "https://kvia.com/news/noticias/cnn-spanish/2026/05/05/el-departamento-de-educacion-abre-una-investigacion-contra-una-universidad-por-admitir-a-mujeres-trans/",
+          "published_at": "2026-05-05T06:38:07-06:00",
+          "status": "processed",
+          "is_duplicate": 0,
+          "source_name": "KVIA",
+          "category_slug": "education",
+          "category_name": "Education",
+          "tags": [
+            {
+              "name": "education",
+              "slug": "education"
+            },
+            {
+              "name": "civil-rights",
+              "slug": "civil-rights"
+            },
+            {
+              "name": "transgender",
+              "slug": "transgender"
+            },
+            {
+              "name": "title-ix",
+              "slug": "title-ix"
+            },
+            {
+              "name": "inclusion",
+              "slug": "inclusion"
+            }
+          ],
+          "confirmedSpanish": true,
+          "note": "Fully Spanish headline (Dept. of Education investigation into trans-women admissions story)."
+        },
+        {
+          "uuid": "af6b2002-8d7d-4a35-937b-c8f49d8e4859",
+          "title": "Agentes de la TSA enfrentan dificultades económicas mientras los viajeros sufren largas esperas",
+          "summary": "Más de un tercio de los agentes de la TSA en el Aeropuerto Internacional Hartsfield-Jackson de Atlanta no se presentaron a trabajar, resultando en esperas de hasta dos horas para los pasajeros. Esta situación se debe a que los empleados están trabajando sin pago durante un cierre del gobierno que afecta a 61,000 trabajadores del Departamento de Seguridad Nacional. Muchos de estos agentes enfrentan problemas financieros graves, como embargos y dificultades para cubrir gastos médicos. A pesar de la ayuda comunitaria en otros aeropuertos, como donaciones de alimentos y vales de comida, los empleados continúan sufriendo pérdidas económicas significativas. La falta de pago ha llevado a una disminución en la retención de personal, con 366 agentes dimitiendo desde el inicio del cierre.\n\n**Key Details:**\n• Más de un tercio de los agentes de la TSA no se presentaron a trabajar en Atlanta.\n• Los empleados de la TSA han enfrentado tres interrupciones en el pago en seis meses.\n• Se han recibido donaciones de alimentos y vales de comida en varios aeropuertos para ayudar a los empleados.\n• Los salarios iniciales para oficiales de la TSA comienzan alrededor de $40,000, dependiendo de la ubicación.",
+          "image_url": null,
+          "url": "https://kvia.com/news/noticias/cnn-spanish/2026/03/18/trabajadores-de-tsa-se-enfrentan-a-la-realidad-de-trabajar-sin-cobrar-mientras-los-pasajeros-hacen-largas-filas/",
+          "published_at": "2026-03-18T03:58:14-06:00",
+          "status": "processed",
+          "is_duplicate": 0,
+          "source_name": "KVIA",
+          "category_slug": "community",
+          "category_name": "Community",
+          "tags": [
+            {
+              "name": "tsa",
+              "slug": "tsa"
+            },
+            {
+              "name": "empleo",
+              "slug": "empleo"
+            },
+            {
+              "name": "economía",
+              "slug": "economa"
+            },
+            {
+              "name": "aeropuertos",
+              "slug": "aeropuertos"
+            },
+            {
+              "name": "cierre-gobierno",
+              "slug": "cierre-gobierno"
+            }
+          ],
+          "confirmedSpanish": true,
+          "note": "Fully Spanish headline (TSA agents economic hardship story)."
+        }
+      ],
+      "chosen": {
+        "uuid": "f63b5753-90b6-4a54-b78d-160461c08bf8",
+        "title": "Ucrania intensifica ofensiva contra la infraestructura petrolera rusa en medio de ganancias inesperadas del Kremlin",
+        "summary": "El Ejército de Ucrania ha intensificado sus ataques a la infraestructura energética de Rusia, apuntando a refinerías y terminales de exportación en un esfuerzo por debilitar una de las principales fuentes de ingresos del Kremlin. En las últimas semanas, se han llevado a cabo al menos diez ataques significativos, incluyendo uno en una refinería en Yaroslavl, que resultó en daños a edificios residenciales. Mientras tanto, Rusia ha visto un aumento en los precios del petróleo, beneficiándose de la flexibilización de algunas sanciones estadounidenses. El presidente ucraniano, Volodymyr Zelensky, ha criticado estas medidas, argumentando que permiten a Rusia continuar sus ataques. Se espera que el gobierno ruso reintroduzca una prohibición a las exportaciones de gasolina a partir del 1 de abril debido a los efectos en el mercado interno.\n\n**Key Details:**\n• Ucrania ha realizado al menos 10 ataques significativos a la infraestructura energética rusa este mes.\n• El último ataque fue a una refinería en Yaroslavl, causando un incendio y daños a edificios cercanos.\n• Se espera que Rusia reintroduzca una prohibición a las exportaciones de gasolina a partir del 1 de abril.\n• El presupuesto estatal de Rusia depende de los ingresos petroleros, que han aumentado en el último mes.",
+        "image_url": null,
+        "url": "https://kvia.com/news/noticias/cnn-spanish/2026/03/28/ucrania-intensifica-ataques-a-la-industria-petrolera-rusa-mientras-el-kremlin-obtiene-ganancias-inesperadas-por-exportaciones/",
+        "published_at": "2026-03-28T18:40:54-06:00",
+        "status": "processed",
+        "is_duplicate": 0,
+        "source_name": "KVIA",
+        "category_slug": "politics",
+        "category_name": "Politics",
+        "tags": [
+          {
+            "name": "rusia",
+            "slug": "rusia"
+          },
+          {
+            "name": "sanciones",
+            "slug": "sanciones"
+          },
+          {
+            "name": "petroleo",
+            "slug": "petroleo"
+          },
+          {
+            "name": "ucrania",
+            "slug": "ucrania"
+          },
+          {
+            "name": "guerra",
+            "slug": "guerra"
+          }
+        ],
+        "confirmedSpanish": true,
+        "note": "Fully Spanish headline (Ukraine/Russia oil-infrastructure story) — longest genuinely Spanish candidate in this set."
+      }
+    },
+    "uncategorized": {
+      "uuid": "1fa497bd-5e43-4bcd-817e-50d101f4951b",
+      "title": "Violent Gang Attack in Haiti Claims 16 Lives Amid Ongoing Crisis",
+      "summary": "A brutal attack by the armed gang Gran Grif in Haiti resulted in at least 16 fatalities and numerous injuries on Sunday in Jean Denis, near Port-au-Prince. The gang blocked access routes to prevent police intervention, leading to a delayed response. While the police reported 16 deaths, an NGO claims the toll may be as high as 70, with many homes set ablaze and thousands displaced. The U.S. State Department has labeled Gran Grif as a foreign terrorist organization, noting its significant role in civilian deaths since 2022. Haiti continues to grapple with escalating violence, with a new multinational force expected to arrive in April to help restore order.\n\n**Key Details:**\n• At least 16 confirmed dead; NGO reports suggest 70 fatalities.\n• Gang Gran Grif has been responsible for 80% of civilian deaths in Artibonite since 2022.\n• New multinational forces to arrive in April to combat gang violence.",
+      "image_url": null,
+      "url": "https://kvia.com/news/noticias/cnn-spanish/2026/03/30/mueren-al-menos-16-personas-en-una-masacre-perpetrada-por-una-una-banda-criminal-en-haiti-segun-la-policia/",
+      "published_at": "2026-03-30T15:10:58-06:00",
+      "status": "processed",
+      "is_duplicate": 0,
+      "source_name": "KVIA",
+      "category_slug": null,
+      "category_name": null,
+      "tags": []
+    },
+    "feed": [
+      {
+        "uuid": "326af4d4-ff96-4dec-8da2-a02085a802b3",
+        "title": "Get Your Spooky $3 Halloween Mini Totes at Trader Joe's",
+        "summary": "Trader Joe's has launched its latest collection of $3 mini tote bags, featuring festive Halloween designs. These limited-edition totes are expected to be popular among shoppers, especially those looking to celebrate the spooky season. The bags are available for purchase at Trader Joe's locations, and fans are encouraged to visit soon, as these items tend to sell out quickly. This initiative not only adds a fun element to Halloween shopping but also promotes sustainability through reusable bags.\n\n**Key Details:**\n• Mini tote bags are priced at $3 each.\n• Available in Halloween-themed colors and designs.\n• Visit your local Trader Joe's to purchase before they sell out.",
+        "image_url": "https://www.ktsm.com/wp-content/uploads/sites/38/2026/09/FEATURE_Trader-Joes-3-Halloween-mini-totes-are-returning-so-prepare-for-chaos.jpg?w=900",
+        "url": "https://www.ktsm.com/news/lifestyle-news/shopping/trader-joes-unveils-3-halloween-mini-totes-heres-how-to-get-one/",
+        "published_at": "2026-09-16T13:49:20-06:00",
+        "status": "processed",
+        "is_duplicate": 0,
+        "source_name": "KTSM",
+        "category_slug": "community",
+        "category_name": "Community",
+        "tags": [
+          {
+            "name": "community",
+            "slug": "community"
+          },
+          {
+            "name": "shopping",
+            "slug": "shopping"
+          },
+          {
+            "name": "trader-joes",
+            "slug": "trader-joes"
+          },
+          {
+            "name": "halloween",
+            "slug": "halloween"
+          }
+        ]
+      },
+      {
+        "uuid": "5deacd9f-9618-4f2e-b5a0-41d0bfcd79b8",
+        "title": "Anthony Elementary Hosts 5th Grade Pledge Ceremony on September 16, 2026",
+        "summary": "Anthony Elementary School is set to hold a significant 5th Grade Pledge ceremony on September 16, 2026. This event is an important tradition that marks the transition of students as they prepare to advance to middle school. The ceremony aims to instill a sense of responsibility and commitment among the students. Families and community members are encouraged to attend and support the students during this milestone event.\n\n**Key Details:**\n• Date of the ceremony: September 16, 2026\n• Location: Anthony Elementary School\n• Encouragement for families and community to attend",
+        "image_url": "https://kvia.com/wp-content/uploads/2025/08/NEW-KVIA-Generic-Thumbnail.png",
+        "url": "https://kvia.com/lifestyle/2026/09/16/anthony-elementary-5th-grade-pledge-9-16-26/",
+        "published_at": "2026-09-16T13:27:08-06:00",
+        "status": "processed",
+        "is_duplicate": 0,
+        "source_name": "KVIA",
+        "category_slug": "education",
+        "category_name": "Education",
+        "tags": [
+          {
+            "name": "community",
+            "slug": "community"
+          },
+          {
+            "name": "education",
+            "slug": "education"
+          },
+          {
+            "name": "elementary-school",
+            "slug": "elementary-school"
+          }
+        ]
+      },
+      {
+        "uuid": "a90c2be1-600a-4f16-ad94-9118e1d50088",
+        "title": "USPS Launches Operation Santa, Inviting El Pasoans to Adopt Holiday Letters",
+        "summary": "The U.S. Postal Service has begun its annual Operation Santa, inviting residents to send letters to Santa Claus. This cherished initiative, which has been running since 1912, allows individuals to adopt letters from children and fulfill their holiday wishes. This year, El Pasoans are encouraged to participate and spread joy during the festive season. The program not only brings smiles to children's faces but also fosters community spirit by connecting donors with those in need.",
+        "image_url": "https://www.ktsm.com/wp-content/uploads/sites/38/2026/09/GettyImages-171625842-e1789581942639.jpg?w=900",
+        "url": "https://www.ktsm.com/news/national-news/usps-operation-santa-now-accepting-christmas-letters-seeking-adopters/",
+        "published_at": "2026-09-16T13:06:48-06:00",
+        "status": "processed",
+        "is_duplicate": 0,
+        "source_name": "KTSM",
+        "category_slug": "community",
+        "category_name": "Community",
+        "tags": [
+          {
+            "name": "holiday",
+            "slug": "holiday"
+          },
+          {
+            "name": "community",
+            "slug": "community"
+          },
+          {
+            "name": "charity",
+            "slug": "charity"
+          },
+          {
+            "name": "usps",
+            "slug": "usps"
+          },
+          {
+            "name": "operation-santa",
+            "slug": "operation-santa"
+          }
+        ]
+      },
+      {
+        "uuid": "8b86f8d7-4ce1-477f-9dcd-e73f2193ca01",
+        "title": "Congress Holds Leon Black in Contempt Amid Epstein Investigation",
+        "summary": "The House of Representatives has held billionaire investor Leon Black in contempt for failing to comply with subpoenas related to the investigation of Jeffrey Epstein. This decision, which follows a unanimous vote by the House Oversight Committee, now sends the matter to the Justice Department for potential criminal prosecution. Black's refusal to provide documents and testify has raised concerns among lawmakers, particularly regarding a $180 million payment he made to Epstein. Black's legal team is contesting the subpoenas, claiming they are illegitimate and an abuse of power, while lawmakers argue that accountability is essential for Epstein's survivors. The situation underscores the ongoing scrutiny of high-profile individuals connected to Epstein's network.\n\n**Key Details:**\n• House held Leon Black in contempt on Wednesday.\n• The case is now with the Justice Department for possible prosecution.\n• Black is accused of refusing to comply with subpoenas for documents and testimony.\n• Lawmakers are pressing for answers about a $180 million payment to Epstein.",
+        "image_url": null,
+        "url": "https://kvia.com/politics/cnn-us-politics/2026/09/16/house-holds-billionaire-investor-leon-black-in-contempt-over-epstein-probe/",
+        "published_at": "2026-09-16T12:49:05-06:00",
+        "status": "processed",
+        "is_duplicate": 0,
+        "source_name": "KVIA",
+        "category_slug": "politics",
+        "category_name": "Politics",
+        "tags": [
+          {
+            "name": "legal",
+            "slug": "legal"
+          },
+          {
+            "name": "epstein",
+            "slug": "epstein"
+          },
+          {
+            "name": "justice",
+            "slug": "justice"
+          },
+          {
+            "name": "investigation",
+            "slug": "investigation"
+          },
+          {
+            "name": "congress",
+            "slug": "congress"
+          }
+        ]
+      },
+      {
+        "uuid": "93b39255-d54d-470f-aab2-b558fa40f2b4",
+        "title": "Trump Retains Colombia's Drug Certification Status Amid New Leadership",
+        "summary": "President Donald Trump has decided to keep Colombia on the list of countries that have failed to meet U.S. drug control obligations, a designation it received a year ago. This decision comes as Colombia's new president, Abelardo de La Espriella, has committed to an aggressive anti-drug campaign. Trump indicated that if Colombia makes significant progress in dismantling narcoterrorist networks, he may reconsider its status in the future. The U.S. also recognizes Mexico's efforts against drug trafficking but emphasizes the need for further action. Meanwhile, Venezuela has been removed from the descertification list due to improved cooperation against drug cartels under its interim government.\n\n**Key Details:**\n• Colombia remains on the U.S. descertification list for drug control as of 2025.\n• President Abelardo de La Espriella has pledged to combat coca cultivation and cocaine production.\n• Mexico is urged to enhance efforts against narcoterrorist organizations.\n• Venezuela's status has changed due to improved cooperation against drug trafficking.",
+        "image_url": null,
+        "url": "https://kvia.com/news/noticias/cnn-spanish/2026/09/16/trump-mantiene-la-descertificacion-a-colombia-en-la-lucha-contra-las-drogas-y-espera-mejoras-del-nuevo-gobierno/",
+        "published_at": "2026-09-16T12:48:59-06:00",
+        "status": "processed",
+        "is_duplicate": 0,
+        "source_name": "KVIA",
+        "category_slug": "politics",
+        "category_name": "Politics",
+        "tags": [
+          {
+            "name": "drug-policy",
+            "slug": "drug-policy"
+          },
+          {
+            "name": "venezuela",
+            "slug": "venezuela"
+          },
+          {
+            "name": "colombia",
+            "slug": "colombia"
+          },
+          {
+            "name": "mexico",
+            "slug": "mexico"
+          },
+          {
+            "name": "narcoterrorism",
+            "slug": "narcoterrorism"
+          }
+        ]
+      },
+      {
+        "uuid": "746de4d5-1c01-46e1-a834-14108bcadd68",
+        "title": "New Study Confirms T. rex Was Warm-Blooded, Changing Our Understanding of Dinosaurs",
+        "summary": "Recent research has confirmed that Tyrannosaurus rex had a body temperature of approximately 97 degrees Fahrenheit, indicating it was warm-blooded. This finding, published in the journal Science Advances, is based on chemical analysis of fossilized teeth and adds to evidence that T. rex could thrive in colder climates. The study enhances our understanding of the dinosaur's behavior, physiology, and ecological interactions during the Late Cretaceous period, around 69 to 66 million years ago. Researchers believe this new method could be applied to other dinosaur species, potentially reshaping our views on their metabolic rates and lifestyles.\n\n**Key Details:**\n• T. rex body temperature estimated at 97°F (36°C), similar to humans.\n• Study published in Science Advances provides direct evidence of warm-bloodedness.\n• Research utilized fossilized teeth from a T. rex skeleton at the Natural History Museum of Los Angeles County.\n• Technique could be applied to other dinosaurs to explore their metabolic rates.",
+        "image_url": null,
+        "url": "https://kvia.com/cnn-other/2026/09/16/fossil-tooth-analysis-confirms-tyrannosaurus-rex-was-warm-blooded/",
+        "published_at": "2026-09-16T12:48:08-06:00",
+        "status": "processed",
+        "is_duplicate": 0,
+        "source_name": "KVIA",
+        "category_slug": "education",
+        "category_name": "Education",
+        "tags": [
+          {
+            "name": "research",
+            "slug": "research"
+          },
+          {
+            "name": "science",
+            "slug": "science"
+          },
+          {
+            "name": "dinosaurs",
+            "slug": "dinosaurs"
+          },
+          {
+            "name": "paleontology",
+            "slug": "paleontology"
+          },
+          {
+            "name": "warm-blooded",
+            "slug": "warm-blooded"
+          }
+        ]
+      },
+      {
+        "uuid": "3b53a85d-feea-454c-a707-da861aa6dc81",
+        "title": "EPISD Raises Tax Rate, Impacting Homeowners in El Paso",
+        "summary": "The El Paso Independent School District (EPISD) board has approved a new tax rate that will increase the average homeowner's tax bill by approximately $114 annually. The new rate is set at $1.0745 per $100 of taxable property valuation, which is slightly below the maximum rate allowed by voters. This change raises the average tax due on homes from $1,179 last year to $1,294.18 this year, reflecting a rise in average taxable home values from $109,167 to $120,455. Homeowners should be aware of exemptions available, including a $140,000 exemption for most homeowners and additional exemptions for seniors and disabled individuals.\n\n**Key Details:**\n• New tax rate approved at $1.0745 per $100 of property valuation.\n• Average homeowner's tax bill increases from $1,179 to $1,294.18.\n• First $140,000 of property value is exempt from school taxes for most homeowners.\n• Additional $60,000 exemption for seniors and disabled individuals.\n• Veterans with 100% disability rating are exempt from all property taxes.",
+        "image_url": "https://kvia.b-cdn.net/2024/04/EPISD.jpg",
+        "url": "https://kvia.com/news/el-paso/2026/09/16/episd-approves-new-tax-rate-who-will-be-paying-more/",
+        "published_at": "2026-09-16T12:46:37-06:00",
+        "status": "processed",
+        "is_duplicate": 0,
+        "source_name": "KVIA",
+        "category_slug": "education",
+        "category_name": "Education",
+        "tags": [
+          {
+            "name": "education",
+            "slug": "education"
+          },
+          {
+            "name": "episd",
+            "slug": "episd"
+          },
+          {
+            "name": "homeowners",
+            "slug": "homeowners"
+          },
+          {
+            "name": "property-taxes",
+            "slug": "property-taxes"
+          },
+          {
+            "name": "tax-rate",
+            "slug": "tax-rate"
+          }
+        ]
+      },
+      {
+        "uuid": "aee43053-15ad-41e3-8560-2e86a6dc114e",
+        "title": "Fredd Young, NMSU Football Legend and NFL Star, Passes Away at 64",
+        "summary": "Fredd Young, a celebrated Hall of Famer from New Mexico State University (NMSU) and former Seattle Seahawks player, has died at the age of 64. Young was a standout linebacker for the Aggies from 1980 to 1983, setting a record with six sacks in a single game against LA Tech in 1983. Drafted by the Seahawks in 1984, he played seven seasons in the NFL, participating in 101 games and starting 79. His contributions to football and the Las Cruces community were recognized in 1991 when he was inducted into the U.S. Bank/NM State Athletics Hall of Fame. His legacy is remembered fondly by NMSU Athletics, highlighting his significant impact on the sport and local community.\n\n**Key Details:**\n• Fredd Young played for NMSU from 1980-1983.\n• He was drafted by the Seattle Seahawks in the third round of the 1984 NFL Draft.\n• Young set a record with six sacks in a single game against LA Tech in 1983.\n• Inducted into the NMSU Hall of Fame in 1991.\n• He played a total of 101 NFL games, starting 79.",
+        "image_url": "https://kvia.com/wp-content/uploads/2026/09/fredd-young.webp",
+        "url": "https://kvia.com/sports/2026/09/16/nmsu-hall-of-famer-former-seattle-seahawk-fredd-young-dies-at-64/",
+        "published_at": "2026-09-16T12:39:04-06:00",
+        "status": "processed",
+        "is_duplicate": 0,
+        "source_name": "KVIA",
+        "category_slug": "community",
+        "category_name": "Community",
+        "tags": [
+          {
+            "name": "community",
+            "slug": "community"
+          },
+          {
+            "name": "nmsu",
+            "slug": "nmsu"
+          },
+          {
+            "name": "football",
+            "slug": "football"
+          },
+          {
+            "name": "hall-of-fame",
+            "slug": "hall-of-fame"
+          },
+          {
+            "name": "seahawks",
+            "slug": "seahawks"
+          }
+        ]
+      },
+      {
+        "uuid": "df2e5a2b-46e0-4b0f-b7e2-fc98dc975d69",
+        "title": "El Paso Animal Services Under Scrutiny Following Rescue Group's Allegations",
+        "summary": "El Paso Animal Services is currently under investigation due to serious allegations raised by the local nonprofit, Paws for Promise. The organization claims that animals returned from the city's facilities have exhibited health issues, prompting concerns about the procedures in place. A representative from Paws for Promise shared these concerns through a Facebook video, highlighting the potential impact on animal welfare. This situation is significant as it raises questions about the standards of care provided by Animal Services and the implications for local animal rescue efforts.",
+        "image_url": "https://www.ktsm.com/wp-content/uploads/sites/38/2024/05/El-Paso-Animal-Services.jpg?w=897",
+        "url": "https://www.ktsm.com/news/partnership-paused-amid-el-paso-animal-services-probe/",
+        "published_at": "2026-09-16T12:35:48-06:00",
+        "status": "processed",
+        "is_duplicate": 0,
+        "source_name": "KTSM",
+        "category_slug": "community",
+        "category_name": "Community",
+        "tags": [
+          {
+            "name": "animal-services",
+            "slug": "animal-services"
+          },
+          {
+            "name": "nonprofit",
+            "slug": "nonprofit"
+          },
+          {
+            "name": "animal-welfare",
+            "slug": "animal-welfare"
+          },
+          {
+            "name": "paws-for-promise",
+            "slug": "paws-for-promise"
+          }
+        ]
+      },
+      {
         "uuid": "dc23f0ba-1cc7-4ad0-b95b-87fa99c5e851",
         "title": "El Paso Residents Urged to Monitor Pets for New World Screwworm Threat",
         "summary": "Health officials are alerting El Paso pet owners about the potential threat of the New World screwworm, a flesh-eating fly larva recently detected in Juárez and other areas in Texas. Although no cases have been reported in El Paso, the parasite can cause severe tissue damage and infection in animals if not treated promptly. Symptoms to watch for include foul-smelling wounds, lethargy, and visible maggots. Pet owners are advised to seek immediate veterinary care if they suspect an infection. Local animal services are prepared for potential cases, emphasizing the importance of preventative measures.\n\n**Key Details:**\n• Monitor pets for symptoms like foul-smelling wounds and lethargy.\n• Seek veterinary care immediately if infection is suspected.\n• Stay updated on preventative measures and local health advisories.",
@@ -12,7 +1125,29 @@
         "is_duplicate": 0,
         "source_name": "KVIA",
         "category_slug": "health",
-        "category_name": "Health"
+        "category_name": "Health",
+        "tags": [
+          {
+            "name": "health",
+            "slug": "health"
+          },
+          {
+            "name": "animal-services",
+            "slug": "animal-services"
+          },
+          {
+            "name": "pets",
+            "slug": "pets"
+          },
+          {
+            "name": "screwworm",
+            "slug": "screwworm"
+          },
+          {
+            "name": "veterinary",
+            "slug": "veterinary"
+          }
+        ]
       },
       {
         "uuid": "0fe96c27-5d18-4df6-a9a3-167a4df63212",
@@ -25,20 +1160,1136 @@
         "is_duplicate": 0,
         "source_name": "KVIA",
         "category_slug": "community",
-        "category_name": "Community"
+        "category_name": "Community",
+        "tags": [
+          {
+            "name": "pets",
+            "slug": "pets"
+          },
+          {
+            "name": "obama",
+            "slug": "obama"
+          },
+          {
+            "name": "sunny",
+            "slug": "sunny"
+          },
+          {
+            "name": "first-dog",
+            "slug": "first-dog"
+          },
+          {
+            "name": "bo",
+            "slug": "bo"
+          }
+        ]
+      },
+      {
+        "uuid": "72a957d7-d5f1-4f95-a88b-f68992bf41fb",
+        "title": "House of Representatives Adjourns Early, Dodges Hegseth Impeachment Vote",
+        "summary": "The Speaker of the House, Mike Johnson, has decided to send lawmakers back to their districts early for a seven-week campaign recess, preventing a scheduled vote on the impeachment of Defense Secretary Pete Hegseth. Originally, the House was set to remain in session until Thursday, but will now conclude with key votes on a sanctions bill against Russia on Wednesday night. This decision comes amid growing pressure on Republicans regarding contentious issues and an unexpected impeachment resolution introduced by Representative Thomas Massie. Johnson criticized Massie's actions as a publicity stunt and emphasized that the early adjournment was unrelated to Hegseth's situation. The House will reconvene after the November elections.\n\n**Key Details:**\n• House adjourns early for a seven-week recess before midterm elections.\n• Final votes will occur on Wednesday night, including a sanctions bill against Russia.\n• Impeachment resolution against Hegseth introduced by Rep. Thomas Massie delayed until November.\n• Johnson dismisses Massie's impeachment initiative as a publicity stunt.",
+        "image_url": null,
+        "url": "https://kvia.com/news/noticias/cnn-spanish/2026/09/16/la-camara-de-representantes-suspendera-anticipadamente-sus-sesiones-y-evitara-una-votacion-para-destituir-a-hegseth/",
+        "published_at": "2026-09-16T11:21:31-06:00",
+        "status": "processed",
+        "is_duplicate": 0,
+        "source_name": "KVIA",
+        "category_slug": "politics",
+        "category_name": "Politics",
+        "tags": [
+          {
+            "name": "politics",
+            "slug": "politics"
+          },
+          {
+            "name": "defense",
+            "slug": "defense"
+          },
+          {
+            "name": "congress",
+            "slug": "congress"
+          },
+          {
+            "name": "midterms",
+            "slug": "midterms"
+          },
+          {
+            "name": "impeachment",
+            "slug": "impeachment"
+          }
+        ]
+      },
+      {
+        "uuid": "a9fa14b6-1f6e-4a95-ae94-e3e7d0281996",
+        "title": "Theresa Caputo to Bring Live Medium Experience to El Paso This October",
+        "summary": "Theresa Caputo, known from the TV show 'Long Island Medium,' will perform live in El Paso on Sunday, October 18, at 3 p.m. The event will take place at The Plaza Theatre, located at One Civic Center Plaza. Attendees can expect a blend of personal stories, humor, and Caputo's unique ability to connect with the spirit world. This event is significant for fans of the show and those interested in spiritual experiences, offering a chance to see Caputo in person.\n\n**Key Details:**\n• Event date: Sunday, October 18, 3 p.m.\n• Location: The Plaza Theatre, One Civic Center Plaza, El Paso\n• Expect personal stories and a mediumship experience",
+        "image_url": "https://www.ktsm.com/wp-content/uploads/sites/38/2026/09/Theresa-Caputo-Live-The-Experience.jpg?w=900",
+        "url": "https://www.ktsm.com/news/theresa-caputo-brings-live-tour-to-el-paso-theater/",
+        "published_at": "2026-09-16T11:19:01-06:00",
+        "status": "processed",
+        "is_duplicate": 0,
+        "source_name": "KTSM",
+        "category_slug": "community",
+        "category_name": "Community",
+        "tags": [
+          {
+            "name": "entertainment",
+            "slug": "entertainment"
+          },
+          {
+            "name": "theatre",
+            "slug": "theatre"
+          },
+          {
+            "name": "live-event",
+            "slug": "live-event"
+          },
+          {
+            "name": "medium",
+            "slug": "medium"
+          }
+        ]
+      },
+      {
+        "uuid": "a6047080-bc70-4eab-9fdb-3de80995ee04",
+        "title": "Majority of Teachers Support Limits on Student Screen Time in Schools",
+        "summary": "A recent Gallup poll reveals that nearly 75% of teachers are advocating for restrictions on screen time for students in classrooms. While educators recognize the role of technology in learning, many express concerns about its overuse and potential negative impacts on student engagement and health. This sentiment underscores a growing debate about the balance between digital learning tools and traditional teaching methods. The findings highlight the need for school districts to consider policies that address screen time in order to enhance educational outcomes.",
+        "image_url": "https://www.ktsm.com/wp-content/uploads/sites/38/2026/09/artificial_intelligene_classroom_01222026_AP26022717764507-1.jpg?w=900",
+        "url": "https://www.ktsm.com/news/almost-3-in-4-teachers-want-screen-time-limits-in-schools-gallup/",
+        "published_at": "2026-09-16T11:18:39-06:00",
+        "status": "processed",
+        "is_duplicate": 0,
+        "source_name": "KTSM",
+        "category_slug": "education",
+        "category_name": "Education",
+        "tags": [
+          {
+            "name": "education",
+            "slug": "education"
+          },
+          {
+            "name": "students",
+            "slug": "students"
+          },
+          {
+            "name": "teachers",
+            "slug": "teachers"
+          },
+          {
+            "name": "screen-time",
+            "slug": "screen-time"
+          },
+          {
+            "name": "gallup",
+            "slug": "gallup"
+          }
+        ]
+      },
+      {
+        "uuid": "26f5b453-8290-4b40-8e37-2ca0417294d4",
+        "title": "Merriam-Webster Expands Dictionary with 1,400 New Terms Including 'Rickroll'",
+        "summary": "Merriam-Webster has updated its online dictionary with a significant addition of 1,400 new words and definitions, reflecting evolving language trends. Among the newly included terms are 'looksmaxxing,' which refers to efforts to enhance one's appearance, and 'rickroll,' a popular internet prank. This update highlights the dynamic nature of language and its adaptation to cultural phenomena. The inclusion of these terms allows users to better understand contemporary discussions and online interactions.",
+        "image_url": "https://www.ktsm.com/wp-content/uploads/sites/38/2026/09/7ff31fb41c594182a7a04d8ee00ae0bd.jpg?w=900",
+        "url": "https://www.ktsm.com/news/national-news/rickroll-and-looksmaxxing-are-official-merriam-webster-adds-1400-new-words-to-dictionary-website/",
+        "published_at": "2026-09-16T11:16:07-06:00",
+        "status": "processed",
+        "is_duplicate": 0,
+        "source_name": "KTSM",
+        "category_slug": "community",
+        "category_name": "Community",
+        "tags": [
+          {
+            "name": "trends",
+            "slug": "trends"
+          },
+          {
+            "name": "language",
+            "slug": "language"
+          },
+          {
+            "name": "internet",
+            "slug": "internet"
+          },
+          {
+            "name": "dictionary",
+            "slug": "dictionary"
+          }
+        ]
+      },
+      {
+        "uuid": "ffe39014-337e-4e34-b3ca-c4228ad1c16d",
+        "title": "Meta Contributes $2.5 Million to Boost El Paso Giving Day Efforts",
+        "summary": "Meta has donated $2.5 million to the Paso del Norte Community Foundation (PdNCF) to enhance resources for local nonprofits during El Paso Giving Day, scheduled for October 15. This significant contribution will effectively double the funding available to participating organizations, allowing them to receive up to $25,000 each. The initiative aims to support essential services in areas such as family assistance, education, and health. Meta's investment aligns with its commitment to community development, particularly as it establishes a data center in Northeast El Paso, emphasizing the importance of local engagement.\n\n**Key Details:**\n• El Paso Giving Day is on October 15, 2023.\n• Nonprofits can receive up to $25,000 from the donation.\n• Meta's donation aims to support services in education, health, and family services.",
+        "image_url": "https://kvia.com/wp-content/uploads/2026/09/videoframe_1810.png",
+        "url": "https://kvia.com/news/el-paso/2026/09/16/meta-donates-2-5-million-to-support-el-paso-giving-day/",
+        "published_at": "2026-09-16T11:10:35-06:00",
+        "status": "processed",
+        "is_duplicate": 0,
+        "source_name": "KVIA",
+        "category_slug": "community",
+        "category_name": "Community",
+        "tags": [
+          {
+            "name": "community",
+            "slug": "community"
+          },
+          {
+            "name": "charity",
+            "slug": "charity"
+          },
+          {
+            "name": "meta",
+            "slug": "meta"
+          },
+          {
+            "name": "nonprofits",
+            "slug": "nonprofits"
+          },
+          {
+            "name": "giving-day",
+            "slug": "giving-day"
+          }
+        ]
+      },
+      {
+        "uuid": "228e8097-3fda-468e-99bf-ba92ddea7d8f",
+        "title": "Supreme Court Ruling on Mail-In Voting Seen as Win for Democracy",
+        "summary": "The U.S. Supreme Court's recent decision to block former President Trump's attempts to restrict mail-in voting for the 2026 midterm elections has sparked varied reactions, primarily from Democrats who benefit more from this voting method. While Trump argues that such changes favor Republicans, analysts suggest that the ruling may ultimately enhance democratic participation rather than just benefiting one party. A recent CBS News poll indicates that 38% of Democrats plan to vote by mail compared to 22% of Republicans, highlighting the importance of mail-in voting for older and rural voters, who tend to lean Republican. Concerns remain about the potential for errors in the mail-in voting verification process, which could disenfranchise voters across party lines.\n\n**Key Details:**\n• Supreme Court decision blocks Trump's mail-in voting restrictions for 2026 elections.\n• CBS News poll shows 38% of Democrats vs. 22% of Republicans plan to vote by mail.\n• Older and rural voters, more likely to vote by mail, are crucial for both parties.\n• Concerns about mail-in voting verification errors could impact voter turnout.",
+        "image_url": null,
+        "url": "https://kvia.com/news/noticias/cnn-spanish/2026/09/16/la-decision-de-la-corte-suprema-sobre-el-voto-por-correo-podria-beneficiar-mas-a-la-democracia-que-a-los-democratas/",
+        "published_at": "2026-09-16T10:50:20-06:00",
+        "status": "processed",
+        "is_duplicate": 0,
+        "source_name": "KVIA",
+        "category_slug": "politics",
+        "category_name": "Politics",
+        "tags": [
+          {
+            "name": "politics",
+            "slug": "politics"
+          },
+          {
+            "name": "supreme-court",
+            "slug": "supreme-court"
+          },
+          {
+            "name": "voting",
+            "slug": "voting"
+          },
+          {
+            "name": "democracy",
+            "slug": "democracy"
+          },
+          {
+            "name": "mail-in-voting",
+            "slug": "mail-in-voting"
+          }
+        ]
+      },
+      {
+        "uuid": "61cf76bc-1b2f-4825-90ec-e4ad491f5378",
+        "title": "23-Year-Old Arrested for High-Speed Chase in El Paso",
+        "summary": "An El Paso man, aged 23, was apprehended early Sunday morning after leading deputies on a high-speed chase, reaching speeds over 100 mph. The incident occurred around 4:18 a.m. on September 13, when a deputy attempted to pull over a black Dodge Charger. This reckless behavior not only endangers public safety but also highlights ongoing issues with traffic violations in the area. Residents are reminded of the importance of adhering to traffic laws to ensure community safety.\n\n**Key Details:**\n• Incident occurred on September 13 at approximately 4:18 a.m.\n• Chase involved a black Dodge Charger exceeding 100 mph.\n• Emphasizes the dangers of high-speed pursuits in residential areas.",
+        "image_url": "https://www.ktsm.com/wp-content/uploads/sites/38/2026/09/Kevin-Daniel-Cuellar.png?w=356",
+        "url": "https://www.ktsm.com/news/local-news/el-paso-man-faces-charge-after-fleeing-police-at-100-mph/",
+        "published_at": "2026-09-16T10:42:55-06:00",
+        "status": "processed",
+        "is_duplicate": 0,
+        "source_name": "KTSM",
+        "category_slug": "crime",
+        "category_name": "Crime",
+        "tags": [
+          {
+            "name": "arrest",
+            "slug": "arrest"
+          },
+          {
+            "name": "law-enforcement",
+            "slug": "law-enforcement"
+          },
+          {
+            "name": "traffic",
+            "slug": "traffic"
+          },
+          {
+            "name": "high-speed-chase",
+            "slug": "high-speed-chase"
+          }
+        ]
+      },
+      {
+        "uuid": "a4c0252e-1fbd-4d34-b0ca-bd2769659f7f",
+        "title": "Meta Donates $2.5 Million to Paso del Norte Community Foundation",
+        "summary": "Meta, the tech company constructing a data center in El Paso, has contributed $2.5 million to the Paso del Norte Community Foundation (PdNCF). This significant donation supports the foundation's initiative, 'The Future Is Everyone,' aimed at enhancing community resources and opportunities. The funds will be utilized to address various local needs, ultimately benefiting residents in the El Paso area. This investment underscores Meta's commitment to supporting the communities where it operates.",
+        "image_url": "https://www.ktsm.com/wp-content/uploads/sites/38/2026/05/69fa2ad64c9159.97822759.jpeg?w=900",
+        "url": "https://www.ktsm.com/local/meta-gifts-2-5-million-to-el-paso-nonprofit-foundation/",
+        "published_at": "2026-09-16T10:30:06-06:00",
+        "status": "processed",
+        "is_duplicate": 0,
+        "source_name": "KTSM",
+        "category_slug": "community",
+        "category_name": "Community",
+        "tags": [
+          {
+            "name": "community",
+            "slug": "community"
+          },
+          {
+            "name": "donation",
+            "slug": "donation"
+          },
+          {
+            "name": "nonprofit",
+            "slug": "nonprofit"
+          },
+          {
+            "name": "meta",
+            "slug": "meta"
+          }
+        ]
+      },
+      {
+        "uuid": "4da04c7d-5884-4c49-87a3-fe3aad49e6dc",
+        "title": "Recall Alert: Hand Soap Linked to Bacterial Contamination in 15 States",
+        "summary": "Intercon Chemical Co. has expanded a recall of hand soaps due to potential bacterial contamination, affecting consumers in 15 states, including Texas. The recall, which began in June, involves six varieties of soap sold under various brand names. This action is crucial as it aims to protect public health by preventing exposure to harmful bacteria. Consumers are advised to check their products and discontinue use if they possess any of the affected soaps.\n\n**Key Details:**\n• Recall initiated in June 2023 by Intercon Chemical Co.\n• Affects hand soaps sold under multiple brand names across 15 states.\n• Consumers should check for affected products and stop using them.",
+        "image_url": "https://www.ktsm.com/wp-content/uploads/sites/38/2026/09/soapy-hand-foam-dispenser-GettyImages-2214554721-e1789570308134.jpg?w=900",
+        "url": "https://www.ktsm.com/news/national-news/hand-soap-recalled-in-16-states-over-potential-bacterial-contamination/",
+        "published_at": "2026-09-16T09:40:46-06:00",
+        "status": "processed",
+        "is_duplicate": 0,
+        "source_name": "KTSM",
+        "category_slug": "health",
+        "category_name": "Health",
+        "tags": [
+          {
+            "name": "health",
+            "slug": "health"
+          },
+          {
+            "name": "recall",
+            "slug": "recall"
+          },
+          {
+            "name": "consumer-safety",
+            "slug": "consumer-safety"
+          },
+          {
+            "name": "bacteria",
+            "slug": "bacteria"
+          }
+        ]
+      },
+      {
+        "uuid": "9118b58b-67e1-4050-a668-3cab03dbe729",
+        "title": "Man Arrested for Dropping Toys from Paraglider at Concert on 9/11",
+        "summary": "An Indiana resident was apprehended after allegedly dropping toys from a paraglider during a Dan + Shay concert held on September 11, marking the 25th anniversary of the 9/11 attacks. This unusual incident raised safety concerns and disrupted the event, prompting a swift response from law enforcement. The actions of the individual not only drew attention but also highlighted the potential risks associated with aerial activities in crowded venues. Concertgoers and event organizers are urged to remain vigilant and report any suspicious activities in the future.\n\n**Key Details:**\n• Incident occurred on September 11, 2023, during a Dan + Shay concert.\n• The paraglider was flying over the concert venue in El Paso.\n• The man was arrested by local police for his actions.",
+        "image_url": "https://www.ktsm.com/wp-content/uploads/sites/38/2026/09/download-1.png?w=900",
+        "url": "https://www.ktsm.com/news/national-news/paraglider-arrested-after-toys-dropped-from-sky-during-dan-shay-concert-on-9-11/",
+        "published_at": "2026-09-16T09:31:14-06:00",
+        "status": "processed",
+        "is_duplicate": 0,
+        "source_name": "KTSM",
+        "category_slug": "community",
+        "category_name": "Community",
+        "tags": [
+          {
+            "name": "arrest",
+            "slug": "arrest"
+          },
+          {
+            "name": "safety",
+            "slug": "safety"
+          },
+          {
+            "name": "concert",
+            "slug": "concert"
+          },
+          {
+            "name": "paraglider",
+            "slug": "paraglider"
+          }
+        ]
+      },
+      {
+        "uuid": "7c49d880-054d-4835-8f1c-0f10c77bb4c0",
+        "title": "El Paso Water Festival 2026 to Showcase Local Water Resources and Activities",
+        "summary": "EPWater is set to host the 2026 Water Festival on Saturday, September 19, from 11 a.m. to 3 p.m. at the TecH2O Learning Center, located at 10751 Montana Ave. This free event will feature family-friendly activities, including art sessions, demonstrations, and performances by local artists such as the Ysleta del Sur Pueblo Dancers and the El Paso Youth Jazz Ensemble. Attendees can also explore exhibition booths from various local organizations, including the El Paso Zoo and El Paso Electric. Additionally, guided tours of the Kay Bailey Hutchison Desalination Plant will be available for those aged 14 and older, with tours commencing every 20 minutes from 11 a.m. to 2 p.m. Registration for the tours is required to meet security protocols.\n\n**Key Details:**\n• Event Date: Saturday, September 19, 11 a.m. - 3 p.m.\n• Location: TecH2O Learning Center, 10751 Montana Ave\n• Tours of the desalination plant for ages 14 and up, starting every 20 minutes from 11 a.m.\n• Registration required for plant tours; call 915-621-2000 for more info\n• Food sales available at the event",
+        "image_url": "https://kvia.com/wp-content/uploads/2026/09/Waterfest-1-860x721.jpg",
+        "url": "https://kvia.com/news/2026/09/16/epwater-to-host-2026-water-festival-celebrating-el-pasos-most-vital-resource/",
+        "published_at": "2026-09-16T09:27:02-06:00",
+        "status": "processed",
+        "is_duplicate": 0,
+        "source_name": "KVIA",
+        "category_slug": "community",
+        "category_name": "Community",
+        "tags": [
+          {
+            "name": "community",
+            "slug": "community"
+          },
+          {
+            "name": "el-paso-water",
+            "slug": "el-paso-water"
+          },
+          {
+            "name": "family-fun",
+            "slug": "family-fun"
+          },
+          {
+            "name": "water-festival",
+            "slug": "water-festival"
+          },
+          {
+            "name": "desalination-plant",
+            "slug": "desalination-plant"
+          }
+        ]
+      },
+      {
+        "uuid": "3c025a1b-04f9-4397-b686-f121561caeff",
+        "title": "Federal Paid Leave Costs Surge to Nearly $7 Billion by 2025",
+        "summary": "A recent study reveals that federal employees are projected to receive almost $7 billion in paid leave through the Department of Labor's DOGE initiative. This figure represents a staggering sixfold increase in salary costs related to paid leave from 2023 to 2025. Such a significant rise raises concerns about the financial implications for federal budgets and the overall efficiency of workforce management. Stakeholders in government and public service sectors should closely monitor these developments as they may impact future policy decisions and funding allocations.\n\n**Key Details:**\n• Projected paid leave costs will reach nearly $7 billion by 2025.\n• Salary costs for paid leave have increased sixfold from 2023 to 2025.\n• Implications for federal budgets and workforce efficiency are significant.",
+        "image_url": "https://www.ktsm.com/wp-content/uploads/sites/38/2026/09/AP25136563980661-e1789571631163.jpg?w=900",
+        "url": "https://www.ktsm.com/news/national-news/federal-employees-were-paid-nearly-7-billion-not-to-work-under-doge-effort-gao/",
+        "published_at": "2026-09-16T09:18:11-06:00",
+        "status": "processed",
+        "is_duplicate": 0,
+        "source_name": "KTSM",
+        "category_slug": "politics",
+        "category_name": "Politics",
+        "tags": [
+          {
+            "name": "budget",
+            "slug": "budget"
+          },
+          {
+            "name": "government",
+            "slug": "government"
+          },
+          {
+            "name": "labor",
+            "slug": "labor"
+          },
+          {
+            "name": "federal-employees",
+            "slug": "federal-employees"
+          },
+          {
+            "name": "paid-leave",
+            "slug": "paid-leave"
+          }
+        ]
+      },
+      {
+        "uuid": "67af3117-4a43-413d-bf59-d6c0bccc218e",
+        "title": "Metallica to Rock El Paso's Sun Bowl Stadium This May",
+        "summary": "Iconic heavy metal band Metallica is set to perform at the UTEP Sun Bowl Stadium on May 18 as part of their M72 World Tour, which will run through 2027. This concert is a significant event for local fans, marking a major stop in the band's extensive touring schedule. The announcement has generated excitement among music lovers in El Paso, as it brings a world-renowned act to the city. Fans are encouraged to prepare for the event and secure their tickets as soon as they become available.\n\n**Key Details:**\n• Concert date: May 18, 2024\n• Location: UTEP Sun Bowl Stadium, 2701 Sun Bowl Drive, El Paso\n• Part of the M72 World Tour running until 2027\n• Fans should check for ticket availability soon",
+        "image_url": "https://www.ktsm.com/wp-content/uploads/sites/38/2026/09/metallica.jpg?w=900",
+        "url": "https://www.ktsm.com/news/metallica-to-play-sun-bowl-stadium-in-may-during-m72-tour/",
+        "published_at": "2026-09-16T09:13:36-06:00",
+        "status": "processed",
+        "is_duplicate": 0,
+        "source_name": "KTSM",
+        "category_slug": "community",
+        "category_name": "Community",
+        "tags": [
+          {
+            "name": "utep",
+            "slug": "utep"
+          },
+          {
+            "name": "concert",
+            "slug": "concert"
+          },
+          {
+            "name": "metallica",
+            "slug": "metallica"
+          },
+          {
+            "name": "m72tour",
+            "slug": "m72tour"
+          },
+          {
+            "name": "sunbowl",
+            "slug": "sunbowl"
+          }
+        ]
       }
-    ]
+    ],
+    "category-lead": {
+      "chosen": {
+        "uuid": "902d018b-a063-4dd8-9393-21c1c41acfc6",
+        "title": "Amazon Raises Starting Pay and Introduces Employee Discounts in El Paso",
+        "summary": "Amazon has announced an increase in its minimum starting pay for employees, raising the average hourly wage to nearly $24. This decision is significant for workers in El Paso, as it reflects the company's commitment to improving compensation amidst rising living costs. Additionally, Amazon is implementing a new discount program for its employees, enhancing their overall benefits package. This change is expected to positively impact the local workforce by providing better financial support and incentives for current and prospective employees.",
+        "image_url": "https://www.ktsm.com/wp-content/uploads/sites/38/2026/09/AP26230751761751-e1787147222953.jpg?w=900",
+        "url": "https://www.ktsm.com/news/national-news/amazon-increases-minimum-starting-pay-adds-new-discount-for-employees/",
+        "published_at": "2026-09-16T08:50:41-06:00",
+        "status": "processed",
+        "is_duplicate": 0,
+        "source_name": "KTSM",
+        "category_slug": "business",
+        "category_name": "Business",
+        "tags": [
+          {
+            "name": "business",
+            "slug": "business"
+          },
+          {
+            "name": "employment",
+            "slug": "employment"
+          },
+          {
+            "name": "amazon",
+            "slug": "amazon"
+          },
+          {
+            "name": "wages",
+            "slug": "wages"
+          }
+        ],
+        "imageCheck": {
+          "headStatus": 200,
+          "contentType": "image/jpeg"
+        }
+      },
+      "rejected": [
+        {
+          "uuid": "21b19dfd-96b0-461d-9bc9-02303a779d6e",
+          "url": "https://analytics.stacker.com/tracking/69a62298-642e-4284-b030-ba14e851acba/pixel.gif?source=feed",
+          "headStatus": null,
+          "reason": "not checked — chosen candidate found first"
+        },
+        {
+          "uuid": "4f22147a-baf5-4fcf-ad86-d78eee045131",
+          "url": "https://kvia.com/wp-content/uploads/2026/09/Ally-How-to-start-microsaving.jpg",
+          "headStatus": null,
+          "reason": "not checked — chosen candidate found first"
+        }
+      ]
+    },
+    "category-feed": [
+      {
+        "uuid": "902d018b-a063-4dd8-9393-21c1c41acfc6",
+        "title": "Amazon Raises Starting Pay and Introduces Employee Discounts in El Paso",
+        "summary": "Amazon has announced an increase in its minimum starting pay for employees, raising the average hourly wage to nearly $24. This decision is significant for workers in El Paso, as it reflects the company's commitment to improving compensation amidst rising living costs. Additionally, Amazon is implementing a new discount program for its employees, enhancing their overall benefits package. This change is expected to positively impact the local workforce by providing better financial support and incentives for current and prospective employees.",
+        "image_url": "https://www.ktsm.com/wp-content/uploads/sites/38/2026/09/AP26230751761751-e1787147222953.jpg?w=900",
+        "url": "https://www.ktsm.com/news/national-news/amazon-increases-minimum-starting-pay-adds-new-discount-for-employees/",
+        "published_at": "2026-09-16T08:50:41-06:00",
+        "status": "processed",
+        "is_duplicate": 0,
+        "source_name": "KTSM",
+        "category_slug": "business",
+        "category_name": "Business",
+        "tags": [
+          {
+            "name": "business",
+            "slug": "business"
+          },
+          {
+            "name": "employment",
+            "slug": "employment"
+          },
+          {
+            "name": "amazon",
+            "slug": "amazon"
+          },
+          {
+            "name": "wages",
+            "slug": "wages"
+          }
+        ]
+      },
+      {
+        "uuid": "21b19dfd-96b0-461d-9bc9-02303a779d6e",
+        "title": "Hispanic Business Owners Show Strong Commitment Amid Financial Challenges",
+        "summary": "A recent report highlights that Hispanic business owners exhibit a remarkable dedication to their enterprises, with 57% feeling fully committed to long-term success. Despite facing significant financial risks, including personal sacrifices and cash flow worries, 61% anticipate integrating AI into their operations within five years. The 2026 Business Ownership Report, which surveyed 1,305 business owners, reveals that 75% of Hispanic entrepreneurs are Millennials or younger, with many scaling their businesses rapidly. However, they are also more likely to dip into personal savings or borrow from family to sustain their ventures, indicating a high level of financial pressure. This data underscores the duality of ambition and risk that characterizes Hispanic entrepreneurship.\n\n**Key Details:**\n• 57% of Hispanic business owners are fully committed to their businesses long-term.\n• 61% expect to use AI as a core tool within five years.\n• 75% of Hispanic entrepreneurs are Millennials or younger.\n• 24% have used retirement savings to fund their businesses.\n• 34% constantly worry about cash flow issues.",
+        "image_url": "https://analytics.stacker.com/tracking/69a62298-642e-4284-b030-ba14e851acba/pixel.gif?source=feed",
+        "url": "https://kvia.com/stacker-small-business/2026/09/16/new-data-hispanic-business-owners-are-less-likely-to-go-it-alone-and-more-likely-to-scale/",
+        "published_at": "2026-09-16T02:19:46-06:00",
+        "status": "processed",
+        "is_duplicate": 0,
+        "source_name": "KVIA",
+        "category_slug": "business",
+        "category_name": "Business",
+        "tags": [
+          {
+            "name": "community",
+            "slug": "community"
+          },
+          {
+            "name": "business",
+            "slug": "business"
+          },
+          {
+            "name": "financial-risk",
+            "slug": "financial-risk"
+          },
+          {
+            "name": "hispanic-entrepreneurs",
+            "slug": "hispanic-entrepreneurs"
+          },
+          {
+            "name": "ai-in-business",
+            "slug": "ai-in-business"
+          }
+        ]
+      },
+      {
+        "uuid": "4f22147a-baf5-4fcf-ad86-d78eee045131",
+        "title": "Unlock Your Financial Future with Simple Microsaving Strategies",
+        "summary": "Microsaving is an effective strategy for individuals looking to build savings without feeling overwhelmed by large goals. By setting aside small amounts of money regularly, such as $5 from each paycheck, you can gradually accumulate savings over time. This method can be automated through direct deposit, allowing you to prioritize savings effortlessly. The benefits of microsaving include the flexibility to save what you can afford, which helps avoid the temptation to dip into savings for everyday expenses. Additionally, setting clear goals for small luxuries can motivate you to save consistently and watch your funds grow in an interest-bearing account.\n\n**Key Details:**\n• Consider starting with as little as $5 from each paycheck.\n• Automate savings through direct deposit for easier management.\n• Set specific goals for small luxuries to stay motivated.\n• Regular contributions, even small ones, can lead to significant savings over time.",
+        "image_url": "https://kvia.com/wp-content/uploads/2026/09/Ally-How-to-start-microsaving.jpg",
+        "url": "https://kvia.com/stacker-personal-finance-investing/2026/09/16/how-to-start-microsaving/",
+        "published_at": "2026-09-16T02:19:37-06:00",
+        "status": "processed",
+        "is_duplicate": 0,
+        "source_name": "KVIA",
+        "category_slug": "business",
+        "category_name": "Business",
+        "tags": [
+          {
+            "name": "savings",
+            "slug": "savings"
+          },
+          {
+            "name": "budgeting",
+            "slug": "budgeting"
+          },
+          {
+            "name": "personal-finance",
+            "slug": "personal-finance"
+          },
+          {
+            "name": "financial-tips",
+            "slug": "financial-tips"
+          },
+          {
+            "name": "microsaving",
+            "slug": "microsaving"
+          }
+        ]
+      },
+      {
+        "uuid": "e836b477-1647-4b66-8670-69cb02645332",
+        "title": "Evaluating Rental Management: DIY vs. Professional Services in El Paso",
+        "summary": "El Paso rental property owners face a crucial decision: manage their properties themselves or hire a property management company. While DIY management can seem chaotic, a new approach using property management software has shown to enhance cash flow significantly. For instance, landlords managing two units can save about $5,184 annually, while those with 20 units could see savings of $53,640 per year. The article emphasizes the importance of understanding the full cost of professional management, including hidden fees and payment delays, and encourages landlords to consider systematized self-management to maximize their income and streamline operations.\n\n**Key Details:**\n• Property management fees typically range from 8%-12% of monthly rent.\n• Landlords using software can save thousands annually compared to hiring a property manager.\n• Automatic payments yield a 99% on-time rent payment rate.\n• Evaluate property management costs as a percentage of net cash flow, not gross rent.",
+        "image_url": "https://kvia.com/wp-content/uploads/2026/09/RentRedi-The-rental-portfolio-math-that-changes-the-DIY-vs.-property-manager-debate.jpg",
+        "url": "https://kvia.com/stacker-real-estate/2026/09/16/the-rental-portfolio-math-that-changes-the-diy-vs-property-manager-debate/",
+        "published_at": "2026-09-16T02:19:33-06:00",
+        "status": "processed",
+        "is_duplicate": 0,
+        "source_name": "KVIA",
+        "category_slug": "business",
+        "category_name": "Business",
+        "tags": [
+          {
+            "name": "el-paso",
+            "slug": "el-paso"
+          },
+          {
+            "name": "property-management",
+            "slug": "property-management"
+          },
+          {
+            "name": "landlords",
+            "slug": "landlords"
+          },
+          {
+            "name": "cash-flow",
+            "slug": "cash-flow"
+          },
+          {
+            "name": "rental-management",
+            "slug": "rental-management"
+          }
+        ]
+      },
+      {
+        "uuid": "1a9bab7b-ddf7-4516-b294-4f5ff81c5c4e",
+        "title": "AI's Role in Press Releases Surges, Reaching Nearly Half in June 2026",
+        "summary": "A recent analysis by Pangram reveals that the use of AI in corporate press releases has significantly increased, with 48% of releases on PR Newswire containing AI-generated text as of June 2026. This marks a substantial rise from just 22% in August 2025. The study scanned over 178,000 press releases, finding that 25% were fully AI-generated, while the remaining 75% included a mix of human and AI content. Industries such as advertising saw the highest AI contribution rates, with 41% of their releases being fully AI-generated. This trend indicates a shift in public relations practices, particularly among smaller businesses and startups, which are more inclined to adopt AI tools for content creation.\n\n**Key Details:**\n• 48% of press releases on PR Newswire included AI-generated text in June 2026.\n• AI contribution in press releases doubled from 22% in August 2025 to 48% in June 2026.\n• Advertising industry had the highest share of fully AI-generated press releases at 41%.\n• Median word count of AI-influenced press releases increased from 488 to 562 words over the past year.\n• Small businesses are more likely to utilize AI in their press releases compared to larger corporations.",
+        "image_url": "https://kvia.com/wp-content/uploads/2026/09/Pangram-50-written-with-AI.jpg",
+        "url": "https://kvia.com/stacker-ai/2026/09/16/report-in-june-nearly-50-of-press-releases-were-written-with-ai/",
+        "published_at": "2026-09-16T02:19:31-06:00",
+        "status": "processed",
+        "is_duplicate": 0,
+        "source_name": "KVIA",
+        "category_slug": "business",
+        "category_name": "Business",
+        "tags": [
+          {
+            "name": "business",
+            "slug": "business"
+          },
+          {
+            "name": "technology",
+            "slug": "technology"
+          },
+          {
+            "name": "media",
+            "slug": "media"
+          },
+          {
+            "name": "ai",
+            "slug": "ai"
+          },
+          {
+            "name": "public-relations",
+            "slug": "public-relations"
+          }
+        ]
+      },
+      {
+        "uuid": "9513adb4-c64d-4a64-ac54-fd9fee0d1f9a",
+        "title": "Polymarket Flags Military Insider Trading Cases for DOJ Investigation",
+        "summary": "Polymarket, a prediction market platform, has referred numerous accounts to the Justice Department for potential military insider trading, as revealed by a senior official. The referrals, linked to a report by the Anti-Corruption Data Collective, identified 152 accounts that collectively gained around $8 million from war-related markets, which are illegal in the U.S. The Justice Department has not commented on the matter, while Polymarket maintains it has not engaged in any wrongdoing. The situation has raised concerns among lawmakers regarding national security, as prediction markets could potentially incentivize corruption and expose sensitive military information.\n\n**Key Details:**\n• 152 accounts flagged for potential insider trading, profiting $8 million.\n• Polymarket's war markets are illegal under U.S. law but remain accessible offshore.\n• Recent scrutiny includes investigations by the CFTC and the House Oversight Committee.\n• Polymarket has implemented new integrity rules to prevent insider trading.",
+        "image_url": null,
+        "url": "https://kvia.com/politics/cnn-us-politics/2026/08/21/polymarket-referred-dozens-of-possible-military-insider-trading-cases-to-doj-source-says/",
+        "published_at": "2026-08-21T13:31:51-06:00",
+        "status": "processed",
+        "is_duplicate": 0,
+        "source_name": "KVIA",
+        "category_slug": "business",
+        "category_name": "Business",
+        "tags": [
+          {
+            "name": "national-security",
+            "slug": "national-security"
+          },
+          {
+            "name": "justice-department",
+            "slug": "justice-department"
+          },
+          {
+            "name": "insider-trading",
+            "slug": "insider-trading"
+          },
+          {
+            "name": "cftc",
+            "slug": "cftc"
+          },
+          {
+            "name": "polymarket",
+            "slug": "polymarket"
+          }
+        ]
+      },
+      {
+        "uuid": "6511a542-d91b-4ab9-81a7-eab701d1b7e5",
+        "title": "Rising Bond Yields Signal Economic Concerns for El Paso Residents",
+        "summary": "The bond market is experiencing significant turmoil, with long-dated government bond yields reaching their highest levels in over 15 years. This surge is primarily driven by fears of persistent inflation and soaring government debt, which recently hit $40 trillion. Despite a Treasury intervention aimed at stabilizing yields, the underlying issues remain unresolved, leading to increased borrowing costs for consumers and businesses. This situation is particularly concerning for those in El Paso, as rising yields directly impact mortgage and loan rates, making it more challenging for residents to secure affordable financing. Experts warn that without major changes in federal spending, these high costs are likely to persist.\n\n**Key Details:**\n• 30-year Treasury yield reached 5.34%, the highest since 2007.\n• National debt has quadrupled since 2008, now at $40 trillion.\n• Higher yields lead to increased costs for mortgages and personal loans.\n• El Paso residents should monitor interest rates closely as they may continue to rise.",
+        "image_url": null,
+        "url": "https://kvia.com/news/business-technology/cnn-business-consumer/2026/08/21/the-bond-market-is-sending-a-distress-signal-heres-why-it-matters/",
+        "published_at": "2026-08-21T13:01:22-06:00",
+        "status": "processed",
+        "is_duplicate": 0,
+        "source_name": "KVIA",
+        "category_slug": "business",
+        "category_name": "Business",
+        "tags": [
+          {
+            "name": "economy",
+            "slug": "economy"
+          },
+          {
+            "name": "inflation",
+            "slug": "inflation"
+          },
+          {
+            "name": "debt",
+            "slug": "debt"
+          },
+          {
+            "name": "mortgages",
+            "slug": "mortgages"
+          },
+          {
+            "name": "borrowing",
+            "slug": "borrowing"
+          }
+        ]
+      },
+      {
+        "uuid": "ff7b8d27-2523-4e53-8fb0-1a978edb66a7",
+        "title": "Walmart Introduces Contactless Payment Options for El Paso Shoppers",
+        "summary": "Walmart has finally implemented tap-to-pay technology at its checkout counters, addressing long-standing customer requests for contactless payment options. This change is significant as it enhances convenience and safety for shoppers, especially in light of the ongoing preferences for contactless transactions. Customers in El Paso can now enjoy a quicker checkout experience, reducing wait times. The rollout of this feature is expected to improve customer satisfaction and align Walmart with other retailers who have already adopted similar payment methods.",
+        "image_url": "https://www.ktsm.com/wp-content/uploads/sites/38/2026/08/GettyImages-2276082209.jpg?w=900",
+        "url": "https://www.ktsm.com/news/national-news/walmart-finally-adds-tap-to-pay-at-checkout/",
+        "published_at": "2026-08-21T12:43:15-06:00",
+        "status": "processed",
+        "is_duplicate": 0,
+        "source_name": "KTSM",
+        "category_slug": "business",
+        "category_name": "Business",
+        "tags": [
+          {
+            "name": "el-paso",
+            "slug": "el-paso"
+          },
+          {
+            "name": "shopping",
+            "slug": "shopping"
+          },
+          {
+            "name": "walmart",
+            "slug": "walmart"
+          },
+          {
+            "name": "contactless-payment",
+            "slug": "contactless-payment"
+          }
+        ]
+      },
+      {
+        "uuid": "3e6810ca-3c56-4f34-8eba-5ac9f46a02f5",
+        "title": "Hemp Industry Sues Texas Over THC Ban, Citing Job Losses and Monopoly Concerns",
+        "summary": "The Texas hemp industry has filed a new lawsuit against the state, claiming the recent ban on most hemp-derived THC products has resulted in significant job losses and established a monopoly for the medical marijuana program. The lawsuit, initiated by four retailers in the U.S. District Court for the Western District of Texas, argues that the Texas Department of State Health Services (DSHS) overstepped its authority by classifying these products as illegal, contradicting the 2018 Farm Bill. The industry reports over 36,000 jobs lost and a dramatic decline in sales, with fears that more than half of THC products could vanish from shelves. Plaintiffs are seeking a temporary restraining order to lift the ban and protect Texas jobs.\n\n**Key Details:**\n• Lawsuit filed on August 3, 2026, in U.S. District Court for the Western District of Texas.\n• Over 36,000 jobs reported lost due to the THC product ban.\n• Potential penalties for possession of banned THC products include jail time and fines up to $10,000.\n• Delta-9 THC remains legal, but other variants like delta-8 and delta-10 are now classified as Schedule I drugs.",
+        "image_url": "https://kvia.com/wp-content/uploads/2026/08/0209-Delta-8-Products-SF-37-.webp",
+        "url": "https://kvia.com/news/2026/08/21/hemp-industry-files-new-lawsuit-over-texas-thc-ban-claiming-job-losses-medical-marijuana-monopoly/",
+        "published_at": "2026-08-21T10:38:12-06:00",
+        "status": "processed",
+        "is_duplicate": 0,
+        "source_name": "KVIA",
+        "category_slug": "business",
+        "category_name": "Business",
+        "tags": [
+          {
+            "name": "lawsuit",
+            "slug": "lawsuit"
+          },
+          {
+            "name": "hemp",
+            "slug": "hemp"
+          },
+          {
+            "name": "thc",
+            "slug": "thc"
+          },
+          {
+            "name": "job-loss",
+            "slug": "job-loss"
+          },
+          {
+            "name": "medical-marijuana",
+            "slug": "medical-marijuana"
+          }
+        ]
+      },
+      {
+        "uuid": "e6cd3609-f68c-473d-8aba-46d4262dfe9f",
+        "title": "Trump Suspends Ground Beef Tariffs for 90 Days to Aid Consumers",
+        "summary": "In a recent announcement, President Donald Trump revealed a temporary suspension of increased tariffs on ground beef imports for a duration of 90 days. This decision aims to alleviate rising meat prices for consumers across the nation, including those in El Paso. The pause in tariffs is expected to provide some financial relief to families facing higher grocery bills. Residents should stay informed about potential changes in meat prices during this period.\n\n**Key Details:**\n• Tariff suspension lasts for 90 days.\n• Aim is to reduce consumer costs for ground beef.\n• Consumers in El Paso may see lower prices at local grocery stores.",
+        "image_url": "https://www.ktsm.com/wp-content/uploads/sites/38/2026/08/AP25058112581489-e1787320864325.jpg?w=900",
+        "url": "https://www.ktsm.com/news/national-news/trump-temporarily-lifts-ground-beef-import-tariffs/",
+        "published_at": "2026-08-21T08:40:55-06:00",
+        "status": "processed",
+        "is_duplicate": 0,
+        "source_name": "KTSM",
+        "category_slug": "business",
+        "category_name": "Business",
+        "tags": [
+          {
+            "name": "economy",
+            "slug": "economy"
+          },
+          {
+            "name": "tariffs",
+            "slug": "tariffs"
+          },
+          {
+            "name": "ground-beef",
+            "slug": "ground-beef"
+          },
+          {
+            "name": "consumer-prices",
+            "slug": "consumer-prices"
+          }
+        ]
+      },
+      {
+        "uuid": "9231f91c-2afc-4795-9cbd-5f3140364e7d",
+        "title": "Trump Suspends Ground Beef Tariffs for 90 Days to Ease Consumer Prices",
+        "summary": "In a recent announcement, President Donald Trump declared a temporary suspension of increased tariffs on ground beef imports for a period of 90 days. This decision aims to alleviate rising meat costs for consumers in the U.S. The move is significant as it seeks to provide financial relief amidst growing concerns about food prices. The suspension is expected to impact both consumers and businesses reliant on affordable meat options during this timeframe.\n\n**Key Details:**\n• Tariff suspension lasts for 90 days.\n• Aimed at reducing consumer costs for ground beef.\n• Effective immediately following the announcement.",
+        "image_url": "https://www.ktsm.com/wp-content/uploads/sites/38/2026/08/AP25058112581489-e1787320864325.jpg?w=900",
+        "url": "https://www.ktsm.com/news/trump-temporarily-lifts-ground-beef-import-tariffs/",
+        "published_at": "2026-08-21T08:40:55-06:00",
+        "status": "processed",
+        "is_duplicate": 0,
+        "source_name": "KTSM",
+        "category_slug": "business",
+        "category_name": "Business",
+        "tags": [
+          {
+            "name": "economy",
+            "slug": "economy"
+          },
+          {
+            "name": "tariffs",
+            "slug": "tariffs"
+          },
+          {
+            "name": "ground-beef",
+            "slug": "ground-beef"
+          },
+          {
+            "name": "consumer-prices",
+            "slug": "consumer-prices"
+          }
+        ]
+      },
+      {
+        "uuid": "37ae6fd6-8194-4911-9547-c8178b511d91",
+        "title": "Majority of Future Entrepreneurs in the U.S. to Utilize AI by 2026",
+        "summary": "A recent survey by Intuit QuickBooks reveals that 33% of U.S. adults plan to start a business or side hustle in 2026, marking a significant 94% increase from the previous year. The study highlights that 65% of aspiring entrepreneurs intend to leverage AI tools to streamline their startup processes, with millennials leading the charge in adoption rates. Many potential business owners cite financial fears and lack of time as major barriers, but AI is seen as a solution that can expedite tasks such as market research, branding, and website creation. This trend underscores a shift toward a more accessible entrepreneurship landscape, particularly for younger generations seeking financial stability.\n\n**Key Details:**\n• 33% of U.S. adults plan to start a business in 2026.\n• 65% of aspiring entrepreneurs will use AI tools for launching their ventures.\n• 40% of millennials are very likely to use AI for their businesses.\n• 24% cite lack of time as the biggest barrier to entrepreneurship.\n• Survey conducted by Intuit QuickBooks in December 2025.",
+        "image_url": "https://analytics.stacker.com/tracking/adf58339-b30c-4df3-a05c-4e251373ed7c/pixel.gif?source=feed",
+        "url": "https://kvia.com/stacker-small-business/2026/08/21/65-of-aspiring-us-entrepreneurs-plan-to-use-ai-to-launch-a-business-in-2026/",
+        "published_at": "2026-08-21T02:19:40-06:00",
+        "status": "processed",
+        "is_duplicate": 0,
+        "source_name": "KVIA",
+        "category_slug": "business",
+        "category_name": "Business",
+        "tags": [
+          {
+            "name": "business",
+            "slug": "business"
+          },
+          {
+            "name": "ai",
+            "slug": "ai"
+          },
+          {
+            "name": "entrepreneurship",
+            "slug": "entrepreneurship"
+          },
+          {
+            "name": "millennials",
+            "slug": "millennials"
+          },
+          {
+            "name": "startups",
+            "slug": "startups"
+          }
+        ]
+      },
+      {
+        "uuid": "7e7dd393-20ff-4c6d-b3c9-fe47454f4638",
+        "title": "How Local Digital Marketing Strategies Impact Restaurant Growth in El Paso",
+        "summary": "Recent data reveals a stark divide between restaurant chains in El Paso, with some expanding rapidly while others are closing locations. Brands like Culver’s and Texas Roadhouse are thriving, averaging a visibility score of 62, while struggling chains like Wendy’s and Papa John’s only score 47. This disparity highlights the importance of local digital marketing, as expanding chains are significantly more visible in AI searches and traditional platforms like Google. The findings suggest that effective management of online reputation and localized social media engagement are crucial for success. As El Paso's dining scene evolves, restaurants must adapt their marketing strategies to maintain competitiveness.\n\n**Key Details:**\n• Expanding chains have a visibility score of 62, compared to 47 for contracting ones.\n• 37% of consumers initiate searches using AI, emphasizing the need for strong local digital presence.\n• Expanding brands respond to 72.4% of Google reviews, while contracting brands only respond to 43.6%.\n• Successful brands treat local search, reputation, social media, and AI visibility as interconnected.\n• Local content engagement for expanding brands is 26 times higher than for those that are contracting.",
+        "image_url": "https://kvia.com/wp-content/uploads/2026/08/SoCi-What-growing-restaurant-chains.jpg",
+        "url": "https://kvia.com/stacker-business-economy/2026/08/21/what-growing-restaurant-chains-are-doing-differently-in-local-digital-marketing/",
+        "published_at": "2026-08-21T02:19:34-06:00",
+        "status": "processed",
+        "is_duplicate": 0,
+        "source_name": "KVIA",
+        "category_slug": "business",
+        "category_name": "Business",
+        "tags": [
+          {
+            "name": "ai",
+            "slug": "ai"
+          },
+          {
+            "name": "social-media",
+            "slug": "social-media"
+          },
+          {
+            "name": "local-business",
+            "slug": "local-business"
+          },
+          {
+            "name": "digital-marketing",
+            "slug": "digital-marketing"
+          },
+          {
+            "name": "restaurant-industry",
+            "slug": "restaurant-industry"
+          }
+        ]
+      }
+    ],
+    "categories": [
+      {
+        "slug": "crime",
+        "name": "Crime",
+        "description": "Crime, courts, police, public safety",
+        "sort_order": 1,
+        "story_count": 3804
+      },
+      {
+        "slug": "politics",
+        "name": "Politics",
+        "description": "Government, elections, policy",
+        "sort_order": 2,
+        "story_count": 9063
+      },
+      {
+        "slug": "sports",
+        "name": "Sports",
+        "description": "Chihuahuas, UTEP, high school sports",
+        "sort_order": 3,
+        "story_count": 2113
+      },
+      {
+        "slug": "business",
+        "name": "Business",
+        "description": "Economy, development, jobs",
+        "sort_order": 4,
+        "story_count": 2933
+      },
+      {
+        "slug": "education",
+        "name": "Education",
+        "description": "Schools, UTEP, EPCC",
+        "sort_order": 5,
+        "story_count": 1044
+      },
+      {
+        "slug": "community",
+        "name": "Community",
+        "description": "Events, culture, lifestyle",
+        "sort_order": 6,
+        "story_count": 14988
+      },
+      {
+        "slug": "health",
+        "name": "Health",
+        "description": "Healthcare, hospitals, wellness",
+        "sort_order": 7,
+        "story_count": 2195
+      },
+      {
+        "slug": "weather",
+        "name": "Weather",
+        "description": "Weather events, climate",
+        "sort_order": 8,
+        "story_count": 1104
+      }
+    ],
+    "corpus-stats": {
+      "n": 37248,
+      "avg_title_len": 68.72057560137458,
+      "max_title_len": 115,
+      "avg_summary_words": 126.10669029209622,
+      "min_summary_words": 42,
+      "max_summary_words": 225
+    }
   },
   "_meta": {
     "queries": [
       {
         "id": "tracer-pair",
-        "rowsRead": 9,
-        "fetchedAt": "2026-09-16T18:57:30.786Z"
+        "rowsRead": 10,
+        "fetchedAt": "2026-09-16T20:55:47.459Z"
+      },
+      {
+        "id": "longest-headline",
+        "rowsRead": 223541,
+        "fetchedAt": "2026-09-16T20:55:49.736Z"
+      },
+      {
+        "id": "shortest-headline",
+        "rowsRead": 223541,
+        "fetchedAt": "2026-09-16T20:55:51.881Z"
+      },
+      {
+        "id": "longest-summary",
+        "rowsRead": 223541,
+        "fetchedAt": "2026-09-16T20:55:57.822Z"
+      },
+      {
+        "id": "shortest-summary",
+        "rowsRead": 223541,
+        "fetchedAt": "2026-09-16T20:56:00.209Z"
+      },
+      {
+        "id": "no-summary",
+        "rowsRead": 37314,
+        "fetchedAt": "2026-09-16T20:56:02.308Z"
+      },
+      {
+        "id": "five-tags",
+        "rowsRead": 22,
+        "fetchedAt": "2026-09-16T20:56:04.304Z"
+      },
+      {
+        "id": "max-tags",
+        "rowsRead": 438241,
+        "fetchedAt": "2026-09-16T20:56:06.409Z"
+      },
+      {
+        "id": "zero-tags",
+        "rowsRead": 20047,
+        "fetchedAt": "2026-09-16T20:56:08.498Z"
+      },
+      {
+        "id": "no-image",
+        "rowsRead": 8,
+        "fetchedAt": "2026-09-16T20:56:10.592Z"
+      },
+      {
+        "id": "junk-image",
+        "rowsRead": 169,
+        "fetchedAt": "2026-09-16T20:56:12.700Z"
+      },
+      {
+        "id": "usable-image",
+        "rowsRead": 28,
+        "fetchedAt": "2026-09-16T20:56:14.652Z"
+      },
+      {
+        "id": "spanish-headline",
+        "rowsRead": 41179,
+        "fetchedAt": "2026-09-16T20:56:16.853Z"
+      },
+      {
+        "id": "uncategorized",
+        "rowsRead": 43307,
+        "fetchedAt": "2026-09-16T20:56:19.041Z"
+      },
+      {
+        "id": "feed",
+        "rowsRead": 119,
+        "fetchedAt": "2026-09-16T20:56:21.080Z"
+      },
+      {
+        "id": "category-lead",
+        "rowsRead": 199,
+        "fetchedAt": "2026-09-16T20:56:23.109Z"
+      },
+      {
+        "id": "category-feed",
+        "rowsRead": 685,
+        "fetchedAt": "2026-09-16T20:56:25.271Z"
+      },
+      {
+        "id": "categories",
+        "rowsRead": 335772,
+        "fetchedAt": "2026-09-16T20:56:28.211Z"
+      },
+      {
+        "id": "corpus-stats",
+        "rowsRead": 37314,
+        "fetchedAt": "2026-09-16T20:56:31.209Z"
+      },
+      {
+        "id": "tags-chunk-0",
+        "rowsRead": 603,
+        "fetchedAt": "2026-09-16T20:56:33.361Z"
+      },
+      {
+        "id": "tags-chunk-1",
+        "rowsRead": 48,
+        "fetchedAt": "2026-09-16T20:56:35.349Z"
       }
     ],
-    "rowsReadTotal": 9,
-    "fetchedAt": "2026-09-16T18:57:30.786Z",
-    "wranglerVersion": "4.130.0"
+    "rowsReadTotal": 1849229,
+    "fetchedAt": "2026-09-16T20:56:35.875Z",
+    "wranglerVersion": "4.130.0",
+    "changelog": {
+      "sourcePath": "/home/jaime/www/_github/915tldr.com2/public/changelog.json",
+      "sha256": "80049f20cdf84e818a0d179743f175184e24bcdc3c49dc23643a2a8b79fc3e46",
+      "entries": 8
+    }
   }
 }

@@ -52,7 +52,15 @@ function assertReadOnly(sql) {
   }
 
   for (const keyword of WRITE_KEYWORDS) {
-    const wordBoundary = new RegExp(`\\b${keyword}\\b`, 'i');
+    // Negative lookahead excludes a keyword immediately followed by "(" —
+    // that shape is a scalar SQL function call (e.g. `replace(a, b, c)`),
+    // never a write statement (write-statement keywords are always
+    // followed by whitespace and another token: "REPLACE INTO",
+    // "INSERT INTO", "CREATE TABLE", never "REPLACE("). This still blocks
+    // every real write form (`REPLACE INTO`, `INSERT OR REPLACE`, etc.)
+    // while allowing read-only queries that use `replace()` as a string
+    // function (01-04's WC() word-count helper needs this).
+    const wordBoundary = new RegExp(`\\b${keyword}\\b(?!\\s*\\()`, 'i');
     if (wordBoundary.test(trimmed)) {
       throw new Error(`d1Query: refused — statement contains write keyword "${keyword}"`);
     }

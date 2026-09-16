@@ -12,6 +12,9 @@ Entries are named `YYYY-MM-DD-HHMM_slug.md` and grouped by month, newest first.
 |------|-------|----------|
 | 2026-09-16 | [Render Swatch Evidence for Both Themes (D-01, C-01)](2026-09-16-1548_render-palette-swatches.md) | `[FEATURE]` `[STYLING]` `[TESTING]` `[DESIGN]` |
 | 2026-09-16 | [Generate the Photo-Sampled Palette and Pass the Contrast Gate (D-01, D-02, D-03, D-04, D-13)](2026-09-16-1502_build-palette-contrast-gate.md) | `[FEATURE]` `[STYLING]` `[ACCESSIBILITY]` `[DESIGN]` |
+| 2026-09-16 | [Fetch the Full D-06 Stress Set, Feeds and Category Counts; Copy the Public Changelog](2026-09-16-1457_fetch-d06-stress-set-and-changelog-copy.md) | `[FEATURE]` `[DATABASE]` `[SECURITY]` `[BUG_FIX]` `[DESIGN]` |
+| 2026-09-16 | [docs(01-03): record 2 owner-review deviations in WINDOWS ledger](2026-09-16-1449_01-03-record-2-owner-review-deviations-in-windows-.md) | `[docs]` `[auto-generated]` |
+| 2026-09-16 | [docs(01-03): complete plan — SUMMARY, STATE, ROADMAP, REQUIREMENTS](2026-09-16-1448_01-03-complete-plan-summary-state-roadmap-requirem.md) | `[docs]` `[auto-generated]` |
 | 2026-09-16 | [Source Real Photos and Sample One Hue Per Category (D-02, C-01)](2026-09-16-1421_source-photos-sample-hues.md) | `[FEATURE]` `[SECURITY]` `[DESIGN]` |
 | 2026-09-16 | [Phase 1 Plan 2 Complete: Tracer + Font Subset/Fallback/CLS Measurement](2026-09-16-1333_complete-01-02-plan.md) | `[DOCUMENTATION]` `[TESTING]` `[STYLING]` `[PERFORMANCE]` |
 | 2026-09-16 | [Phase 1 Plan 2 Task 2: Self-Hosted Subset Fonts, Metric-Compatible Fallbacks, Font-Swap CLS Measurement](2026-09-16-1328_font-subset-fallback-cls-measurement.md) | `[FEATURE]` `[STYLING]` `[TESTING]` `[PERFORMANCE]` `[ACCESSIBILITY]` |
