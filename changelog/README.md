@@ -10,6 +10,8 @@ Entries are named `YYYY-MM-DD-HHMM_slug.md` and grouped by month, newest first.
 
 | Date | Entry | Keywords |
 |------|-------|----------|
+| 2026-09-16 | [Phase 1 Plan 1 Complete: Toolchain, WebKit, Test Harness](2026-09-16-1237_complete-01-01-plan.md) | `[PLANNING]` `[DOCUMENTATION]` `[TESTING]` |
+| 2026-09-16 | [Static Server, Playwright Config, and Test Harness (TDD)](2026-09-16-1233_static-server-playwright-harness.md) | `[TESTING]` `[INFRA]` `[SECURITY]` `[CONFIG]` |
 | 2026-09-16 | [Harness Spec Written (TDD Red)](2026-09-16-1231_harness-spec-red.md) | `[TESTING]` `[CONFIG]` |
 | 2026-09-16 | [Install Pinned Toolchain, Prove WebKit via Docker Fallback](2026-09-16-1230_install-toolchain-webkit-docker-fallback.md) | `[DEPENDENCIES]` `[TESTING]` `[INFRA]` `[CONFIG]` |
 | 2026-09-16 | [Phase 1 Plans Created](2026-09-16-1142_phase-1-plans.md) | `[PLANNING]` `[DOCUMENTATION]` `[TESTING]` `[ACCESSIBILITY]` `[DESIGN]` |
