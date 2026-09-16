@@ -10,9 +10,211 @@
 */
 
 /* fonts:start */
+@font-face {
+  font-family: "Instrument Serif";
+  src: url("fonts/InstrumentSerif-Regular.woff2") format("woff2");
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Instrument Serif";
+  src: url("fonts/InstrumentSerif-Italic.woff2") format("woff2");
+  font-style: italic;
+  font-weight: 400;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Source Serif 4";
+  src: url("fonts/SourceSerif4-Roman.woff2") format("woff2");
+  font-style: normal;
+  font-weight: 400 700;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Source Serif 4";
+  src: url("fonts/SourceSerif4-Italic.woff2") format("woff2");
+  font-style: italic;
+  font-weight: 400 700;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Instrument Serif Fallback: Georgia";
+  src: local('Georgia');
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  ascent-override: 129.426%;
+  descent-override: 40.5273%;
+  size-adjust: 76.4916%;
+}
+
+@font-face {
+  font-family: "Instrument Serif Fallback: Noto Serif";
+  src: local('Noto Serif Regular'), local('NotoSerif-Regular');
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  ascent-override: 139.6452%;
+  descent-override: 43.7273%;
+  size-adjust: 70.894%;
+}
+
+@font-face {
+  font-family: "Instrument Serif Fallback: Times New Roman";
+  src: local('Times New Roman'), local('Liberation Serif'), local('Tinos');
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  ascent-override: 117.9435%;
+  descent-override: 36.9318%;
+  line-gap-override: 0%;
+  size-adjust: 83.9385%;
+}
+
+@font-face {
+  font-family: "Instrument Serif Fallback: Georgia";
+  src: local('Georgia Italic'), local('Georgia-Italic');
+  font-style: italic;
+  font-weight: 400;
+  font-display: swap;
+  ascent-override: 125.3604%;
+  descent-override: 39.2543%;
+  size-adjust: 78.9723%;
+}
+
+@font-face {
+  font-family: "Instrument Serif Fallback: Noto Serif";
+  src: local('Noto Serif Italic'), local('NotoSerif-Italic');
+  font-style: italic;
+  font-weight: 400;
+  font-display: swap;
+  ascent-override: 129.3343%;
+  descent-override: 40.4986%;
+  size-adjust: 76.5458%;
+}
+
+@font-face {
+  font-family: "Instrument Serif Fallback: Times New Roman";
+  src: local('Times New Roman Italic'), local('Liberation Serif Italic'), local('Tinos Italic');
+  font-style: italic;
+  font-weight: 400;
+  font-display: swap;
+  ascent-override: 112.5685%;
+  descent-override: 35.2487%;
+  line-gap-override: 0%;
+  size-adjust: 87.9464%;
+}
+
+@font-face {
+  font-family: "Source Serif 4 Fallback: Georgia";
+  src: local('Georgia');
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  ascent-override: 96.4195%;
+  descent-override: 31.1781%;
+  size-adjust: 107.4471%;
+}
+
+@font-face {
+  font-family: "Source Serif 4 Fallback: Noto Serif";
+  src: local('Noto Serif Regular'), local('NotoSerif-Regular');
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  ascent-override: 104.0326%;
+  descent-override: 33.6399%;
+  size-adjust: 99.5842%;
+}
+
+@font-face {
+  font-family: "Source Serif 4 Fallback: Times New Roman";
+  src: local('Times New Roman'), local('Liberation Serif'), local('Tinos');
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  ascent-override: 87.8653%;
+  descent-override: 28.4121%;
+  line-gap-override: 0%;
+  size-adjust: 117.9077%;
+}
+
+@font-face {
+  font-family: "Source Serif 4 Fallback: Georgia";
+  src: local('Georgia Italic'), local('Georgia-Italic');
+  font-style: italic;
+  font-weight: 400;
+  font-display: swap;
+  ascent-override: 106.7925%;
+  descent-override: 34.5323%;
+  size-adjust: 97.0105%;
+}
+
+@font-face {
+  font-family: "Source Serif 4 Fallback: Noto Serif";
+  src: local('Noto Serif Italic'), local('NotoSerif-Italic');
+  font-style: italic;
+  font-weight: 400;
+  font-display: swap;
+  ascent-override: 110.1778%;
+  descent-override: 35.627%;
+  size-adjust: 94.0299%;
+}
+
+@font-face {
+  font-family: "Source Serif 4 Fallback: Times New Roman";
+  src: local('Times New Roman Italic'), local('Liberation Serif Italic'), local('Tinos Italic');
+  font-style: italic;
+  font-weight: 400;
+  font-display: swap;
+  ascent-override: 95.8953%;
+  descent-override: 31.0086%;
+  line-gap-override: 0%;
+  size-adjust: 108.0344%;
+}
+
+@font-face {
+  font-family: "Source Serif 4 Fallback: Georgia";
+  src: local('Georgia Bold'), local('Georgia-Bold');
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  ascent-override: 108.7495%;
+  descent-override: 35.1651%;
+  size-adjust: 95.2648%;
+}
+
+@font-face {
+  font-family: "Source Serif 4 Fallback: Noto Serif";
+  src: local('Noto Serif Bold'), local('NotoSerif-Bold');
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  ascent-override: 107.3749%;
+  descent-override: 34.7206%;
+  size-adjust: 96.4844%;
+}
+
+@font-face {
+  font-family: "Source Serif 4 Fallback: Times New Roman";
+  src: local('Times New Roman Bold'), local('Liberation Serif Bold'), local('Tinos Bold');
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  ascent-override: 90.727%;
+  descent-override: 29.3374%;
+  line-gap-override: 0%;
+  size-adjust: 114.1887%;
+}
+
 :root {
-  --font-display: "Instrument Serif", serif;
-  --font-body: "Source Serif 4", serif;
+  --font-display: "Instrument Serif", "Instrument Serif Fallback: Georgia", "Instrument Serif Fallback: Noto Serif", "Instrument Serif Fallback: Times New Roman", Georgia, "Noto Serif", "Times New Roman", serif;
+  --font-body: "Source Serif 4", "Source Serif 4 Fallback: Georgia", "Source Serif 4 Fallback: Noto Serif", "Source Serif 4 Fallback: Times New Roman", Georgia, "Noto Serif", "Times New Roman", serif;
 }
 /* fonts:end */
 

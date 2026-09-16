@@ -123,8 +123,24 @@ for (const name of pagesUnderTest()) {
     test(`body is set in Source Serif 4; headlines are set in Instrument Serif @c5`, async ({ page }) => {
       await openPage(page, name as any);
 
+      // getComputedStyle().fontFamily's *first* family name is what matters
+      // here; whether that name is serialised quoted ("Instrument Serif")
+      // or as an unquoted multi-ident sequence (Instrument Serif) is an
+      // engine choice, not a content difference — Chromium always
+      // preserves the authored quoting, WebKit re-serialises to the
+      // minimal form that doesn't need quotes (only names containing a
+      // character invalid in a bare ident, e.g. the digit in "Source
+      // Serif 4" or the colon in a capsize fallback name, force it to
+      // stay quoted). Strip optional surrounding quotes before comparing
+      // so the assertion holds in both engines.
+      function firstFamily(fontFamilyValue: string): string {
+        const first = fontFamilyValue.split(',')[0].trim();
+        const match = first.match(/^"(.*)"$/);
+        return match ? match[1] : first;
+      }
+
       const bodyFont = await page.evaluate(() => getComputedStyle(document.body).fontFamily);
-      expect(bodyFont.startsWith('"Source Serif 4"')).toBe(true);
+      expect(firstFamily(bodyFont)).toBe('Source Serif 4');
 
       const hasLead = (await page.locator('[data-lead]').count()) > 0;
 
@@ -140,7 +156,7 @@ for (const name of pagesUnderTest()) {
 
       expect(headlineFonts.length).toBeGreaterThan(0);
       for (const font of headlineFonts) {
-        expect(font.startsWith('"Instrument Serif"')).toBe(true);
+        expect(firstFamily(font)).toBe('Instrument Serif');
       }
     });
   });
