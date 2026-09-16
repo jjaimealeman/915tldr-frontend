@@ -15,6 +15,11 @@
   "scripts": {
     "probe:webkit": "node design/scripts/probe-webkit.mjs",
     "test:e2e": "node design/scripts/pw.mjs --project=all",
-    "serve:mockups": "node design/scripts/serve-mockups.mjs --port 4319"
+    "serve:mockups": "node design/scripts/serve-mockups.mjs --port 4319",
+    "data:stress": "node design/scripts/fetch-stress-set.mjs",
+    "check:contrast": "node design/scripts/check-contrast.mjs",
+    "verify:phase-1": "node design/scripts/verify-phase-1.mjs",
+    "fonts:fetch": "node design/scripts/fetch-fonts.mjs",
+    "fonts:build": "node design/scripts/build-fonts.mjs"
   }
 }

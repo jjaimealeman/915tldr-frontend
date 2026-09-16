@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>915 TLDR — El Paso, without the scroll</title>
+<link rel="stylesheet" href="style.css">
+<script>
+  (function () {
+    if (window.localStorage.getItem('915tldr:theme') === 'dark') {
+      document.documentElement.dataset.theme = 'dark';
+    }
+    document.addEventListener('DOMContentLoaded', function () {
+      var toggle = document.querySelector('[data-theme-toggle]');
+      if (!toggle) return;
+      toggle.hidden = false;
+      var isDark = document.documentElement.dataset.theme === 'dark';
+      toggle.setAttribute('aria-pressed', String(isDark));
+      toggle.addEventListener('click', function () {
+        var nowDark = document.documentElement.dataset.theme !== 'dark';
+        if (nowDark) {
+          document.documentElement.dataset.theme = 'dark';
+          window.localStorage.setItem('915tldr:theme', 'dark');
+        } else {
+          delete document.documentElement.dataset.theme;
+          window.localStorage.removeItem('915tldr:theme');
+        }
+        toggle.setAttribute('aria-pressed', String(nowDark));
+      });
+    });
+  })();
+</script>
+</head>
+<body data-page="home">
+<a data-skip-link href="#main">Skip to main content</a>
+
+<header>
+  <h1>915 TLDR</h1>
+  <p>El Paso, Texas · Wednesday, September 16, 2026</p>
+</header>
+
+<nav aria-label="Sections">
+  <ul>
+    <li><a href="category.html" data-nav-category="crime" data-category="crime"><span data-stripe></span>Crime</a></li>
+    <li><a href="category.html" data-nav-category="politics" data-category="politics"><span data-stripe></span>Politics</a></li>
+    <li><a href="category.html" data-nav-category="sports" data-category="sports"><span data-stripe></span>Sports</a></li>
+    <li><a href="category.html" data-nav-category="business" data-category="business"><span data-stripe></span>Business</a></li>
+    <li><a href="category.html" data-nav-category="education" data-category="education"><span data-stripe></span>Education</a></li>
+    <li><a href="category.html" data-nav-category="community" data-category="community"><span data-stripe></span>Community</a></li>
+    <li><a href="category.html" data-nav-category="health" data-category="health"><span data-stripe></span>Health</a></li>
+    <li><a href="category.html" data-nav-category="weather" data-category="weather"><span data-stripe></span>Weather</a></li>
+  </ul>
+</nav>
+
+<button type="button" data-theme-toggle hidden aria-pressed="false">Dark theme</button>
+
+<main id="main">
+  <article data-lead data-lead-variant="type" data-uuid="dc23f0ba-1cc7-4ad0-b95b-87fa99c5e851" data-category="health">
+    <span data-stripe></span>
+    <p data-category-name>Health</p>
+    <h2><a href="article.html">El Paso Residents Urged to Monitor Pets for New World Screwworm Threat</a></h2>
+    <p data-summary>Health officials are alerting El Paso pet owners about the potential threat of the New World screwworm, a flesh-eating fly larva recently detected in Juárez and other areas in Texas. Although no cases have been reported in El Paso, the parasite can cause severe tissue damage and infection in animals if not treated promptly. Symptoms to watch for include foul-smelling wounds, lethargy, and visible maggots. Pet owners are advised to seek immediate veterinary care if they suspect an infection. Local animal services are prepared for potential cases, emphasizing the importance of preventative measures.
+
+**Key Details:**
+• Monitor pets for symptoms like foul-smelling wounds and lethargy.
+• Seek veterinary care immediately if infection is suspected.
+• Stay updated on preventative measures and local health advisories.</p>
+    <p data-byline><span data-source>KVIA</span> · <time datetime="2026-09-16T11:55:00-06:00">Sept. 16, 11:55 a.m.</time></p>
+  </article>
+
+  <section data-grid aria-label="Latest">
+    <article data-card data-uuid="0fe96c27-5d18-4df6-a9a3-167a4df63212" data-category="community">
+      <span data-stripe></span>
+      <p data-category-name>Community</p>
+      <h3><a href="article.html">Sunny, Beloved Portuguese Water Dog of the Obamas, Passes Away at 13</a></h3>
+      <p data-summary>Sunny, the Portuguese water dog who brought joy to the Obama family during their time in the White House, has died at the age of 13. Former President Barack Obama announced her passing on social media, calling her a cherished family member. Sunny joined the Obamas in 2013, providing companionship to their other dog, Bo, and was known for her playful and spirited personality. Throughout her life, she was involved in various official events and even met Pope Francis. The cause of her death has not been disclosed, but her legacy as a beloved first pet endures, as she helped the Obamas transition to life as empty nesters after their daughters left for college.</p>
+      <p data-byline><span data-source>KVIA</span> · <time datetime="2026-09-16T11:30:21-06:00">Sept. 16, 11:30 a.m.</time></p>
+    </article>
+  </section>
+</main>
+
+<footer>
+  <p><a href="changelog.html">Changelog</a> · <a href="contact.html">Contact</a></p>
+  <p>build 0000000 · 2026-09-16</p>
+</footer>
+</body>
+</html>

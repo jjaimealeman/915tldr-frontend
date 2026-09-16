@@ -1,0 +1,44 @@
+{
+  "cases": {
+    "tracer-pair": [
+      {
+        "uuid": "dc23f0ba-1cc7-4ad0-b95b-87fa99c5e851",
+        "title": "El Paso Residents Urged to Monitor Pets for New World Screwworm Threat",
+        "summary": "Health officials are alerting El Paso pet owners about the potential threat of the New World screwworm, a flesh-eating fly larva recently detected in Juárez and other areas in Texas. Although no cases have been reported in El Paso, the parasite can cause severe tissue damage and infection in animals if not treated promptly. Symptoms to watch for include foul-smelling wounds, lethargy, and visible maggots. Pet owners are advised to seek immediate veterinary care if they suspect an infection. Local animal services are prepared for potential cases, emphasizing the importance of preventative measures.\n\n**Key Details:**\n• Monitor pets for symptoms like foul-smelling wounds and lethargy.\n• Seek veterinary care immediately if infection is suspected.\n• Stay updated on preventative measures and local health advisories.",
+        "image_url": "https://kvia.com/wp-content/uploads/2025/06/New-World-Screwworm.png",
+        "url": "https://kvia.com/news/el-paso/2026/09/16/warning-for-el-paso-pet-owners-as-new-world-screwworm-detected-nearby/",
+        "published_at": "2026-09-16T11:55:00-06:00",
+        "status": "processed",
+        "is_duplicate": 0,
+        "source_name": "KVIA",
+        "category_slug": "health",
+        "category_name": "Health"
+      },
+      {
+        "uuid": "0fe96c27-5d18-4df6-a9a3-167a4df63212",
+        "title": "Sunny, Beloved Portuguese Water Dog of the Obamas, Passes Away at 13",
+        "summary": "Sunny, the Portuguese water dog who brought joy to the Obama family during their time in the White House, has died at the age of 13. Former President Barack Obama announced her passing on social media, calling her a cherished family member. Sunny joined the Obamas in 2013, providing companionship to their other dog, Bo, and was known for her playful and spirited personality. Throughout her life, she was involved in various official events and even met Pope Francis. The cause of her death has not been disclosed, but her legacy as a beloved first pet endures, as she helped the Obamas transition to life as empty nesters after their daughters left for college.",
+        "image_url": null,
+        "url": "https://kvia.com/politics/cnn-us-politics/2026/09/16/sunny-the-obamas-portuguese-water-dog-dies-at-13/",
+        "published_at": "2026-09-16T11:30:21-06:00",
+        "status": "processed",
+        "is_duplicate": 0,
+        "source_name": "KVIA",
+        "category_slug": "community",
+        "category_name": "Community"
+      }
+    ]
+  },
+  "_meta": {
+    "queries": [
+      {
+        "id": "tracer-pair",
+        "rowsRead": 9,
+        "fetchedAt": "2026-09-16T18:57:30.786Z"
+      }
+    ],
+    "rowsReadTotal": 9,
+    "fetchedAt": "2026-09-16T18:57:30.786Z",
+    "wranglerVersion": "4.130.0"
+  }
+}
