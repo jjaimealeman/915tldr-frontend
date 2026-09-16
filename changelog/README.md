@@ -11,6 +11,7 @@ Entries are named `YYYY-MM-DD-HHMM_slug.md` and grouped by month, newest first.
 | Date | Entry | Keywords |
 |------|-------|----------|
 | 2026-09-16 | [Render Swatch Evidence for Both Themes (D-01, C-01)](2026-09-16-1548_render-palette-swatches.md) | `[FEATURE]` `[STYLING]` `[TESTING]` `[DESIGN]` |
+| 2026-09-16 | [Phase 1 Plan 4 Complete: D-06 Stress Set + D-15 Spanish Calibration](2026-09-16-1510_01-04-complete-plan-summary-state-roadmap-requirem.md) | `[DOCUMENTATION]` `[TESTING]` `[DATABASE]` `[ACCESSIBILITY]` `[DESIGN]` |
 | 2026-09-16 | [Author Real Spanish Copy and Calibrate the Synthetic +25% Floor in the Real Fonts (D-15)](2026-09-16-1507_spanish-copy-and-width-calibration.md) | `[FEATURE]` `[STYLING]` `[TESTING]` `[ACCESSIBILITY]` `[DESIGN]` |
 | 2026-09-16 | [Generate the Photo-Sampled Palette and Pass the Contrast Gate (D-01, D-02, D-03, D-04, D-13)](2026-09-16-1502_build-palette-contrast-gate.md) | `[FEATURE]` `[STYLING]` `[ACCESSIBILITY]` `[DESIGN]` |
 | 2026-09-16 | [Fetch the Full D-06 Stress Set, Feeds and Category Counts; Copy the Public Changelog](2026-09-16-1457_fetch-d06-stress-set-and-changelog-copy.md) | `[FEATURE]` `[DATABASE]` `[SECURITY]` `[BUG_FIX]` `[DESIGN]` |
