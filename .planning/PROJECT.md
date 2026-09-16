@@ -59,7 +59,11 @@ structurally at build time. Everything else in this rebuild is negotiable; this 
 - [ ] Prompt explicitly prohibits advisories, calls to action, and impact analysis
       not present in the source
 - [ ] Affected archive re-processed once, batched, after dry run and approval
-- [ ] Automated check flags any summary longer than its source
+- [ ] Automated **grounding/entailment** check — every claim in a summary traces to the source.
+      Ships in the same phase as the prompt rewrite; the costed dry run depends on it
+- [ ] Automated check flags any summary longer than its source (necessary, not sufficient —
+      the real production fabrication was length-compliant)
+- [ ] Thin sources do not fall back to verbatim-heavy excerpting (aggregator legal risk)
 
 **Bilingual**
 - [ ] Spanish summaries generated at ingest, in the same model call
@@ -168,6 +172,20 @@ category index routeRules gap (`/crime/**` never matches `/crime`); `/changelog`
 because the SSR-time `useFetch('/changelog.json')` intermittently races and the empty payload
 is cached for an hour — static generation removes that failure mode outright.
 
+**Open questions that need a measurement or a codebase check, not a guess.** Research
+deliberately declined to assert answers on these:
+
+| Question | Why it matters | How to settle it |
+|---|---|---|
+| Which embedding model populates `articles-semantic` — multilingual or English-only? | If English-only, Vectorize's cross-language search advantage evaporates and the search decision changes | Codebase check of the pipeline |
+| **Did article embeddings silently stop on 2026-09-04?** | The OpenAI account sat at $0 from 2026-09-04 to 2026-09-16, returning 429s. If `articles-semantic` is fed by OpenAI embeddings, ~12 days of articles (~1,200) may have no vector — which degrades duplicate detection *and* semantic search. Exactly the silent-failure class this rebuild exists to fix | Query Vectorize vs `articles` for rows in that window |
+| Current cron worker CPU headroom | Decides whether the render step can live in the cron worker | Workers Observability |
+| Real per-page render cost | A full 82k rebuild at ~4ms/page is ~330s — over the 300s Worker CPU ceiling regardless of location, so it needs Queues fan-out | Measure on a deployed worker |
+| Worker → R2 `get()` latency at ~30 KB | The archive hop is on the critical path for most article requests | Measure on a deployed worker |
+| D1 REST API pagination performance at 41,233 rows | The whole build depends on the loader; no Drizzle runtime driver exists for D1-HTTP | Phase 2 spike |
+| Astro build time and memory at 41k–82k pages via a D1 loader | No public benchmark exists for a DB-backed loader at this scale — closer to novel territory than general Astro scaling suggests | Phase 3 spike |
+| WhatsApp's real share-card image ceiling (~300 KB per community sources, undocumented) | WhatsApp is the strictest platform and matters most locally | Test against actual generated cards |
+
 **Prior cost incident.** A previous remediation attempt produced an unforecast ~$40 AI charge
 by pushing the corpus back through the summariser. Every money-spending operation in this
 rebuild is now enumerated with a ceiling and a gate, and re-rendering HTML is explicitly
@@ -192,7 +210,13 @@ distinguished from re-processing with a model.
 - **Tech stack**: Astro 7 + `@astrojs/vue` + VueUse on Cloudflare Workers. Nuxt app retained
   for pipeline/admin. No NuxtHub (sunset 2025-12-31) — direct Cloudflare bindings only.
 - **Tech stack**: Sharp does not run on Workers. Image optimisation happens at build time in
-  Node; any on-demand path uses Cloudflare Images. Getting this wrong ships broken images.
+  Node; any on-demand path uses Cloudflare Images. Getting this wrong ships broken images —
+  and the adapter default works *against* you here (see `imageService` in Key Decisions).
+- **Budget**: The OpenAI account hit a **$0 balance** and returned HTTP 429
+  `credit_balance_exhausted` before being refunded on 2026-09-16 (~$19.91, auto-reload on).
+  Planned OpenAI spend for this rebuild (~$7.44 re-processing + ~$1.49 Spanish + tier 3
+  images) fits, but with little headroom. Balance is a monitored line in the daily routine,
+  not an assumption.
 - **Platform**: Workers Static Assets caps at 100,000 files per version (Paid plan).
   Wrangler ≥ 4.34.0 required.
 - **Platform**: D1 allows a maximum of **100 bound parameters per statement** — verified
@@ -210,7 +234,9 @@ distinguished from re-processing with a model.
 
 | Decision | Rationale | Outcome |
 |----------|-----------|---------|
-| Hybrid static, not pure prerender | 41,233 articles × 2 languages grows ~200 files/day; pure prerendering hits the 100,000-file ceiling in roughly **90 days**, not 18 months. A full 41k rebuild every 2h would also become the next cost problem. | — Pending |
+| Hybrid static, not pure prerender | Pure prerendering is over the 100,000-file ceiling **immediately**, not in 18 months and not in 90 days: 41,233 articles × 2 languages = 82,466, **plus 18,007 tags × 2 = 36,014 tag pages** ≈ **118,000 files** before categories or static pages. The PRD's "82k exceeds 100k" was wrong arithmetic with a right conclusion; an earlier correction to "~90 days" counted articles only. A full rebuild every 2h would also become the next cost problem. | — Pending |
+| Tag pages default to the archive tier | 36,014 tag pages is 36% of the entire file ceiling for content almost nobody requests directly. Only top-N tags by article count get promoted to hot static; the rest render once to R2 like the article archive. | — Pending |
+| File count is a watched budget line | The ceiling is currently handled by architectural choice but nothing measures it. The "hot content" cutoff is a number that drifts. It joins D1 reads and spend in the daily routine — same "measure it or it drifts" logic that produced this rebuild. | — Pending |
 | R2 for the archive, not KV | ~37,000 pages × ~30 KB ≈ 1.1 GB. KV includes 1 GB — over the line immediately. R2 includes 10 GB. | — Pending |
 | Content quality moves to **phase 2** | The PRD put the prompt fix at phase 8 but started Spanish generation at phase 2 — which would generate fabricated advisories in Spanish for six phases, then pay to redo them. Fix the prompt before any new summary is written in either language. | — Pending |
 | Summariser: `gpt-5.6-luna` | GPT-4o Mini is from Aug 2024. Luna is the small model of OpenAI's newest family — best instruction-following in the cheap tier, which is precisely the padding defect. Ongoing delta is **$0.48/month**; batched corpus backfill is **~$7.44**, *under* the PRD's existing $8.92 estimate for staying put. | — Pending |
@@ -218,7 +244,17 @@ distinguished from re-processing with a model.
 | Batch API mandatory for backfills | 50% discount, 24h window, and the backfills are offline and latency-insensitive. Applies to image models too. Ongoing cron stays on standard rates. | — Pending |
 | Tier 2 imagery stays on Flux-Schnell | $0.00063/image vs ~10-13× that for the cheapest OpenAI tier — ~$10 vs ~$125 for the 15,624 backfill, and ongoing (~40/day = 2,304 neurons) sits entirely inside the free 10,000/day. Not close. | — Pending |
 | Tier 3 imagery: `gpt-image-2.5-flare` | `gpt-image-2` is superseded. Flare and Sunburst are **identically priced**, so the choice is speed vs quality; Flare's quality ≈ gpt-image-2 with faster turnaround, which suits generating the daily lead inside the cron window. | — Pending |
-| Tier 3 cost measured, not estimated | GPT Image 2.5's token consumption is unpublished and the GPT Image 2 calculator explicitly does not apply. The PRD's ~$0.08/image and ~$1.20/month are unverified — and didn't reconcile anyway (8 heroes + a daily lead at $0.08 is $2.40/mo). One test call in phase 1 settles it. | — Pending |
+| Tier 3 cost measured, not estimated | GPT Image 2.5's token consumption is unpublished and the GPT Image 2 calculator explicitly does not apply. **Partially settled 2026-09-16:** OpenAI bills image output per *token*, so the flat $0.02/$0.04/$0.08 table was only ever correct at one resolution. A measured low-quality 1024×1024 `gpt-image-2` generation billed **$0.0060**, not the $0.020 estimated — the old table ran **3.3× high**. Edits cost more than generations ($0.0142 measured) because image-input tokens count. Phase 1 still measures `gpt-image-2.5-flare` specifically; no side-by-side against `gpt-image-2` exists yet. | ⚠️ Revisit |
+| Astro bindings via `cloudflare:workers` | `Astro.locals.runtime.env` was **removed** in `@astrojs/cloudflare` v13 / Astro 6. Current pattern is `import { env } from 'cloudflare:workers'`. The commonly-cited pattern is stale. | — Pending |
+| `output: 'static'`, not `'hybrid'` | `output: 'hybrid'` was merged into `'static'` in Astro v5 — the keyword is removed, not deprecated. Per-route opt-out is `export const prerender = false`. The *architecture* is still hybrid; the config keyword is gone. | — Pending |
+| `imageService` set explicitly | `@astrojs/cloudflare` has defaulted `imageService` to `cloudflare-binding` since v14.2.0 — the opposite of the build-time-Sharp assumption. Must be set explicitly to `{ build: 'compile', runtime: 'passthrough' }` or images break on deploy, which is precisely the failure the PRD warns about. | — Pending |
+| Hand-written D1 loader, not FlareCMS | The PRD cites the "FlareCMS `flareLoader` pattern" for D1 → content collections. **FlareCMS is an unfinished project and cannot be used** (owner's call, 2026-09-16); `@flare-cms/astro` is not published to npm. Replaced by a hand-written `Loader` from `astro/loaders` calling the D1 REST API. Side benefit: the fail-loud assertion below lives in our own code. No `drizzle-orm` runtime driver exists for D1-HTTP, so Drizzle does not help here. | — Pending |
+| Static assets are immutable per deployment | Workers Static Assets are **not writable at request time** — they are a per-version deployment artifact. "Hot content regenerated every cron" therefore means shipping a new Worker deployment via Wrangler/CI every two hours, not writing files from a Worker. R2 *is* a live read/write store from inside a Worker. This asymmetry shapes phases 3 and 4. | — Pending |
+| Grounding check, not just a length check | The PRD's rule ("flag any summary longer than its source") would **not** have caught the actual production fabrication — the invented advisory was plausible, well-formed and length-compliant. A grounding/entailment check is required and must ship in the **same phase** as the prompt rewrite, because the costed re-processing dry run depends on it. Length checking stays; it is necessary, not sufficient. | — Pending |
+| Loader must fail loud | PRD §15 claims static generation "removes outright" the `/changelog` empty-state bug. It **relocates** it: a content layer loader that returns zero or partial rows without throwing is not an error to Astro's Content Loader API, so an empty page builds, deploys and caches exactly like a correct one — worse, baked into an artifact rather than a 1h cache. Explicit assertion in the loader plus a direct regression test. | — Pending |
+| Fixing padding must not mean quoting more | §8.3 offers "present the source excerpt with attribution" for thin sources. Verbatim-heavy excerpting is a live legal risk for aggregators (*AP v. Meltwater*, *Dow Jones v. Briefing.com*, hot-news misappropriation). The safe posture is prominent attribution **plus genuinely transformative summarisation** — not longer quotes. | — Pending |
+| CI assertion covers islands too | Server islands always trigger a real Worker request via `/_server-islands/*`, even on fully static pages. Five silent D1-reintroduction vectors were identified: search endpoint, islands, sitemap, middleware, and admin-pattern copy-paste. The assertion scans island component files, not just `.astro` pages. | — Pending |
+| Per-article AI disclosure, not just About | EU AI Act Article 50 has been in force since Aug 2026 and is becoming the de facto disclosure norm even for US-only sites. Disclosure belongs at point of consumption on each article, not only centralised on the About page. Low marginal cost — the article template is already being touched. | — Pending |
 | Share cards stay deterministic composition | GPT Image 2.5 can render text well now, but the original premise is unchanged: $0 per article vs ~$300 for 37,180, and composition cannot misspell *Ysleta* or a council member's name. A garbled headline in a share card is the exact credibility damage the content-quality work exists to undo. | — Pending |
 | Category heroes share identity via reference images | Multi-reference editing with assigned roles (style / subject / background) is the direct answer to eight heroes needing to read as one visual system rather than eight unrelated generations. | — Pending |
 | Cloudflare Access replaces Better Auth | 1 user, 0 signup routes, no digest code. Deletes a framework, four tables, a login page and all session handling — and authenticating at the edge is more secure than a self-managed password. | — Pending |
@@ -249,4 +285,4 @@ This document evolves at phase transitions and milestone boundaries.
 5. Update Context with current state
 
 ---
-*Last updated: 2026-09-16 after initialization*
+*Last updated: 2026-09-16 after initialization and project research*
