@@ -5,15 +5,15 @@ milestone_name: milestone
 current_phase: 01
 current_phase_name: design-sketch-editorial-identity
 status: executing
-stopped_at: "Completed 01-03-PLAN.md (Tasks 1-3: photo sourcing, palette generation, swatch evidence)"
-last_updated: "2026-09-16T20:47:40.108Z"
+stopped_at: "Completed 01-04-PLAN.md (Tasks 1-2: D-06 stress set + changelog copy, D-15 Spanish copy + width calibration)"
+last_updated: "2026-09-16T21:09:58.994Z"
 last_activity: 2026-09-16
 last_activity_desc: Roadmap created; 137/137 v1 requirements mapped across 12 phases
 progress:
   total_phases: 1
   completed_phases: 0
   total_plans: 10
-  completed_plans: 3
+  completed_plans: 4
 ---
 
 # Project State
@@ -28,11 +28,11 @@ See: .planning/PROJECT.md (updated 2026-09-16)
 ## Current Position
 
 Phase: 01 (design-sketch-editorial-identity) — EXECUTING
-Plan: 4 of 10
+Plan: 5 of 10
 Status: Ready to execute
 Last activity: 2026-09-16 — Phase 01 execution started
 
-Progress: [███░░░░░░░] 30%
+Progress: [████░░░░░░] 40%
 
 ## Performance Metrics
 
@@ -61,6 +61,7 @@ Progress: [███░░░░░░░] 30%
 | Phase 01 P01 | 20min | 3 tasks | 14 files |
 | Phase 01 P02 | 50min | 2 tasks | 23 files |
 | Phase 01 P03 | 71min | 3 tasks | 16 files |
+| Phase 01 P04 | 20min | 2 tasks | 6 files |
 
 ## Accumulated Context
 
@@ -81,6 +82,8 @@ Recent decisions affecting current work:
 - [Phase ?]: [Phase 01]: This Playwright-WebKit build (26.6) never composites while a font resource is pending, regardless of font-display:swap — measureFontSwap reports prePaintObserved:false honestly rather than a fabricated number; flagged for a real-Safari spot-check before 01-APPROVAL.md.
 - [Phase ?]: Phase 01: Three photo-sampled category hue pairs (crime/sports, business/health, politics/weather) were too close together for the 0.05 minimum OKLab distance; resolved by raising block/vivid-dark chroma to 0.150 plus small documented +-4 to +-6deg hueOffsets, found via brute-force search.
 - [Phase ?]: Phase 01: politics' palette photo substitutes a Santa Fe, NM dusk sky for the literal Franklin Mountains/El Paso skyline -- genuine full-darkness El Paso night photos measured near-zero chroma. Flagged for owner review, not hidden.
+- [Phase ?]: 01-04: card-headline/card-summary/worst-case source from D-06 rows that turned out to be genuine Spanish-original wire content, not English — es_real recorded identical to en with a note rather than fabricating a translation.
+- [Phase ?]: 01-04: skip-link's real translation changed from a literal 'Saltar al contenido' (no diacritics) to 'Saltar la navegación' — a natural, functionally-equivalent a11y phrasing that carries a diacritic and fits the calibration script's width band.
 
 ### Pending Todos
 
@@ -105,6 +108,6 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-09-16T20:47:26.185Z
-Stopped at: Completed 01-03-PLAN.md (Tasks 1-3: photo sourcing, palette generation, swatch evidence)
+Last session: 2026-09-16T21:09:58.984Z
+Stopped at: Completed 01-04-PLAN.md (Tasks 1-2: D-06 stress set + changelog copy, D-15 Spanish copy + width calibration)
 Resume file: None

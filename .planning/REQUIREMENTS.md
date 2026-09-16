@@ -67,7 +67,7 @@
 - [x] **DSGN-04**: Each of the eight categories owns a distinct colour from a Chihuahuan desert palette
 - [x] **DSGN-05**: Light and dark themes are both fully designed, light being the default
 - [x] **DSGN-06**: The article grid renders as pure HTML, not as a hydrated island
-- [ ] **DSGN-07**: `/changelog` receives an editorial treatment rather than a bulleted list, with history preserved
+- [x] **DSGN-07**: `/changelog` receives an editorial treatment rather than a bulleted list, with history preserved
 
 ### Accessibility
 
@@ -296,7 +296,7 @@ Deferred. Tracked, not in this roadmap.
 | DSGN-04 | Phase 1 | Complete |
 | DSGN-05 | Phase 1 | Complete |
 | DSGN-06 | Phase 1 | Complete |
-| DSGN-07 | Phase 1 | Pending |
+| DSGN-07 | Phase 1 | Complete |
 | A11Y-01 | Phase 1 | Complete |
 | A11Y-02 | Phase 11 | Pending |
 | A11Y-03 | Phase 11 | Pending |
