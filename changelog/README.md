@@ -10,6 +10,7 @@ Entries are named `YYYY-MM-DD-HHMM_slug.md` and grouped by month, newest first.
 
 | Date | Entry | Keywords |
 |------|-------|----------|
+| 2026-09-16 | [Phase 1 Plan 2 Complete: Tracer + Font Subset/Fallback/CLS Measurement](2026-09-16-1333_complete-01-02-plan.md) | `[DOCUMENTATION]` `[TESTING]` `[STYLING]` `[PERFORMANCE]` |
 | 2026-09-16 | [Phase 1 Plan 2 Task 2: Self-Hosted Subset Fonts, Metric-Compatible Fallbacks, Font-Swap CLS Measurement](2026-09-16-1328_font-subset-fallback-cls-measurement.md) | `[FEATURE]` `[STYLING]` `[TESTING]` `[PERFORMANCE]` `[ACCESSIBILITY]` |
 | 2026-09-16 | [Phase 1 Plan 2 Task 1: Tracer — Real D1 Row to Mockup to Contrast Gate](2026-09-16-1258_tracer-d1-to-mockup-to-contrast-gate.md) | `[FEATURE]` `[TESTING]` `[STYLING]` `[DATABASE]` `[ACCESSIBILITY]` `[SECURITY]` |
 | 2026-09-16 | [Phase 1 Plan 1 Complete: Toolchain, WebKit, Test Harness](2026-09-16-1237_complete-01-01-plan.md) | `[PLANNING]` `[DOCUMENTATION]` `[TESTING]` |

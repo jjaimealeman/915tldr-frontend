@@ -5,15 +5,15 @@ milestone_name: milestone
 current_phase: 01
 current_phase_name: design-sketch-editorial-identity
 status: executing
-stopped_at: Completed 01-01-PLAN.md
-last_updated: "2026-09-16T18:36:44.309Z"
+stopped_at: Completed 01-02-PLAN.md (Task 2, continuation after rate-limit interruption)
+last_updated: "2026-09-16T19:32:34.499Z"
 last_activity: 2026-09-16
 last_activity_desc: Roadmap created; 137/137 v1 requirements mapped across 12 phases
 progress:
   total_phases: 1
   completed_phases: 0
   total_plans: 10
-  completed_plans: 1
+  completed_plans: 2
 ---
 
 # Project State
@@ -28,11 +28,11 @@ See: .planning/PROJECT.md (updated 2026-09-16)
 ## Current Position
 
 Phase: 01 (design-sketch-editorial-identity) — EXECUTING
-Plan: 2 of 10
+Plan: 3 of 10
 Status: Ready to execute
 Last activity: 2026-09-16 — Phase 01 execution started
 
-Progress: [█░░░░░░░░░] 10%
+Progress: [██░░░░░░░░] 20%
 
 ## Performance Metrics
 
@@ -59,6 +59,7 @@ Progress: [█░░░░░░░░░] 10%
 | Plan | Duration | Tasks | Files |
 |------|----------|-------|-------|
 | Phase 01 P01 | 20min | 3 tasks | 14 files |
+| Phase 01 P02 | 50min | 2 tasks | 23 files |
 
 ## Accumulated Context
 
@@ -75,6 +76,8 @@ Recent decisions affecting current work:
 - [Phase 01]: Owner approved all 8 pinned packages/images exactly as proposed; no substitutions needed.
 - [Phase 01]: Native WebKit launch fails on this Arch machine as anticipated; Docker fallback (mcr.microsoft.com/playwright:v1.63.0-noble) proven, WebKit 26.6.
 - [Phase 01]: Task 3 TDD gate executed as two real commits (test then feat), not one combined commit.
+- [Phase ?]: [Phase 01]: Font-swap CLS measured via network-level font hold, not document.fonts FontFace status, since the latter behaves inconsistently across engines under a held request.
+- [Phase ?]: [Phase 01]: This Playwright-WebKit build (26.6) never composites while a font resource is pending, regardless of font-display:swap — measureFontSwap reports prePaintObserved:false honestly rather than a fabricated number; flagged for a real-Safari spot-check before 01-APPROVAL.md.
 
 ### Pending Todos
 
@@ -86,6 +89,7 @@ None yet.
 - Render-step location (cron worker / separate worker via Queues / CI) is unresolved pending the Phase 3 CPU-headroom and per-page-cost measurements. A full 82k rebuild at ~4 ms/page is ~330 s, over the 300 s Worker CPU ceiling regardless of location, so Queues fan-out may be required.
 - Astro build time and memory at 41k-82k pages via a D1-backed loader has no public benchmark. Phase 4 is closer to novel territory than general Astro scaling suggests.
 - One Phase 3 success criterion (the `articles-semantic` vector-gap check) has no dedicated REQ-ID; it is a measurement obligation feeding SRCH-02/SRCH-03 in Phase 9. Recorded deliberately rather than dropped.
+- Phase 1: WebKit (Playwright 26.6, Docker) never composites while a font resource is pending, regardless of font-display:swap — font-swap CLS measurement reports prePaintObserved:false honestly for this engine; needs a real-Safari spot-check before 01-APPROVAL.md sign-off (see 01-02-SUMMARY.md coverage D8).
 
 ## Deferred Items
 
@@ -97,6 +101,6 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-09-16T18:36:44.299Z
-Stopped at: Completed 01-01-PLAN.md
+Last session: 2026-09-16T19:32:28.962Z
+Stopped at: Completed 01-02-PLAN.md (Task 2, continuation after rate-limit interruption)
 Resume file: None

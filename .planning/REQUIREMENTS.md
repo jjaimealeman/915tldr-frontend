@@ -61,17 +61,17 @@
 
 ### Design
 
-- [ ] **DSGN-01**: Static HTML/CSS mockups exist and are approved before any Astro component work begins
+- [x] **DSGN-01**: Static HTML/CSS mockups exist and are approved before any Astro component work begins
 - [x] **DSGN-02**: Mockups pass contrast and keyboard review before the design is accepted
-- [ ] **DSGN-03**: Display type is Instrument Serif, body is Source Serif 4; neither Playfair Display nor Merriweather appears
+- [x] **DSGN-03**: Display type is Instrument Serif, body is Source Serif 4; neither Playfair Display nor Merriweather appears
 - [ ] **DSGN-04**: Each of the eight categories owns a distinct colour from a Chihuahuan desert palette
-- [ ] **DSGN-05**: Light and dark themes are both fully designed, light being the default
-- [ ] **DSGN-06**: The article grid renders as pure HTML, not as a hydrated island
+- [x] **DSGN-05**: Light and dark themes are both fully designed, light being the default
+- [x] **DSGN-06**: The article grid renders as pure HTML, not as a hydrated island
 - [ ] **DSGN-07**: `/changelog` receives an editorial treatment rather than a bulleted list, with history preserved
 
 ### Accessibility
 
-- [ ] **A11Y-01**: Body text meets 4.5:1 contrast and large text/UI components meet 3:1, verified in both themes
+- [x] **A11Y-01**: Body text meets 4.5:1 contrast and large text/UI components meet 3:1, verified in both themes
 - [ ] **A11Y-02**: Every interactive element is keyboard reachable and operable with a visible, unclipped focus indicator
 - [ ] **A11Y-03**: A working skip link is present and the tab order is logical
 - [ ] **A11Y-04**: Each page has exactly one `h1` with a correct heading hierarchy and landmark regions
@@ -290,14 +290,14 @@ Deferred. Tracked, not in this roadmap.
 | I18N-08 | Phase 6 | Pending |
 | I18N-09 | Phase 6 | Pending |
 | I18N-10 | Phase 6 | Pending |
-| DSGN-01 | Phase 1 | Pending |
+| DSGN-01 | Phase 1 | Complete |
 | DSGN-02 | Phase 1 | Complete |
-| DSGN-03 | Phase 1 | Pending |
+| DSGN-03 | Phase 1 | Complete |
 | DSGN-04 | Phase 1 | Pending |
-| DSGN-05 | Phase 1 | Pending |
-| DSGN-06 | Phase 1 | Pending |
+| DSGN-05 | Phase 1 | Complete |
+| DSGN-06 | Phase 1 | Complete |
 | DSGN-07 | Phase 1 | Pending |
-| A11Y-01 | Phase 1 | Pending |
+| A11Y-01 | Phase 1 | Complete |
 | A11Y-02 | Phase 11 | Pending |
 | A11Y-03 | Phase 11 | Pending |
 | A11Y-04 | Phase 11 | Pending |
