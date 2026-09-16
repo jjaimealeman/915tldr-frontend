@@ -44,6 +44,7 @@
 - [ ] **CONT-09**: A dry run reports exact row count and projected cost before any re-processing run
 - [ ] **CONT-10**: The affected archive is re-processed once, via the Batch API, after explicit approval
 - [ ] **CONT-11**: Batch jobs handle the 24-hour cancellation window — unfinished work is detected and resubmitted, not silently lost
+- [ ] **CONT-12**: Articles ingested during the 2026-09-04 → 2026-09-16 OpenAI outage window are audited for missing or truncated summaries and for skipped duplicate detection; any gap is quantified and folded into the re-processing set
 
 ### Bilingual
 
@@ -241,17 +242,155 @@ Deferred. Tracked, not in this roadmap.
 
 ## Traceability
 
-Filled during roadmap creation.
-
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| — | — | Pending |
+| ARCH-01 | Phase 5 | Pending |
+| ARCH-02 | Phase 3 | Pending |
+| ARCH-03 | Phase 3 | Pending |
+| ARCH-04 | Phase 3 | Pending |
+| ARCH-05 | Phase 3 | Pending |
+| ARCH-06 | Phase 3 | Pending |
+| ARCH-07 | Phase 12 | Pending |
+| ARCH-08 | Phase 5 | Pending |
+| REND-01 | Phase 4 | Pending |
+| REND-02 | Phase 4 | Pending |
+| REND-03 | Phase 4 | Pending |
+| REND-04 | Phase 4 | Pending |
+| REND-05 | Phase 4 | Pending |
+| REND-06 | Phase 3 | Pending |
+| REND-07 | Phase 5 | Pending |
+| REND-08 | Phase 5 | Pending |
+| REND-09 | Phase 5 | Pending |
+| REND-10 | Phase 5 | Pending |
+| REND-11 | Phase 5 | Pending |
+| REND-12 | Phase 5 | Pending |
+| CONT-01 | Phase 2 | Pending |
+| CONT-02 | Phase 2 | Pending |
+| CONT-03 | Phase 2 | Pending |
+| CONT-04 | Phase 2 | Pending |
+| CONT-05 | Phase 2 | Pending |
+| CONT-06 | Phase 2 | Pending |
+| CONT-07 | Phase 2 | Pending |
+| CONT-08 | Phase 2 | Pending |
+| CONT-09 | Phase 2 | Pending |
+| CONT-10 | Phase 2 | Pending |
+| CONT-11 | Phase 2 | Pending |
+| CONT-12 |Phase 2|Pending|
+| I18N-01 | Phase 6 | Pending |
+| I18N-02 | Phase 6 | Pending |
+| I18N-03 | Phase 6 | Pending |
+| I18N-04 | Phase 6 | Pending |
+| I18N-05 | Phase 6 | Pending |
+| I18N-06 | Phase 6 | Pending |
+| I18N-07 | Phase 1 | Pending |
+| I18N-08 | Phase 6 | Pending |
+| I18N-09 | Phase 6 | Pending |
+| I18N-10 | Phase 6 | Pending |
+| DSGN-01 | Phase 1 | Pending |
+| DSGN-02 | Phase 1 | Pending |
+| DSGN-03 | Phase 1 | Pending |
+| DSGN-04 | Phase 1 | Pending |
+| DSGN-05 | Phase 1 | Pending |
+| DSGN-06 | Phase 1 | Pending |
+| DSGN-07 | Phase 1 | Pending |
+| A11Y-01 | Phase 1 | Pending |
+| A11Y-02 | Phase 11 | Pending |
+| A11Y-03 | Phase 11 | Pending |
+| A11Y-04 | Phase 11 | Pending |
+| A11Y-05 | Phase 11 | Pending |
+| A11Y-06 | Phase 7 | Pending |
+| A11Y-07 | Phase 8 | Pending |
+| A11Y-08 | Phase 10 | Pending |
+| A11Y-09 | Phase 11 | Pending |
+| A11Y-10 | Phase 11 | Pending |
+| A11Y-11 | Phase 11 | Pending |
+| PERF-01 | Phase 11 | Pending |
+| PERF-02 | Phase 11 | Pending |
+| PERF-03 | Phase 11 | Pending |
+| PERF-04 | Phase 11 | Pending |
+| PERF-05 | Phase 11 | Pending |
+| PERF-06 | Phase 11 | Pending |
+| PERF-07 | Phase 1 | Pending |
+| PERF-08 | Phase 7 | Pending |
+| PERF-09 | Phase 7 | Pending |
+| PERF-10 | Phase 7 | Pending |
+| SEO-01 | Phase 4 | Pending |
+| SEO-02 | Phase 4 | Pending |
+| SEO-03 | Phase 4 | Pending |
+| SEO-04 | Phase 4 | Pending |
+| SEO-05 | Phase 4 | Pending |
+| SEO-06 | Phase 4 | Pending |
+| SEO-07 | Phase 4 | Pending |
+| SEO-08 | Phase 4 | Pending |
+| SEO-09 | Phase 11 | Pending |
+| SOC-01 | Phase 7 | Pending |
+| SOC-02 | Phase 7 | Pending |
+| SOC-03 | Phase 7 | Pending |
+| SOC-04 | Phase 7 | Pending |
+| SOC-05 | Phase 7 | Pending |
+| SOC-06 | Phase 7 | Pending |
+| SOC-07 | Phase 7 | Pending |
+| SOC-08 | Phase 7 | Pending |
+| IMG-01 | Phase 7 | Pending |
+| IMG-02 | Phase 7 | Pending |
+| IMG-03 | Phase 7 | Pending |
+| IMG-04 | Phase 7 | Pending |
+| IMG-05 | Phase 7 | Pending |
+| IMG-06 | Phase 7 | Pending |
+| IMG-07 | Phase 7 | Pending |
+| IMG-08 | Phase 7 | Pending |
+| IMG-09 | Phase 7 | Pending |
+| IMG-10 | Phase 7 | Pending |
+| SRCH-01 | Phase 9 | Pending |
+| SRCH-02 | Phase 9 | Pending |
+| SRCH-03 | Phase 9 | Pending |
+| ISL-01 | Phase 8 | Pending |
+| ISL-02 | Phase 8 | Pending |
+| ISL-03 | Phase 8 | Pending |
+| ISL-04 | Phase 8 | Pending |
+| ISL-05 | Phase 8 | Pending |
+| ISL-06 | Phase 8 | Pending |
+| ISL-07 | Phase 8 | Pending |
+| ISL-08 | Phase 8 | Pending |
+| SUB-01 | Phase 10 | Pending |
+| SUB-02 | Phase 10 | Pending |
+| SUB-03 | Phase 10 | Pending |
+| SUB-04 | Phase 10 | Pending |
+| SUB-05 | Phase 10 | Pending |
+| SUB-06 | Phase 10 | Pending |
+| SUB-07 | Phase 10 | Pending |
+| SUB-08 | Phase 10 | Pending |
+| IDNT-01 | Phase 10 | Pending |
+| IDNT-02 | Phase 10 | Pending |
+| IDNT-03 | Phase 4 | Pending |
+| IDNT-04 | Phase 4 | Pending |
+| IDNT-05 | Phase 10 | Pending |
+| IDNT-06 | Phase 10 | Pending |
+| OPS-01 | Phase 12 | Pending |
+| OPS-02 | Phase 3 | Pending |
+| OPS-03 | Phase 12 | Pending |
+| OPS-04 | Phase 12 | Pending |
+| OPS-05 | Phase 3 | Pending |
+| OPS-06 | Phase 3 | Pending |
+| OPS-07 | Phase 12 | Pending |
+| OPS-08 | Phase 3 | Pending |
+| OPS-09 | Phase 12 | Pending |
+| OPS-10 | Phase 4 | Pending |
+| OPS-11 | Phase 2 | Pending |
+| FIX-01 | Phase 2 | Pending |
+| FIX-02 | Phase 2 | Pending |
+| FIX-03 | Phase 2 | Pending |
+| FIX-04 | Phase 4 | Pending |
+| FIX-05 | Phase 4 | Pending |
 
 **Coverage:**
-- v1 requirements: 137 total
-- Mapped to phases: 0
-- Unmapped: 137 ⚠️
+- v1 requirements: 138 total
+- Mapped to phases: 138
+- Unmapped: 0 ✓
+- Duplicates: 0 ✓
+
+**Phase totals:** Phase 1: 10, Phase 2: 15, Phase 3: 10, Phase 4: 18, Phase 5: 8, Phase 6: 9, Phase 7: 22, Phase 8: 9, Phase 9: 3, Phase 10: 13, Phase 11: 14, Phase 12: 6
 
 ---
 *Requirements defined: 2026-09-16*
-*Last updated: 2026-09-16 after initialization*
+*Last updated: 2026-09-16 after roadmap creation — 137/137 requirements mapped across 12 phases*
