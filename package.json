@@ -1,0 +1,20 @@
+{
+  "name": "915tldr-v2",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=24"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.63.0",
+    "subset-font": "2.7.0",
+    "@capsizecss/core": "4.1.3",
+    "@capsizecss/metrics": "4.2.0",
+    "culori": "4.0.2"
+  },
+  "scripts": {
+    "probe:webkit": "node design/scripts/probe-webkit.mjs",
+    "test:e2e": "node design/scripts/pw.mjs --project=all",
+    "serve:mockups": "node design/scripts/serve-mockups.mjs --port 4319"
+  }
+}

@@ -1,1 +1,8 @@
 .planning/research/.cache/
+node_modules/
+test-results/
+playwright-report/
+design/.cache/
+design/.webkit-mode.json
+design/fonts-src/
+design/palette/reference/
