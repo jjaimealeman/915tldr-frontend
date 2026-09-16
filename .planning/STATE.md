@@ -5,15 +5,15 @@ milestone_name: milestone
 current_phase: 01
 current_phase_name: design-sketch-editorial-identity
 status: executing
-stopped_at: Completed 01-02-PLAN.md (Task 2, continuation after rate-limit interruption)
-last_updated: "2026-09-16T19:32:34.499Z"
+stopped_at: "Completed 01-03-PLAN.md (Tasks 1-3: photo sourcing, palette generation, swatch evidence)"
+last_updated: "2026-09-16T20:47:40.108Z"
 last_activity: 2026-09-16
 last_activity_desc: Roadmap created; 137/137 v1 requirements mapped across 12 phases
 progress:
   total_phases: 1
   completed_phases: 0
   total_plans: 10
-  completed_plans: 2
+  completed_plans: 3
 ---
 
 # Project State
@@ -28,11 +28,11 @@ See: .planning/PROJECT.md (updated 2026-09-16)
 ## Current Position
 
 Phase: 01 (design-sketch-editorial-identity) — EXECUTING
-Plan: 3 of 10
+Plan: 4 of 10
 Status: Ready to execute
 Last activity: 2026-09-16 — Phase 01 execution started
 
-Progress: [██░░░░░░░░] 20%
+Progress: [███░░░░░░░] 30%
 
 ## Performance Metrics
 
@@ -60,6 +60,7 @@ Progress: [██░░░░░░░░] 20%
 |------|----------|-------|-------|
 | Phase 01 P01 | 20min | 3 tasks | 14 files |
 | Phase 01 P02 | 50min | 2 tasks | 23 files |
+| Phase 01 P03 | 71min | 3 tasks | 16 files |
 
 ## Accumulated Context
 
@@ -78,6 +79,8 @@ Recent decisions affecting current work:
 - [Phase 01]: Task 3 TDD gate executed as two real commits (test then feat), not one combined commit.
 - [Phase ?]: [Phase 01]: Font-swap CLS measured via network-level font hold, not document.fonts FontFace status, since the latter behaves inconsistently across engines under a held request.
 - [Phase ?]: [Phase 01]: This Playwright-WebKit build (26.6) never composites while a font resource is pending, regardless of font-display:swap — measureFontSwap reports prePaintObserved:false honestly rather than a fabricated number; flagged for a real-Safari spot-check before 01-APPROVAL.md.
+- [Phase ?]: Phase 01: Three photo-sampled category hue pairs (crime/sports, business/health, politics/weather) were too close together for the 0.05 minimum OKLab distance; resolved by raising block/vivid-dark chroma to 0.150 plus small documented +-4 to +-6deg hueOffsets, found via brute-force search.
+- [Phase ?]: Phase 01: politics' palette photo substitutes a Santa Fe, NM dusk sky for the literal Franklin Mountains/El Paso skyline -- genuine full-darkness El Paso night photos measured near-zero chroma. Flagged for owner review, not hidden.
 
 ### Pending Todos
 
@@ -90,6 +93,7 @@ None yet.
 - Astro build time and memory at 41k-82k pages via a D1-backed loader has no public benchmark. Phase 4 is closer to novel territory than general Astro scaling suggests.
 - One Phase 3 success criterion (the `articles-semantic` vector-gap check) has no dedicated REQ-ID; it is a measurement obligation feeding SRCH-02/SRCH-03 in Phase 9. Recorded deliberately rather than dropped.
 - Phase 1: WebKit (Playwright 26.6, Docker) never composites while a font resource is pending, regardless of font-display:swap — font-swap CLS measurement reports prePaintObserved:false honestly for this engine; needs a real-Safari spot-check before 01-APPROVAL.md sign-off (see 01-02-SUMMARY.md coverage D8).
+- Phase 1: three items need owner C-01/subject-fidelity sign-off before 01-APPROVAL.md -- politics' photo is Santa Fe dusk not El Paso/Franklin Mountains; weather's sampled hue reads azure-blue not turquoise; Sports/Business block-stop hues (49.4deg/94.5deg) visually sit near the amber-olive-reading-as-brown risk C-01 flags. See 01-03-SUMMARY.md.
 
 ## Deferred Items
 
@@ -101,6 +105,6 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-09-16T19:32:28.962Z
-Stopped at: Completed 01-02-PLAN.md (Task 2, continuation after rate-limit interruption)
+Last session: 2026-09-16T20:47:26.185Z
+Stopped at: Completed 01-03-PLAN.md (Tasks 1-3: photo sourcing, palette generation, swatch evidence)
 Resume file: None

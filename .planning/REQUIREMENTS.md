@@ -64,7 +64,7 @@
 - [x] **DSGN-01**: Static HTML/CSS mockups exist and are approved before any Astro component work begins
 - [x] **DSGN-02**: Mockups pass contrast and keyboard review before the design is accepted
 - [x] **DSGN-03**: Display type is Instrument Serif, body is Source Serif 4; neither Playfair Display nor Merriweather appears
-- [ ] **DSGN-04**: Each of the eight categories owns a distinct colour from a Chihuahuan desert palette
+- [x] **DSGN-04**: Each of the eight categories owns a distinct colour from a Chihuahuan desert palette
 - [x] **DSGN-05**: Light and dark themes are both fully designed, light being the default
 - [x] **DSGN-06**: The article grid renders as pure HTML, not as a hydrated island
 - [ ] **DSGN-07**: `/changelog` receives an editorial treatment rather than a bulleted list, with history preserved
@@ -293,7 +293,7 @@ Deferred. Tracked, not in this roadmap.
 | DSGN-01 | Phase 1 | Complete |
 | DSGN-02 | Phase 1 | Complete |
 | DSGN-03 | Phase 1 | Complete |
-| DSGN-04 | Phase 1 | Pending |
+| DSGN-04 | Phase 1 | Complete |
 | DSGN-05 | Phase 1 | Complete |
 | DSGN-06 | Phase 1 | Complete |
 | DSGN-07 | Phase 1 | Pending |
