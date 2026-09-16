@@ -20,6 +20,7 @@
     "check:contrast": "node design/scripts/check-contrast.mjs",
     "verify:phase-1": "node design/scripts/verify-phase-1.mjs",
     "fonts:fetch": "node design/scripts/fetch-fonts.mjs",
-    "fonts:build": "node design/scripts/build-fonts.mjs"
+    "fonts:build": "node design/scripts/build-fonts.mjs",
+    "palette:sample": "node design/scripts/sample-hues.mjs"
   }
 }
