@@ -172,13 +172,23 @@ category index routeRules gap (`/crime/**` never matches `/crime`); `/changelog`
 because the SSR-time `useFetch('/changelog.json')` intermittently races and the empty payload
 is cached for an hour — static generation removes that failure mode outright.
 
+**Directory trap — the live code is NOT in this directory.** This repo
+(`/home/jaime/www/_github/915tldr.com`) holds only `docs/` and `.planning/`. Every
+`wrangler.jsonc`, server route, cron endpoint and `embeddings.ts` for the running system is in
+**`/home/jaime/www/_github/915tldr.com2`**. Building v2 here is correct (PRD §15 step 1), but
+anything that inspects, measures or modifies the *current* system must target `915tldr.com2`.
+The project-research pass read this directory and so found planning prose where it expected
+implementation — which is why the embedding model went unestablished until a direct check.
+Any phase touching the existing pipeline or admin operates on `915tldr.com2`.
+
 **Open questions that need a measurement or a codebase check, not a guess.** Research
 deliberately declined to assert answers on these:
 
 | Question | Why it matters | How to settle it |
 |---|---|---|
-| Which embedding model populates `articles-semantic` — multilingual or English-only? | If English-only, Vectorize's cross-language search advantage evaporates and the search decision changes | Codebase check of the pipeline |
-| **Did article embeddings silently stop on 2026-09-04?** | The OpenAI account sat at $0 from 2026-09-04 to 2026-09-16, returning 429s. If `articles-semantic` is fed by OpenAI embeddings, ~12 days of articles (~1,200) may have no vector — which degrades duplicate detection *and* semantic search. Exactly the silent-failure class this rebuild exists to fix | Query Vectorize vs `articles` for rows in that window |
+| ~~Which embedding model populates `articles-semantic`?~~ **RESOLVED 2026-09-16: `@cf/baai/bge-base-en-v1.5`, 768-dim, Workers AI — English-only.** | Vectorize's cross-language advantage is **gone**. Spanish queries will not semantically match English vectors. Search now has three paths, none free: keep FTS5 with a scoped D1 carve-out, re-embed the corpus with a multilingual model (`bge-m3` or equivalent), or run per-language indexes | Answered — feeds SRCH-02 |
+| ~~Did article embeddings silently stop on 2026-09-04?~~ **RESOLVED 2026-09-16: no.** | Embeddings run on Workers AI, billed separately from the OpenAI credit balance. The $0 balance could not starve them. Vectors for that window should exist | Answered |
+| **Did the OpenAI-dependent cron endpoints fail from 2026-09-04 to 2026-09-16?** | `server/api/cron/process`, `fetch` and `detect-duplicates` in `915tldr.com2` call OpenAI and would have returned HTTP 429 for twelve days. If `process` does summarisation, ~1,200 articles may be unsummarised or half-processed; if `detect-duplicates` failed, duplicates passed through silently. This would enlarge the content-quality re-processing set | Query `articles` for rows in that window with null/short summaries; check cron logs. **Check in `915tldr.com2`, not here** |
 | Current cron worker CPU headroom | Decides whether the render step can live in the cron worker | Workers Observability |
 | Real per-page render cost | A full 82k rebuild at ~4ms/page is ~330s — over the 300s Worker CPU ceiling regardless of location, so it needs Queues fan-out | Measure on a deployed worker |
 | Worker → R2 `get()` latency at ~30 KB | The archive hop is on the critical path for most article requests | Measure on a deployed worker |
@@ -243,7 +253,9 @@ distinguished from re-processing with a model.
 | Stay on OpenAI; no Gemini | Gemini 2.5 Flash-Lite is 33% cheaper on both axes, but a second vendor means a second bill and a new integration surface in a pipeline described as nine months of tuning. Not worth $0.48/month. | — Pending |
 | Batch API mandatory for backfills | 50% discount, 24h window, and the backfills are offline and latency-insensitive. Applies to image models too. Ongoing cron stays on standard rates. | — Pending |
 | Tier 2 imagery stays on Flux-Schnell | $0.00063/image vs ~10-13× that for the cheapest OpenAI tier — ~$10 vs ~$125 for the 15,624 backfill, and ongoing (~40/day = 2,304 neurons) sits entirely inside the free 10,000/day. Not close. | — Pending |
-| Tier 3 imagery: `gpt-image-2.5-flare` | `gpt-image-2` is superseded. Flare and Sunburst are **identically priced**, so the choice is speed vs quality; Flare's quality ≈ gpt-image-2 with faster turnaround, which suits generating the daily lead inside the cron window. | — Pending |
+| Tier 3 imagery: Flare vs Sunburst **reopened** | `gpt-image-2` is superseded. An earlier note here said Flare and Sunburst are "identically priced" — that was true of the **rate** ($30/M output) and wrong about the **cost**, because token consumption varies enormously by model. Measured 2026-09-16, same prompt at 2048×1152: `gpt-image-2` high = 5,650 output tokens = **$0.1706**; `gpt-image-2.5-sunburst` high = 1,413 tokens = **$0.0435** (3.9× cheaper); sunburst `xhigh` = 2,511 tokens = **$0.0764**. Flare has not been measured. Sunburst may deliver higher quality *and* editing precision for less than Flare. Phase 1 measures both (IMG-09) and decides. | ⚠️ Revisit |
+| Category heroes need retry handling | A `gpt-image-2.5-sunburst` call returned HTTP 400 and succeeded on retry with identical parameters — transient. The `jja-imagen` script exits on any HTTP error with no backoff, so one hiccup kills a batch mid-run. Generating 8 heroes in a single pass needs a retry wrapper or a resumable loop. | — Pending |
+| Reference-image prompting form | Verified working 2026-09-16: assigning explicit roles in caps — "Use the FIRST image as the subject and the SECOND image only as the style and lighting reference" — produced clean subject/style separation and honoured negative constraints. A single fixed style reference passed to every call holds a set together better than re-describing the style in words. Masks, `--transparent` and single-image `--edit` also verified. | ✓ Good |
 | Tier 3 cost measured, not estimated | GPT Image 2.5's token consumption is unpublished and the GPT Image 2 calculator explicitly does not apply. **Partially settled 2026-09-16:** OpenAI bills image output per *token*, so the flat $0.02/$0.04/$0.08 table was only ever correct at one resolution. A measured low-quality 1024×1024 `gpt-image-2` generation billed **$0.0060**, not the $0.020 estimated — the old table ran **3.3× high**. Edits cost more than generations ($0.0142 measured) because image-input tokens count. Phase 1 still measures `gpt-image-2.5-flare` specifically; no side-by-side against `gpt-image-2` exists yet. | ⚠️ Revisit |
 | Astro bindings via `cloudflare:workers` | `Astro.locals.runtime.env` was **removed** in `@astrojs/cloudflare` v13 / Astro 6. Current pattern is `import { env } from 'cloudflare:workers'`. The commonly-cited pattern is stale. | — Pending |
 | `output: 'static'`, not `'hybrid'` | `output: 'hybrid'` was merged into `'static'` in Astro v5 — the keyword is removed, not deprecated. Per-route opt-out is `export const prerender = false`. The *architecture* is still hybrid; the config keyword is gone. | — Pending |
