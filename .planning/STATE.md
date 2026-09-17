@@ -5,15 +5,15 @@ milestone_name: milestone
 current_phase: 01
 current_phase_name: design-sketch-editorial-identity
 status: executing
-stopped_at: Completed 01-15-PLAN.md (Spanish stress recalibration after 01-14's type-system change; D-15/I18N-07 closed)
-last_updated: "2026-09-17T20:43:01.216Z"
+stopped_at: "Completed 01-16-PLAN.md (D-GAP-C closed: Business hue re-sampled outside the amber/olive band)"
+last_updated: "2026-09-17T21:20:14.435Z"
 last_activity: 2026-09-17
 last_activity_desc: Phase 01 execution started
 progress:
   total_phases: 1
   completed_phases: 0
   total_plans: 23
-  completed_plans: 15
+  completed_plans: 16
 ---
 
 # Project State
@@ -28,11 +28,11 @@ See: .planning/PROJECT.md (updated 2026-09-16)
 ## Current Position
 
 Phase: 01 (design-sketch-editorial-identity) — EXECUTING
-Plan: 6 of 23
+Plan: 7 of 23
 Status: Ready to execute
 Last activity: 2026-09-17 — Phase 01 execution started
 
-Progress: [███████░░░] 65%
+Progress: [███████░░░] 70%
 
 ## Performance Metrics
 
@@ -72,6 +72,7 @@ Progress: [███████░░░] 65%
 | Phase 01 P13 | 76min | 3 tasks | 12 files |
 | Phase 01 P14 | 25min | 3 tasks | 15 files |
 | Phase 01 P15 | 35min | 2 tasks | 4 files |
+| Phase 01 P16 | 35min | 2 tasks | 15 files |
 
 ## Accumulated Context
 
@@ -118,6 +119,9 @@ Recent decisions affecting current work:
 - [Phase ?]: 01-14: WINDOWS.md entry 13 updated, not closed — its Instrument-Serif-specific framing is now stale after D-GAP-B, but the underlying non-preload-italic risk persists for the smaller Source Serif 4 Italic file
 - [Phase ?]: 01-15: Container-growth overflow heuristic exempted hyphenation-eligible elements (hyphens:auto only engages once lang is known, which injectText() sets) — fixed a real false positive, not a threshold weakening; vClipped remains authoritative.
 - [Phase ?]: 01-15: calibrate-spanish.mjs's 100px calibration proxy under-predicted real in-page ratios for short strings at small UI sizes (skip-link: 1.3303@100px vs 1.3784@16.896px real); added a dense 12-58px sweep that widens each component's hi to cover its worst realistic-size ratio (9/22 components widened).
+- [Phase ?]: 01-16: D-GAP-C closed -- Business's colour is re-sampled from a real Ciudad Juárez neon-sign photo (152.1deg, forest green), moving out of the 40-100deg amber/olive register entirely rather than trying another yellow-orange photo.
+- [Phase ?]: 01-16: Business's hueOffset is 0 -- the new photo-sampled hue alone clears the 0.05 minimum pairwise OKLab distance floor with no hand-picked nudge; Health's retained +4 offset reason rewritten to stand alone.
+- [Phase ?]: 01-16: WINDOWS.md entry 3 closed -- Sports (49.4deg) was accepted by the owner in round 1 in their own words; Business is resolved by construction (outside the amber/olive band), not by owner tolerance.
 
 ### Pending Todos
 
@@ -144,6 +148,6 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-09-17T20:43:01.203Z
-Stopped at: Completed 01-15-PLAN.md (Spanish stress recalibration after 01-14's type-system change; D-15/I18N-07 closed)
+Last session: 2026-09-17T21:20:14.423Z
+Stopped at: Completed 01-16-PLAN.md (D-GAP-C closed: Business hue re-sampled outside the amber/olive band)
 Resume file: None
