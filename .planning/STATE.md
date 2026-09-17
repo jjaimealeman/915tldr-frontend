@@ -5,15 +5,15 @@ milestone_name: milestone
 current_phase: 01
 current_phase_name: design-sketch-editorial-identity
 status: executing
-stopped_at: "Completed 01-18-PLAN.md (defect 9: raw markdown in summaries; revision request 2: category lead image/typographic fallback)"
-last_updated: "2026-09-17T22:14:09.704Z"
+stopped_at: "Completed 01-19-PLAN.md (revision request 3: article whitespace; article half of request 7: full width at 768px)"
+last_updated: "2026-09-17T22:25:46.042Z"
 last_activity: 2026-09-17
 last_activity_desc: Phase 01 execution started
 progress:
   total_phases: 1
   completed_phases: 0
   total_plans: 23
-  completed_plans: 18
+  completed_plans: 19
 ---
 
 # Project State
@@ -28,11 +28,11 @@ See: .planning/PROJECT.md (updated 2026-09-16)
 ## Current Position
 
 Phase: 01 (design-sketch-editorial-identity) — EXECUTING
-Plan: 9 of 23
+Plan: 10 of 23
 Status: Ready to execute
 Last activity: 2026-09-17 — Phase 01 execution started
 
-Progress: [████████░░] 78%
+Progress: [████████░░] 83%
 
 ## Performance Metrics
 
@@ -75,6 +75,7 @@ Progress: [████████░░] 78%
 | Phase 01 P16 | 35min | 2 tasks | 15 files |
 | Phase 01 P17 | 32min | 3 tasks | 9 files |
 | Phase 01 P18 | 35min | 3 tasks | 10 files |
+| Phase 01 P19 | 25min | 2 tasks | 21 files |
 
 ## Accumulated Context
 
@@ -129,6 +130,9 @@ Recent decisions affecting current work:
 - [Phase ?]: 01-18: render-summaries.mjs only matches <p data-summary> (not already-converted <div data-summary>), so re-running it is always idempotent -- no separate has-run state needed
 - [Phase ?]: 01-18: fixed a real regression in i18n.ts's injectText() -- a [data-summary] hook now renders injected Spanish through the real markdown converter instead of pasting raw fixture markdown as flat text, which broke once white-space:pre-line was removed
 - [Phase ?]: 01-18: the category lead's :not(:has([data-frame] img)) CSS is additive to the build-time image-selection contract, not a replacement -- it also catches an image failing/being removed after the page ships
+- [Phase ?]: 01-19: the rail's 'Latest' five rows and order were computed directly from stress-set.json's cases.feed array (already reverse-chronological), re-verified against the plan's front-matter list, and re-derived at test time in content.spec.ts rather than hardcoded.
+- [Phase ?]: 01-19: 'More in Community' cards were moved (not duplicated) into the new aside[data-rail], converted to a compact variant with frame and summary stripped.
+- [Phase ?]: 01-19: [data-rail] [data-grid]'s single-column override was written once outside any media query -- two-selector specificity beats the bare [data-grid] rule inside the 48em/80em blocks regardless of source order, so no duplication was needed.
 
 ### Pending Todos
 
@@ -155,6 +159,6 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-09-17T22:14:09.691Z
-Stopped at: Completed 01-18-PLAN.md (defect 9: raw markdown in summaries; revision request 2: category lead image/typographic fallback)
+Last session: 2026-09-17T22:25:46.029Z
+Stopped at: Completed 01-19-PLAN.md (revision request 3: article whitespace; article half of request 7: full width at 768px)
 Resume file: None
