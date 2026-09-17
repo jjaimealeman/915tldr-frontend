@@ -1,10 +1,44 @@
 import { test, expect } from '@playwright/test';
-import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 import { pagesUnderTest } from './support/harness.ts';
 import { measureFontSwap, listLoadableFallbacks, type FontSwapVariant } from './support/geometry.ts';
 import { loadSpanishFixture } from './support/i18n.ts';
+import { expandFeed } from './support/feed.ts';
 import { collectPageText } from '../scripts/lib/glyphs.mjs';
+
+const HOME_FEED_PATH = path.resolve('design/fixtures/home-feed.json');
+const FEED_DIR = path.resolve('design/mockups/feed');
+
+/** Recursively collects every string value out of a parsed JSON value. */
+function collectJsonStrings(value: unknown, acc: string[]): void {
+  if (typeof value === 'string') {
+    acc.push(value);
+  } else if (Array.isArray(value)) {
+    for (const v of value) collectJsonStrings(v, acc);
+  } else if (value && typeof value === 'object') {
+    for (const v of Object.values(value as Record<string, unknown>)) collectJsonStrings(v, acc);
+  }
+}
+
+/**
+ * Every string value in home-feed.json and every feed/page-<n>.json —
+ * covers the 27 load-more cards' headline/summary/byline text even if the
+ * live-rendered page text (collected separately, after expandFeed) somehow
+ * diverged from the fixtures a future rebuild would regenerate from.
+ */
+function collectFeedJsonText(): string {
+  const acc: string[] = [];
+  if (existsSync(HOME_FEED_PATH)) {
+    collectJsonStrings(JSON.parse(readFileSync(HOME_FEED_PATH, 'utf8')), acc);
+  }
+  if (existsSync(FEED_DIR)) {
+    for (const file of readdirSync(FEED_DIR).filter((f) => /^page-\d+\.json$/.test(f))) {
+      collectJsonStrings(JSON.parse(readFileSync(path.join(FEED_DIR, file), 'utf8')), acc);
+    }
+  }
+  return acc.join('');
+}
 
 /**
  * No describe.configure({ mode: 'serial' }) here (unlike 01-02's original
@@ -132,10 +166,18 @@ for (const name of pagesUnderTest()) {
     const response = await page.goto(`/mockups/${name}.html`);
     expect(response?.status()).toBe(200);
 
+    // Gap-closure (01-22): index's grid shows only the first 6 cards until
+    // Load More is clicked to exhaustion — expand before collecting page
+    // text so the 27 load-more cards' rendered glyphs are checked too.
+    if (name === 'index') {
+      await expandFeed(page);
+    }
+
     const pageText: string = await page.evaluate(collectPageText);
     const fixture = loadSpanishFixture();
     const fixtureText = fixture.components.map((c) => `${c.en}${c.es_real}${c.es_synthetic}`).join('');
-    const text = pageText + fixtureText;
+    const feedJsonText = collectFeedJsonText();
+    const text = pageText + fixtureText + feedJsonText;
 
     const manifest = JSON.parse(readFileSync(MANIFEST_PATH, 'utf8'));
     const codepoints: string[] = manifest.codepoints;

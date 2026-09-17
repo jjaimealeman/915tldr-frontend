@@ -37,6 +37,8 @@ const MOCKUPS_DIR = path.resolve('design/mockups');
 const FONTS_OUT_DIR = path.join(MOCKUPS_DIR, 'fonts');
 const STYLE_CSS_PATH = path.join(MOCKUPS_DIR, 'style.css');
 const SPANISH_STRESS_PATH = path.resolve('design/fixtures/spanish-stress.json');
+const HOME_FEED_PATH = path.resolve('design/fixtures/home-feed.json');
+const FEED_OUT_DIR = path.resolve('design/mockups/feed');
 const EVIDENCE_DIR = path.resolve('design/evidence');
 const FONT_SUBSET_EVIDENCE_PATH = path.join(EVIDENCE_DIR, 'font-subset.md');
 const MAX_BYTES = 150000;
@@ -130,6 +132,57 @@ function fontWeightStyleGuard() {
   return violations;
 }
 
+// Gap-closure (01-22): the shared head script's failure/final status
+// messages ("Couldn't load more stories. Try again." and the two "N more
+// stories loaded[...]" strings) only render conditionally — one on a
+// network failure that a plain crawl never triggers, and the exhaustion
+// message only after every feed page has loaded. Reading them straight out
+// of the script source (rather than trying to provoke every code path in a
+// browser) guarantees they are in the glyph subset regardless of which
+// paths actually fire during any given crawl. Matches quoted string
+// literals whose text starts with "Couldn't" or contains "more stories
+// loaded" — the two families of load-more status text — so this stays
+// narrow rather than pulling in every string literal in the script.
+/**
+ * In-page: clicks [data-load-more] with a real click, waiting for the
+ * grid's card count to increase after each click, until the button is no
+ * longer visible (the feed is fully loaded) or 20 clicks have happened.
+ * Mirrors design/tests/support/feed.ts's expandFeed for a plain (non-test)
+ * Playwright page — kept as a narrow, direct implementation here rather
+ * than importing the test-only helper, so this build script's own glyph
+ * crawl has no dependency on the test suite.
+ */
+async function expandFeedInPage(page) {
+  const MAX_ITERATIONS = 20;
+  for (let i = 0; i < MAX_ITERATIONS; i++) {
+    const visible = await page.locator('[data-load-more]').isVisible();
+    if (!visible) return;
+    const before = await page.locator('[data-grid] [data-card]').count();
+    await page.locator('[data-load-more]').click();
+    await page.waitForFunction(
+      (expectedMin) => document.querySelectorAll('[data-grid] [data-card]').length > expectedMin,
+      before,
+      { timeout: 5000 }
+    );
+  }
+  if (await page.locator('[data-load-more]').isVisible()) {
+    throw new Error(`build-fonts: [data-load-more] still visible after ${MAX_ITERATIONS} clicks — possible infinite loop`);
+  }
+}
+
+function extractStatusLiterals(scriptSource) {
+  const literals = [];
+  const doubleQuoted = scriptSource.match(/"(?:[^"\\]|\\.)*"/g) || [];
+  const singleQuoted = scriptSource.match(/'(?:[^'\\]|\\.)*'/g) || [];
+  for (const raw of [...doubleQuoted, ...singleQuoted]) {
+    const inner = raw.slice(1, -1);
+    if (inner.startsWith("Couldn't") || inner.includes('more stories loaded')) {
+      literals.push(inner);
+    }
+  }
+  return literals;
+}
+
 async function crawlGlyphSet() {
   const server = await startServer({ port: 0 });
   const browser = await chromium.launch();
@@ -143,6 +196,16 @@ async function crawlGlyphSet() {
       if (!response || response.status() !== 200) {
         throw new Error(`build-fonts: failed to load ${file} for glyph crawl (status ${response?.status()})`);
       }
+
+      // Gap-closure (01-22): index's [data-grid] shows only the first 6
+      // cards until the Load More button is clicked to exhaustion (01-21).
+      // Expanding before collecting page text means the 27 cards (and the
+      // final "N more stories loaded..." status) behind the button are
+      // crawled for glyphs too, not just the initial 6.
+      if (file === 'index.html') {
+        await expandFeedInPage(page);
+      }
+
       const text = await page.evaluate(collectPageText);
       collected.push(text);
 
@@ -165,6 +228,30 @@ async function crawlGlyphSet() {
     for (const key of ['en', 'es_real', 'es_synthetic']) {
       if (key in fixture) collectFixtureStrings(fixture[key], collected);
     }
+  }
+
+  // Gap-closure (01-22): every string value in the feed pages and their
+  // source-of-truth fixture — covers the 27 load-more cards' headline/
+  // summary/byline text even if a future feed rebuild changes their
+  // content, not just what happened to be crawled from the live DOM above.
+  if (existsSync(HOME_FEED_PATH)) {
+    collectFixtureStrings(JSON.parse(readFileSync(HOME_FEED_PATH, 'utf8')), collected);
+  }
+  if (existsSync(FEED_OUT_DIR)) {
+    for (const file of readdirSync(FEED_OUT_DIR).filter((f) => /^page-\d+\.json$/.test(f))) {
+      collectFixtureStrings(JSON.parse(readFileSync(path.join(FEED_OUT_DIR, file), 'utf8')), collected);
+    }
+  }
+
+  // Gap-closure (01-22): the load-more failure/exhaustion status strings —
+  // see extractStatusLiterals's doc comment.
+  const indexHtmlSource = readFileSync(path.join(MOCKUPS_DIR, 'index.html'), 'utf8');
+  const scriptMatch = indexHtmlSource.match(/<script\b[^>]*>([\s\S]*?)<\/script>/i);
+  if (!scriptMatch) {
+    throw new Error('build-fonts: index.html has no <script> to read load-more status literals from');
+  }
+  for (const literal of extractStatusLiterals(scriptMatch[1])) {
+    collected.push(literal);
   }
 
   collected.push(SPANISH_BASELINE);
