@@ -10,6 +10,7 @@ Entries are named `YYYY-MM-DD-HHMM_slug.md` and grouped by month, newest first.
 
 | Date | Entry | Keywords |
 |------|-------|----------|
+| 2026-09-17 | [Spanish +25% Overflow, Drawn-Spanish, Null-Summary and 320px/200%-Zoom Reflow Spec (D-07, D-15, Criterion 4)](2026-09-17-0610_spanish-overflow-injection-spec-c4.md) | `[TESTING]` `[FEATURE]` `[BUG_FIX]` |
 | 2026-09-17 | [content.spec.ts: Nav Order, Fixture-Uuid Fidelity, Changelog Dispatch Verification](2026-09-17-0545_content-spec-nav-order-uuid-fidelity-changelog-dispatches.md) | `[FEATURE]` `[TESTING]` `[BUG_FIX]` `[DATABASE]` `[ACCESSIBILITY]` |
 | 2026-09-17 | [Extend structure.spec.ts: Landmarks, DSGN-05, Reduced Motion, Fonts, Head-Script Drift, Page Evidence](2026-09-17-0533_structure-spec-landmarks-tokens-fonts-drift-guard.md) | `[FEATURE]` `[TESTING]` `[ACCESSIBILITY]` `[BUG_FIX]` `[STYLING]` |
 | 2026-09-17 | [Scripted Keyboard Walk (D-14), and a Real WebKit Focus-Obscuring Bug It Caught](2026-09-17-0521_keyboard-walk-webkit-scroll-into-view-fix.md) | `[FEATURE]` `[TESTING]` `[ACCESSIBILITY]` `[BUG_FIX]` `[STYLING]` |
