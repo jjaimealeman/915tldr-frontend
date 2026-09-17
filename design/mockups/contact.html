@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>915 TLDR — Contact</title>
+<link rel="preload" as="font" type="font/woff2" href="fonts/InstrumentSerif-Regular.woff2" crossorigin>
+<link rel="preload" as="font" type="font/woff2" href="fonts/SourceSerif4-Roman.woff2" crossorigin>
+<link rel="stylesheet" href="style.css">
+<script>
+  (function () {
+    if (window.localStorage.getItem('915tldr:theme') === 'dark') {
+      document.documentElement.dataset.theme = 'dark';
+    }
+    document.addEventListener('DOMContentLoaded', function () {
+      var toggle = document.querySelector('[data-theme-toggle]');
+      if (!toggle) return;
+      toggle.hidden = false;
+      var isDark = document.documentElement.dataset.theme === 'dark';
+      toggle.setAttribute('aria-pressed', String(isDark));
+      toggle.addEventListener('click', function () {
+        var nowDark = document.documentElement.dataset.theme !== 'dark';
+        if (nowDark) {
+          document.documentElement.dataset.theme = 'dark';
+          window.localStorage.setItem('915tldr:theme', 'dark');
+        } else {
+          delete document.documentElement.dataset.theme;
+          window.localStorage.removeItem('915tldr:theme');
+        }
+        toggle.setAttribute('aria-pressed', String(nowDark));
+      });
+    });
+  })();
+</script>
+</head>
+<body data-page="contact">
+<a data-skip-link href="#main" data-i18n="skip-link">Skip to content</a>
+
+<header>
+  <p data-wordmark><a href="index.html">915 TLDR</a></p>
+  <p data-tagline>El Paso news, in brief</p>
+  <p data-dateline>Wednesday, September 16, 2026 · El Paso, Texas</p>
+</header>
+
+<div data-spectrum aria-hidden="true">
+  <span data-category="crime"></span>
+  <span data-category="politics"></span>
+  <span data-category="sports"></span>
+  <span data-category="business"></span>
+  <span data-category="education"></span>
+  <span data-category="community"></span>
+  <span data-category="health"></span>
+  <span data-category="weather"></span>
+</div>
+
+<nav aria-label="Sections">
+  <ul>
+    <li><a href="category.html" data-nav-category="crime" data-category="crime"><span data-stripe></span>Crime</a></li>
+    <li><a href="category.html" data-nav-category="politics" data-category="politics"><span data-stripe></span>Politics</a></li>
+    <li><a href="category.html" data-nav-category="sports" data-category="sports"><span data-stripe></span>Sports</a></li>
+    <li><a href="category.html" data-nav-category="business" data-category="business"><span data-stripe></span>Business</a></li>
+    <li><a href="category.html" data-nav-category="education" data-category="education" data-i18n="nav-category-label"><span data-stripe></span>Education</a></li>
+    <li><a href="category.html" data-nav-category="community" data-category="community"><span data-stripe></span>Community</a></li>
+    <li><a href="category.html" data-nav-category="health" data-category="health"><span data-stripe></span>Health</a></li>
+    <li><a href="category.html" data-nav-category="weather" data-category="weather"><span data-stripe></span>Weather</a></li>
+  </ul>
+</nav>
+
+<button type="button" data-theme-toggle hidden aria-pressed="false" data-i18n="theme-toggle">Dark theme</button>
+
+<main id="main" tabindex="-1">
+  <h1>Contact</h1>
+
+  <p data-contact-intro>I'm Jaime Aleman, a web developer here in El Paso, and I built 915 TLDR myself. Every summary on this site is written by AI from reporting by KTSM, KVIA and other local outlets — I did not report any of it, and I say so plainly on every story. What I do is pull the day's local news into one place, tag and de-duplicate it, and publish it free and without ads, in the open, with every change documented on the changelog.</p>
+
+  <p data-contact-links>You can also find me directly at <a href="https://jjaimealeman.com" rel="noopener">jjaimealeman.com</a> and <a href="https://915website.com" rel="noopener">915website.com</a>, where I build sites like this one for other El Paso businesses.</p>
+
+  <form data-contact-form method="post" aria-describedby="form-note">
+    <p id="form-note" data-form-note>This is a design mockup. The form below does not send anything.</p>
+
+    <div data-field>
+      <label for="contact-name">Name (required)</label>
+      <input id="contact-name" name="name" type="text" autocomplete="name" required aria-describedby="name-error">
+      <p data-field-error hidden id="name-error"></p>
+    </div>
+
+    <div data-field>
+      <label for="contact-email">Email (required)</label>
+      <input id="contact-email" name="email" type="email" autocomplete="email" required aria-describedby="email-error">
+      <p data-field-error hidden id="email-error"></p>
+    </div>
+
+    <div data-field>
+      <label for="contact-message" data-i18n="contact-label">Your message (required)</label>
+      <textarea id="contact-message" name="message" required rows="6" aria-describedby="message-error"></textarea>
+      <p data-field-error hidden id="message-error"></p>
+    </div>
+
+    <button type="submit" data-i18n="contact-submit">Send message</button>
+  </form>
+</main>
+
+<footer>
+  <p><a href="changelog.html">Changelog</a> · <a href="contact.html">Contact</a></p>
+  <p data-attribution>Summaries of reporting by KTSM, KVIA and other El Paso outlets — always credited, always linked</p>
+  <p data-build>build 0000000 · 2026-09-16</p>
+</footer>
+</body>
+</html>

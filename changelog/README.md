@@ -10,6 +10,7 @@ Entries are named `YYYY-MM-DD-HHMM_slug.md` and grouped by month, newest first.
 
 | Date | Entry | Keywords |
 |------|-------|----------|
+| 2026-09-16 | [Changelog as Dated Dispatches, and the Contact Page](2026-09-16-1901_changelog-dispatches-and-contact-page.md) | `[FEATURE]` `[STYLING]` `[UI]` `[DESIGN]` `[ACCESSIBILITY]` |
 | 2026-09-16 | [Article Page: Standfirst Deck, AI Disclosure, and Removable Tags Section](2026-09-16-1856_article-page-standfirst-deck-and-ai-disclosure.md) | `[FEATURE]` `[STYLING]` `[UI]` `[DESIGN]` `[ACCESSIBILITY]` |
 | 2026-09-16 | [Phase 1 Plan 6 Complete: Final Home and Category Mockups](2026-09-16-1902_01-06-complete-plan-summary-state-roadmap-windows.md) | `[DOCUMENTATION]` `[TESTING]` `[STYLING]` `[DESIGN]` `[ACCESSIBILITY]` |
 | 2026-09-16 | [Category Page: Business Masthead Block and Image-Led Lead](2026-09-16-1858_category-page-masthead-block-image-lead.md) | `[FEATURE]` `[STYLING]` `[UI]` `[DESIGN]` `[ACCESSIBILITY]` |

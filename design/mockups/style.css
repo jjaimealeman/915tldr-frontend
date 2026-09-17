@@ -875,3 +875,144 @@ main > article [data-frame] {
   font-size: var(--step-4);
   margin: 0 0 var(--space-3);
 }
+
+/* ==========================================================================
+   Changelog (01-07 Task 2, D-11) — dated dispatches, no <ul>. Item spans get
+   their trailing full stop from CSS ([data-item-sentence]::after) so the
+   verbatim item text in the markup is never touched.
+   ========================================================================== */
+
+[data-lede] {
+  max-width: var(--measure);
+  margin: 0 0 var(--space-6);
+  font-size: var(--step-1);
+}
+
+[data-dispatch] {
+  max-width: var(--measure);
+  margin: 0 0 var(--space-6);
+  padding-top: var(--space-4);
+  border-top: var(--rule-thick) solid var(--ink);
+}
+
+[data-dispatch-date] {
+  display: block;
+  color: var(--ink-muted);
+  font-size: var(--step--1);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin: 0 0 var(--space-2);
+}
+
+[data-dispatch] h2 {
+  font-family: var(--font-display);
+  line-height: var(--leading-display);
+  font-size: var(--step-3);
+  margin: 0 0 var(--space-2);
+}
+
+[data-dispatch-body] {
+  margin: 0;
+}
+
+[data-item-sentence]::after {
+  content: ".";
+}
+
+@media (min-width: 80em) {
+  [data-dispatch] {
+    display: grid;
+    grid-template-columns: 12rem 1fr;
+    gap: var(--space-5);
+    max-width: none;
+  }
+
+  [data-dispatch-date] {
+    margin: 0;
+  }
+
+  [data-dispatch] h2,
+  [data-dispatch-body] {
+    max-width: var(--measure);
+  }
+}
+
+/* ==========================================================================
+   Contact (01-07 Task 2) — full-width controls at base, visible borders,
+   44px minimum target height, error styling from tokens only.
+   ========================================================================== */
+
+[data-contact-intro] {
+  max-width: var(--measure);
+  margin: 0 0 var(--space-5);
+}
+
+[data-contact-links] {
+  margin: 0 0 var(--space-6);
+}
+
+form[data-contact-form] {
+  max-width: var(--measure);
+}
+
+[data-field] {
+  margin: 0 0 var(--space-5);
+}
+
+[data-field] label {
+  display: block;
+  margin: 0 0 var(--space-2);
+  font-size: var(--step--1);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+[data-field] input,
+[data-field] textarea {
+  display: block;
+  width: 100%;
+  min-height: 44px;
+  font: inherit;
+  color: var(--ink);
+  background: var(--paper);
+  border: var(--rule-thin) solid var(--rule-strong);
+  border-radius: 2px;
+  padding: var(--space-3);
+}
+
+[data-field] textarea {
+  min-height: 8rem;
+  resize: vertical;
+}
+
+[data-field] [aria-invalid="true"] {
+  border: var(--rule-thick) solid var(--ink);
+}
+
+[data-field-error] {
+  margin: var(--space-2) 0 0;
+  font-size: var(--step--1);
+  color: var(--ink);
+}
+
+[data-field-error]:not([hidden])::before {
+  content: "Error: ";
+  font-weight: 700;
+}
+
+[data-form-note] {
+  color: var(--ink-muted);
+  font-size: var(--step--1);
+  margin: 0 0 var(--space-4);
+}
+
+[data-contact-form] button[type="submit"] {
+  font: inherit;
+  min-height: 44px;
+  padding: var(--space-2) var(--space-5);
+  background: var(--ink);
+  color: var(--paper);
+  border: none;
+  border-radius: 2px;
+  cursor: pointer;
+}
