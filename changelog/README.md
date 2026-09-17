@@ -10,6 +10,7 @@ Entries are named `YYYY-MM-DD-HHMM_slug.md` and grouped by month, newest first.
 
 | Date | Entry | Keywords |
 |------|-------|----------|
+| 2026-09-17 | [Swatch Evidence Regenerated, Nav-Stripe Distinctness Verified, WINDOWS Entry 3 Closed](2026-09-17-1516_01-16-regenerate-swatch-evidence-verify-nav-stripe.md) | `[FEATURE]` `[TESTING]` `[DOCUMENTATION]` |
 | 2026-09-17 | [Business's Palette Hue Re-Sampled From a Real Juárez Neon Sign](2026-09-17-1512_01-16-re-sample-business-hue-from-a-real-ju-rez-ne.md) | `[FEATURE]` `[BUG_FIX]` |
 | 2026-09-17 | [Phase 1 Plan 15 Complete: D-15/I18N-07 Closed, Spanish Calibration Made More Robust](2026-09-17-1443_01-15-complete-plan-summary-state-roadmap-windows-.md) | `[DOCUMENTATION]` `[PLANNING]` |
 | 2026-09-17 | [Every Spanish Stress String Recalibrated; a Real Small-Size Measurement Gap Fixed](2026-09-17-1440_01-15-recalibrate-every-spanish-component-widen-hi.md) | `[FEATURE]` `[TESTING]` `[BUG_FIX]` |

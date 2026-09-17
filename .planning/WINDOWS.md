@@ -1,10 +1,10 @@
 ---
 schema_version: 1
-open_count: 4
+open_count: 3
 waived_count: 0
-fixed_count: 11
+fixed_count: 12
 total_count: 15
-last_updated: 2026-09-17T20:43:14.690Z
+last_updated: 2026-09-17T21:14:35.114Z
 ---
 
 # Broken Windows Ledger
@@ -17,7 +17,7 @@ last_updated: 2026-09-17T20:43:14.690Z
 |----|-------|------|------|------|-------------|--------|--------|-------------|-------------|
 | 1 | 01 | deviation | design/tests/support/geometry.ts |  | UPDATED by 01-09: the original "never composites, regardless of hold duration" claim was based on a single page/scenario and is not universal. 01-09's full swap matrix shows prePaintObserved:false (WebKit-Docker never paints a pre-swap frame) specifically on category.html@320px, changelog.html and contact.html, but prePaintObserved:true (it does composite and geometryScore is real, non-zero) on index.html, article.html and category.html@1280px -- page-dependent, not a blanket engine limitation. measureFontSwap still reports the flag honestly either way. Not independently confirmable against real Safari on this Arch Linux machine. Spot-check before 01-APPROVAL.md sign-off. | open |  | 2026-09-16T19:32:05.866Z |  |
 | 2 | 01 | deviation | design/palette/photo-sources.json |  | politics' photo is Santa Fe NM dusk sky, not literally the Franklin Mountains/El Paso skyline the subject names -- flagged for owner review before 01-APPROVAL.md | open |  | 2026-09-16T20:48:47.479Z |  |
-| 3 | 01 | deviation | design/evidence/palette.md |  | Sports (49.4deg) and Business (94.5deg) block-stop hues visually sit near the amber-olive-reading-as-brown risk C-01 flags -- flagged for owner review, not resolved unilaterally | open |  | 2026-09-16T20:48:47.571Z |  |
+| 3 | 01 | deviation | design/evidence/palette.md |  | UPDATED by 01-16 (D-GAP-C): Sports (49.4deg) was accepted by the owner in round-1 review in their own words ("sports is more redish, thats ok" -- 01-APPROVAL.md). Business (formerly 94.5deg, marigold-sourced) was re-sampled from a new photo (the neon sign of the real "Kentucky Club & Grill" bar in Ciudad Juárez) and now sits at 152.1deg, outside the 40-100deg amber/olive band entirely -- it no longer reads as brown by construction, not by owner acceptance of a borderline colour. | fixed |  | 2026-09-16T20:48:47.571Z | 2026-09-17T21:14:35.114Z |
 | 4 | 01 | deviation | design/tests/font-cls.spec.ts |  | WebKit font-swap CLS gate fails on index.html/category.html (geometryScore up to 0.76 vs 0.005 threshold) — root-caused to the pinned Docker WebKit test image lacking Georgia/Noto Serif (only Liberation family installed per fc-list), forcing the worst-compatible fallback tier; Chromium passes cleanly. Non-blocking per human_verify_mode:end-of-phase; needs real-Safari spot-check before 01-APPROVAL.md. | fixed |  | 2026-09-17T00:46:16.920Z | 2026-09-17T18:31:44.285Z |
 | 5 | 01 | deviation | design/mockups/article.html |  | WebKit font-swap CLS gate fails on article.html (geometryScore 0.143 @320px vs 0.005 threshold) -- same root cause as entry 4 (pinned Docker WebKit test image lacks Georgia/Noto Serif, falls to Liberation Serif fallback tier); Chromium passes cleanly (0.0096 worst case after fixing a centering bug that used a font-relative ch unit with margin:auto). Non-blocking per human_verify_mode:end-of-phase; same real-Safari spot-check as entry 4 covers this. | fixed |  | 2026-09-17T01:20:11.946Z | 2026-09-17T18:31:44.383Z |
 | 6 | 01 | deviation | design/mockups/changelog.html |  | Chromium reports native CLS 0.0125 (vs 0.005 threshold) on changelog.html @320px font swap, but this project's own geometry-based instrument (the primary, engine-independent D-08 measurement) reports geometryScore 0 for the same swap, and a direct check confirmed zero elements moved within the visible viewport -- all reflow is below the fold. WebKit passes cleanly on the same page. Investigated with layout-shift source attribution, which showed unchanged before/after rects for the reported sources, consistent with a Chromium native-CLS attribution quirk on text-dense pages rather than a real user-visible shift. No CSS bug found (line-heights, margins and centering all checked) and no threshold weakened. Flagged for owner judgement per human_verify_mode:end-of-phase. | fixed |  | 2026-09-17T01:20:12.039Z | 2026-09-17T06:32:42.431Z |
@@ -63,11 +63,11 @@ last_updated: 2026-09-17T20:43:14.690Z
     "phase": "01",
     "file": "design/evidence/palette.md",
     "line": null,
-    "description": "Sports (49.4deg) and Business (94.5deg) block-stop hues visually sit near the amber-olive-reading-as-brown risk C-01 flags -- flagged for owner review, not resolved unilaterally",
-    "status": "open",
+    "description": "UPDATED by 01-16 (D-GAP-C): Sports (49.4deg) was accepted by the owner in round-1 review in their own words (\"sports is more redish, thats ok\" -- 01-APPROVAL.md). Business (formerly 94.5deg, marigold-sourced) was re-sampled from a new photo (the neon sign of the real \"Kentucky Club & Grill\" bar in Ciudad Juárez) and now sits at 152.1deg, outside the 40-100deg amber/olive band entirely -- it no longer reads as brown by construction, not by owner acceptance of a borderline colour.",
+    "status": "fixed",
     "reason": "",
     "recorded_at": "2026-09-16T20:48:47.571Z",
-    "resolved_at": null
+    "resolved_at": "2026-09-17T21:14:35.114Z"
   },
   {
     "id": 4,
