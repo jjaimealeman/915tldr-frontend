@@ -6,7 +6,7 @@ current_phase: 01
 current_phase_name: design-sketch-editorial-identity
 status: executing
 stopped_at: "Completed 01-12-PLAN.md (D-GAP revision 9: summary-markdown.mjs — parseSummary/renderSummaryHtml/summaryPlainText/validateBlocks/escapeHtml, TDD RED/GREEN, proven against all fixtures)"
-last_updated: "2026-09-17T17:00:31.513Z"
+last_updated: "2026-09-17T17:21:52.528Z"
 last_activity: 2026-09-17
 last_activity_desc: Phase 01 execution started
 progress:
@@ -121,6 +121,7 @@ None yet.
 - Phase 1: WebKit (Playwright 26.6, Docker) never composites while a font resource is pending, regardless of font-display:swap — font-swap CLS measurement reports prePaintObserved:false honestly for this engine; needs a real-Safari spot-check before 01-APPROVAL.md sign-off (see 01-02-SUMMARY.md coverage D8).
 - Phase 1: three items need owner C-01/subject-fidelity sign-off before 01-APPROVAL.md -- politics' photo is Santa Fe dusk not El Paso/Franklin Mountains; weather's sampled hue reads azure-blue not turquoise; Sports/Business block-stop hues (49.4deg/94.5deg) visually sit near the amber-olive-reading-as-brown risk C-01 flags. See 01-03-SUMMARY.md.
 - Phase 1: Criterion 5 (font-swap CLS) requires an owner decision before 01-APPROVAL.md — accept the documented residual shift, adjust the fallback font stack, or reopen the font-display:swap PRD decision. See 01-09-SUMMARY.md and design/evidence/font-cls.md.
+- Phase 1, 01-13 Task 1: font-display:optional does NOT prevent late font swaps in Chromium (WebKit correctly honors it) -- a clean single-navigation reproduction with no test-JS-API access shows Chromium applies a delayed optional webfont to already-painted text, contradicting 01-APPROVAL.md option C's rationale. See WINDOWS.md entry 9. 01-13 paused after Task 1 (instrument built, committed) pending owner decision on how to proceed; Tasks 2-3 not started.
 
 ## Deferred Items
 
