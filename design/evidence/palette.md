@@ -1,6 +1,6 @@
 # Palette evidence (D-02, D-03, C-01)
 
-Generated from `design/palette/photo-sources.json`, `design/palette/hue-sources.json` and `design/palette/palette.json` by `npm run palette:build` — re-run after any hue, offset or stop change.
+Generated from `design/palette/photo-sources.json`, `design/palette/hue-sources.json` and `design/palette/palette.json` by `pnpm run palette:build` — re-run after any hue, offset or stop change.
 
 ## Per-category values
 
@@ -15,18 +15,18 @@ Generated from `design/palette/photo-sources.json`, `design/palette/hue-sources.
 | Sports | a saturated storefront or neon sign in El Paso or Ciudad Juárez (orange for sports) | [link](https://commons.wikimedia.org/wiki/File:Painting_mural_in_El_Paso_2022_12.jpg) | CC BY-SA 4.0 | 43.4° | +6° | See crime's hueOffsetReason -- this is the paired adjustment separating sports' sampled orange from crime's sampled red. | vivid-light | 0.150 | 0.150 | #c55f19 |
 | Sports | a saturated storefront or neon sign in El Paso or Ciudad Juárez (orange for sports) | [link](https://commons.wikimedia.org/wiki/File:Painting_mural_in_El_Paso_2022_12.jpg) | CC BY-SA 4.0 | 43.4° | +6° | See crime's hueOffsetReason -- this is the paired adjustment separating sports' sampled orange from crime's sampled red. | block | 0.150 | 0.122 | #8c3e01 |
 | Sports | a saturated storefront or neon sign in El Paso or Ciudad Juárez (orange for sports) | [link](https://commons.wikimedia.org/wiki/File:Painting_mural_in_El_Paso_2022_12.jpg) | CC BY-SA 4.0 | 43.4° | +6° | See crime's hueOffsetReason -- this is the paired adjustment separating sports' sampled orange from crime's sampled red. | vivid-dark | 0.150 | 0.141 | #ff9a61 |
-| Business | marigold (cempasúchil, as used for Día de Muertos in the region) | [link](https://commons.wikimedia.org/wiki/File:Tagetes_erecta_26122014_(2).jpg) | CC BY-SA 3.0 | 98.5° | -4° | Sampled marigold gold (98.5deg) sits only 22.2deg from health's sampled creosote green (120.7deg). At the block stop specifically (where business's gamut-clamped chroma is inherently low, ~0.094 regardless of requested chroma) this produced a minimum pairwise OKLab distance as low as 0.038. Business is pushed toward yellow, health toward green, splitting the difference within the +-8deg allowance. | vivid-light | 0.150 | 0.123 | #987e00 |
-| Business | marigold (cempasúchil, as used for Día de Muertos in the region) | [link](https://commons.wikimedia.org/wiki/File:Tagetes_erecta_26122014_(2).jpg) | CC BY-SA 3.0 | 98.5° | -4° | Sampled marigold gold (98.5deg) sits only 22.2deg from health's sampled creosote green (120.7deg). At the block stop specifically (where business's gamut-clamped chroma is inherently low, ~0.094 regardless of requested chroma) this produced a minimum pairwise OKLab distance as low as 0.038. Business is pushed toward yellow, health toward green, splitting the difference within the +-8deg allowance. | block | 0.150 | 0.094 | #695701 |
-| Business | marigold (cempasúchil, as used for Día de Muertos in the region) | [link](https://commons.wikimedia.org/wiki/File:Tagetes_erecta_26122014_(2).jpg) | CC BY-SA 3.0 | 98.5° | -4° | Sampled marigold gold (98.5deg) sits only 22.2deg from health's sampled creosote green (120.7deg). At the block stop specifically (where business's gamut-clamped chroma is inherently low, ~0.094 regardless of requested chroma) this produced a minimum pairwise OKLab distance as low as 0.038. Business is pushed toward yellow, health toward green, splitting the difference within the +-8deg allowance. | vivid-dark | 0.150 | 0.150 | #d6b528 |
+| Business | a saturated turquoise or teal painted storefront, wall or mural in El Paso or Ciudad Juárez | [link](https://commons.wikimedia.org/wiki/File:Bar_Kentucky_02.jpg) | CC BY-SA 4.0 | 152.1° | 0° | — | vivid-light | 0.150 | 0.150 | #199951 |
+| Business | a saturated turquoise or teal painted storefront, wall or mural in El Paso or Ciudad Juárez | [link](https://commons.wikimedia.org/wiki/File:Bar_Kentucky_02.jpg) | CC BY-SA 4.0 | 152.1° | 0° | — | block | 0.150 | 0.120 | #026a34 |
+| Business | a saturated turquoise or teal painted storefront, wall or mural in El Paso or Ciudad Juárez | [link](https://commons.wikimedia.org/wiki/File:Bar_Kentucky_02.jpg) | CC BY-SA 4.0 | 152.1° | 0° | — | vivid-dark | 0.150 | 0.150 | #62d287 |
 | Education | a violet desert sunset | [link](https://commons.wikimedia.org/wiki/File:Desert_Sunset_in_Saguaro4.jpg) | CC BY 2.0 | 295.9° | 0° | — | vivid-light | 0.150 | 0.150 | #896acf |
 | Education | a violet desert sunset | [link](https://commons.wikimedia.org/wiki/File:Desert_Sunset_in_Saguaro4.jpg) | CC BY 2.0 | 295.9° | 0° | — | block | 0.150 | 0.150 | #6140a1 |
 | Education | a violet desert sunset | [link](https://commons.wikimedia.org/wiki/File:Desert_Sunset_in_Saguaro4.jpg) | CC BY 2.0 | 295.9° | 0° | — | vivid-dark | 0.150 | 0.126 | #bea6ff |
 | Community | a saturated storefront or neon sign in El Paso or Ciudad Juárez (magenta or pink for community) | [link](https://commons.wikimedia.org/wiki/File:2010_Ciudad_Juarez_Mexico_5161988454.jpg) | CC BY 2.0 | 359.9° | 0° | — | vivid-light | 0.150 | 0.150 | #c5547d |
 | Community | a saturated storefront or neon sign in El Paso or Ciudad Juárez (magenta or pink for community) | [link](https://commons.wikimedia.org/wiki/File:2010_Ciudad_Juarez_Mexico_5161988454.jpg) | CC BY 2.0 | 359.9° | 0° | — | block | 0.150 | 0.150 | #952755 |
 | Community | a saturated storefront or neon sign in El Paso or Ciudad Juárez (magenta or pink for community) | [link](https://commons.wikimedia.org/wiki/File:2010_Ciudad_Juarez_Mexico_5161988454.jpg) | CC BY 2.0 | 359.9° | 0° | — | vivid-dark | 0.150 | 0.140 | #ff8fb4 |
-| Health | sotol or creosote bush | [link](https://commons.wikimedia.org/wiki/File:Creosote_bush,_Larrea_tridentata_(15205639513).jpg) | CC BY-SA 2.0 | 120.7° | +4° | See business's hueOffsetReason -- this is the paired adjustment separating health's sampled green from business's sampled gold. | vivid-light | 0.150 | 0.150 | #6c8e01 |
-| Health | sotol or creosote bush | [link](https://commons.wikimedia.org/wiki/File:Creosote_bush,_Larrea_tridentata_(15205639513).jpg) | CC BY-SA 2.0 | 120.7° | +4° | See business's hueOffsetReason -- this is the paired adjustment separating health's sampled green from business's sampled gold. | block | 0.150 | 0.115 | #4a6200 |
-| Health | sotol or creosote bush | [link](https://commons.wikimedia.org/wiki/File:Creosote_bush,_Larrea_tridentata_(15205639513).jpg) | CC BY-SA 2.0 | 120.7° | +4° | See business's hueOffsetReason -- this is the paired adjustment separating health's sampled green from business's sampled gold. | vivid-dark | 0.150 | 0.150 | #a2c753 |
+| Health | sotol or creosote bush | [link](https://commons.wikimedia.org/wiki/File:Creosote_bush,_Larrea_tridentata_(15205639513).jpg) | CC BY-SA 2.0 | 120.7° | +4° | Retained after the Business re-sample (D-GAP-C, 2026-09-17) so the owner-reviewed Health colour is unchanged; originally paired with Business's former marigold hue. | vivid-light | 0.150 | 0.150 | #6c8e01 |
+| Health | sotol or creosote bush | [link](https://commons.wikimedia.org/wiki/File:Creosote_bush,_Larrea_tridentata_(15205639513).jpg) | CC BY-SA 2.0 | 120.7° | +4° | Retained after the Business re-sample (D-GAP-C, 2026-09-17) so the owner-reviewed Health colour is unchanged; originally paired with Business's former marigold hue. | block | 0.150 | 0.115 | #4a6200 |
+| Health | sotol or creosote bush | [link](https://commons.wikimedia.org/wiki/File:Creosote_bush,_Larrea_tridentata_(15205639513).jpg) | CC BY-SA 2.0 | 120.7° | +4° | Retained after the Business re-sample (D-GAP-C, 2026-09-17) so the owner-reviewed Health colour is unchanged; originally paired with Business's former marigold hue. | vivid-dark | 0.150 | 0.150 | #a2c753 |
 | Weather | a hard turquoise midday sky over El Paso | [link](https://commons.wikimedia.org/wiki/File:Painting_mural_in_El_Paso_2022.jpg) | CC BY-SA 4.0 | 246.5° | -4° | See politics's hueOffsetReason -- this is the paired adjustment separating weather's sampled sky blue from politics's sampled indigo-blue. | vivid-light | 0.150 | 0.143 | #0388ce |
 | Weather | a hard turquoise midday sky over El Paso | [link](https://commons.wikimedia.org/wiki/File:Painting_mural_in_El_Paso_2022.jpg) | CC BY-SA 4.0 | 246.5° | -4° | See politics's hueOffsetReason -- this is the paired adjustment separating weather's sampled sky blue from politics's sampled indigo-blue. | block | 0.150 | 0.110 | #005d90 |
 | Weather | a hard turquoise midday sky over El Paso | [link](https://commons.wikimedia.org/wiki/File:Painting_mural_in_El_Paso_2022.jpg) | CC BY-SA 4.0 | 246.5° | -4° | See politics's hueOffsetReason -- this is the paired adjustment separating weather's sampled sky blue from politics's sampled indigo-blue. | vivid-dark | 0.150 | 0.122 | #6bc0ff |
@@ -38,7 +38,7 @@ Generated from `design/palette/photo-sources.json`, `design/palette/hue-sources.
 | Stop | Minimum distance | Closest pair | Verdict (>= 0.05) |
 |---|---|---|---|
 | vivid-light | 0.0642 | crime / sports | PASS |
-| block | 0.0581 | business / health | PASS |
+| block | 0.0559 | business / health | PASS |
 | vivid-dark | 0.0554 | politics / weather | PASS |
 
 ## C-01 review
@@ -48,6 +48,5 @@ Block stops whose final hue lies in 40-100° turn dark amber or olive at block l
 | Category | Final hue | Block hex | Note |
 |---|---|---|---|
 | Sports | 49.4° | #8c3e01 | dark amber or olive at block lightness — may read as brown; owner to judge at approval |
-| Business | 94.5° | #695701 | dark amber or olive at block lightness — may read as brown; owner to judge at approval |
 
 **Overall distance check: PASS**

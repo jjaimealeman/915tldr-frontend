@@ -261,10 +261,10 @@
   --cat-sports-vivid-dark: oklch(0.780 0.141 49.4);
   --cat-sports: var(--cat-sports-vivid-light);
 
-  --hue-business: 94.5;
-  --cat-business-vivid-light: oklch(0.600 0.123 94.5);
-  --cat-business-block: oklch(0.460 0.094 94.5);
-  --cat-business-vivid-dark: oklch(0.780 0.150 94.5);
+  --hue-business: 152.1;
+  --cat-business-vivid-light: oklch(0.600 0.150 152.1);
+  --cat-business-block: oklch(0.460 0.120 152.1);
+  --cat-business-vivid-dark: oklch(0.780 0.150 152.1);
   --cat-business: var(--cat-business-vivid-light);
 
   --hue-education: 295.9;

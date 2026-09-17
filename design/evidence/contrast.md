@@ -21,8 +21,8 @@ Lightness is held constant across each ramp (D-02/D-03); every hue is checked an
 
 | Ramp | Pairing | Threshold | Worst hue | Ratio | Verdict |
 |---|---|---|---|---|---|
-| vivid-light | vs light paper | 3:1 | health | 3.63:1 | PASS |
-| block | vs --block-ink (worst theme: dark) | 4.5:1 | health | 5.73:1 | PASS |
+| vivid-light | vs light paper | 3:1 | business | 3.53:1 | PASS |
+| block | vs --block-ink (worst theme: dark) | 4.5:1 | business | 5.58:1 | PASS |
 | vivid-dark | vs dark paper | 3:1 | community | 8.65:1 | PASS |
 
 ## Focus
@@ -31,7 +31,7 @@ Lightness is held constant across each ramp (D-02/D-03); every hue is checked an
 |---|---|---|---|---|
 | light | focus-ring / paper | 3:1 | 17.33:1 | PASS |
 | dark | focus-ring / paper | 3:1 | 15.31:1 | PASS |
-| dark | focus-ring-on-block vs block (worst: health) | 3:1 | 5.73:1 | PASS |
+| dark | focus-ring-on-block vs block (worst: business) | 3:1 | 5.58:1 | PASS |
 
 ## Distinctness
 
@@ -40,7 +40,7 @@ Minimum pairwise OKLab distance per stop (>= 0.05 required).
 | Closest pair | Stop | Distance | Verdict |
 |---|---|---|---|
 | crime / sports | vivid-light | 0.0642 | PASS |
-| business / health | block | 0.0581 | PASS |
+| business / health | block | 0.0559 | PASS |
 | politics / weather | vivid-dark | 0.0554 | PASS |
 
 ## D-02 structure
@@ -67,6 +67,5 @@ All stop literals match their shared stop L/C and per-category hue.
 ## Warnings
 
 - C-01 review: sports block stop hue 49.4deg falls in the 40-100deg amber/olive band — may read as brown; owner to judge
-- C-01 review: business block stop hue 94.5deg falls in the 40-100deg amber/olive band — may read as brown; owner to judge
 
 **Overall: PASS**

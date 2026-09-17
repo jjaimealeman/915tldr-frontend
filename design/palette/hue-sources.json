@@ -61,23 +61,23 @@
   },
   {
     "slug": "business",
-    "subject": "marigold (cempasúchil, as used for Día de Muertos in the region)",
-    "pageUrl": "https://commons.wikimedia.org/wiki/File:Tagetes_erecta_26122014_(2).jpg",
-    "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/45/Tagetes_erecta_26122014_%282%29.jpg/1280px-Tagetes_erecta_26122014_%282%29.jpg",
-    "license": "CC BY-SA 3.0",
-    "author": "Joydeep",
+    "subject": "a saturated turquoise or teal painted storefront, wall or mural in El Paso or Ciudad Juárez",
+    "pageUrl": "https://commons.wikimedia.org/wiki/File:Bar_Kentucky_02.jpg",
+    "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/b/be/Bar_Kentucky_02.jpg/1280px-Bar_Kentucky_02.jpg",
+    "license": "CC BY-SA 4.0",
+    "author": "Wotancito",
     "region": {
-      "x": 0.3,
-      "y": 0.15,
-      "w": 0.4,
-      "h": 0.5
+      "x": 0.42,
+      "y": 0.3,
+      "w": 0.055,
+      "h": 0.35
     },
-    "note": "Tagetes erecta (the cempasúchil/Mexican marigold used for Día de Muertos) in full bloom, bright golden-orange, photographed in direct sun. The photograph itself is not from the El Paso/Juárez region (species is exactly on-subject; the specific specimen photographed is not geographically local), noted for completeness. An earlier candidate (a mustard-yellow painted band in an El Paso mural, hue ~82-85) was considered but rejected in favor of this on-species real flower, which is the more literal C-01 subject match.",
-    "keptPixels": 79040,
-    "hue": 98.5,
-    "circularStdDev": 6.7,
-    "medianL": 0.652,
-    "medianC": 0.134
+    "note": "D-GAP-C REPLACEMENT (2026-09-17): replaces the marigold record after the owner's round-1 review flagged both Sports and Business as reading brown ('business and sports both read as brown. sports is more redish, thats ok') -- Sports was accepted as-is, Business was sent back for a new photo and re-sample. Physics explains the marigold's failure: any final hue in roughly 40-100deg drops to amber/olive at the block stop's L 0.46, reading as brown regardless of which photo supplies it -- so the replacement had to land outside that band, not just be a different yellow-orange. The new subject is the neon tube-light border of the real 'Kentucky Club & Grill' bar sign (operating since 1920) in downtown Ciudad Juárez, Mexico -- a genuine saturated storefront colour, one of C-01's own named registers, and squarely on-subject for this category's 'a saturated storefront or neon sign in El Paso or Ciudad Juárez' family already used for sports/weather/community. The sampled region is a single vertical run of the sign's green-cyan neon tubing (left border of the 'World Famous' panel, visible through the shop window), chosen after probing several candidate regions/photos: night-lit mural photographs from the same photo set as sports/weather (artificial worksite lighting) and a mural's shaded agave plant were both rejected first -- the mural photos' visually 'blue' paint measured chroma too low to clear the sampler's own 0.08 floor once downscaled, and a broader crop of this same neon sign pulled in window-glass reflections that pushed circularStdDev over 60deg. This tight region stays entirely on one clean run of tube glass and clears both sampler gates with margin (see hue-sources.json). Photographed 2019-04-06 in daylight (not night, so no artificial-light colour cast risk); the neon itself is self-illuminated tube light, not a painted or dyed surface, noted for completeness alongside 01-03's storefront/neon precedent (sports, weather).",
+    "keptPixels": 538,
+    "hue": 152.1,
+    "circularStdDev": 17.2,
+    "medianL": 0.847,
+    "medianC": 0.141
   },
   {
     "slug": "education",
