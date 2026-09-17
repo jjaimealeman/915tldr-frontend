@@ -223,6 +223,7 @@
   --measure: 68ch;
   --rule-thin: 1px;
   --rule-thick: 4px;
+  --rail-width: 20rem;
 
   /* D-GAP-B (owner decision, 2026-09-17, 01-APPROVAL.md): headlines move off */
   /* the display face onto Source Serif 4 Bold. Instrument Serif ships one */
@@ -316,7 +317,8 @@
 /* ==========================================================================
    Component CSS — mobile-first (D-07): base rules written for 320px, then
    min-width media queries widen the layout. No extra stylesheet files. Only
-   two layout breakpoints exist: 48em and 80em (plus prefers-reduced-motion).
+   three layout breakpoints exist: 48em, 64em and 80em (plus
+   prefers-reduced-motion).
    ========================================================================== */
 
 *,
@@ -900,9 +902,13 @@ body[data-page="article"] main > article > header[data-block] [data-byline] {
    via `margin: 0 auto` would make that width change shift the container's
    left edge (and everything inside it) sideways — a large, avoidable
    contributor to font-swap CLS (D-08) that a left-anchored column does not
-   have, since only the wrap point moves, not the left edge. */
+   have, since only the wrap point moves, not the left edge.
+
+   Below 64em the reading column spans the full width of the page column
+   (revision request 7) — no max-width here. At and above 64em it is capped
+   at --measure again by [data-layout="with-rail"] > [data-reading-column]
+   in the rail media query below (revision request 3). */
 body[data-page="article"] main > article {
-  max-width: var(--measure);
   margin: 0 0 var(--space-7);
 }
 
@@ -973,6 +979,60 @@ body[data-page="article"] main > article [data-frame] {
   line-height: var(--leading-headline);
   font-size: var(--step-4);
   margin: 0 0 var(--space-3);
+}
+
+/* ==========================================================================
+   Right rail (01-19, revision request 3 / article part of request 7) —
+   [data-layout="with-rail"] pairs a reading column with a real-content rail
+   ("More in Community" / "Latest") at >=64em, keeping the body measure near
+   --measure instead of leaving a large empty right side. Below 64em the
+   rail stacks full-width beneath the reading column, in source order —
+   no CSS is needed for the stacked case beyond the rail's own grid
+   overrides below, since block layout is the default.
+   ========================================================================== */
+
+/* Single-column card grids inside the rail, at every width — specific
+   enough ([data-rail] [data-grid], two selectors) to beat the 48em/80em
+   [data-grid] 2-/3-column rules (one selector each) regardless of source
+   order, so no duplication inside those media blocks is needed. */
+[data-rail] [data-grid] {
+  grid-template-columns: 1fr;
+  gap: var(--space-4);
+  padding-top: var(--space-2);
+}
+
+[data-rail] [data-grid-heading] {
+  font-size: var(--step-2);
+  margin-top: var(--space-5);
+}
+
+[data-rail] [data-grid-heading]:first-child {
+  margin-top: 0;
+}
+
+[data-card-variant="compact"] h3 {
+  font-size: var(--step-1);
+}
+
+@media (min-width: 64em) {
+  main[data-layout="with-rail"] {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) var(--rail-width);
+    column-gap: var(--space-7);
+    align-items: start;
+  }
+
+  /* Left-anchored, not centered, matching the house rule above: --measure
+     is a font-relative (ch) unit, so a margin: auto here would reintroduce
+     the same font-swap CLS risk this project already fixed once (01-07). */
+  [data-layout="with-rail"] > [data-reading-column] {
+    grid-column: 1;
+    max-width: var(--measure);
+  }
+
+  [data-layout="with-rail"] > [data-rail] {
+    grid-column: 2;
+  }
 }
 
 /* ==========================================================================
