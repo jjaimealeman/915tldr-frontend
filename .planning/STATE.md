@@ -5,15 +5,15 @@ milestone_name: milestone
 current_phase: 01
 current_phase_name: design-sketch-editorial-identity
 status: executing
-stopped_at: "Completed 01-20-PLAN.md (revision request 4: changelog layout bug/whitespace; revision request 5: contact centring and spacing bug; changelog/contact parts of request 7: full width at 768px)"
-last_updated: "2026-09-17T22:37:37.680Z"
+stopped_at: "Completed 01-21-PLAN.md (revision request 8: homepage load-more with static feed pages, first 6 cards on load)"
+last_updated: "2026-09-17T23:05:25.979Z"
 last_activity: 2026-09-17
 last_activity_desc: Phase 01 execution started
 progress:
   total_phases: 1
   completed_phases: 0
   total_plans: 23
-  completed_plans: 20
+  completed_plans: 21
 ---
 
 # Project State
@@ -28,11 +28,11 @@ See: .planning/PROJECT.md (updated 2026-09-16)
 ## Current Position
 
 Phase: 01 (design-sketch-editorial-identity) — EXECUTING
-Plan: 11 of 23
+Plan: 12 of 23
 Status: Ready to execute
 Last activity: 2026-09-17 — Phase 01 execution started
 
-Progress: [█████████░] 87%
+Progress: [█████████░] 91%
 
 ## Performance Metrics
 
@@ -77,6 +77,7 @@ Progress: [█████████░] 87%
 | Phase 01 P18 | 35min | 3 tasks | 10 files |
 | Phase 01 P19 | 25min | 2 tasks | 21 files |
 | Phase 01 P20 | 11min | 2 tasks | 34 files |
+| Phase 01 P21 | 35min | 3 tasks | 20 files |
 
 ## Accumulated Context
 
@@ -137,6 +138,9 @@ Recent decisions affecting current work:
 - [Phase ?]: 01-20: reproduced the changelog dispatch squeeze before any fix — real, but confined to >=80em (1280/1920px), not 768px as the owner's screenshot label suggested
 - [Phase ?]: 01-20: fixed the dispatch grid with explicit grid-template-areas rather than reordering the auto-placement columns — immune to source-order/implicit-grid surprises
 - [Phase ?]: 01-20: contact column centred with a fixed --column-narrow: 44rem (rem, not ch/em) — the 01-07 font-swap-CLS centring prohibition targets font-relative units only, so margin-inline:auto is safe here
+- [Phase ?]: 01-21: split the 33-card feed by pure document order (6 initial + feed pages of 6) with no reordering, since D-12's reverse-chronological order is a must-have; the Spanish/long-content stress cards now sit behind the button, deliberately deferred to already-planned 01-22
+- [Phase ?]: 01-21: build-feed.mjs's --extract self-verifies renderCardHtml against the live DOM before ever writing home-feed.json, catching a lossy extraction at the source
+- [Phase ?]: 01-21: measured (PerformanceObserver layout-shift), not assumed, zero native CLS during a real load-more click -- the apparent rect movement is a uniform scroll offset from focus moving to the off-screen 7th card, not a reflow
 
 ### Pending Todos
 
@@ -163,6 +167,6 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-09-17T22:37:37.667Z
-Stopped at: Completed 01-20-PLAN.md (revision request 4: changelog layout bug/whitespace; revision request 5: contact centring and spacing bug; changelog/contact parts of request 7: full width at 768px)
+Last session: 2026-09-17T23:05:25.966Z
+Stopped at: Completed 01-21-PLAN.md (revision request 8: homepage load-more with static feed pages, first 6 cards on load)
 Resume file: None
