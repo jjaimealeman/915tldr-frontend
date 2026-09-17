@@ -1,0 +1,61 @@
+{
+  "scope": "full",
+  "pages": [
+    "index",
+    "category",
+    "article",
+    "changelog",
+    "contact"
+  ],
+  "criteria": [
+    1,
+    2,
+    3,
+    4,
+    5
+  ],
+  "engines": [
+    "chromium",
+    "webkit"
+  ],
+  "results": {
+    "1": {
+      "chromium": "PASS",
+      "webkit": "PASS",
+      "node": "PASS",
+      "verdict": "PASS",
+      "nodeProblems": []
+    },
+    "2": {
+      "chromium": "n/a",
+      "webkit": "n/a",
+      "node": "PASS",
+      "verdict": "PASS",
+      "nodeProblems": []
+    },
+    "3": {
+      "chromium": "PASS",
+      "webkit": "PASS",
+      "node": null,
+      "verdict": "PASS",
+      "nodeProblems": []
+    },
+    "4": {
+      "chromium": "PASS",
+      "webkit": "PASS",
+      "node": null,
+      "verdict": "PASS",
+      "nodeProblems": []
+    },
+    "5": {
+      "chromium": "FAIL",
+      "webkit": "FAIL",
+      "node": "FAIL",
+      "verdict": "FAIL",
+      "nodeProblems": [
+        "report-font-cls.mjs exited non-zero — see design/evidence/font-cls.md"
+      ]
+    }
+  },
+  "generatedAt": "2026-09-17T14:06:07.752Z"
+}

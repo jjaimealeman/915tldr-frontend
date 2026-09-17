@@ -19,6 +19,8 @@
     "data:stress": "node design/scripts/fetch-stress-set.mjs",
     "check:contrast": "node design/scripts/check-contrast.mjs",
     "verify:phase-1": "node design/scripts/verify-phase-1.mjs",
+    "approval:packet": "node design/scripts/write-approval-packet.mjs",
+    "verify:approval": "node design/scripts/verify-approval.mjs",
     "fonts:fetch": "node design/scripts/fetch-fonts.mjs",
     "fonts:build": "node design/scripts/build-fonts.mjs",
     "palette:sample": "node design/scripts/sample-hues.mjs",

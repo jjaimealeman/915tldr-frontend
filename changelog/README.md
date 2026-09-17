@@ -10,6 +10,7 @@ Entries are named `YYYY-MM-DD-HHMM_slug.md` and grouped by month, newest first.
 
 | Date | Entry | Keywords |
 |------|-------|----------|
+| 2026-09-17 | [D-16 Approval Packet Generator and Verifier, Full Unscoped Evidence Run](2026-09-17-0810_approval-packet-generator-and-verifier-d16.md) | `[TESTING]` `[FEATURE]` `[DOCUMENTATION]` |
 | 2026-09-17 | [Full Font-Swap CLS Matrix and Evidence Report (D-08, Criterion 5)](2026-09-17-0715_font-swap-matrix-and-evidence-report-c5.md) | `[TESTING]` `[PERFORMANCE]` `[BUG_FIX]` `[ACCESSIBILITY]` |
 | 2026-09-17 | [Geometry Instrument Now Measures Per-Line Fragments, Not Element Envelopes](2026-09-17-0700_geometry-fragment-based-layout-shift-fix.md) | `[BUGFIX]` `[TESTING]` `[ACCESSIBILITY]` |
 | 2026-09-17 | [Spanish +25% Overflow, Drawn-Spanish, Null-Summary and 320px/200%-Zoom Reflow Spec (D-07, D-15, Criterion 4)](2026-09-17-0610_spanish-overflow-injection-spec-c4.md) | `[TESTING]` `[FEATURE]` `[BUG_FIX]` |
