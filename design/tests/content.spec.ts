@@ -66,6 +66,44 @@ function readFixtureRowsByUuid(): Map<string, { status: unknown; is_duplicate: u
   return byUuid;
 }
 
+/**
+ * Same real-row-shape walk as readFixtureRowsByUuid, but returns the whole
+ * row (so its `summary` field is available) instead of just status/
+ * is_duplicate. Returns null when no real row (has `status`) carries the
+ * uuid.
+ */
+function readFixtureSummaryRowByUuid(uuid: string): Record<string, unknown> | null {
+  const raw = JSON.parse(readFileSync(STRESS_SET_PATH, 'utf8'));
+  function walk(value: unknown): Record<string, unknown> | null {
+    if (Array.isArray(value)) {
+      for (const item of value) {
+        const found = walk(item);
+        if (found) return found;
+      }
+      return null;
+    }
+    if (value && typeof value === 'object') {
+      const obj = value as Record<string, unknown>;
+      if (obj.uuid === uuid && 'status' in obj) return obj;
+      for (const v of Object.values(obj)) {
+        const found = walk(v);
+        if (found) return found;
+      }
+    }
+    return null;
+  }
+  return walk(raw.cases);
+}
+
+/** Extracts a fixture summary's "• " bullet lines, prefix stripped, trimmed. */
+function fixtureBulletLines(summary: string): string[] {
+  return summary
+    .replace(/\r\n/g, '\n')
+    .split('\n')
+    .filter((line) => line.startsWith('• '))
+    .map((line) => line.slice('• '.length).trim());
+}
+
 for (const name of pagesUnderTest()) {
   test.describe(`content: ${name}`, () => {
     test(`nav category order is canonical, and the eight stripe colours are pairwise distinct per theme @c1`, async ({
@@ -262,6 +300,75 @@ for (const name of pagesUnderTest()) {
       });
 
       expect(imageOffenders, imageOffenders.join(' | ')).toEqual([]);
+    });
+
+    test(`summaries render markdown as HTML: no bold marker in rendered text; Key Details are a strong label plus a list @c1`, async ({
+      page,
+    }) => {
+      await openPage(page, name as any);
+
+      const bodyText = await page.locator('body').innerText();
+      expect(bodyText.includes('**'), 'rendered body text must not contain a literal "**" marker').toBe(false);
+
+      const keyDetailsResults = await page.evaluate(() => {
+        const results: Array<{ uuid: string | null; lang: string | null; ok: boolean; reason: string; items: string[] }> = [];
+        for (const list of Array.from(document.querySelectorAll('[data-key-details]'))) {
+          let ok = true;
+          let reason = '';
+          const prev = list.previousElementSibling;
+          if (!prev || prev.tagName !== 'P') {
+            ok = false;
+            reason = 'previous sibling is not a <p>';
+          } else {
+            const children = Array.from(prev.children);
+            const soleStrong = children.length === 1 && children[0].tagName === 'STRONG';
+            const label = soleStrong ? (children[0].textContent || '').trim() : '';
+            if (!soleStrong || label !== 'Key Details:') {
+              ok = false;
+              reason = `preceding <p> is not a single <strong>Key Details:</strong> (got: ${prev.outerHTML})`;
+            }
+          }
+          const items = Array.from(list.querySelectorAll('li')).map((li) => li.textContent || '');
+          for (const text of items) {
+            if (!text.trim()) {
+              ok = false;
+              reason += (reason ? '; ' : '') + 'an li has empty text';
+            }
+            if (text.trim().startsWith('•')) {
+              ok = false;
+              reason += (reason ? '; ' : '') + 'an li text starts with the bullet character';
+            }
+          }
+          const container = list.closest('[data-uuid]');
+          results.push({
+            uuid: container ? container.getAttribute('data-uuid') : null,
+            lang: container ? container.getAttribute('lang') : null,
+            ok,
+            reason,
+            items,
+          });
+        }
+        return results;
+      });
+
+      const offenders = keyDetailsResults.filter((r) => !r.ok).map((r) => `${r.uuid ?? '(no uuid)'}: ${r.reason}`);
+      expect(offenders, offenders.join(' | ')).toEqual([]);
+
+      const normalise = (s: string) => s.replace(/\s+/g, ' ').trim();
+      const mismatches: string[] = [];
+      for (const result of keyDetailsResults) {
+        if (!result.uuid || result.lang === 'es') continue;
+        const row = readFixtureSummaryRowByUuid(result.uuid);
+        if (!row || typeof row.summary !== 'string') continue;
+        const expectedItems = fixtureBulletLines(row.summary).map(normalise);
+        const actualItems = result.items.map(normalise);
+        if (JSON.stringify(actualItems) !== JSON.stringify(expectedItems)) {
+          mismatches.push(
+            `${result.uuid}: rendered [${actualItems.join(' / ')}] !== fixture [${expectedItems.join(' / ')}]`
+          );
+        }
+      }
+      expect(mismatches, mismatches.join(' | ')).toEqual([]);
     });
   });
 }

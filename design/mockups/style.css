@@ -654,11 +654,10 @@ main {
   text-decoration: none;
 }
 
-[data-lead] p[data-summary] {
+[data-lead] [data-summary] {
   max-width: var(--measure);
   font-size: var(--step-1);
   margin: 0 0 var(--space-3);
-  white-space: pre-line;
 }
 
 [data-lead] p[data-byline] {
@@ -721,10 +720,30 @@ main {
   text-decoration: underline;
 }
 
-[data-card] p[data-summary] {
+[data-card] [data-summary] {
   max-width: var(--measure);
   margin: 0 0 var(--space-2);
-  white-space: pre-line;
+}
+
+/* Rendered summary blocks (defect 9 / revision request 9) — the converted
+   div[data-summary] holds one or more <p> and an optional
+   ul[data-key-details]; the old white-space:pre-line pseudo-paragraphing is
+   replaced by real block margins. No colour literal in either rule. */
+[data-summary] > p {
+  margin: 0 0 var(--space-2);
+}
+
+[data-summary] > :last-child {
+  margin-bottom: 0;
+}
+
+[data-key-details] {
+  margin: 0 0 var(--space-2);
+  padding-inline-start: 1.25em;
+}
+
+[data-key-details] li + li {
+  margin-top: var(--space-1);
 }
 
 [data-card] p[data-byline] {

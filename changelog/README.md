@@ -10,6 +10,7 @@ Entries are named `YYYY-MM-DD-HHMM_slug.md` and grouped by month, newest first.
 
 | Date | Entry | Keywords |
 |------|-------|----------|
+| 2026-09-17 | [Summary Markdown Renders as Real HTML on Index (Defect 9, Task 1)](2026-09-17-1602_01-18-render-summary-markdown-as-real-html-on-inde.md) | `[FEATURE]` `[BUG_FIX]` `[TESTING]` `[STYLING]` |
 | 2026-09-17 | [Phase 1 Plan 17 Complete: Header Rule, Toggle Position, and New-Tab Links Closed](2026-09-17-1554_01-17-complete-header-rule-toggle-position-and-new.md) | `[DOCUMENTATION]` `[PLANNING]` |
 | 2026-09-17 | [New-Tab Activation Proven Safe in Both Engines; the Cue Is Localised Into Spanish](2026-09-17-1548_01-17-prove-new-tab-activation-is-safe-in-both-eng.md) | `[FEATURE]` `[TESTING]` `[SECURITY]` |
 | 2026-09-17 | [External Links Open in a New Tab With an Accessible Cue (Revision Request 6)](2026-09-17-1543_01-17-external-links-open-in-a-new-tab-with-an-acc.md) | `[FEATURE]` `[TESTING]` `[STYLING]` |

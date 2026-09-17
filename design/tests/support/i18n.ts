@@ -2,6 +2,7 @@ import type { Page } from '@playwright/test';
 import { readFileSync } from 'node:fs';
 import path from 'node:path';
 import { assertWebfontsInUse, PRIMARY_FAMILIES } from './fonts-in-use.ts';
+import { parseSummary, renderSummaryHtml, summaryPlainText } from '../../scripts/lib/summary-markdown.mjs';
 
 /**
  * D-15/criterion-4 support: loads the real+synthetic Spanish fixture (01-04),
@@ -65,10 +66,33 @@ export function loadSpanishFixture(): SpanishFixture {
  * eval'ing a dynamically assembled string inside the page context is a
  * needless code-injection surface for a same-file, ~15-line function this
  * project does not need.
+ *
+ * 01-18 (defect 9 / revision request 2 gap-closure): a `[data-i18n]` hook
+ * that resolves directly to a `[data-summary]` element (lead-summary,
+ * card-summary, card-summary-thin — the fixture's raw-markdown-bearing
+ * summary components) is rendered through the same
+ * parseSummary/renderSummaryHtml converter render-summaries.mjs uses,
+ * instead of being pasted in as a flat text node. Two reasons: (1) the real
+ * bilingual pipeline (Phase 2+) will run Spanish summaries through this same
+ * converter before they ever reach a page, so injecting raw markdown text
+ * here would test a shape production never produces; (2) pasting raw text
+ * into an element whose CSS no longer carries `white-space: pre-line` (this
+ * plan removed it — real paragraph/list spacing replaced it) collapses the
+ * fixture's multi-paragraph/bullet markdown into one run-on line, shrinking
+ * the container and tripping the overflow spec's clip guard on a false
+ * positive. Rendering through the converter reproduces the real structure
+ * (prose paragraph, "Key Details"/"Puntos clave" label, list) the same way
+ * the static page itself does. The computed HTML/plain text is produced
+ * here in the Node/test-runner context (parseSummary has no DOM dependency)
+ * and passed into the page as data, never as a string eval'd in-page.
  */
 export async function injectText(page: Page, id: string, text: string): Promise<string> {
+  const blocks = parseSummary(text);
+  const renderedSummaryHtml = renderSummaryHtml(blocks);
+  const renderedSummaryPlainText = summaryPlainText(blocks);
+
   return page.evaluate(
-    ({ id, text }) => {
+    ({ id, text, renderedSummaryHtml, renderedSummaryPlainText }) => {
       function stableKey(el: Element): string {
         const parts: string[] = [];
         let node: Element | null = el;
@@ -90,6 +114,18 @@ export async function injectText(page: Page, id: string, text: string): Promise<
 
       const el = document.querySelector(`[data-i18n="${id}"]`) ?? document.querySelector(id);
       if (!el) throw new Error(`injectText: no element found for "${id}"`);
+
+      // A [data-summary] hook (lead-summary, card-summary,
+      // card-summary-thin) is rendered through the pre-computed
+      // parseSummary/renderSummaryHtml output rather than a flat text
+      // overwrite — see this function's doc comment.
+      if (el.hasAttribute('data-summary')) {
+        el.innerHTML = renderedSummaryHtml;
+        el.setAttribute('lang', 'es');
+        el.setAttribute('data-i18n-injected', '');
+        (el as HTMLElement).dataset.i18nInjectedText = renderedSummaryPlainText;
+        return stableKey(el);
+      }
 
       /**
        * Finds the element to overwrite: when `el` has no element children,
@@ -130,7 +166,7 @@ export async function injectText(page: Page, id: string, text: string): Promise<
 
       return stableKey(el);
     },
-    { id, text }
+    { id, text, renderedSummaryHtml, renderedSummaryPlainText }
   ).then(async (resultKey) => {
     await page.evaluate(
       () => new Promise<void>((resolve) => requestAnimationFrame(() => requestAnimationFrame(() => resolve())))
