@@ -1,10 +1,10 @@
 ---
 schema_version: 1
-open_count: 4
+open_count: 6
 waived_count: 0
 fixed_count: 0
-total_count: 4
-last_updated: 2026-09-17T00:46:16.920Z
+total_count: 6
+last_updated: 2026-09-17T01:20:12.039Z
 ---
 
 # Broken Windows Ledger
@@ -19,6 +19,8 @@ last_updated: 2026-09-17T00:46:16.920Z
 | 2 | 01 | deviation | design/palette/photo-sources.json |  | politics' photo is Santa Fe NM dusk sky, not literally the Franklin Mountains/El Paso skyline the subject names -- flagged for owner review before 01-APPROVAL.md | open |  | 2026-09-16T20:48:47.479Z |  |
 | 3 | 01 | deviation | design/evidence/palette.md |  | Sports (49.4deg) and Business (94.5deg) block-stop hues visually sit near the amber-olive-reading-as-brown risk C-01 flags -- flagged for owner review, not resolved unilaterally | open |  | 2026-09-16T20:48:47.571Z |  |
 | 4 | 01 | deviation | design/tests/font-cls.spec.ts |  | WebKit font-swap CLS gate fails on index.html/category.html (geometryScore up to 0.76 vs 0.005 threshold) — root-caused to the pinned Docker WebKit test image lacking Georgia/Noto Serif (only Liberation family installed per fc-list), forcing the worst-compatible fallback tier; Chromium passes cleanly. Non-blocking per human_verify_mode:end-of-phase; needs real-Safari spot-check before 01-APPROVAL.md. | open |  | 2026-09-17T00:46:16.920Z |  |
+| 5 | 01 | deviation | design/mockups/article.html |  | WebKit font-swap CLS gate fails on article.html (geometryScore 0.143 @320px vs 0.005 threshold) -- same root cause as entry 4 (pinned Docker WebKit test image lacks Georgia/Noto Serif, falls to Liberation Serif fallback tier); Chromium passes cleanly (0.0096 worst case after fixing a centering bug that used a font-relative ch unit with margin:auto). Non-blocking per human_verify_mode:end-of-phase; same real-Safari spot-check as entry 4 covers this. | open |  | 2026-09-17T01:20:11.946Z |  |
+| 6 | 01 | deviation | design/mockups/changelog.html |  | Chromium reports native CLS 0.0125 (vs 0.005 threshold) on changelog.html @320px font swap, but this project's own geometry-based instrument (the primary, engine-independent D-08 measurement) reports geometryScore 0 for the same swap, and a direct check confirmed zero elements moved within the visible viewport -- all reflow is below the fold. WebKit passes cleanly on the same page. Investigated with layout-shift source attribution, which showed unchanged before/after rects for the reported sources, consistent with a Chromium native-CLS attribution quirk on text-dense pages rather than a real user-visible shift. No CSS bug found (line-heights, margins and centering all checked) and no threshold weakened. Flagged for owner judgement per human_verify_mode:end-of-phase. | open |  | 2026-09-17T01:20:12.039Z |  |
 
 ````json
 [
@@ -68,6 +70,30 @@ last_updated: 2026-09-17T00:46:16.920Z
     "status": "open",
     "reason": "",
     "recorded_at": "2026-09-17T00:46:16.920Z",
+    "resolved_at": null
+  },
+  {
+    "id": 5,
+    "kind": "deviation",
+    "phase": "01",
+    "file": "design/mockups/article.html",
+    "line": null,
+    "description": "WebKit font-swap CLS gate fails on article.html (geometryScore 0.143 @320px vs 0.005 threshold) -- same root cause as entry 4 (pinned Docker WebKit test image lacks Georgia/Noto Serif, falls to Liberation Serif fallback tier); Chromium passes cleanly (0.0096 worst case after fixing a centering bug that used a font-relative ch unit with margin:auto). Non-blocking per human_verify_mode:end-of-phase; same real-Safari spot-check as entry 4 covers this.",
+    "status": "open",
+    "reason": "",
+    "recorded_at": "2026-09-17T01:20:11.946Z",
+    "resolved_at": null
+  },
+  {
+    "id": 6,
+    "kind": "deviation",
+    "phase": "01",
+    "file": "design/mockups/changelog.html",
+    "line": null,
+    "description": "Chromium reports native CLS 0.0125 (vs 0.005 threshold) on changelog.html @320px font swap, but this project's own geometry-based instrument (the primary, engine-independent D-08 measurement) reports geometryScore 0 for the same swap, and a direct check confirmed zero elements moved within the visible viewport -- all reflow is below the fold. WebKit passes cleanly on the same page. Investigated with layout-shift source attribution, which showed unchanged before/after rects for the reported sources, consistent with a Chromium native-CLS attribution quirk on text-dense pages rather than a real user-visible shift. No CSS bug found (line-heights, margins and centering all checked) and no threshold weakened. Flagged for owner judgement per human_verify_mode:end-of-phase.",
+    "status": "open",
+    "reason": "",
+    "recorded_at": "2026-09-17T01:20:12.039Z",
     "resolved_at": null
   }
 ]
