@@ -364,6 +364,17 @@ html {
   background: var(--paper);
   font-size: var(--step-0);
   -webkit-text-size-adjust: 100%;
+  /* D-14: WebKit's focus-triggered scrollIntoView treats a target as
+     "sufficiently visible" once any part of it clears the viewport edge,
+     so a tall field (e.g. the contact-message textarea, ~174px) scrolled
+     up from below the fold can stop with most of its box — and its focus
+     ring — still off-screen. Chromium does not have this behaviour; it
+     scrolls until the whole target is contained. scroll-padding-block-end
+     reserves a bottom safe zone the browser must also clear before it
+     considers a scroll-target visible, which is enough headroom for every
+     focusable element's height on these five pages (found via the D-14
+     keyboard walk, design/tests/keyboard-walk.spec.ts). */
+  scroll-padding-block-end: 12rem;
 }
 
 body {
