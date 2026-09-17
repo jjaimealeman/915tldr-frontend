@@ -418,6 +418,24 @@
         "graphemeRatio": 1.3333333333333333,
         "utf8ByteRatio": 1.4285714285714286
       }
+    },
+    {
+      "id": "rail-heading",
+      "component": "rail-heading",
+      "page": "article",
+      "fontRole": "headline",
+      "fontStyle": "normal",
+      "en": "Latest",
+      "enSource": "01-19 rail heading",
+      "es_real": "Últimas noticias",
+      "esRealSource": "translated in-session (A-05 precedent); no paid API",
+      "es_synthetic": "Últimas ",
+      "calibration": {
+        "widthRatio": 1.2882562277580072,
+        "hi": 1.5222419928825623,
+        "graphemeRatio": 1.3333333333333333,
+        "utf8ByteRatio": 1.5
+      }
     }
   ]
 }

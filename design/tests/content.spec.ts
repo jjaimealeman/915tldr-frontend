@@ -701,6 +701,159 @@ test.describe('content: article', () => {
   });
 });
 
+// ---- article rail: content integrity (revision request 3, 01-19) ----
+
+test.describe('content: article rail', () => {
+  test('exactly two [data-rail] section[data-grid]; every rail card is compact, with a non-empty category name and headline, and no frame or summary @c1', async ({
+    page,
+  }) => {
+    await openPage(page, 'article');
+    const gridCount = await page.locator('[data-rail] section[data-grid]').count();
+    expect(gridCount, 'expected exactly two [data-rail] section[data-grid]').toBe(2);
+
+    const offenders = await page.evaluate(() => {
+      const bad: string[] = [];
+      for (const card of Array.from(document.querySelectorAll('[data-rail] [data-card]'))) {
+        const uuid = card.getAttribute('data-uuid');
+        if (card.getAttribute('data-card-variant') !== 'compact') {
+          bad.push(`${uuid}: missing data-card-variant="compact"`);
+        }
+        const categoryName = card.querySelector('[data-category-name]');
+        if (!categoryName || !(categoryName.textContent || '').trim()) {
+          bad.push(`${uuid}: empty or missing [data-category-name]`);
+        }
+        const h3a = card.querySelector('h3 a');
+        if (!h3a || !(h3a.textContent || '').trim()) {
+          bad.push(`${uuid}: empty or missing h3 a`);
+        }
+        if (card.querySelector('[data-frame]')) {
+          bad.push(`${uuid}: unexpectedly has [data-frame]`);
+        }
+        if (card.querySelector('[data-summary]')) {
+          bad.push(`${uuid}: unexpectedly has [data-summary]`);
+        }
+      }
+      return bad;
+    });
+    expect(offenders, offenders.join(' | ')).toEqual([]);
+  });
+
+  test("every rail card's h3 text equals the fixture title for its uuid, whitespace-normalised @c1", async ({
+    page,
+  }) => {
+    await openPage(page, 'article');
+    const cards = await page.evaluate(() =>
+      Array.from(document.querySelectorAll('[data-rail] [data-card]')).map((card) => ({
+        uuid: card.getAttribute('data-uuid'),
+        text: (card.querySelector('h3')?.textContent || '').trim(),
+      }))
+    );
+    expect(cards.length).toBeGreaterThan(0);
+
+    const normalise = (s: string) => s.replace(/\s+/g, ' ').trim();
+    const offenders: string[] = [];
+    for (const card of cards) {
+      if (!card.uuid) {
+        offenders.push('a rail card has no data-uuid');
+        continue;
+      }
+      const row = readFixtureSummaryRowByUuid(card.uuid);
+      if (!row || typeof row.title !== 'string') {
+        offenders.push(`${card.uuid}: no fixture row with a title found`);
+        continue;
+      }
+      if (normalise(card.text) !== normalise(row.title)) {
+        offenders.push(`${card.uuid}: rendered "${card.text}" !== fixture title "${row.title}"`);
+      }
+    }
+    expect(offenders, offenders.join(' | ')).toEqual([]);
+  });
+
+  test('every card in the "More in Community" grid has data-category="community" @c1', async ({ page }) => {
+    await openPage(page, 'article');
+    const categories = await page.evaluate(() => {
+      const heading = document.querySelector('#rail-more-heading');
+      const grid = heading ? heading.nextElementSibling : null;
+      if (!grid) return null;
+      return Array.from(grid.querySelectorAll('[data-card]')).map((c) => c.getAttribute('data-category'));
+    });
+    expect(categories, '"More in Community" grid not found via #rail-more-heading + section[data-grid]').not.toBeNull();
+    expect(categories!.length).toBeGreaterThan(0);
+    for (const category of categories!) {
+      expect(category, `expected data-category="community" on a "More in Community" card, got "${category}"`).toBe(
+        'community'
+      );
+    }
+  });
+
+  test('the "Latest" grid is non-increasing by time[datetime], and excludes the article\'s own uuid and every "More in Community" uuid @c1', async ({
+    page,
+  }) => {
+    await openPage(page, 'article');
+    const result = await page.evaluate(() => {
+      const articleUuid = document.querySelector('main > article[data-uuid]')?.getAttribute('data-uuid') ?? null;
+      const moreHeading = document.querySelector('#rail-more-heading');
+      const moreGrid = moreHeading ? moreHeading.nextElementSibling : null;
+      const moreUuids = moreGrid
+        ? Array.from(moreGrid.querySelectorAll('[data-card]')).map((c) => c.getAttribute('data-uuid'))
+        : [];
+      const latestHeading = document.querySelector('#rail-latest-heading');
+      const latestGrid = latestHeading ? latestHeading.nextElementSibling : null;
+      const latestCards = latestGrid ? Array.from(latestGrid.querySelectorAll('[data-card]')) : [];
+      const times = latestCards.map((c) => c.querySelector('time[datetime]')?.getAttribute('datetime') ?? null);
+      const uuids = latestCards.map((c) => c.getAttribute('data-uuid'));
+      return { articleUuid, moreUuids, times, uuids };
+    });
+
+    expect(result.uuids.length, 'the "Latest" grid must have at least one card').toBeGreaterThan(0);
+    for (let i = 1; i < result.times.length; i++) {
+      const prev = new Date(result.times[i - 1]!).getTime();
+      const curr = new Date(result.times[i]!).getTime();
+      expect(
+        curr,
+        `"Latest" grid order broken at index ${i}: ${result.times[i - 1]} then ${result.times[i]}`
+      ).toBeLessThanOrEqual(prev);
+    }
+    for (const uuid of result.uuids) {
+      expect(uuid, `"Latest" uuid ${uuid} equals the article's own uuid`).not.toBe(result.articleUuid);
+      expect(result.moreUuids, `"Latest" uuid ${uuid} also appears in "More in Community"`).not.toContain(uuid);
+    }
+  });
+
+  test('the "Latest" uuids equal the five most recent cases.feed rows (after exclusions), in order @c1', async ({
+    page,
+  }) => {
+    await openPage(page, 'article');
+    const renderedUuids = await page.evaluate(() => {
+      const heading = document.querySelector('#rail-latest-heading');
+      const grid = heading ? heading.nextElementSibling : null;
+      return grid ? Array.from(grid.querySelectorAll('[data-card]')).map((c) => c.getAttribute('data-uuid')) : [];
+    });
+
+    const raw = JSON.parse(readFileSync(STRESS_SET_PATH, 'utf8'));
+    const feed = raw.cases.feed as Array<{ uuid: string; published_at: string }>;
+    // The article's own uuid plus the three "More in Community" uuids — the
+    // same exclusion set the plan's own front-matter names, re-derived here
+    // (not hardcoded) from what the page actually rendered, so a future
+    // change to either grid's content is caught rather than silently
+    // tolerated by a stale literal list.
+    const articleUuid = 'a90c2be1-600a-4f16-ad94-9118e1d50088';
+    const moreUuids = ['326af4d4-ff96-4dec-8da2-a02085a802b3', 'aee43053-15ad-41e3-8560-2e86a6dc114e', 'df2e5a2b-46e0-4b0f-b7e2-fc98dc975d69'];
+    const excluded = new Set([articleUuid, ...moreUuids]);
+
+    const expectedUuids = feed
+      .filter((r) => !excluded.has(r.uuid))
+      .slice()
+      .sort((a, b) => new Date(b.published_at).getTime() - new Date(a.published_at).getTime())
+      .slice(0, 5)
+      .map((r) => r.uuid);
+
+    expect(renderedUuids, `rendered "Latest" uuids ${JSON.stringify(renderedUuids)} !== expected ${JSON.stringify(expectedUuids)}`).toEqual(
+      expectedUuids
+    );
+  });
+});
+
 // ---- contact: labelled fields, no form action ----
 
 test.describe('content: contact', () => {
