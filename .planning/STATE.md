@@ -5,15 +5,15 @@ milestone_name: milestone
 current_phase: 01
 current_phase_name: design-sketch-editorial-identity
 status: executing
-stopped_at: "Completed 01-09-PLAN.md (Task 1: Spanish overflow criterion 4; Task 2: full font-swap CLS matrix, instrument bug fix, criterion 5 evidence — genuine failure requiring owner decision)"
-last_updated: "2026-09-17T16:38:16.489Z"
-last_activity: 2026-09-16
-last_activity_desc: Roadmap created; 137/137 v1 requirements mapped across 12 phases
+stopped_at: "Completed 01-11-PLAN.md (D-GAP-D: pnpm lockfile parity, local Playwright CLI launcher, packageManager pin, package-lock.json retired, pnpm wording in tool output, retroactive 01-10-SUMMARY.md)"
+last_updated: "2026-09-17T16:51:20.771Z"
+last_activity: 2026-09-17
+last_activity_desc: Phase 01 execution started
 progress:
   total_phases: 1
   completed_phases: 0
   total_plans: 23
-  completed_plans: 9
+  completed_plans: 11
 ---
 
 # Project State
@@ -28,11 +28,11 @@ See: .planning/PROJECT.md (updated 2026-09-16)
 ## Current Position
 
 Phase: 01 (design-sketch-editorial-identity) — EXECUTING
-Plan: 10 of 10
+Plan: 2 of 23
 Status: Ready to execute
-Last activity: 2026-09-16 — Phase 01 execution started
+Last activity: 2026-09-17 — Phase 01 execution started
 
-Progress: [█████████░] 90%
+Progress: [█████░░░░░] 48%
 
 ## Performance Metrics
 
@@ -67,6 +67,7 @@ Progress: [█████████░] 90%
 | Phase 01 P07 | 55min | 3 tasks | 5 files |
 | Phase 01 P08 | 55min | 3 tasks | 6 files |
 | Phase 01 P09 | 45min | 2 tasks | 8 files |
+| Phase 01 P11 | 55min | 3 tasks | 12 files |
 
 ## Accumulated Context
 
@@ -101,6 +102,8 @@ Recent decisions affecting current work:
 - [Phase ?]: 01-08: content.spec.ts's fixture-uuid lookup must prefer the real-row shape (has a status field) over a same-uuid bare image-candidate record found earlier in stress-set.json's object-traversal order.
 - [Phase ?]: 01-09: Split Task 2's geometry.ts work into a standalone bug-fix commit (fragment-based CLS measurement, entry 8) and a separate feature-extension commit (swap-matrix), via targeted git add -p hunk staging.
 - [Phase ?]: 01-09: Criterion 5 (font-swap CLS) genuinely fails once scroll=mid is measured on all five pages, both engines — root cause is capsize size-adjust's inability to guarantee identical line-wrap points between substituted typefaces, inherent to font-display:swap (PRD-locked). No CSS fix attempted; left as an explicit owner decision (Rule 4) rather than threshold-weakened.
+- [Phase ?]: 01-11: D-GAP-D closed — pnpm is the sole package manager; pw.mjs launches the local Playwright CLI directly via node (no package runner) in all three launch paths; pnpm-lock.yaml verified 16/16 identical to package-lock.json
+- [Phase ?]: 01-11: 01-10-SUMMARY.md written retroactively — Phase 1 round 1 ended on outcome: revise (owner review 2026-09-17), not approved; 14-item closure table maps to gap plans 01-11..01-23
 
 ### Pending Todos
 
@@ -126,6 +129,6 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-09-17T10:11:17.594Z
-Stopped at: Completed 01-09-PLAN.md (Task 1: Spanish overflow criterion 4; Task 2: full font-swap CLS matrix, instrument bug fix, criterion 5 evidence — genuine failure requiring owner decision)
+Last session: 2026-09-17T16:51:20.759Z
+Stopped at: Completed 01-11-PLAN.md (D-GAP-D: pnpm lockfile parity, local Playwright CLI launcher, packageManager pin, package-lock.json retired, pnpm wording in tool output, retroactive 01-10-SUMMARY.md)
 Resume file: None
