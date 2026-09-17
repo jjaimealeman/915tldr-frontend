@@ -29,6 +29,15 @@ export interface SpanishComponent {
   esRealSource: string;
   es_synthetic: string;
   calibration: SpanishCalibration;
+  /**
+   * 01-17 (Task 3): true for a component whose injection hook is a
+   * visually-hidden element (e.g. the new-tab cue span) — spanish-overflow's
+   * layout loop cannot meaningfully check overflow/clip/container-growth
+   * against something that never occupies visible space by design, so
+   * componentsForPage excludes assistiveOnly components from that loop.
+   * Such a component gets its own dedicated accessible-name test instead.
+   */
+  assistiveOnly?: boolean;
 }
 
 export interface SpanishFixture {

@@ -10,6 +10,7 @@ Entries are named `YYYY-MM-DD-HHMM_slug.md` and grouped by month, newest first.
 
 | Date | Entry | Keywords |
 |------|-------|----------|
+| 2026-09-17 | [New-Tab Activation Proven Safe in Both Engines; the Cue Is Localised Into Spanish](2026-09-17-1548_01-17-prove-new-tab-activation-is-safe-in-both-eng.md) | `[FEATURE]` `[TESTING]` `[SECURITY]` |
 | 2026-09-17 | [External Links Open in a New Tab With an Accessible Cue (Revision Request 6)](2026-09-17-1543_01-17-external-links-open-in-a-new-tab-with-an-acc.md) | `[FEATURE]` `[TESTING]` `[STYLING]` |
 | 2026-09-17 | [Header Rule Removed, Theme Toggle Aligned to the Content Column (Revision Request 1, Defect 10)](2026-09-17-1540_01-17-remove-header-bottom-border-align-theme-togg.md) | `[FEATURE]` `[BUG_FIX]` `[TESTING]` `[STYLING]` |
 | 2026-09-17 | [Phase 1 Plan 16 Complete: D-GAP-C Closed, Business No Longer Reads as Brown](2026-09-17-1520_01-16-complete-business-hue-re-sample-plan-d-gap-c.md) | `[DOCUMENTATION]` `[PLANNING]` |

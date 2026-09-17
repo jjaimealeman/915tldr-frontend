@@ -192,6 +192,77 @@ for (const name of pagesUnderTest()) {
   });
 }
 
+// ---- New-tab activation safety (revision request 6, T-01-50/T-01-52) ----
+
+const PAGES_WITH_EXTERNAL_LINKS = ['article', 'contact'] as const;
+
+for (const name of pagesUnderTest()) {
+  if (!(PAGES_WITH_EXTERNAL_LINKS as readonly string[]).includes(name)) continue;
+
+  test(`external links open a new tab with no opener, by Enter and by click: ${name} @c1 @c3`, async ({
+    page,
+    context,
+  }) => {
+    // page.route does not intercept a popup's first request — a
+    // context-level route is required so the popup's navigation to the
+    // real external host is fulfilled with a stub instead of reaching the
+    // network (T-01-52). Registered before openPage() so it's already
+    // active for the main page's own load too.
+    const nonLocalUrls: string[] = [];
+    await context.route('**/*', async (route) => {
+      const url = route.request().url();
+      const hostname = new URL(url).hostname;
+      if (hostname !== '127.0.0.1') {
+        nonLocalUrls.push(url);
+        await route.fulfill({
+          status: 200,
+          contentType: 'text/html',
+          body: '<!doctype html><title>stub</title><body>stub</body>',
+        });
+        return;
+      }
+      await route.fallback();
+    });
+
+    await openPage(page, name as any, { theme: 'light' });
+    const originalUrl = page.url();
+
+    const externalLinks = page.locator('a[target="_blank"]');
+    const externalCount = await externalLinks.count();
+    expect(externalCount, `${name}: must have at least one external link to exercise this test`).toBeGreaterThan(0);
+    const firstLink = externalLinks.first();
+
+    // Enter activation.
+    await firstLink.focus();
+    const [newPageViaEnter] = await Promise.all([context.waitForEvent('page'), page.keyboard.press('Enter')]);
+    await newPageViaEnter.waitForLoadState('domcontentloaded');
+    const openerViaEnter = await newPageViaEnter.evaluate(() => window.opener);
+    expect(openerViaEnter, `${name}: new page opened via Enter must have window.opener === null`).toBeNull();
+    await expect(
+      newPageViaEnter.locator('body'),
+      `${name}: the popup opened via Enter must be the stub response, not a real network fetch`
+    ).toHaveText('stub');
+    expect(page.url(), `${name}: original page URL must be unchanged after Enter activation`).toBe(originalUrl);
+    await newPageViaEnter.close();
+
+    // Click activation (a real mouse click, not a synthetic .click() call
+    // on a detached element — locator.click() drives Playwright's real
+    // input pipeline).
+    const [newPageViaClick] = await Promise.all([context.waitForEvent('page'), firstLink.click()]);
+    await newPageViaClick.waitForLoadState('domcontentloaded');
+    const openerViaClick = await newPageViaClick.evaluate(() => window.opener);
+    expect(openerViaClick, `${name}: new page opened via click must have window.opener === null`).toBeNull();
+    await expect(
+      newPageViaClick.locator('body'),
+      `${name}: the popup opened via click must be the stub response, not a real network fetch`
+    ).toHaveText('stub');
+    expect(page.url(), `${name}: original page URL must be unchanged after click activation`).toBe(originalUrl);
+    await newPageViaClick.close();
+
+    expect(nonLocalUrls.length, `${name}: at least one non-127.0.0.1 request (the popup navigations) must have been observed and stubbed`).toBeGreaterThan(0);
+  });
+}
+
 test('contact form: typing sets values; an empty required-field submit via Enter does not navigate and reaches no host but 127.0.0.1 @c3', async ({
   page,
 }) => {

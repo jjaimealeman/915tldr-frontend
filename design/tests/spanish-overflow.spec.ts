@@ -38,6 +38,12 @@ function componentsForPage(pageName: string): SpanishComponent[] {
     (c) =>
       (c.page === 'all' || c.page === pageName) &&
       !DRAWN_ONLY_COMPONENT_IDS.has(c.id) &&
+      // 01-17 Task 3: an assistiveOnly component's hook is visually hidden
+      // by design ([data-visually-hidden]) — the layout loop's
+      // overflow/clip/container-growth checks assume a visible box, so an
+      // assistiveOnly component is exercised by its own dedicated
+      // accessible-name test below instead of this loop.
+      !c.assistiveOnly &&
       (idFilter === null || idFilter.has(c.id))
   );
 }
@@ -264,6 +270,53 @@ for (const pageName of pagesUnderTest()) {
             result!.cardHeight,
             'no-summary card must be shorter than its row-band median (no reserved blank space)'
           ).toBeLessThan(result!.median);
+        }
+      });
+    }
+
+    if (pageName === 'article') {
+      test(`assistive-only Spanish cue lands in the accessible name without moving the link @c4`, async ({ page }) => {
+        const component = fixture.components.find((c) => c.id === 'new-tab-cue');
+        expect(component, 'fixture must contain the new-tab-cue component').toBeTruthy();
+        expect(component!.assistiveOnly, 'new-tab-cue must be assistiveOnly').toBe(true);
+
+        await openPage(page, 'article' as any, { width: 1280, height: 1400 });
+
+        const normalise = (s: string) => s.normalize('NFC').replace(/\s+/g, ' ').trim();
+
+        for (const variant of ['es_real', 'es_synthetic'] as const) {
+          const text = component![variant];
+
+          const anchor = page.locator('a:has([data-i18n="new-tab-cue"])').first();
+          await expect(anchor, `${variant}: anchor holding [data-i18n="new-tab-cue"] must exist`).toHaveCount(1);
+          const boxBefore = await anchor.boundingBox();
+          expect(boxBefore, `${variant}: anchor must have a bounding box before injection`).not.toBeNull();
+
+          await injectText(page, 'new-tab-cue', text);
+
+          await expect(
+            anchor,
+            `${variant}: anchor's accessible name must end with the injected cue text`
+          ).toHaveAccessibleName(new RegExp(`${normalise(text).replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`));
+
+          const boxAfter = await anchor.boundingBox();
+          expect(boxAfter, `${variant}: anchor must still have a bounding box after injection`).not.toBeNull();
+          expect(
+            Math.abs(boxAfter!.x - boxBefore!.x),
+            `${variant}: anchor x moved`
+          ).toBeLessThanOrEqual(0.5);
+          expect(
+            Math.abs(boxAfter!.y - boxBefore!.y),
+            `${variant}: anchor y moved`
+          ).toBeLessThanOrEqual(0.5);
+          expect(
+            Math.abs(boxAfter!.width - boxBefore!.width),
+            `${variant}: anchor width changed`
+          ).toBeLessThanOrEqual(0.5);
+          expect(
+            Math.abs(boxAfter!.height - boxBefore!.height),
+            `${variant}: anchor height changed`
+          ).toBeLessThanOrEqual(0.5);
         }
       });
     }

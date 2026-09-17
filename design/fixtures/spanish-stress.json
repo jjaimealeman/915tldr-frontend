@@ -399,6 +399,25 @@
         "graphemeRatio": 1.2260869565217392,
         "utf8ByteRatio": 1.2434782608695651
       }
+    },
+    {
+      "id": "new-tab-cue",
+      "component": "new-tab-cue",
+      "page": "article",
+      "fontRole": "body",
+      "fontStyle": "normal",
+      "assistiveOnly": true,
+      "en": " (opens in a new tab)",
+      "enSource": "01-17 external-link cue",
+      "es_real": " (se abre en una pestaña nueva)",
+      "esRealSource": "translated in-session (A-05 precedent); no paid API",
+      "es_synthetic": " (se abre en una pestaña  sí",
+      "calibration": {
+        "widthRatio": 1.2807606263982103,
+        "hi": 1.3318791946308726,
+        "graphemeRatio": 1.3333333333333333,
+        "utf8ByteRatio": 1.4285714285714286
+      }
     }
   ]
 }
