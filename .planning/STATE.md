@@ -5,15 +5,15 @@ milestone_name: milestone
 current_phase: 01
 current_phase_name: design-sketch-editorial-identity
 status: executing
-stopped_at: "Completed 01-04-PLAN.md (Tasks 1-2: D-06 stress set + changelog copy, D-15 Spanish copy + width calibration)"
-last_updated: "2026-09-16T21:09:58.994Z"
+stopped_at: "Completed 01-05-PLAN.md (Tasks 1-2: RED/GREEN hardened D-13 contrast gate)"
+last_updated: "2026-09-17T00:17:07.055Z"
 last_activity: 2026-09-16
 last_activity_desc: Roadmap created; 137/137 v1 requirements mapped across 12 phases
 progress:
   total_phases: 1
   completed_phases: 0
   total_plans: 10
-  completed_plans: 4
+  completed_plans: 5
 ---
 
 # Project State
@@ -28,11 +28,11 @@ See: .planning/PROJECT.md (updated 2026-09-16)
 ## Current Position
 
 Phase: 01 (design-sketch-editorial-identity) — EXECUTING
-Plan: 5 of 10
+Plan: 6 of 10
 Status: Ready to execute
 Last activity: 2026-09-16 — Phase 01 execution started
 
-Progress: [████░░░░░░] 40%
+Progress: [█████░░░░░] 50%
 
 ## Performance Metrics
 
@@ -62,6 +62,7 @@ Progress: [████░░░░░░] 40%
 | Phase 01 P02 | 50min | 2 tasks | 23 files |
 | Phase 01 P03 | 71min | 3 tasks | 16 files |
 | Phase 01 P04 | 20min | 2 tasks | 6 files |
+| Phase 01 P05 | 40min | 2 tasks | 18 files |
 
 ## Accumulated Context
 
@@ -84,6 +85,8 @@ Recent decisions affecting current work:
 - [Phase ?]: Phase 01: politics' palette photo substitutes a Santa Fe, NM dusk sky for the literal Franklin Mountains/El Paso skyline -- genuine full-darkness El Paso night photos measured near-zero chroma. Flagged for owner review, not hidden.
 - [Phase ?]: 01-04: card-headline/card-summary/worst-case source from D-06 rows that turned out to be genuine Spanish-original wire content, not English — es_real recorded identical to en with a note rather than fabricating a translation.
 - [Phase ?]: 01-04: skip-link's real translation changed from a literal 'Saltar al contenido' (no diacritics) to 'Saltar la navegación' — a natural, functionally-equivalent a11y phrasing that carries a diacritic and fits the calibration script's width band.
+- [Phase ?]: 01-05: coverage rule implemented as union-find over pure var() alias edges, not a hand-written list — one structure covers both directions the plan's coverage examples describe.
+- [Phase ?]: 01-05: fixed a pre-existing (01-02) check-contrast.mjs CLI bug — parseArgs only accepted --flag=value, not the documented --flag value form, which silently invalidated every fixture-based test until fixed.
 
 ### Pending Todos
 
@@ -108,6 +111,6 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-09-16T21:09:58.984Z
-Stopped at: Completed 01-04-PLAN.md (Tasks 1-2: D-06 stress set + changelog copy, D-15 Spanish copy + width calibration)
+Last session: 2026-09-17T00:17:07.037Z
+Stopped at: Completed 01-05-PLAN.md (Tasks 1-2: RED/GREEN hardened D-13 contrast gate)
 Resume file: None
