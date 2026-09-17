@@ -160,34 +160,26 @@
       "axes": null
     },
     {
-      "file": "InstrumentSerif-Italic.woff2",
-      "bytes": 17392,
-      "sourceBytes": 71592,
-      "ratio": 0.242932171192312,
-      "axes": null
-    },
-    {
       "file": "SourceSerif4-Roman.woff2",
-      "bytes": 108164,
+      "bytes": 44156,
       "sourceBytes": 1209508,
-      "ratio": 0.08942809803655702,
+      "ratio": 0.036507406317279424,
       "axes": {
         "wght": {
           "min": 400,
           "max": 700
-        }
+        },
+        "opsz": 20
       }
     },
     {
       "file": "SourceSerif4-Italic.woff2",
-      "bytes": 91096,
+      "bytes": 20216,
       "sourceBytes": 855432,
-      "ratio": 0.10649122314807022,
+      "ratio": 0.02363250381093997,
       "axes": {
-        "wght": {
-          "min": 400,
-          "max": 700
-        }
+        "wght": 400,
+        "opsz": 20
       }
     }
   ]

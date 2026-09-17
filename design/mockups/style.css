@@ -19,14 +19,6 @@
 }
 
 @font-face {
-  font-family: "Instrument Serif";
-  src: url("fonts/InstrumentSerif-Italic.woff2") format("woff2");
-  font-style: italic;
-  font-weight: 400;
-  font-display: optional;
-}
-
-@font-face {
   font-family: "Source Serif 4";
   src: url("fonts/SourceSerif4-Roman.woff2") format("woff2");
   font-style: normal;
@@ -38,7 +30,7 @@
   font-family: "Source Serif 4";
   src: url("fonts/SourceSerif4-Italic.woff2") format("woff2");
   font-style: italic;
-  font-weight: 400 700;
+  font-weight: 400;
   font-display: optional;
 }
 
@@ -74,40 +66,6 @@
   descent-override: 36.9318%;
   line-gap-override: 0%;
   size-adjust: 83.9385%;
-}
-
-@font-face {
-  font-family: "Instrument Serif Fallback: Georgia";
-  src: local('Georgia Italic'), local('Georgia-Italic');
-  font-style: italic;
-  font-weight: 400;
-  font-display: optional;
-  ascent-override: 125.3604%;
-  descent-override: 39.2543%;
-  size-adjust: 78.9723%;
-}
-
-@font-face {
-  font-family: "Instrument Serif Fallback: Noto Serif";
-  src: local('Noto Serif Italic'), local('NotoSerif-Italic');
-  font-style: italic;
-  font-weight: 400;
-  font-display: optional;
-  ascent-override: 129.3343%;
-  descent-override: 40.4986%;
-  size-adjust: 76.5458%;
-}
-
-@font-face {
-  font-family: "Instrument Serif Fallback: Times New Roman";
-  src: local('Times New Roman Italic'), local('Liberation Serif Italic'), local('Tinos Italic');
-  font-style: italic;
-  font-weight: 400;
-  font-display: optional;
-  ascent-override: 112.5685%;
-  descent-override: 35.2487%;
-  line-gap-override: 0%;
-  size-adjust: 87.9464%;
 }
 
 @font-face {

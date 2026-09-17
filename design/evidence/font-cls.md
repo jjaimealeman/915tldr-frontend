@@ -103,8 +103,8 @@ Proves the instrument is not blind: the same index@320px/scroll=mid load, measur
 
 | engine | prePaintObserved | pathObserved | geometryScore | verdict |
 |---|---|---|---|---|
-| chromium | true | swapped | 0.6722 | detected |
-| webkit | true | swapped | 1.1908 | detected |
+| chromium | true | swapped | 1.4970 | detected |
+| webkit | true | swapped | 0.8654 | detected |
 
 ## Per-engine prePaintObserved
 
