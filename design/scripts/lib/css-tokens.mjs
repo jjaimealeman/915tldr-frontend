@@ -7,6 +7,33 @@ import { parse, displayable, converter } from 'culori';
 
 const toRgb = converter('rgb');
 
+/** Canonical category slugs, in required seed order (D-13 structure check). */
+export const CANONICAL_SLUGS = [
+  'crime',
+  'politics',
+  'sports',
+  'business',
+  'education',
+  'community',
+  'health',
+  'weather',
+];
+
+/**
+ * A typed error for anything wrong with a specific CSS custom property —
+ * missing, cyclic, unparseable, or out of gamut. `token` names the offending
+ * property (may be null when the caller has more context than this module
+ * does); `reason` is a short machine-checkable category string.
+ */
+export class TokenError extends Error {
+  constructor(message, { token = null, reason = null } = {}) {
+    super(message);
+    this.name = 'TokenError';
+    this.token = token;
+    this.reason = reason;
+  }
+}
+
 /**
  * Extracts the substring between `/* <name>:start *\/` and `/* <name>:end *\/`
  * markers (exclusive of the markers themselves). Throws if either marker is
@@ -146,10 +173,16 @@ export function resolveTheme(rules, theme) {
   function resolveKey(key) {
     if (resolved.has(key)) return resolved.get(key);
     if (resolving.has(key)) {
-      throw new Error(`resolveTheme: cycle detected resolving "${key}"`);
+      throw new TokenError(`resolveTheme: cycle detected resolving "${key}"`, {
+        token: key,
+        reason: 'cycle detected',
+      });
     }
     if (!merged.has(key)) {
-      throw new Error(`resolveTheme: missing reference "${key}"`);
+      throw new TokenError(`resolveTheme: missing reference "${key}"`, {
+        token: key,
+        reason: 'missing reference',
+      });
     }
     resolving.add(key);
     const value = substituteVars(merged.get(key), resolveKey);
@@ -173,10 +206,24 @@ export function resolveTheme(rules, theme) {
 export function toSrgb(value) {
   const parsed = parse(value.trim());
   if (!parsed) {
-    throw new Error(`toSrgb: could not parse colour value "${value}"`);
+    throw new TokenError(`toSrgb: could not parse colour value "${value}"`, {
+      reason: 'unparseable',
+    });
   }
   if (!displayable(parsed)) {
-    throw new Error(`toSrgb: colour value "${value}" is outside the sRGB gamut`);
+    throw new TokenError(`toSrgb: colour value "${value}" is outside the sRGB gamut`, {
+      reason: 'outside sRGB gamut',
+    });
   }
   return toRgb(parsed);
+}
+
+/**
+ * True when `value` is a colour culori can parse (and therefore something
+ * the gate must either check or explicitly exempt) — a bare number, unit
+ * value, `var()` reference, or keyword like `currentColor` all parse to
+ * `undefined` and are never colour-valued.
+ */
+export function isColorValue(value) {
+  return parse(value) !== undefined;
 }

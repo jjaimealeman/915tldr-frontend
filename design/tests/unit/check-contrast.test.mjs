@@ -9,7 +9,7 @@ import { spawnSync } from 'node:child_process';
 import { mkdtempSync, writeFileSync, readFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
-import { wcagContrast, parse, converter } from 'culori';
+import { wcagContrast, parse, converter, clampChroma } from 'culori';
 import { toSrgb } from '../../scripts/lib/css-tokens.mjs';
 
 const SCRIPT = 'design/scripts/check-contrast.mjs';
@@ -134,20 +134,29 @@ test('literal-outside.css exits 1 and says colour literal outside tokens', () =>
 
 test('a business hue of 85 prints a C-01 review warning and still exits 0', () => {
   const base = readFileSync(path.join(FIXTURES, 'valid.css'), 'utf8');
+  // Swapping only the hue while keeping the original chroma can push the
+  // colour out of the sRGB gamut at the new hue (the gamut boundary moves
+  // with hue) — the same floor-truncation lesson 01-03 already documented
+  // for build-palette.mjs applies here: re-clamp per stop, floor (never
+  // round) to 3 decimals, so the fixture stays inside gamut at hue 85.
+  function safeChroma(l, hue) {
+    const clamped = clampChroma({ mode: 'oklch', l, c: 0.15, h: hue }, 'oklch');
+    return Math.floor(clamped.c * 1000) / 1000;
+  }
   function withBusinessHue(css, hue) {
     return css
       .replace(/--hue-business:\s*[\d.]+;/, `--hue-business: ${hue};`)
       .replace(
-        /--cat-business-vivid-light:\s*oklch\(([\d.]+)\s+([\d.]+)\s+[\d.]+\)/,
-        `--cat-business-vivid-light: oklch($1 $2 ${hue})`
+        /--cat-business-vivid-light:\s*oklch\(([\d.]+)\s+[\d.]+\s+[\d.]+\)/,
+        `--cat-business-vivid-light: oklch($1 ${safeChroma(0.6, hue)} ${hue})`
       )
       .replace(
-        /--cat-business-block:\s*oklch\(([\d.]+)\s+([\d.]+)\s+[\d.]+\)/,
-        `--cat-business-block: oklch($1 $2 ${hue})`
+        /--cat-business-block:\s*oklch\(([\d.]+)\s+[\d.]+\s+[\d.]+\)/,
+        `--cat-business-block: oklch($1 ${safeChroma(0.46, hue)} ${hue})`
       )
       .replace(
-        /--cat-business-vivid-dark:\s*oklch\(([\d.]+)\s+([\d.]+)\s+[\d.]+\)/,
-        `--cat-business-vivid-dark: oklch($1 $2 ${hue})`
+        /--cat-business-vivid-dark:\s*oklch\(([\d.]+)\s+[\d.]+\s+[\d.]+\)/,
+        `--cat-business-vivid-dark: oklch($1 ${safeChroma(0.78, hue)} ${hue})`
       );
   }
   const variant = withBusinessHue(base, 85);
