@@ -768,6 +768,14 @@ main {
   margin: 0;
 }
 
+/* Load more button (revision request 8) — minimal rule so the button
+   inherits body's line-height instead of the UA stylesheet's `normal`
+   (structure.spec.ts's line-height guard). Full styling (padding, border,
+   status paragraph) lands in 01-21 Task 3. */
+[data-load-more] {
+  font: inherit;
+}
+
 footer {
   padding: var(--space-5) var(--space-4);
   border-top: var(--rule-thin) solid var(--rule);
