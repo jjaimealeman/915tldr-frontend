@@ -10,6 +10,7 @@ Entries are named `YYYY-MM-DD-HHMM_slug.md` and grouped by month, newest first.
 
 | Date | Entry | Keywords |
 |------|-------|----------|
+| 2026-09-17 | [Phase 1 Plan 20 Complete: Changelog Layout Fix and Contact Centring Closed](2026-09-17-1637_01-20-complete-changelog-layout-fix-and-contact-ce.md) | `[DOCUMENTATION]` `[PLANNING]` |
 | 2026-09-17 | [Contact Page Centred, Full Width at Tablet, Spacing Bug Fixed (Revision Request 5, Task 2)](2026-09-17-1635_01-20-contact-page-centred-full-width-at-tablet-sp.md) | `[FEATURE]` `[BUG_FIX]` `[TESTING]` `[STYLING]` |
 | 2026-09-17 | [Changelog Dispatch Placement Fixed, Adopts Rail Layout (Revision Request 4, Task 1)](2026-09-17-1631_01-20-changelog-dispatch-placement-fixed-adopts-ra.md) | `[FEATURE]` `[BUG_FIX]` `[TESTING]` `[STYLING]` |
 | 2026-09-17 | [Rail Content Integrity and the Spanish Rail Heading (Task 2)](2026-09-17-1623_01-19-rail-content-integrity-and-the-spanish-rail-.md) | `[FEATURE]` `[TESTING]` |
