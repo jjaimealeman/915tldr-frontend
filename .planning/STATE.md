@@ -5,15 +5,15 @@ milestone_name: milestone
 current_phase: 01
 current_phase_name: design-sketch-editorial-identity
 status: executing
-stopped_at: "Completed 01-05-PLAN.md (Tasks 1-2: RED/GREEN hardened D-13 contrast gate)"
-last_updated: "2026-09-17T00:17:07.055Z"
+stopped_at: "Completed 01-06-PLAN.md (Tasks 1-2: final home + category mockups)"
+last_updated: "2026-09-17T00:47:58.417Z"
 last_activity: 2026-09-16
 last_activity_desc: Roadmap created; 137/137 v1 requirements mapped across 12 phases
 progress:
   total_phases: 1
   completed_phases: 0
   total_plans: 10
-  completed_plans: 5
+  completed_plans: 6
 ---
 
 # Project State
@@ -28,11 +28,11 @@ See: .planning/PROJECT.md (updated 2026-09-16)
 ## Current Position
 
 Phase: 01 (design-sketch-editorial-identity) — EXECUTING
-Plan: 6 of 10
+Plan: 7 of 10
 Status: Ready to execute
 Last activity: 2026-09-16 — Phase 01 execution started
 
-Progress: [█████░░░░░] 50%
+Progress: [██████░░░░] 60%
 
 ## Performance Metrics
 
@@ -63,6 +63,7 @@ Progress: [█████░░░░░] 50%
 | Phase 01 P03 | 71min | 3 tasks | 16 files |
 | Phase 01 P04 | 20min | 2 tasks | 6 files |
 | Phase 01 P05 | 40min | 2 tasks | 18 files |
+| Phase 01 P06 | 155min | 2 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -87,6 +88,8 @@ Recent decisions affecting current work:
 - [Phase ?]: 01-04: skip-link's real translation changed from a literal 'Saltar al contenido' (no diacritics) to 'Saltar la navegación' — a natural, functionally-equivalent a11y phrasing that carries a diacritic and fits the calibration script's width band.
 - [Phase ?]: 01-05: coverage rule implemented as union-find over pure var() alias edges, not a hand-written list — one structure covers both directions the plan's coverage examples describe.
 - [Phase ?]: 01-05: fixed a pre-existing (01-02) check-contrast.mjs CLI bug — parseArgs only accepted --flag=value, not the documented --flag value form, which silently invalidated every fixture-based test until fixed.
+- [Phase ?]: [Phase 01] 01-06: D-06/D-07 stress cards merged into the home grid's true reverse-chronological order (by real published_at), not appended as a separate block — required by D-12's 'no per-category sections' read literally.
+- [Phase ?]: [Phase 01] 01-06: root-caused a WebKit font-swap CLS gate failure to the pinned Docker test image lacking Georgia/Noto Serif (fc-list confirmed only Liberation family installed) rather than weakening the CLS threshold; flagged non-blocking in WINDOWS.md for owner review, real devices commonly have these fonts.
 
 ### Pending Todos
 
@@ -111,6 +114,6 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-09-17T00:17:07.037Z
-Stopped at: Completed 01-05-PLAN.md (Tasks 1-2: RED/GREEN hardened D-13 contrast gate)
+Last session: 2026-09-17T00:47:58.400Z
+Stopped at: Completed 01-06-PLAN.md (Tasks 1-2: final home + category mockups)
 Resume file: None
