@@ -7,6 +7,7 @@
 import { spawnSync } from 'node:child_process';
 import { readFileSync, writeFileSync, mkdirSync, readdirSync, statSync, existsSync } from 'node:fs';
 import path from 'node:path';
+import { validateFeedPage } from './build-feed.mjs';
 
 const ALL_PAGES = ['index', 'category', 'article', 'changelog', 'contact'];
 const ALL_CRITERIA = [1, 2, 3, 4, 5];
@@ -108,7 +109,9 @@ function nodeCheckC1(pages, scoped) {
     }
   }
 
-  const allowed = new Set([...ALL_PAGES.map((p) => `${p}.html`), 'style.css', 'fonts']);
+  // 'feed': D-05 amendment (01-21) -- the mockups directory gains a static
+  // feed/ directory for the homepage load-more pages.
+  const allowed = new Set([...ALL_PAGES.map((p) => `${p}.html`), 'style.css', 'fonts', 'feed']);
   if (existsSync(MOCKUPS_DIR)) {
     for (const entry of readdirSync(MOCKUPS_DIR)) {
       if (!allowed.has(entry)) {
@@ -139,7 +142,145 @@ function nodeCheckC1(pages, scoped) {
   }
   walk(path.resolve('.'));
 
+  nodeCheckFeed(problems);
+
   return { pass: problems.length === 0, problems };
+}
+
+/**
+ * In-place extraction of every `<article ...>` tag's (data-uuid, data-stress)
+ * pair, in document order, from an HTML slice.
+ */
+function extractCardIdentities(htmlSlice) {
+  const identities = [];
+  const articleTagRe = /<article\s+([^>]*)>/g;
+  let match;
+  while ((match = articleTagRe.exec(htmlSlice))) {
+    const attrs = match[1];
+    const uuidMatch = attrs.match(/data-uuid="([^"]*)"/);
+    const stressMatch = attrs.match(/data-stress="([^"]*)"/);
+    identities.push({ uuid: uuidMatch ? uuidMatch[1] : null, stress: stressMatch ? stressMatch[1] : null });
+  }
+  return identities;
+}
+
+/**
+ * 01-21 D-05 amendment: when design/mockups/feed exists, validates every
+ * page file's schema/shape (validateFeedPage, imported from build-feed.mjs),
+ * that the chain starting at index.html's load-more `data-next` visits every
+ * file exactly once and ends at null, that the cards between index.html's
+ * feed markers plus every feed page's cards equal home-feed.json's cards in
+ * order (compared by uuid/stress), and that the shared head script contains
+ * exactly one `fetch(` call. Pushes problem strings onto `problems` in place.
+ */
+function nodeCheckFeed(problems) {
+  const FEED_DIR = path.join(MOCKUPS_DIR, 'feed');
+  if (!existsSync(FEED_DIR)) return;
+
+  const pageRe = /^page-(\d+)\.json$/;
+  const pagesByNumber = new Map();
+
+  for (const entry of readdirSync(FEED_DIR)) {
+    const m = entry.match(pageRe);
+    if (!m) {
+      problems.push(`design/mockups/feed/${entry} does not match page-<n>.json`);
+      continue;
+    }
+    const pageNumber = Number(m[1]);
+    let json;
+    try {
+      json = JSON.parse(readFileSync(path.join(FEED_DIR, entry), 'utf8'));
+    } catch (err) {
+      problems.push(`design/mockups/feed/${entry} failed to parse: ${err.message}`);
+      continue;
+    }
+    for (const p of validateFeedPage(json, pageNumber)) {
+      problems.push(`design/mockups/feed/${entry}: ${p}`);
+    }
+    pagesByNumber.set(pageNumber, json);
+  }
+
+  const indexPath = path.join(MOCKUPS_DIR, 'index.html');
+  if (!existsSync(indexPath)) return;
+  const indexHtml = readFileSync(indexPath, 'utf8');
+
+  // Chain: starts at the button's data-next, walks each page's own `next`.
+  const buttonMatch = indexHtml.match(/<button[^>]*\bdata-load-more\b[^>]*\bdata-next="([^"]*)"[^>]*>/);
+  let current = buttonMatch ? buttonMatch[1] : null;
+  const visited = new Set();
+  let chainOk = true;
+  while (current !== null) {
+    const chainMatch = typeof current === 'string' ? current.match(/^feed\/page-(\d+)\.json$/) : null;
+    if (!chainMatch) {
+      problems.push(`feed chain: unexpected next reference ${JSON.stringify(current)}`);
+      chainOk = false;
+      break;
+    }
+    const num = Number(chainMatch[1]);
+    if (visited.has(num)) {
+      problems.push(`feed chain: page ${num} visited more than once`);
+      chainOk = false;
+      break;
+    }
+    if (!pagesByNumber.has(num)) {
+      problems.push(`feed chain: page ${num} referenced but the file is missing`);
+      chainOk = false;
+      break;
+    }
+    visited.add(num);
+    current = pagesByNumber.get(num).next;
+  }
+  if (chainOk) {
+    for (const num of pagesByNumber.keys()) {
+      if (!visited.has(num)) {
+        problems.push(`feed chain: page ${num} exists on disk but is never reached from index.html's data-next chain`);
+      }
+    }
+  }
+
+  // Card parity: feed:start..feed:end region + every feed page's cards, in
+  // order, must equal home-feed.json's cards (compared by uuid/stress).
+  const startIdx = indexHtml.indexOf('<!-- feed:start -->');
+  const endIdx = indexHtml.indexOf('<!-- feed:end -->');
+  if (startIdx === -1 || endIdx === -1) {
+    problems.push('index.html is missing the feed:start/feed:end markers');
+  } else {
+    const region = indexHtml.slice(startIdx, endIdx);
+    const initialIdentities = extractCardIdentities(region);
+
+    const feedIdentities = [];
+    for (const num of [...pagesByNumber.keys()].sort((a, b) => a - b)) {
+      for (const card of pagesByNumber.get(num).cards ?? []) {
+        feedIdentities.push({ uuid: card.uuid, stress: card.stress ?? null });
+      }
+    }
+
+    const fixturePath = path.resolve('design/fixtures/home-feed.json');
+    if (existsSync(fixturePath)) {
+      const fixture = JSON.parse(readFileSync(fixturePath, 'utf8'));
+      const expected = (fixture.cards ?? []).map((c) => ({ uuid: c.uuid, stress: c.stress ?? null }));
+      const actual = [...initialIdentities, ...feedIdentities];
+      const same =
+        expected.length === actual.length &&
+        expected.every((e, i) => e.uuid === actual[i].uuid && e.stress === actual[i].stress);
+      if (!same) {
+        problems.push(
+          `feed card parity: index.html's feed region + feed pages (${actual.length} cards) do not match design/fixtures/home-feed.json's ${expected.length} cards, in order`
+        );
+      }
+    }
+  }
+
+  // Single-fetch guard on the shared head script.
+  const scriptMatch = indexHtml.match(/<script\b[^>]*>[\s\S]*?<\/script>/i);
+  if (!scriptMatch) {
+    problems.push('index.html has no <script> block to check for a single fetch(');
+  } else {
+    const fetchCount = (scriptMatch[0].match(/fetch\(/g) || []).length;
+    if (fetchCount !== 1) {
+      problems.push(`index.html's head script contains ${fetchCount} fetch( occurrence(s), expected exactly 1`);
+    }
+  }
 }
 
 function nodeCheckC2() {

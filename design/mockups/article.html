@@ -30,6 +30,209 @@
         toggle.setAttribute('aria-pressed', String(nowDark));
       });
     });
+
+    document.addEventListener('DOMContentLoaded', function () {
+      // Load more (revision request 8, 01-21): reads only pre-built static
+      // same-origin feed/page-<n>.json files, never D1 or an API. Elements
+      // are built with createElement/setAttribute/textContent only; href is
+      // always the literal "article.html"; an image src is only ever set
+      // after an https-prefix check (T-01-58).
+      var loadMoreBtn = document.querySelector('[data-load-more]');
+      if (!loadMoreBtn) return;
+      loadMoreBtn.hidden = false;
+
+      var grid = document.querySelector('[data-grid]');
+      var status = document.querySelector('[data-load-more-status]');
+
+      function setStatus(message) {
+        if (status) status.textContent = message;
+      }
+
+      function appendInlines(parent, inlines) {
+        for (var n = 0; n < inlines.length; n++) {
+          var inline = inlines[n];
+          if (inline && inline.strong) {
+            var strong = document.createElement('strong');
+            strong.textContent = inline.text;
+            parent.appendChild(strong);
+          } else {
+            parent.appendChild(document.createTextNode(inline.text));
+          }
+        }
+      }
+
+      function buildCardEl(card) {
+        var article = document.createElement('article');
+        article.setAttribute('data-card', '');
+        article.setAttribute('data-uuid', card.uuid);
+        article.setAttribute('data-category', card.category);
+        if (card.stress) article.setAttribute('data-stress', card.stress);
+        if (card.lang) article.setAttribute('lang', card.lang);
+        if (card.variant) article.setAttribute('data-variant', card.variant);
+
+        var stripe = document.createElement('span');
+        stripe.setAttribute('data-stripe', '');
+        article.appendChild(stripe);
+
+        if (card.category !== 'none') {
+          var catName = document.createElement('p');
+          catName.setAttribute('data-category-name', '');
+          catName.textContent = card.categoryName;
+          article.appendChild(catName);
+        }
+
+        if (card.image) {
+          var frame = document.createElement('div');
+          frame.setAttribute('data-frame', '');
+          var img = document.createElement('img');
+          if (typeof card.image.src === 'string' && card.image.src.indexOf('https://') === 0) {
+            img.setAttribute('src', card.image.src);
+          }
+          img.setAttribute('width', String(card.image.width));
+          img.setAttribute('height', String(card.image.height));
+          img.setAttribute('loading', 'lazy');
+          img.setAttribute('alt', '');
+          frame.appendChild(img);
+          article.appendChild(frame);
+        }
+
+        var h3 = document.createElement('h3');
+        if (card.headlineI18n) h3.setAttribute('data-i18n', card.headlineI18n);
+        var a = document.createElement('a');
+        a.setAttribute('href', 'article.html');
+        a.textContent = card.headline;
+        h3.appendChild(a);
+        article.appendChild(h3);
+
+        if (card.summary) {
+          var summaryEl = document.createElement('div');
+          summaryEl.setAttribute('data-summary', '');
+          if (card.summaryI18n) summaryEl.setAttribute('data-i18n', card.summaryI18n);
+          for (var b = 0; b < card.summary.length; b++) {
+            var block = card.summary[b];
+            if (block.type === 'p') {
+              var p = document.createElement('p');
+              appendInlines(p, block.inlines || []);
+              summaryEl.appendChild(p);
+            } else if (block.type === 'list') {
+              var ul = document.createElement('ul');
+              ul.setAttribute('data-key-details', '');
+              var items = block.items || [];
+              for (var it = 0; it < items.length; it++) {
+                var li = document.createElement('li');
+                appendInlines(li, items[it]);
+                ul.appendChild(li);
+              }
+              summaryEl.appendChild(ul);
+            }
+          }
+          article.appendChild(summaryEl);
+        }
+
+        var byline = document.createElement('p');
+        byline.setAttribute('data-byline', '');
+        if (card.bylineI18n) byline.setAttribute('data-i18n', card.bylineI18n);
+        var source = document.createElement('span');
+        source.setAttribute('data-source', '');
+        source.textContent = card.source;
+        byline.appendChild(source);
+        byline.appendChild(document.createTextNode(' · '));
+        var time = document.createElement('time');
+        time.setAttribute('datetime', card.datetime);
+        time.textContent = card.timeLabel;
+        byline.appendChild(time);
+        article.appendChild(byline);
+
+        return article;
+      }
+
+      function validCard(card) {
+        return !!card &&
+          typeof card === 'object' &&
+          typeof card.uuid === 'string' &&
+          typeof card.category === 'string' &&
+          typeof card.headline === 'string' &&
+          card.href === 'article.html' &&
+          typeof card.source === 'string' &&
+          typeof card.datetime === 'string' &&
+          typeof card.timeLabel === 'string';
+      }
+
+      function validFeedPage(json) {
+        if (!json || typeof json !== 'object') return false;
+        if (json.schema !== 1) return false;
+        if (json.next !== null && typeof json.next !== 'string') return false;
+        if (!Array.isArray(json.cards) || json.cards.length === 0) return false;
+        for (var i = 0; i < json.cards.length; i++) {
+          if (!validCard(json.cards[i])) return false;
+        }
+        return true;
+      }
+
+      function fail() {
+        loadMoreBtn.removeAttribute('aria-disabled');
+        if (grid) grid.removeAttribute('aria-busy');
+        setStatus("Couldn't load more stories. Try again.");
+        loadMoreBtn.focus();
+      }
+
+      loadMoreBtn.addEventListener('click', function () {
+        if (loadMoreBtn.getAttribute('aria-disabled') === 'true') return;
+        loadMoreBtn.setAttribute('aria-disabled', 'true');
+        if (grid) grid.setAttribute('aria-busy', 'true');
+
+        var next = loadMoreBtn.getAttribute('data-next');
+        var target;
+        try {
+          target = new URL(next, window.location.href);
+        } catch (e) {
+          fail();
+          return;
+        }
+        if (target.origin !== window.location.origin || !/\/feed\/page-\d+\.json$/.test(target.pathname)) {
+          fail();
+          return;
+        }
+
+        fetch(target.href, { credentials: 'same-origin' })
+          .then(function (response) {
+            if (!response.ok) throw new Error('load-more: bad status');
+            var contentType = response.headers.get('content-type') || '';
+            if (contentType.indexOf('json') === -1) throw new Error('load-more: bad content-type');
+            return response.json();
+          })
+          .then(function (json) {
+            if (!validFeedPage(json)) throw new Error('load-more: bad shape');
+            if (!grid) throw new Error('load-more: no grid');
+
+            var firstNewCard = null;
+            for (var c = 0; c < json.cards.length; c++) {
+              var cardEl = buildCardEl(json.cards[c]);
+              grid.appendChild(cardEl);
+              if (c === 0) firstNewCard = cardEl;
+            }
+
+            var count = json.cards.length;
+            if (firstNewCard) {
+              var link = firstNewCard.querySelector('h3 a');
+              if (link) link.focus();
+            }
+
+            if (json.next === null) {
+              loadMoreBtn.hidden = true;
+              setStatus(count + " more stories loaded. That's everything for now.");
+            } else {
+              loadMoreBtn.setAttribute('data-next', json.next);
+              loadMoreBtn.removeAttribute('aria-disabled');
+              setStatus(count + ' more stories loaded.');
+            }
+            if (grid) grid.removeAttribute('aria-busy');
+          })
+          .catch(function () {
+            fail();
+          });
+      });
+    });
   })();
 </script>
 </head>
