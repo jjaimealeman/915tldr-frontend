@@ -678,6 +678,19 @@ main {
   margin: 0 0 var(--space-4);
 }
 
+/* D-09 / revision request 2 ("the category lead needs an image, always, or
+   a layout that survives without one"): an image-led lead whose frame ends
+   up with no <img> inside it — because the build found no usable image for
+   that row, or the image element failed to load — degrades to the same
+   typographic treatment as [data-lead-variant="type"], never a reserved
+   empty panel. This is a defensive net on top of the build-time contract
+   (only rows with a usable image should ever render
+   data-lead-variant="image" with a real <img>): it also holds if that
+   contract is ever violated, or if a loaded <img> is later removed. */
+[data-lead-variant="image"]:not(:has([data-frame] img)) [data-frame] {
+  display: none;
+}
+
 /* Grid — pure HTML, reverse-chronological, all categories mixed (D-12). */
 [data-grid] {
   display: grid;
@@ -822,6 +835,14 @@ footer [data-attribution] {
   [data-lead-variant="image"] [data-lead-body] {
     flex: 1 1 auto;
     min-width: 0;
+  }
+
+  /* D-09 / revision request 2: without this, the flex row above would keep
+     reserving the 40%/gap frame column at this width even with no <img>
+     inside it. block restores the single-column typographic layout, same
+     as [data-lead-variant="type"] gets by simply never being flex here. */
+  [data-lead-variant="image"]:not(:has([data-frame] img)) {
+    display: block;
   }
 }
 

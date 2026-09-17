@@ -10,6 +10,7 @@ Entries are named `YYYY-MM-DD-HHMM_slug.md` and grouped by month, newest first.
 
 | Date | Entry | Keywords |
 |------|-------|----------|
+| 2026-09-17 | [Category Lead Is Image-Led Only With a Usable Image (Revision Request 2, Task 3)](2026-09-17-1611_01-18-category-lead-image-led-only-with-a-usable-i.md) | `[FEATURE]` `[TESTING]` `[STYLING]` |
 | 2026-09-17 | [Convert Summary Markdown on the Remaining Four Pages (Defect 9, Task 2)](2026-09-17-1604_01-18-convert-summary-markdown-on-remaining-four-p.md) | `[FEATURE]` `[TESTING]` `[DOCUMENTATION]` |
 | 2026-09-17 | [Summary Markdown Renders as Real HTML on Index (Defect 9, Task 1)](2026-09-17-1602_01-18-render-summary-markdown-as-real-html-on-inde.md) | `[FEATURE]` `[BUG_FIX]` `[TESTING]` `[STYLING]` |
 | 2026-09-17 | [Phase 1 Plan 17 Complete: Header Rule, Toggle Position, and New-Tab Links Closed](2026-09-17-1554_01-17-complete-header-rule-toggle-position-and-new.md) | `[DOCUMENTATION]` `[PLANNING]` |

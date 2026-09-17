@@ -95,6 +95,34 @@ function readFixtureSummaryRowByUuid(uuid: string): Record<string, unknown> | nu
   return walk(raw.cases);
 }
 
+/**
+ * design/fixtures/stress-set.json's `cases` object holds several
+ * `{ chosen, rejected }` image-candidate pairs (e.g. 'category-lead',
+ * 'usable-image') at its top level. Finds the one whose `chosen.uuid`
+ * matches a lead's own data-uuid — the fixture row this lead's image was
+ * actually resolved from.
+ */
+function findChosenImageRecordForUuid(
+  uuid: string
+): { chosen: Record<string, unknown>; rejected: Array<{ url: string }> } | null {
+  const raw = JSON.parse(readFileSync(STRESS_SET_PATH, 'utf8'));
+  for (const value of Object.values(raw.cases as Record<string, unknown>)) {
+    if (
+      value &&
+      typeof value === 'object' &&
+      !Array.isArray(value) &&
+      (value as Record<string, unknown>).chosen &&
+      typeof (value as Record<string, unknown>).chosen === 'object'
+    ) {
+      const chosen = (value as Record<string, unknown>).chosen as Record<string, unknown>;
+      if (chosen.uuid === uuid) {
+        return value as { chosen: Record<string, unknown>; rejected: Array<{ url: string }> };
+      }
+    }
+  }
+  return null;
+}
+
 /** Extracts a fixture summary's "• " bullet lines, prefix stripped, trimmed. */
 function fixtureBulletLines(summary: string): string[] {
   return summary
@@ -390,6 +418,78 @@ for (const name of ['index', 'category']) {
         prev
       );
     }
+  });
+
+  test(`${name}: lead contract: image-led only with the fixture's chosen usable image, otherwise typographic with no frame @c1`, async ({
+    page,
+  }) => {
+    await openPage(page, name as any);
+
+    const leads = await page.evaluate(() => {
+      return Array.from(document.querySelectorAll('[data-lead]')).map((lead) => {
+        const frame = lead.querySelector('[data-frame]');
+        const imgs = frame ? Array.from(frame.querySelectorAll('img')) : [];
+        const first = imgs[0];
+        return {
+          variant: lead.getAttribute('data-lead-variant'),
+          uuid: lead.getAttribute('data-uuid'),
+          hasFrame: !!frame,
+          imgCount: imgs.length,
+          img: first
+            ? {
+                src: first.getAttribute('src'),
+                width: first.getAttribute('width'),
+                height: first.getAttribute('height'),
+                alt: first.getAttribute('alt'),
+              }
+            : null,
+        };
+      });
+    });
+
+    expect(leads.length, `${name} must have at least one [data-lead]`).toBeGreaterThan(0);
+
+    const offenders: string[] = [];
+    for (const lead of leads) {
+      if (lead.variant !== 'image' && lead.variant !== 'type') {
+        offenders.push(`${lead.uuid}: data-lead-variant is "${lead.variant}", expected "image" or "type"`);
+        continue;
+      }
+
+      if (lead.variant === 'type') {
+        if (lead.hasFrame) {
+          offenders.push(`${lead.uuid}: variant "type" must have no [data-frame] descendant`);
+        }
+        continue;
+      }
+
+      // variant === 'image'
+      if (lead.imgCount !== 1) {
+        offenders.push(`${lead.uuid}: variant "image" must have exactly one [data-frame] > img, found ${lead.imgCount}`);
+        continue;
+      }
+      const img = lead.img!;
+      if (!img.width || !img.height || img.alt === null) {
+        offenders.push(`${lead.uuid}: img missing width/height/alt`);
+      }
+      const record = lead.uuid ? findChosenImageRecordForUuid(lead.uuid) : null;
+      if (!record) {
+        offenders.push(`${lead.uuid}: no fixture case with chosen.uuid matching this lead`);
+        continue;
+      }
+      if (img.src !== record.chosen.image_url) {
+        offenders.push(`${lead.uuid}: img src "${img.src}" !== fixture chosen.image_url "${record.chosen.image_url}"`);
+      }
+      const imageCheck = record.chosen.imageCheck as { headStatus?: number } | undefined;
+      if (!imageCheck || imageCheck.headStatus !== 200) {
+        offenders.push(`${lead.uuid}: fixture chosen.imageCheck.headStatus is not 200 (${imageCheck?.headStatus})`);
+      }
+      const rejectedUrls = (record.rejected || []).map((r) => r.url);
+      if (img.src && rejectedUrls.includes(img.src)) {
+        offenders.push(`${lead.uuid}: img src appears in the fixture's own rejected[].url list`);
+      }
+    }
+    expect(offenders, offenders.join(' | ')).toEqual([]);
   });
 }
 
