@@ -137,3 +137,68 @@ Sampling continuity: no run of three consecutive tasks lacks an automated comman
 - [ ] `nyquist_compliant: true` set in frontmatter
 
 **Approval:** pending
+
+---
+
+## Gap-closure per-task map (01-11 … 01-23)
+
+Appended by 01-23 Task 1. Round-1 review (01-10) ended in "revise"; these 12 plans closed the
+14-item closure table (see `01-APPROVAL.md` "Revision history" → "Round 1 closure") before this
+plan's own re-review. Status reflects each plan's own SUMMARY (`status: complete`) plus this
+plan's own unscoped `pnpm run verify:phase-1` (5/5 PASS, both engines, 2026-09-17) exercising the
+resulting code.
+
+| Task ID | Wave | Requirement(s) | Behaviour | Type | Automated Command (abbreviated — see PLAN.md for full chain) | Status |
+|---------|------|----------------|-----------|------|-----------------------------------------------------------|--------|
+| 01-11-T1 | 10 | DSGN-01 | pnpm lockfile parity; local Playwright CLI launcher (no registry-fetch path) in all three launch paths | e2e (tracer) | `pnpm ls --depth=0 --json` + dependency check | ✅ green |
+| 01-11-T2 | 10 | DSGN-01 | package-lock.json untracked/gitignored; pnpm is the sole package manager | script | `git ls-files --error-unmatch package-lock.json` (must fail) | ✅ green |
+| 01-11-T3 | 10 | DSGN-01 | Every user-facing tool string says pnpm, not npm; 01-10's retroactive SUMMARY recorded | script | grep sweep of tool output strings | ✅ green |
+| 01-12-T1 | 10 | DSGN-06, I18N-07 | RED: failing summary-markdown test suite | unit (TDD RED) | `! node --test design/tests/unit/summary-markdown.test.mjs` | ✅ green |
+| 01-12-T2 | 10 | DSGN-06, I18N-07 | GREEN: summary-markdown.mjs (escapeHtml, parseSummary, renderSummaryHtml, validateBlocks) passes | unit (TDD GREEN) | `node --test design/tests/unit/summary-markdown.test.mjs` | ✅ green |
+| 01-13-T1 | 11 | PERF-07 | Tracer: font-display:optional end to end on index, both engines | e2e (tracer) | `pnpm run fonts:build` (x2, idempotent) + style.css check | ✅ green |
+| 01-13-T2 | 11 | PERF-07 | Full swap matrix + positive control; criterion 5 measured honestly | e2e | `pnpm run verify:phase-1 --criteria=5` + font-cls.md checks | ✅ green |
+| 01-13-T3 | 11 | PERF-07, I18N-07 | Spanish width measurements guarded by assertWebfontsInUse; PRD §6.5 amended; WINDOWS ledger updated | e2e + script | `MOCKUP_PAGES=index,article node design/scripts/pw.mjs --project=all design/tests/spanish-overflow.spec.ts` | ✅ green |
+| 01-14-T1 | 12 | DSGN-03, PERF-07 | Tracer: Source Serif 4 Bold headlines, Instrument Serif wordmark only, both engines | e2e (tracer) | `pnpm run check:contrast && node design/scripts/pw.mjs --project=all design/tests/structure.spec.ts` | ✅ green |
+| 01-14-T2 | 12 | PERF-07 | fvar axis reader (font-axes.mjs), test-first | unit | `node --test design/tests/unit/font-axes.test.mjs` | ✅ green |
+| 01-14-T3 | 12 | PERF-07 | Source Serif 4 subsets shrunk (opsz pinned); Instrument Serif Italic retired; lever evidence recorded | integration | `pnpm run fonts:build` + subset-manifest.json byte-size checks | ✅ green |
+| 01-15-T1 | 13 | I18N-07 | Tracer: card-headline recalibrated in the post-01-14 type system, both engines | e2e (tracer) | `node design/scripts/calibrate-spanish.mjs --only=card-headline` + spanish-overflow.spec.ts | ✅ green |
+| 01-15-T2 | 13 | I18N-07 | All 22 Spanish components recalibrated; drawn cards synced; criterion 4 proven | e2e | `pnpm run verify:phase-1 --criteria=4` + font-cls.spec.ts glyph-coverage grep | ✅ green |
+| 01-16-T1 | 14 | DSGN-04, DSGN-05, A11Y-01 | Tracer: new Business photo → re-sampled hue → palette → contrast gate → masthead, both engines | e2e (tracer) | `pnpm run palette:build && pnpm run check:contrast` | ✅ green |
+| 01-16-T2 | 14 | DSGN-04 | Swatch evidence regenerated; WINDOWS entry 3 closed | script | `pnpm run palette:swatches` + PNG checks | ✅ green |
+| 01-17-T1 | 15 | DSGN-01, DSGN-05 | Tracer: header rule removed, toggle held in column, both engines at four widths | e2e (tracer) | `node design/scripts/pw.mjs --project=all design/tests/chrome.spec.ts` | ✅ green |
+| 01-17-T2 | 15 | DSGN-01, DSGN-02 | External links open in a new tab with a decorative icon and accessible cue | e2e | `pnpm run check:contrast && node design/scripts/pw.mjs --project=all design/tests/content.spec.ts` | ✅ green |
+| 01-17-T3 | 15 | DSGN-02, I18N-07 | New-tab activation proven safe (no opener, no real network) both engines; cue localised | e2e | `MOCKUP_PAGES=article,contact node design/scripts/pw.mjs --project=all design/tests/keyboard-walk.spec.ts --grep "new tab"` | ✅ green |
+| 01-18-T1 | 16 | DSGN-01, DSGN-06 | Tracer: rendered Key Details on index (no raw markdown), both engines | e2e (tracer) | `node design/scripts/render-summaries.mjs --pages=index` + rendered-text check | ✅ green |
+| 01-18-T2 | 16 | DSGN-01, I18N-07 | Remaining four pages converted; criteria 1 and 4 re-proven across all pages | e2e | `node design/scripts/render-summaries.mjs` (all pages) | ✅ green |
+| 01-18-T3 | 16 | DSGN-01 | Category lead: image-led only with a usable image; defined typographic fallback | e2e | `node design/scripts/pw.mjs --project=all design/tests/lead-fallback.spec.ts` | ✅ green |
+| 01-19-T1 | 17 | DSGN-01, DSGN-02, DSGN-06 | Tracer: article right rail, both engines at five widths | e2e (tracer) | `node design/scripts/pw.mjs --project=all design/tests/layout.spec.ts` | ✅ green |
+| 01-19-T2 | 17 | DSGN-01, I18N-07 | Rail content integrity (no duplicates, correct order); Spanish rail-heading component | e2e | `MOCKUP_PAGES=article node design/scripts/pw.mjs --project=all design/tests/content.spec.ts` | ✅ green |
+| 01-20-T1 | 18 | DSGN-07, DSGN-01 | Tracer: changelog squeeze reproduced and fixed with explicit grid-template-areas; adopts rail layout | e2e (tracer) | `node design/scripts/pw.mjs --project=all design/tests/layout.spec.ts` | ✅ green |
+| 01-20-T2 | 18 | DSGN-01, DSGN-02 | Contact: centred 44rem column, full width at 768px, spacing fixed before "Latest Stories" | e2e | `node design/scripts/pw.mjs --project=all design/tests/layout.spec.ts` | ✅ green |
+| 01-21-T1 | 19 | DSGN-06, DSGN-01 | Tracer: home feed extracted to static pages; button + client renderer on index, both engines | e2e (tracer) | `node design/scripts/build-feed.mjs` + sha256 parity check | ✅ green |
+| 01-21-T2 | 19 | DSGN-02, DSGN-01 | Shared head script on all five pages; runner's node check validates the feed chain | e2e | `node design/scripts/pw.mjs --project=all design/tests/structure.spec.ts` | ✅ green |
+| 01-21-T3 | 19 | A11Y-01, DSGN-02 | Load-more styling, keyboard walk extension, feed:build script, D-05/D-12 amendments | e2e | `pnpm run check:contrast && MOCKUP_PAGES=index node design/scripts/pw.mjs --project=all design/tests/keyboard-walk.spec.ts` | ✅ green |
+| 01-22-T1 | 20 | DSGN-06, DSGN-04 | Tracer: feed-expansion helper wired through content/structure checks on the fully loaded homepage | e2e (tracer) | `MOCKUP_PAGES=index node design/scripts/pw.mjs --project=all design/tests/content.spec.ts` | ✅ green |
+| 01-22-T2 | 20 | I18N-07 | Criterion 4 on the fully loaded (33-card) homepage; Spanish for Load More controls | e2e | `pnpm run feed:build` + `pnpm run verify:phase-1 --pages=index --criteria=4` | ✅ green |
+| 01-22-T3 | 20 | PERF-07 | Glyph coverage for feed text and status messages | e2e | `pnpm run fonts:build && node design/scripts/pw.mjs --project=all design/tests/font-cls.spec.ts --grep "every rendered character"` | ✅ green |
+| 01-23-T1 | 21 | all | Strict generator restored; full unscoped run; round-2 packet with revision history; validation map | e2e | `pnpm run verify:phase-1 && pnpm run approval:packet && pnpm run verify:approval --pending-ok` | ✅ green |
+| 01-23-T2 | 21 | DSGN-01, DSGN-02 | Owner re-review — keyboard walk and visual review of all five mockups, round-1 items checked | manual (checkpoint) | — | ⬜ pending |
+| 01-23-T3 | 21 | DSGN-01 | Owner decision — approve and sign, or request revisions (D-16) | manual + script | `pnpm run verify:approval` (or non-empty owner-worded Revision requests) | ⬜ pending |
+
+## Requirement → check mapping additions (01-23)
+
+New spec files landed by the gap-closure plans, added to the requirement → check map:
+
+| Spec file | Covers | Owning plan(s) |
+|-----------|--------|----------------|
+| `design/tests/chrome.spec.ts` | Header rule removal, toggle column alignment, tab order at four widths | 01-17 |
+| `design/tests/layout.spec.ts` | Article/changelog right rail, contact centring, full-width breakpoints | 01-19, 01-20 |
+| `design/tests/lead-fallback.spec.ts` | Category lead image-led/typographic-fallback contract | 01-18 |
+| `design/tests/load-more.spec.ts` | Load-more button behaviour, native-CLS-free expansion | 01-21 |
+| `design/tests/unit/summary-markdown.test.mjs` | Markdown → typed block → safe HTML contract (escapeHtml, parseSummary, renderSummaryHtml, validateBlocks) | 01-12 |
+| `design/tests/unit/font-axes.test.mjs` | sfnt `fvar` variation-axis reader used to pin `opsz` at build time | 01-14 |
+
+Sampling continuity (gap-closure plans): every plan 01-11…01-22 has an automated command on
+every task except the checkpoints in 01-23 itself (01-23-T2, 01-23-T3), which are the plan's own
+owner-review and decision gates — each sits immediately after 01-23-T1's automated run, matching
+the same "no 3 consecutive tasks without automated verify" rule the Wave 0 table established.

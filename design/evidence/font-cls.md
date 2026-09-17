@@ -103,8 +103,10 @@ Proves the instrument is not blind: the same index@320px/scroll=mid load, measur
 
 | engine | prePaintObserved | pathObserved | geometryScore | verdict |
 |---|---|---|---|---|
-| chromium | true | swapped | 1.4970 | detected |
-| webkit | true | swapped | 0.8654 | detected |
+| chromium | true | swapped | 0.3893 | detected |
+| webkit | false | webfont-at-first-paint | 0.0000 | not observable |
+
+- webkit: control not observable in this engine (no pre-release paint).
 
 ## Per-engine prePaintObserved
 

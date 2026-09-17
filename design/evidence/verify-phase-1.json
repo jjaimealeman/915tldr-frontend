@@ -48,14 +48,12 @@
       "nodeProblems": []
     },
     "5": {
-      "chromium": "FAIL",
-      "webkit": "FAIL",
-      "node": "FAIL",
-      "verdict": "FAIL",
-      "nodeProblems": [
-        "report-font-cls.mjs exited non-zero — see design/evidence/font-cls.md"
-      ]
+      "chromium": "PASS",
+      "webkit": "PASS",
+      "node": "PASS",
+      "verdict": "PASS",
+      "nodeProblems": []
     }
   },
-  "generatedAt": "2026-09-17T14:06:07.752Z"
+  "generatedAt": "2026-09-17T23:37:05.074Z"
 }
