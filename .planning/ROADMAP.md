@@ -52,7 +52,7 @@ Decimal phases appear between their surrounding integers in numeric order.
   4. Mockups render Spanish copy running 25% longer than the English equivalent with no overflow, clipping or content loss in cards and headlines.
   5. Instrument Serif (display) and Source Serif 4 (body) are self-hosted, subset to include Spanish diacritics, woff2-only, with `size-adjust` metric-compatible fallbacks measured to produce zero layout shift on swap; Playfair Display and Merriweather appear nowhere; the article grid is pure HTML with zero JavaScript.
 
-**Plans:** 9/10 plans executed (9 waves)
+**Plans:** 9/23 plans executed (21 waves) — 13 gap-closure plans (01-11 … 01-23) added 2026-09-17 after the owner's round-1 review requested revisions
 
 Plans:
 **Wave 1**
@@ -90,7 +90,58 @@ Plans:
 
 **Wave 9** *(blocked on Wave 8 completion)*
 
-- [ ] 01-10-PLAN.md — Unscoped run, fingerprinted 01-APPROVAL.md, owner keyboard walk and sign-off (D-16)
+- [ ] 01-10-PLAN.md — Unscoped run, fingerprinted 01-APPROVAL.md, owner keyboard walk and sign-off (D-16) — owner chose **revise** (2026-09-17)
+
+**Gap closure — round 1 owner review (see 01-APPROVAL.md "Revision requests")**
+
+**Wave 10**
+
+- [ ] 01-11-PLAN.md — pnpm migration (D-GAP-D): lockfile parity, local Playwright CLI, package-lock.json retired; 01-10 record (not approved)
+- [ ] 01-12-PLAN.md — TDD: summary markdown → typed blocks → safe HTML (defect 9 groundwork)
+
+**Wave 11** *(blocked on Wave 10 completion)*
+
+- [ ] 01-13-PLAN.md — font-display: optional + classified CLS re-measure with a positive control; PRD §6.5 amended (D-GAP-A)
+
+**Wave 12** *(blocked on Wave 11 completion)*
+
+- [ ] 01-14-PLAN.md — Source Serif 4 Bold headlines, Instrument Serif wordmark only (D-GAP-B); opsz-pinned subsets ≤60/30 KB; Instrument Serif Italic retired
+
+**Wave 13** *(blocked on Wave 12 completion)*
+
+- [ ] 01-15-PLAN.md — Spanish +25% recalibration for the new type system (criterion 4)
+
+**Wave 14** *(blocked on Wave 13 completion)*
+
+- [ ] 01-16-PLAN.md — Business hue from a new photo, outside the amber/olive band (D-GAP-C)
+
+**Wave 15** *(blocked on Wave 14 completion)*
+
+- [ ] 01-17-PLAN.md — Header rule removed, toggle in the column at 1920px, external links in a new tab with an accessible cue (requests 1, 6; defect 10)
+
+**Wave 16** *(blocked on Wave 15 completion)*
+
+- [ ] 01-18-PLAN.md — Rendered Key Details on all pages; category lead image-or-typographic fallback (defect 9; request 2)
+
+**Wave 17** *(blocked on Wave 16 completion)*
+
+- [ ] 01-19-PLAN.md — Article right rail at ≥1024px; full width at 768px (requests 3, 7)
+
+**Wave 18** *(blocked on Wave 17 completion)*
+
+- [ ] 01-20-PLAN.md — Changelog layout fix + rail; contact centred with button spacing; full width at 768px (requests 4, 5, 7)
+
+**Wave 19** *(blocked on Wave 18 completion)*
+
+- [ ] 01-21-PLAN.md — Load more from static JSON: extraction, feed pages, shared head script, focus management, runner checks (request 8)
+
+**Wave 20** *(blocked on Wave 19 completion)*
+
+- [ ] 01-22-PLAN.md — Content, Spanish and glyph checks run against the fully loaded home feed (request 8)
+
+**Wave 21** *(blocked on Wave 20 completion)*
+
+- [ ] 01-23-PLAN.md — Unscoped run, strict round-2 packet with revision history, owner re-review and decision (D-16)
 
 **UI hint**: yes
 
