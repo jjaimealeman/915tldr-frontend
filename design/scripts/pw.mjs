@@ -17,15 +17,42 @@
 // binary is missing; `node <path>` on a local file cannot reach the network
 // at all — it either finds the file or fails loudly. That is the point of
 // this indirection (T-01-35).
-
+//
+// FONTCONFIG ISOLATION (01-13 continuation, WINDOWS entry 10/11): a native
+// (non-Docker) browser launch inherits this host's real $HOME, and therefore
+// fontconfig's default user font directory ($XDG_DATA_HOME/fonts, which
+// defaults to ~/.local/share/fonts when XDG_DATA_HOME is unset). This
+// specific dev machine has "Instrument Serif" and "Source Serif 4" —
+// this project's own primary webfont family names — installed there
+// (confirmed via `fc-list`/`fc-match`), left over from earlier design work.
+// A same-named locally-installed font causes Chromium's font-display:
+// optional implementation to behave like `swap` (verified via CDP
+// CSS.getPlatformFontsForNode: the rendered font changes after a held
+// font resource is released, on this host only). Docker WebKit already
+// avoids this by setting HOME=/tmp inside the container; native launches
+// (host Chromium always, host WebKit when design/.webkit-mode.json selects
+// native mode) need the same isolation, applied narrowly to XDG_DATA_HOME
+// only — NOT HOME itself — so the browser still finds this host's
+// legitimate SYSTEM fallback fonts (Noto Serif, Times New Roman/Liberation
+// Serif, Georgia when present) under /usr/share/fonts, which the fallback
+// matrix depends on, while never seeing this user's ~/.local/share/fonts.
 import { spawnSync } from 'node:child_process';
-import { readFileSync, existsSync } from 'node:fs';
+import { readFileSync, existsSync, mkdirSync } from 'node:fs';
 import path from 'node:path';
 
 const DOCKER_IMAGE = 'mcr.microsoft.com/playwright:v1.63.0-noble';
 const WEBKIT_MODE_FILE = path.resolve('design/.webkit-mode.json');
 const PLAYWRIGHT_CLI = 'node_modules/@playwright/test/cli.js';
 const PLAYWRIGHT_CLI_ABS = path.resolve(PLAYWRIGHT_CLI);
+const ISOLATED_XDG_DATA_HOME = path.resolve('design/.cache/fontconfig-isolated-xdg-data-home');
+
+function isolatedFontEnv() {
+  // An empty, project-local directory with no "fonts" subdirectory at all —
+  // fontconfig treats a missing user font dir as "no user fonts", falling
+  // through to system directories only, never erroring.
+  mkdirSync(ISOLATED_XDG_DATA_HOME, { recursive: true });
+  return { XDG_DATA_HOME: ISOLATED_XDG_DATA_HOME };
+}
 
 function requirePlaywrightCli() {
   if (!existsSync(PLAYWRIGHT_CLI_ABS)) {
@@ -53,7 +80,7 @@ function runChromium(extraArgs) {
   const result = spawnSync(
     'node',
     [PLAYWRIGHT_CLI_ABS, 'test', '--project=chromium', ...extraArgs],
-    { stdio: 'inherit', env: { ...process.env, PW_JSON_OUT: jsonOut } }
+    { stdio: 'inherit', env: { ...process.env, PW_JSON_OUT: jsonOut, ...isolatedFontEnv() } }
   );
   return result.status ?? 1;
 }
@@ -72,7 +99,7 @@ function runWebkit(extraArgs) {
     const result = spawnSync(
       'node',
       [PLAYWRIGHT_CLI_ABS, 'test', '--project=webkit', ...extraArgs],
-      { stdio: 'inherit', env: { ...process.env, PW_JSON_OUT: jsonOut } }
+      { stdio: 'inherit', env: { ...process.env, PW_JSON_OUT: jsonOut, ...isolatedFontEnv() } }
     );
     return result.status ?? 1;
   }

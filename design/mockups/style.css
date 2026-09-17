@@ -545,8 +545,18 @@ nav[aria-label="Sections"] a[aria-current="page"] {
   cursor: pointer;
 }
 
+/* 01-13 continuation (WINDOWS entry 12): the [hidden] attribute is removed by
+   JS after DOMContentLoaded (index.html's inline bootstrap script), so the
+   button appears with no prior layout box under a plain `display: none`
+   here -- a real, generic, font-unrelated CLS confirmed via a fonts-free
+   reference load (native layout-shift on the header pushing <main> down by
+   its own box height). `visibility: hidden` keeps the identical box
+   reserved in flow before JS reveals it, so appearing never moves anything
+   below it; `pointer-events: none` keeps it inert while hidden. */
 [data-theme-toggle][hidden] {
-  display: none;
+  display: inline-block;
+  visibility: hidden;
+  pointer-events: none;
 }
 
 /* Category masthead block (D-01; open item 4) — full-bleed, the riskiest
