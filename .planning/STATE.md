@@ -5,15 +5,15 @@ milestone_name: milestone
 current_phase: 01
 current_phase_name: design-sketch-editorial-identity
 status: executing
-stopped_at: "Completed 01-08-PLAN.md (Tasks 1-3: keyboard walk D-14, structure landmarks/DSGN-05, content-integrity D-10/D-11/D-12)"
-last_updated: "2026-09-17T05:49:00.002Z"
+stopped_at: "Completed 01-09-PLAN.md (Task 1: Spanish overflow criterion 4; Task 2: full font-swap CLS matrix, instrument bug fix, criterion 5 evidence — genuine failure requiring owner decision)"
+last_updated: "2026-09-17T10:11:17.605Z"
 last_activity: 2026-09-16
 last_activity_desc: Roadmap created; 137/137 v1 requirements mapped across 12 phases
 progress:
   total_phases: 1
   completed_phases: 0
   total_plans: 10
-  completed_plans: 8
+  completed_plans: 9
 ---
 
 # Project State
@@ -28,11 +28,11 @@ See: .planning/PROJECT.md (updated 2026-09-16)
 ## Current Position
 
 Phase: 01 (design-sketch-editorial-identity) — EXECUTING
-Plan: 9 of 10
+Plan: 10 of 10
 Status: Ready to execute
 Last activity: 2026-09-16 — Phase 01 execution started
 
-Progress: [████████░░] 80%
+Progress: [█████████░] 90%
 
 ## Performance Metrics
 
@@ -66,6 +66,7 @@ Progress: [████████░░] 80%
 | Phase 01 P06 | 155min | 2 tasks | 4 files |
 | Phase 01 P07 | 55min | 3 tasks | 5 files |
 | Phase 01 P08 | 55min | 3 tasks | 6 files |
+| Phase 01 P09 | 45min | 2 tasks | 8 files |
 
 ## Accumulated Context
 
@@ -98,6 +99,8 @@ Recent decisions affecting current work:
 - [Phase ?]: 01-08: WebKit's focus-triggered scrollIntoView leaves a tall field mostly off-screen on focus (stops as soon as any part clears the viewport edge, unlike Chromium); fixed globally with scroll-padding-block-end: 12rem on html, not by weakening the test.
 - [Phase ?]: 01-08: category.html's D-01 masthead header was a body-level sibling of main, computing to a duplicate banner ARIA landmark; moved inside main (matching article.html's pattern), full-bleed look restored with a scoped negative margin.
 - [Phase ?]: 01-08: content.spec.ts's fixture-uuid lookup must prefer the real-row shape (has a status field) over a same-uuid bare image-candidate record found earlier in stress-set.json's object-traversal order.
+- [Phase ?]: 01-09: Split Task 2's geometry.ts work into a standalone bug-fix commit (fragment-based CLS measurement, entry 8) and a separate feature-extension commit (swap-matrix), via targeted git add -p hunk staging.
+- [Phase ?]: 01-09: Criterion 5 (font-swap CLS) genuinely fails once scroll=mid is measured on all five pages, both engines — root cause is capsize size-adjust's inability to guarantee identical line-wrap points between substituted typefaces, inherent to font-display:swap (PRD-locked). No CSS fix attempted; left as an explicit owner decision (Rule 4) rather than threshold-weakened.
 
 ### Pending Todos
 
@@ -111,6 +114,7 @@ None yet.
 - One Phase 3 success criterion (the `articles-semantic` vector-gap check) has no dedicated REQ-ID; it is a measurement obligation feeding SRCH-02/SRCH-03 in Phase 9. Recorded deliberately rather than dropped.
 - Phase 1: WebKit (Playwright 26.6, Docker) never composites while a font resource is pending, regardless of font-display:swap — font-swap CLS measurement reports prePaintObserved:false honestly for this engine; needs a real-Safari spot-check before 01-APPROVAL.md sign-off (see 01-02-SUMMARY.md coverage D8).
 - Phase 1: three items need owner C-01/subject-fidelity sign-off before 01-APPROVAL.md -- politics' photo is Santa Fe dusk not El Paso/Franklin Mountains; weather's sampled hue reads azure-blue not turquoise; Sports/Business block-stop hues (49.4deg/94.5deg) visually sit near the amber-olive-reading-as-brown risk C-01 flags. See 01-03-SUMMARY.md.
+- Phase 1: Criterion 5 (font-swap CLS) requires an owner decision before 01-APPROVAL.md — accept the documented residual shift, adjust the fallback font stack, or reopen the font-display:swap PRD decision. See 01-09-SUMMARY.md and design/evidence/font-cls.md.
 
 ## Deferred Items
 
@@ -122,6 +126,6 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-09-17T05:48:59.992Z
-Stopped at: Completed 01-08-PLAN.md (Tasks 1-3: keyboard walk D-14, structure landmarks/DSGN-05, content-integrity D-10/D-11/D-12)
+Last session: 2026-09-17T10:11:17.594Z
+Stopped at: Completed 01-09-PLAN.md (Task 1: Spanish overflow criterion 4; Task 2: full font-swap CLS matrix, instrument bug fix, criterion 5 evidence — genuine failure requiring owner decision)
 Resume file: None
