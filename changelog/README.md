@@ -10,6 +10,7 @@ Entries are named `YYYY-MM-DD-HHMM_slug.md` and grouped by month, newest first.
 
 | Date | Entry | Keywords |
 |------|-------|----------|
+| 2026-09-17 | [Track docs/PRD.md in Git](2026-09-17-1052_track-prd-in-git.md) | `[DOCUMENTATION]` `[PLANNING]` |
 | 2026-09-17 | [Phase 1 Plan 11 Complete: D-GAP-D pnpm Closed, STATE/ROADMAP Updated](2026-09-17-1715_01-11-complete-plan-summary-state-roadmap.md) | `[DOCUMENTATION]` `[PLANNING]` |
 | 2026-09-17 | [pnpm Wording in Tool Output; 01-10-SUMMARY.md Records "Not Approved"](2026-09-17-1710_pnpm-wording-and-01-10-record.md) | `[DOCUMENTATION]` `[CONFIG]` `[TESTING]` |
 | 2026-09-17 | [Retire package-lock.json from Git; Move 01-VALIDATION.md to pnpm Wording](2026-09-17-1705_retire-npm-lockfile-pnpm-validation-wording.md) | `[CONFIG]` `[DOCUMENTATION]` `[DEPENDENCIES]` |
