@@ -146,15 +146,15 @@ Recomputed by `npm run verify:approval`. Any change to a listed file after this 
 
 ## Owner review checklist
 
-- [ ] Start `npm run serve:mockups` in your own pane and open http://127.0.0.1:4319/mockups/index.html
-- [ ] Review each of the five pages in light and dark at 320, 768 and 1280 px
-- [ ] Review each page at real 200% browser zoom
-- [ ] Do your own keyboard walk (Tab, Shift+Tab, Enter, Space) of each page in both themes, judging tab order and operability
-- [ ] Review the keyboard contact sheets
-- [ ] Review the palette swatches and photo sources against C-01
-- [ ] Read the real Spanish copy
-- [ ] Accept or overturn each planner resolution above
-- [ ] Resolve the criterion-5 decision (A, B, or C) above
+- [x] Start `npm run serve:mockups` in your own pane and open http://127.0.0.1:4319/mockups/index.html
+- [x] Review each of the five pages in light and dark at 320, 768 and 1280 px
+- [x] Review each page at real 200% browser zoom
+- [x] Do your own keyboard walk (Tab, Shift+Tab, Enter, Space) of each page in both themes, judging tab order and operability
+- [x] Review the keyboard contact sheets
+- [x] Review the palette swatches and photo sources against C-01
+- [x] Read the real Spanish copy
+- [x] Accept or overturn each planner resolution above
+- [x] Resolve the criterion-5 decision (A, B, or C) above
 
 ## Owner sign-off
 
@@ -166,4 +166,36 @@ Then leave this section otherwise empty. This generator never writes that line.
 
 ## Revision requests
 
-(empty — filled in by the owner or during the Task 2 checkpoint if problems are found)
+**Outcome of the Task 2 review (2026-09-17): revisions requested. Not approved.**
+The owner reviewed all five pages in a real browser (light/dark, 320/768/1280, 200% zoom,
+keyboard walk) and gave the notes below. Owner quotes are verbatim; bracketed text is the
+orchestrator's description of the owner's screenshots.
+
+### Owner decisions (answered 2026-09-17)
+
+| Item | Decision |
+|---|---|
+| Criterion 5 — font-swap CLS | **C + shrink fonts.** Reopen PRD §6.5: switch `font-display: swap` → `optional` (keep the preloads), and reduce the Source Serif 4 subsets (currently 108 KB roman / 91 KB italic). |
+| Headline typeface | **Source Serif 4 bold for headlines; Instrument Serif kept for the "915 TLDR" wordmark only.** Owner: "not too crazy about the thin font for the headings". [Owner's screenshot shows the headline computed as "Instrument Serif – 700": Instrument Serif ships one weight, so the bold is browser-synthesised.] Revisits D-09 / PRD §5.2. |
+| Business hue (C-01) | **New photo, re-sample.** Owner: "business and sports both read as brown. sports is more redish, thats ok." → Business changes; Sports stays. |
+| Package manager | **pnpm.** A `pnpm install` was run 2026-09-17 08:56; `pnpm-lock.yaml` is now alongside `package-lock.json`. Keep pnpm, retire `package-lock.json`, update `npm run …` references in scripts/docs to pnpm where they matter. |
+| Spanish copy | Accepted — "looks good to me." |
+| Keyboard walk | Accepted — "[skip to content] and then category navigation, nice then dark/light toggle. adn then each article heading. well done." |
+| Politics photo (Santa Fe sky), Weather hue (azure) | No objection raised; treated as accepted. |
+| Real-Safari / Georgia spot-check | Still outstanding. |
+
+### Revision requests
+
+1. **Header border.** "i love the color stripe at the top. maybe remove the black/white bottom border in header." — keep the category colour stripe; remove the black (light) / white (dark) rule under the header.
+2. **Category lead needs an image, always, or a layout that survives without one.** "as long as it always has an image on the side, so the layout doesnt break." — the image-led lead must only be used for an article with a usable image, with a defined text-only fallback.
+3. **Article page whitespace.** "article page. too much whitespace. how do other news websites handle this?!" [1280px: single text column with a large empty right side.] Direction agreed in session: no ads; at ≥1024px add a right rail (e.g. "Latest" / "More in {category}"); keep body measure ~70ch.
+4. **Changelog whitespace / layout.** [768px: each dispatch's body text is squeezed into the narrow date column while the title sits alone on the right — a layout bug.]
+5. **Contact page.** "looks great, should be centerer?" [Also: the "Send message" button touches the "Latest Stories" heading — spacing bug.]
+6. **External links open in a new tab.** "all external links should be in a new tab. links to 915website.com jjaimealeman.com external news sources, etc." (Use `target="_blank" rel="noopener"` with an accessible "opens in a new tab" cue.)
+7. **768px width.** "index, category both look great. article and changelog, needs to span the full width … contact also."
+8. **Homepage is overwhelming on first load.** "i counted 10+ rows with 3 columns each. first load is overwhelming. maybe a (load more) button at the bottom? start with maybe 2-3 rows?! … and if they keep clicking that, it would become one of those infinite scroll pages." Direction agreed in session: start with 2–3 rows plus an explicit **Load more** button that fetches pre-built static JSON (zero D1 reads); keep it a button rather than auto-infinite-scroll so the footer stays reachable by keyboard.
+
+### Defects found by the orchestrator in the owner's screenshots
+
+9. **Raw markdown in the article body:** `**Key Details:**` renders with literal asterisks — the summary's markdown is not converted to HTML.
+10. **Theme toggle placement:** at 1920px the "Dark theme" button sits outside the page column, at the far left edge.
