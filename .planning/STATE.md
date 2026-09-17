@@ -5,15 +5,15 @@ milestone_name: milestone
 current_phase: 01
 current_phase_name: design-sketch-editorial-identity
 status: executing
-stopped_at: "Completed 01-11-PLAN.md (D-GAP-D: pnpm lockfile parity, local Playwright CLI launcher, packageManager pin, package-lock.json retired, pnpm wording in tool output, retroactive 01-10-SUMMARY.md)"
-last_updated: "2026-09-17T16:51:20.771Z"
+stopped_at: "Completed 01-12-PLAN.md (D-GAP revision 9: summary-markdown.mjs — parseSummary/renderSummaryHtml/summaryPlainText/validateBlocks/escapeHtml, TDD RED/GREEN, proven against all fixtures)"
+last_updated: "2026-09-17T17:00:31.513Z"
 last_activity: 2026-09-17
 last_activity_desc: Phase 01 execution started
 progress:
   total_phases: 1
   completed_phases: 0
   total_plans: 23
-  completed_plans: 11
+  completed_plans: 12
 ---
 
 # Project State
@@ -28,11 +28,11 @@ See: .planning/PROJECT.md (updated 2026-09-16)
 ## Current Position
 
 Phase: 01 (design-sketch-editorial-identity) — EXECUTING
-Plan: 2 of 23
+Plan: 3 of 23
 Status: Ready to execute
 Last activity: 2026-09-17 — Phase 01 execution started
 
-Progress: [█████░░░░░] 48%
+Progress: [█████░░░░░] 52%
 
 ## Performance Metrics
 
@@ -68,6 +68,7 @@ Progress: [█████░░░░░] 48%
 | Phase 01 P08 | 55min | 3 tasks | 6 files |
 | Phase 01 P09 | 45min | 2 tasks | 8 files |
 | Phase 01 P11 | 55min | 3 tasks | 12 files |
+| Phase 01 P12 | 8min | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -104,6 +105,8 @@ Recent decisions affecting current work:
 - [Phase ?]: 01-09: Criterion 5 (font-swap CLS) genuinely fails once scroll=mid is measured on all five pages, both engines — root cause is capsize size-adjust's inability to guarantee identical line-wrap points between substituted typefaces, inherent to font-display:swap (PRD-locked). No CSS fix attempted; left as an explicit owner decision (Rule 4) rather than threshold-weakened.
 - [Phase ?]: 01-11: D-GAP-D closed — pnpm is the sole package manager; pw.mjs launches the local Playwright CLI directly via node (no package runner) in all three launch paths; pnpm-lock.yaml verified 16/16 identical to package-lock.json
 - [Phase ?]: 01-11: 01-10-SUMMARY.md written retroactively — Phase 1 round 1 ended on outcome: revise (owner review 2026-09-17), not approved; 14-item closure table maps to gap plans 01-11..01-23
+- [Phase ?]: 01-12: parseGroup explicitly splits a lone **Key Details:** header line from preceding prose when both share one blank-line-delimited group (no blank line between them) — needed because the generic space-join rule would otherwise merge them into one paragraph
+- [Phase ?]: 01-12: validateBlocks treats strong:false as invalid, not merely redundant — the block contract's only allowed value for strong is true
 
 ### Pending Todos
 
@@ -129,6 +132,6 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-09-17T16:51:20.759Z
-Stopped at: Completed 01-11-PLAN.md (D-GAP-D: pnpm lockfile parity, local Playwright CLI launcher, packageManager pin, package-lock.json retired, pnpm wording in tool output, retroactive 01-10-SUMMARY.md)
+Last session: 2026-09-17T17:00:31.497Z
+Stopped at: Completed 01-12-PLAN.md (D-GAP revision 9: summary-markdown.mjs — parseSummary/renderSummaryHtml/summaryPlainText/validateBlocks/escapeHtml, TDD RED/GREEN, proven against all fixtures)
 Resume file: None

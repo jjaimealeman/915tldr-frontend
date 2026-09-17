@@ -10,6 +10,7 @@ Entries are named `YYYY-MM-DD-HHMM_slug.md` and grouped by month, newest first.
 
 | Date | Entry | Keywords |
 |------|-------|----------|
+| 2026-09-17 | [Phase 1 Plan 12: STATE/ROADMAP advanced](2026-09-17-1107_01-12-state-roadmap-update.md) | `[DOCUMENTATION]` `[PLANNING]` |
 | 2026-09-17 | [Phase 1 Plan 12 Complete: summary-markdown conversion library, SUMMARY written](2026-09-17-1104_01-12-complete-plan-summary.md) | `[DOCUMENTATION]` `[PLANNING]` `[TESTING]` |
 | 2026-09-17 | [summary-markdown implementation, suite green (D-GAP revision 9, GREEN)](2026-09-17-1102_summary-markdown-green-implementation.md) | `[FEATURE]` `[TESTING]` |
 | 2026-09-17 | [Failing summary-markdown test suite (D-GAP revision 9, RED)](2026-09-17-1057_summary-markdown-red-suite.md) | `[TESTING]` `[FEATURE]` |
