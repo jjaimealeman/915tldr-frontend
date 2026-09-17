@@ -10,6 +10,7 @@ Entries are named `YYYY-MM-DD-HHMM_slug.md` and grouped by month, newest first.
 
 | Date | Entry | Keywords |
 |------|-------|----------|
+| 2026-09-17 | [Logged the Chrome Font-Swap Finding to the Project's Defect Ledger](2026-09-17-1121_01-13-record-chromium-optional-swap-finding-in-win.md) | `[DOCUMENTATION]` `[PLANNING]` |
 | 2026-09-17 | [Switched Fonts to `font-display: optional`, Built a Swap-Path Instrument, Found It Doesn't Fully Work in Chrome](2026-09-17-1119_01-13-font-display-optional-generator-classified-s.md) | `[FEATURE]` `[TESTING]` `[PERFORMANCE]` `[BUG_FIX]` |
 | 2026-09-17 | [Phase 1 Plan 12: STATE/ROADMAP advanced](2026-09-17-1107_01-12-state-roadmap-update.md) | `[DOCUMENTATION]` `[PLANNING]` |
 | 2026-09-17 | [Phase 1 Plan 12 Complete: summary-markdown conversion library, SUMMARY written](2026-09-17-1104_01-12-complete-plan-summary.md) | `[DOCUMENTATION]` `[PLANNING]` `[TESTING]` |
