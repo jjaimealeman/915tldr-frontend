@@ -158,3 +158,59 @@ for (const name of pagesUnderTest()) {
     ).toEqual([]);
   });
 }
+
+// Task 2 (01-13): the positive control. Proves the instrument (pathObserved
+// classification) can still detect a REAL mid-render swap, by forcing the
+// font-display descriptor to `swap` for this one load only (the
+// 'swap-control' variant — see geometry.ts's installStyleOverride). Runs
+// once, on index only, regardless of MOCKUP_PAGES's page list, since it is
+// not part of the per-page matrix loop above and never runs the
+// swap-control variant there.
+if (pagesUnderTest().includes('index')) {
+  test('font-swap positive control: index @ 320px scroll=mid @c5', async ({ page, browser }) => {
+    const engine = browser.browserType().name();
+
+    await page.goto('/mockups/index.html');
+    await page.evaluate(() => document.fonts.ready);
+    const loadableFallbacks = await listLoadableFallbacks(page);
+    expect(
+      loadableFallbacks.length,
+      'no metric-compatible fallback face available — control meaningless'
+    ).toBeGreaterThan(0);
+    const fallbackFamily = loadableFallbacks[0];
+
+    const context = await browser.newContext();
+    const combinationPage = await context.newPage();
+    try {
+      const result = await measureFontSwap(combinationPage, 'index', {
+        width: 320,
+        theme: 'light',
+        scroll: 'mid',
+        variant: 'swap-control',
+        fallbackFamily,
+      });
+
+      mkdirSync(FRAGMENTS_DIR, { recursive: true });
+      writeFileSync(
+        path.join(FRAGMENTS_DIR, `${engine}__control.json`),
+        JSON.stringify([result], null, 2) + '\n',
+        'utf8'
+      );
+
+      if (result.prePaintObserved) {
+        expect(result.pathObserved, 'positive control must detect a real swap').toBe('swapped');
+        expect(
+          result.geometryScore,
+          'positive control geometryScore must show a real, measurable shift'
+        ).toBeGreaterThanOrEqual(0.005);
+      } else {
+        test.info().annotations.push({
+          type: 'note',
+          description: 'control not observable in this engine (no pre-release paint)',
+        });
+      }
+    } finally {
+      await context.close();
+    }
+  });
+}

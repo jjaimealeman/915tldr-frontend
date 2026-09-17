@@ -2,94 +2,114 @@
 
 Chromium 153.0.8010.12, WebKit (Playwright) 26.6, docker.
 
+Strategy: `font-display: optional` with `<link rel="preload">` for the above-the-fold primary faces (owner decision D-GAP-A, 2026-09-17, PRD §6.5 amended). Each page view renders either the primary webfont from first paint (the face was ready before the block period elapsed) or the metric-compatible fallback throughout the rest of that view — there is no mid-render swap, so no swap-triggered layout shift.
+
+The two user-visible paths this matrix classifies (`pathObserved`) are `fallback-kept` (the webfont missed the block period; the fallback face renders for the whole view) and `webfont-at-first-paint` (the webfont was ready in time; it renders from the very first frame). Neither path involves a visible transition. Each load is classified by comparing its own before/after layout snapshots against a REFERENCE load of the same page/width/theme/scroll/variant/fallback combination with no artificial network hold — a plain load whose primary webfont is proven in use (`assertWebfontsInUse`) before its snapshot and native CLS (`referenceNativeCls`) are trusted as the "what does a correctly-rendered webfont-first view of this exact combination look like" baseline.
+
 WebKit (Playwright) tracks WebKit trunk on Linux. It is not Safari on macOS or iOS. These results are not Safari verification.
 
 size-adjust is supported in Safari 17+. ascent-override, descent-override and line-gap-override are not in any shipped Safari (caniuse, checked 2026-09-17: preview). The size-adjust-only rows are the proxy for today's Safari readers.
 
+Georgia is not installed on this Linux development host (nor in the pinned WebKit Docker image), so it is not exercised by either engine below — covered only by capsize's metric arithmetic. A real macOS/iOS/Windows/Safari pass remains an open item (WINDOWS.md entry 1).
+
 ## Swap matrix
 
-| page | width | scroll | variant | fallback face | Chromium native CLS | Chromium geometry | WebKit geometry | verdict |
-|---|---|---|---|---|---|---|---|---|
-| article | 1280 | mid | full | Noto Serif | 0.0066 | 0.0225 | — | FAIL |
-| article | 1280 | mid | full | Times New Roman | 0.0165 | 0.0347 | 0.0471 | FAIL |
-| article | 1280 | mid | size-adjust-only | Noto Serif | 0.0079 | 0.0225 | — | FAIL |
-| article | 1280 | mid | size-adjust-only | Times New Roman | 0.0183 | 0.0347 | 0.0477 | FAIL |
-| article | 1280 | top | full | Noto Serif | 0.0024 | 0.0025 | — | pass |
-| article | 1280 | top | full | Times New Roman | 0.0030 | 0.0046 | 0.0010 | pass |
-| article | 1280 | top | size-adjust-only | Noto Serif | 0.0104 | 0.0030 | — | FAIL |
-| article | 1280 | top | size-adjust-only | Times New Roman | 0.0055 | 0.0054 | 0.0021 | FAIL |
-| article | 320 | mid | full | Noto Serif | 0.0001 | 0.0004 | — | pass |
-| article | 320 | mid | full | Times New Roman | 0.0601 | 0.0845 | 0.2328 | FAIL |
-| article | 320 | mid | size-adjust-only | Noto Serif | 0.0004 | 0.0489 | — | FAIL |
-| article | 320 | mid | size-adjust-only | Times New Roman | 0.0308 | 0.0276 | 0.2372 | FAIL |
-| article | 320 | top | full | Noto Serif | 0.0001 | 0.0004 | — | pass |
-| article | 320 | top | full | Times New Roman | 0.0112 | 0.0271 | 0.1111 | FAIL |
-| article | 320 | top | size-adjust-only | Noto Serif | 0.0019 | 0.0236 | — | FAIL |
-| article | 320 | top | size-adjust-only | Times New Roman | 0.0196 | 0.0311 | 0.1550 | FAIL |
-| category | 1280 | mid | full | Noto Serif | 0.0638 | 0.1124 | — | FAIL |
-| category | 1280 | mid | full | Times New Roman | 0.0659 | 0.1126 | 0.0000 | FAIL |
-| category | 1280 | mid | size-adjust-only | Noto Serif | 0.0642 | 0.1124 | — | FAIL |
-| category | 1280 | mid | size-adjust-only | Times New Roman | 0.0502 | 0.0899 | 0.2052 | FAIL |
-| category | 1280 | top | full | Noto Serif | 0.0000 | 0.0000 | — | pass |
-| category | 1280 | top | full | Times New Roman | 0.0000 | 0.0014 | 0.0144 | FAIL |
-| category | 1280 | top | size-adjust-only | Noto Serif | 0.0020 | 0.0114 | — | FAIL |
-| category | 1280 | top | size-adjust-only | Times New Roman | 0.0023 | 0.0149 | 0.0376 | FAIL |
-| category | 320 | mid | full | Noto Serif | 0.1560 | 0.0084 | — | FAIL |
-| category | 320 | mid | full | Times New Roman | 0.0780 | 0.0020 | 0.0000 | FAIL |
-| category | 320 | mid | size-adjust-only | Noto Serif | 0.1560 | 0.0195 | — | FAIL |
-| category | 320 | mid | size-adjust-only | Times New Roman | 0.0780 | 0.1888 | 0.0000 | FAIL |
-| category | 320 | top | full | Noto Serif | 0.0000 | 0.0000 | — | pass |
-| category | 320 | top | full | Times New Roman | 0.0000 | 0.0000 | 0.0000 | pass |
-| category | 320 | top | size-adjust-only | Noto Serif | 0.0005 | 0.0056 | — | FAIL |
-| category | 320 | top | size-adjust-only | Times New Roman | 0.0006 | 0.0052 | 0.0000 | FAIL |
-| changelog | 1280 | mid | full | Noto Serif | 0.1483 | 0.0307 | — | FAIL |
-| changelog | 1280 | mid | full | Times New Roman | 0.1694 | 0.0310 | 0.0000 | FAIL |
-| changelog | 1280 | mid | size-adjust-only | Noto Serif | 0.1483 | 0.0305 | — | FAIL |
-| changelog | 1280 | mid | size-adjust-only | Times New Roman | 0.1696 | 0.0308 | 0.0000 | FAIL |
-| changelog | 1280 | top | full | Noto Serif | 0.0085 | 0.0029 | — | FAIL |
-| changelog | 1280 | top | full | Times New Roman | 0.0085 | 0.0041 | 0.0000 | FAIL |
-| changelog | 1280 | top | size-adjust-only | Noto Serif | 0.0481 | 0.0046 | — | FAIL |
-| changelog | 1280 | top | size-adjust-only | Times New Roman | 0.0105 | 0.0059 | 0.0000 | FAIL |
-| changelog | 320 | mid | full | Noto Serif | 0.0441 | 0.2248 | — | FAIL |
-| changelog | 320 | mid | full | Times New Roman | 0.0411 | 0.2627 | 0.0000 | FAIL |
-| changelog | 320 | mid | size-adjust-only | Noto Serif | 0.0445 | 0.2248 | — | FAIL |
-| changelog | 320 | mid | size-adjust-only | Times New Roman | 0.0411 | 0.2624 | 0.0000 | FAIL |
-| changelog | 320 | top | full | Noto Serif | 0.0125 | 0.0068 | — | FAIL |
-| changelog | 320 | top | full | Times New Roman | 0.0123 | 0.0080 | 0.0000 | FAIL |
-| changelog | 320 | top | size-adjust-only | Noto Serif | 0.0132 | 0.0108 | — | FAIL |
-| changelog | 320 | top | size-adjust-only | Times New Roman | 0.0132 | 0.0132 | 0.0000 | FAIL |
-| contact | 1280 | mid | full | Noto Serif | 0.0007 | 0.0008 | — | pass |
-| contact | 1280 | mid | full | Times New Roman | 0.0001 | 0.0008 | 0.0000 | pass |
-| contact | 1280 | mid | size-adjust-only | Noto Serif | 0.0013 | 0.0028 | — | pass |
-| contact | 1280 | mid | size-adjust-only | Times New Roman | 0.0007 | 0.0038 | 0.0000 | pass |
-| contact | 1280 | top | full | Noto Serif | 0.0008 | 0.0002 | — | pass |
-| contact | 1280 | top | full | Times New Roman | 0.0062 | 0.0036 | 0.0000 | FAIL |
-| contact | 1280 | top | size-adjust-only | Noto Serif | 0.0065 | 0.0005 | — | FAIL |
-| contact | 1280 | top | size-adjust-only | Times New Roman | 0.0078 | 0.0039 | 0.0000 | FAIL |
-| contact | 320 | mid | full | Noto Serif | 0.0001 | 0.0004 | — | pass |
-| contact | 320 | mid | full | Times New Roman | 0.0372 | 0.0737 | 0.0000 | FAIL |
-| contact | 320 | mid | size-adjust-only | Noto Serif | 0.0003 | 0.0034 | — | pass |
-| contact | 320 | mid | size-adjust-only | Times New Roman | 0.0387 | 0.0777 | 0.0000 | FAIL |
-| contact | 320 | top | full | Noto Serif | 0.0005 | 0.0000 | — | pass |
-| contact | 320 | top | full | Times New Roman | 0.0041 | 0.0124 | 0.0000 | FAIL |
-| contact | 320 | top | size-adjust-only | Noto Serif | 0.0010 | 0.0008 | — | pass |
-| contact | 320 | top | size-adjust-only | Times New Roman | 0.0068 | 0.0145 | 0.0000 | FAIL |
-| index | 1280 | mid | full | Noto Serif | 0.0718 | 0.2478 | — | FAIL |
-| index | 1280 | mid | full | Times New Roman | 0.0732 | 0.2410 | 0.3770 | FAIL |
-| index | 1280 | mid | size-adjust-only | Noto Serif | 0.0720 | 0.2478 | — | FAIL |
-| index | 1280 | mid | size-adjust-only | Times New Roman | 0.0747 | 0.2410 | 0.3779 | FAIL |
-| index | 1280 | top | full | Noto Serif | 0.0000 | 0.0000 | — | pass |
-| index | 1280 | top | full | Times New Roman | 0.0000 | 0.0025 | 0.0056 | FAIL |
-| index | 1280 | top | size-adjust-only | Noto Serif | 0.0013 | 0.0174 | — | FAIL |
-| index | 1280 | top | size-adjust-only | Times New Roman | 0.0015 | 0.0199 | 0.0334 | FAIL |
-| index | 320 | mid | full | Noto Serif | 0.3790 | 0.6722 | — | FAIL |
-| index | 320 | mid | full | Times New Roman | 0.2482 | 0.5953 | 1.1908 | FAIL |
-| index | 320 | mid | size-adjust-only | Noto Serif | 0.3816 | 0.6760 | — | FAIL |
-| index | 320 | mid | size-adjust-only | Times New Roman | 0.2546 | 0.5953 | 1.1948 | FAIL |
-| index | 320 | top | full | Noto Serif | 0.0000 | 0.0000 | — | pass |
-| index | 320 | top | full | Times New Roman | 0.0000 | 0.0000 | 0.7587 | FAIL |
-| index | 320 | top | size-adjust-only | Noto Serif | 0.0008 | 0.0627 | — | FAIL |
-| index | 320 | top | size-adjust-only | Times New Roman | 0.0010 | 0.0594 | 0.7812 | FAIL |
+| page | width | scroll | variant | fallback face | font-display | path | Chromium native CLS | Chromium geometry | Chromium ref. native CLS | WebKit geometry | WebKit ref. native CLS | verdict |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| article | 1280 | mid | full | Noto Serif | optional | fallback-kept | 0.0000 | 0.0000 | 0.0000 | — | — | pass |
+| article | 1280 | mid | full | Times New Roman | optional | fallback-kept | 0.0000 | 0.0000 | 0.0000 | 0.0000 | unsupported | pass |
+| article | 1280 | mid | size-adjust-only | Noto Serif | optional | fallback-kept | 0.0000 | 0.0000 | 0.0000 | — | — | pass |
+| article | 1280 | mid | size-adjust-only | Times New Roman | optional | fallback-kept | 0.0000 | 0.0000 | 0.0000 | 0.0000 | unsupported | pass |
+| article | 1280 | top | full | Noto Serif | optional | fallback-kept | 0.0000 | 0.0000 | 0.0000 | — | — | pass |
+| article | 1280 | top | full | Times New Roman | optional | fallback-kept | 0.0000 | 0.0000 | 0.0000 | 0.0000 | unsupported | pass |
+| article | 1280 | top | size-adjust-only | Noto Serif | optional | fallback-kept | 0.0000 | 0.0000 | 0.0000 | — | — | pass |
+| article | 1280 | top | size-adjust-only | Times New Roman | optional | fallback-kept | 0.0000 | 0.0000 | 0.0000 | 0.0000 | unsupported | pass |
+| article | 320 | mid | full | Noto Serif | optional | fallback-kept | 0.0000 | 0.0000 | 0.0000 | — | — | pass |
+| article | 320 | mid | full | Times New Roman | optional | fallback-kept | 0.0000 | 0.0000 | 0.0000 | 0.0000 | unsupported | pass |
+| article | 320 | mid | size-adjust-only | Noto Serif | optional | fallback-kept | 0.0000 | 0.0000 | 0.0000 | — | — | pass |
+| article | 320 | mid | size-adjust-only | Times New Roman | optional | fallback-kept | 0.0000 | 0.0000 | 0.0000 | 0.0000 | unsupported | pass |
+| article | 320 | top | full | Noto Serif | optional | fallback-kept | 0.0000 | 0.0000 | 0.0000 | — | — | pass |
+| article | 320 | top | full | Times New Roman | optional | fallback-kept | 0.0000 | 0.0000 | 0.0000 | 0.0000 | unsupported | pass |
+| article | 320 | top | size-adjust-only | Noto Serif | optional | fallback-kept | 0.0000 | 0.0000 | 0.0000 | — | — | pass |
+| article | 320 | top | size-adjust-only | Times New Roman | optional | fallback-kept | 0.0000 | 0.0000 | 0.0000 | 0.0000 | unsupported | pass |
+| category | 1280 | mid | full | Noto Serif | optional | fallback-kept | 0.0000 | 0.0000 | 0.0000 | — | — | pass |
+| category | 1280 | mid | full | Times New Roman | optional | fallback-kept | 0.0000 | 0.0000 | 0.0000 | 0.0000 | unsupported | pass |
+| category | 1280 | mid | size-adjust-only | Noto Serif | optional | fallback-kept | 0.0000 | 0.0000 | 0.0000 | — | — | pass |
+| category | 1280 | mid | size-adjust-only | Times New Roman | optional | fallback-kept | 0.0000 | 0.0000 | 0.0000 | 0.0000 | unsupported | pass |
+| category | 1280 | top | full | Noto Serif | optional | fallback-kept | 0.0000 | 0.0000 | 0.0000 | — | — | pass |
+| category | 1280 | top | full | Times New Roman | optional | fallback-kept | 0.0000 | 0.0000 | 0.0000 | 0.0000 | unsupported | pass |
+| category | 1280 | top | size-adjust-only | Noto Serif | optional | fallback-kept | 0.0000 | 0.0000 | 0.0000 | — | — | pass |
+| category | 1280 | top | size-adjust-only | Times New Roman | optional | fallback-kept | 0.0000 | 0.0000 | 0.0000 | 0.0000 | unsupported | pass |
+| category | 320 | mid | full | Noto Serif | optional | fallback-kept | 0.0000 | 0.0000 | 0.0000 | — | — | pass |
+| category | 320 | mid | full | Times New Roman | optional | fallback-kept | 0.0000 | 0.0000 | 0.0000 | 0.0000 | unsupported | pass |
+| category | 320 | mid | size-adjust-only | Noto Serif | optional | fallback-kept | 0.0000 | 0.0000 | 0.0000 | — | — | pass |
+| category | 320 | mid | size-adjust-only | Times New Roman | optional | fallback-kept | 0.0000 | 0.0000 | 0.0000 | 0.0000 | unsupported | pass |
+| category | 320 | top | full | Noto Serif | optional | fallback-kept | 0.0000 | 0.0000 | 0.0000 | — | — | pass |
+| category | 320 | top | full | Times New Roman | optional | fallback-kept | 0.0000 | 0.0000 | 0.0000 | 0.0000 | unsupported | pass |
+| category | 320 | top | size-adjust-only | Noto Serif | optional | fallback-kept | 0.0000 | 0.0000 | 0.0000 | — | — | pass |
+| category | 320 | top | size-adjust-only | Times New Roman | optional | fallback-kept | 0.0000 | 0.0000 | 0.0000 | 0.0000 | unsupported | pass |
+| changelog | 1280 | mid | full | Noto Serif | optional | fallback-kept | 0.0000 | 0.0000 | 0.0000 | — | — | pass |
+| changelog | 1280 | mid | full | Times New Roman | optional | fallback-kept | 0.0000 | 0.0000 | 0.0000 | 0.0000 | unsupported | pass |
+| changelog | 1280 | mid | size-adjust-only | Noto Serif | optional | fallback-kept | 0.0000 | 0.0000 | 0.0000 | — | — | pass |
+| changelog | 1280 | mid | size-adjust-only | Times New Roman | optional | fallback-kept | 0.0000 | 0.0000 | 0.0000 | 0.0000 | unsupported | pass |
+| changelog | 1280 | top | full | Noto Serif | optional | fallback-kept | 0.0000 | 0.0000 | 0.0000 | — | — | pass |
+| changelog | 1280 | top | full | Times New Roman | optional | fallback-kept | 0.0000 | 0.0000 | 0.0000 | 0.0000 | unsupported | pass |
+| changelog | 1280 | top | size-adjust-only | Noto Serif | optional | fallback-kept | 0.0000 | 0.0000 | 0.0000 | — | — | pass |
+| changelog | 1280 | top | size-adjust-only | Times New Roman | optional | fallback-kept | 0.0000 | 0.0000 | 0.0000 | 0.0000 | unsupported | pass |
+| changelog | 320 | mid | full | Noto Serif | optional | fallback-kept | 0.0000 | 0.0000 | 0.0000 | — | — | pass |
+| changelog | 320 | mid | full | Times New Roman | optional | fallback-kept | 0.0000 | 0.0000 | 0.0000 | 0.0000 | unsupported | pass |
+| changelog | 320 | mid | size-adjust-only | Noto Serif | optional | fallback-kept | 0.0000 | 0.0000 | 0.0000 | — | — | pass |
+| changelog | 320 | mid | size-adjust-only | Times New Roman | optional | fallback-kept | 0.0000 | 0.0000 | 0.0000 | 0.0000 | unsupported | pass |
+| changelog | 320 | top | full | Noto Serif | optional | fallback-kept | 0.0000 | 0.0000 | 0.0000 | — | — | pass |
+| changelog | 320 | top | full | Times New Roman | optional | fallback-kept | 0.0000 | 0.0000 | 0.0000 | 0.0000 | unsupported | pass |
+| changelog | 320 | top | size-adjust-only | Noto Serif | optional | fallback-kept | 0.0000 | 0.0000 | 0.0000 | — | — | pass |
+| changelog | 320 | top | size-adjust-only | Times New Roman | optional | fallback-kept | 0.0000 | 0.0000 | 0.0000 | 0.0000 | unsupported | pass |
+| contact | 1280 | mid | full | Noto Serif | optional | fallback-kept | 0.0000 | 0.0000 | 0.0000 | — | — | pass |
+| contact | 1280 | mid | full | Times New Roman | optional | fallback-kept | 0.0000 | 0.0000 | 0.0000 | 0.0000 | unsupported | pass |
+| contact | 1280 | mid | size-adjust-only | Noto Serif | optional | fallback-kept | 0.0000 | 0.0000 | 0.0000 | — | — | pass |
+| contact | 1280 | mid | size-adjust-only | Times New Roman | optional | fallback-kept | 0.0000 | 0.0000 | 0.0000 | 0.0000 | unsupported | pass |
+| contact | 1280 | top | full | Noto Serif | optional | fallback-kept | 0.0000 | 0.0000 | 0.0000 | — | — | pass |
+| contact | 1280 | top | full | Times New Roman | optional | fallback-kept | 0.0000 | 0.0000 | 0.0000 | 0.0000 | unsupported | pass |
+| contact | 1280 | top | size-adjust-only | Noto Serif | optional | fallback-kept | 0.0000 | 0.0000 | 0.0000 | — | — | pass |
+| contact | 1280 | top | size-adjust-only | Times New Roman | optional | fallback-kept | 0.0000 | 0.0000 | 0.0000 | 0.0000 | unsupported | pass |
+| contact | 320 | mid | full | Noto Serif | optional | fallback-kept | 0.0000 | 0.0000 | 0.0000 | — | — | pass |
+| contact | 320 | mid | full | Times New Roman | optional | fallback-kept | 0.0000 | 0.0000 | 0.0000 | 0.0000 | unsupported | pass |
+| contact | 320 | mid | size-adjust-only | Noto Serif | optional | fallback-kept | 0.0000 | 0.0000 | 0.0000 | — | — | pass |
+| contact | 320 | mid | size-adjust-only | Times New Roman | optional | fallback-kept | 0.0000 | 0.0000 | 0.0000 | 0.0000 | unsupported | pass |
+| contact | 320 | top | full | Noto Serif | optional | fallback-kept | 0.0000 | 0.0000 | 0.0000 | — | — | pass |
+| contact | 320 | top | full | Times New Roman | optional | fallback-kept | 0.0000 | 0.0000 | 0.0000 | 0.0000 | unsupported | pass |
+| contact | 320 | top | size-adjust-only | Noto Serif | optional | fallback-kept | 0.0000 | 0.0000 | 0.0000 | — | — | pass |
+| contact | 320 | top | size-adjust-only | Times New Roman | optional | fallback-kept | 0.0000 | 0.0000 | 0.0000 | 0.0000 | unsupported | pass |
+| index | 1280 | mid | full | Noto Serif | optional | fallback-kept | 0.0000 | 0.0000 | 0.0000 | — | — | pass |
+| index | 1280 | mid | full | Times New Roman | optional | fallback-kept | 0.0000 | 0.0000 | 0.0000 | 0.0000 | unsupported | pass |
+| index | 1280 | mid | size-adjust-only | Noto Serif | optional | fallback-kept | 0.0000 | 0.0000 | 0.0000 | — | — | pass |
+| index | 1280 | mid | size-adjust-only | Times New Roman | optional | fallback-kept | 0.0000 | 0.0000 | 0.0000 | 0.0000 | unsupported | pass |
+| index | 1280 | top | full | Noto Serif | optional | fallback-kept | 0.0000 | 0.0000 | 0.0000 | — | — | pass |
+| index | 1280 | top | full | Times New Roman | optional | fallback-kept | 0.0000 | 0.0000 | 0.0000 | 0.0000 | unsupported | pass |
+| index | 1280 | top | size-adjust-only | Noto Serif | optional | fallback-kept | 0.0000 | 0.0000 | 0.0000 | — | — | pass |
+| index | 1280 | top | size-adjust-only | Times New Roman | optional | fallback-kept | 0.0000 | 0.0000 | 0.0000 | 0.0000 | unsupported | pass |
+| index | 320 | mid | full | Noto Serif | optional | fallback-kept | 0.0000 | 0.0000 | 0.0000 | — | — | pass |
+| index | 320 | mid | full | Times New Roman | optional | fallback-kept | 0.0000 | 0.0000 | 0.0000 | 0.0000 | unsupported | pass |
+| index | 320 | mid | size-adjust-only | Noto Serif | optional | fallback-kept | 0.0000 | 0.0000 | 0.0000 | — | — | pass |
+| index | 320 | mid | size-adjust-only | Times New Roman | optional | fallback-kept | 0.0000 | 0.0000 | 0.0000 | 0.0000 | unsupported | pass |
+| index | 320 | top | full | Noto Serif | optional | fallback-kept | 0.0000 | 0.0000 | 0.0000 | — | — | pass |
+| index | 320 | top | full | Times New Roman | optional | fallback-kept | 0.0000 | 0.0000 | 0.0000 | 0.0000 | unsupported | pass |
+| index | 320 | top | size-adjust-only | Noto Serif | optional | fallback-kept | 0.0000 | 0.0000 | 0.0000 | — | — | pass |
+| index | 320 | top | size-adjust-only | Times New Roman | optional | fallback-kept | 0.0000 | 0.0000 | 0.0000 | 0.0000 | unsupported | pass |
+
+## Positive control
+
+Proves the instrument is not blind: the same index@320px/scroll=mid load, measured with every `font-display` descriptor in the fonts region rewritten to `swap` for this one load only (the `swap-control` variant), must show a REAL swap when the engine has a pre-release paint to diff against.
+
+| engine | prePaintObserved | pathObserved | geometryScore | verdict |
+|---|---|---|---|---|
+| chromium | true | swapped | 0.6722 | detected |
+| webkit | true | swapped | 1.1908 | detected |
+
+## Per-engine prePaintObserved
+
+- Chromium: prePaintObserved was true across the matrix.
+- WebKit (Playwright): prePaintObserved was mixed (true, false) across the matrix.
 
 ## Fallback faces exercised
 
@@ -102,6 +122,8 @@ size-adjust is supported in Safari 17+. ascent-override, descent-override and li
 
 ## Summary
 
-- Chromium: max geometryScore = 0.6760
-- WebKit (Playwright): max geometryScore = 1.1948
+- Chromium: max geometryScore = 0.0000
+- WebKit (Playwright): max geometryScore = 0.0000
+
+Under font-display: swap (01-09) the same matrix measured geometry scores up to 1.19 (WebKit) and 0.70 (Chromium); superseded by D-GAP-A.
 

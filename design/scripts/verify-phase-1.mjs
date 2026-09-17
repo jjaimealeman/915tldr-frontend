@@ -164,6 +164,13 @@ function nodeCheckC5() {
     const css = readFileSync(styleCssPath, 'utf8');
     const fontFaceBlocks = css.match(/@font-face\s*{[^}]*}/g) ?? [];
     for (const block of fontFaceBlocks) {
+      // D-GAP-A: every @font-face rule must carry font-display: optional —
+      // the generator (build-fonts.mjs's FONT_DISPLAY constant) applies this
+      // uniformly; a stray/mis-served block would silently reopen the
+      // swap-triggered CLS this owner decision closed.
+      if (!/font-display:\s*optional;/.test(block)) {
+        problems.push(`@font-face without font-display: optional (D-GAP-A): ${block.slice(0, 80)}...`);
+      }
       const srcMatch = block.match(/src:\s*([^;]+);/);
       if (!srcMatch) continue;
       const srcValue = srcMatch[1];

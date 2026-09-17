@@ -640,7 +640,7 @@ async function openPageForMeasurement(
 }
 
 /**
- * Opens a REFERENCE load in a fresh browser context: same width/theme/scroll/
+ * Opens a REFERENCE load in a fresh browser context: same width/theme/
  * variant/fallbackFamily as the measurement under test, but no font hold at
  * all -- a plain, unthrottled load. Its webfonts are proven in use (via
  * assertWebfontsInUse) before its layout snapshot and native CLS are
@@ -648,13 +648,28 @@ async function openPageForMeasurement(
  * optional block period would prove nothing. Used as the "what does a
  * webfont-first render of this exact combination look like" baseline that
  * measureFontSwap's pathObserved classification diffs against.
+ *
+ * `targetScrollY` is the EXACT absolute scrollY pixel the main measurement's
+ * own "after" snapshot ended up at -- not an independently-recomputed
+ * `scrollHeight / 2` fraction. 01-13 continuation (Task 2) found that when a
+ * real swap changes total document height (the swap-control positive
+ * control; in principle any row where fallback and primary metrics don't
+ * agree to the pixel), the main page's own scrollY does not auto-adjust to
+ * track the NEW height's midpoint (real browsers don't rescroll on resize
+ * either), while an independently-computed `scrollHeight / 2` on the
+ * reference load lands at a DIFFERENT absolute pixel -- a ~300px drift
+ * observed directly, comparing two viewports that are not actually the same
+ * part of the page and produces a spurious layoutsMatch() failure
+ * (classified 'indeterminate') that has nothing to do with which font
+ * rendered. Passing the main measurement's own real scrollY through removes
+ * the drift for every row, not just the control.
  */
 async function measureReferenceLoad(
   browser: Browser,
   name: PageName,
   width: number,
   theme: 'light' | 'dark',
-  scroll: 'top' | 'mid',
+  targetScrollY: number,
   variant: FontSwapVariant,
   fallbackFamily: string | null
 ): Promise<{ snapshot: LayoutSnapshot; referenceNativeCls: number | null }> {
@@ -668,14 +683,32 @@ async function measureReferenceLoad(
     await installStyleOverride(refPage, variant, fallbackFamily);
     await openPageForMeasurement(refPage, name, theme, width, 900);
 
-    if (scroll === 'mid') {
-      await refPage.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight / 2));
+    if (targetScrollY > 0) {
+      await refPage.evaluate((y) => window.scrollTo(0, y), targetScrollY);
     }
 
     await refPage.evaluate(() => document.fonts.ready);
     await nextTwoFrames(refPage);
 
-    const faces = await renderedPrimaryFaces(refPage);
+    // 01-13 continuation (Task 2): restricted to font-style "normal" faces
+    // only. D-GAP-A preloads exactly two resources -- InstrumentSerif-
+    // Regular.woff2 and SourceSerif4-Roman.woff2 -- both font-style: normal
+    // (Source Serif 4's single @font-face covers the 400-700 weight range,
+    // so its bold text shares that same preloaded resource and stays in
+    // scope). Italic text (e.g. the article standfirst deck's [data-standfirst])
+    // uses a SEPARATE, deliberately non-preloaded @font-face; discovered via
+    // article.html @320px: it deterministically (not a timing flake -- an
+    // extra 2s wait does not change the outcome) misses the optional block
+    // period on every load, held or not, because nothing accelerates its
+    // fetch start the way preload does for the other two. That is a real,
+    // permanent consequence of the fixed 2-preload D-GAP-A design, not a
+    // measurement bug -- but it means "prove the webfont is in use" can
+    // never be satisfied for it, on any load. Since italic never differs
+    // between the main test's before/after and the reference (all three
+    // consistently render its fallback), it contributes nothing to the
+    // swap classification this reference exists to validate, so it is
+    // correctly out of scope for this specific proof.
+    const faces = (await renderedPrimaryFaces(refPage)).filter((f) => f.style === 'normal');
     await assertWebfontsInUse(refPage, faces);
 
     const snapshot = await snapshotLayout(refPage);
@@ -846,7 +879,11 @@ export async function measureFontSwap(
   let referenceNativeCls: number | null = null;
   let pathObserved: FontSwapResult['pathObserved'] = 'indeterminate';
   if (browser) {
-    const reference = await measureReferenceLoad(browser, name, width, theme, scroll, variant, fallbackFamily);
+    // The main measurement's OWN real scrollY, not an independently
+    // recomputed scrollHeight-based fraction -- see measureReferenceLoad's
+    // doc comment for why (drift when a real swap changes document height).
+    const afterScrollY = await page.evaluate(() => window.scrollY);
+    const reference = await measureReferenceLoad(browser, name, width, theme, afterScrollY, variant, fallbackFamily);
     referenceNativeCls = reference.referenceNativeCls;
 
     const beforeMatchesAfter = before ? layoutsMatch(before, after) : true; // no pre-swap state observed
