@@ -17,7 +17,7 @@ import type { Page } from '@playwright/test';
  *   font stack against the same stack with the primary family stripped out.
  */
 
-const PRIMARY_FAMILIES = ['Instrument Serif', 'Source Serif 4'];
+export const PRIMARY_FAMILIES = ['Instrument Serif', 'Source Serif 4'];
 const PROBE_TEXT = 'Hamburgefonstiv ÁÉÍÓÚñü 0123456789';
 
 export interface RenderedFace {

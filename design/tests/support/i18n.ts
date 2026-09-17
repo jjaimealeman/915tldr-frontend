@@ -1,6 +1,7 @@
 import type { Page } from '@playwright/test';
 import { readFileSync } from 'node:fs';
 import path from 'node:path';
+import { assertWebfontsInUse, PRIMARY_FAMILIES } from './fonts-in-use.ts';
 
 /**
  * D-15/criterion-4 support: loads the real+synthetic Spanish fixture (01-04),
@@ -259,8 +260,46 @@ export async function overflowReport(page: Page, id: string, containerSelector: 
  * the resolved element's own computed font-family/style/weight/size, and
  * returns widthB / widthA — the real rendered width ratio in the production
  * fonts, never a byte or code-point proxy.
+ *
+ * D-GAP-A (01-13 continuation, Task 3): before measuring, resolves the
+ * element's own computed first font-family/style/weight and, only when that
+ * family is one of this project's two primary families AND its style is
+ * "normal", calls assertWebfontsInUse for exactly that face. Under
+ * font-display: optional a primary webfont that missed its block period is
+ * never used for that document view — without this guard, a width
+ * measurement here would silently measure the metric-compatible fallback
+ * face and report it as if it were the real webfont, exactly the failure
+ * mode this plan's Task 1 instrument exists to catch elsewhere.
+ *
+ * The style==="normal" restriction mirrors geometry.ts's measureReferenceLoad
+ * (Task 2): D-GAP-A preloads exactly two resources, both font-style: normal
+ * (InstrumentSerif-Regular.woff2, SourceSerif4-Roman.woff2 — the latter's
+ * single @font-face covers the 400-700 weight range, so bold text shares
+ * that same preloaded resource and stays in scope). Italic primary text
+ * (e.g. article's [data-standfirst] deck) uses a separate, deliberately
+ * non-preloaded @font-face; confirmed on both engines (article.html, index
+ * and 768px widths) that it deterministically — not a timing flake, per
+ * Task 2's own investigation — misses the optional block period on every
+ * normal (unthrottled) load, because nothing accelerates its fetch start
+ * the way preload does for the other two. Enforcing "prove in use" against
+ * italic here would make every Spanish width measurement of italic content
+ * throw unconditionally, which is not this guard's purpose (catching a
+ * SILENT wrong measurement) — a deterministic, already-documented,
+ * permanent state is not silent.
  */
 export async function widthRatio(page: Page, id: string, a: string, b: string): Promise<number> {
+  const resolvedFace = await page.evaluate(({ id }) => {
+    const el = document.querySelector(`[data-i18n="${id}"]`) ?? document.querySelector(id);
+    if (!el) throw new Error(`widthRatio: no element found for "${id}"`);
+    const style = getComputedStyle(el);
+    const firstFamily = (style.fontFamily.split(',')[0] ?? '').trim().replace(/^["']|["']$/g, '');
+    return { family: firstFamily, style: style.fontStyle, weight: style.fontWeight };
+  }, { id });
+
+  if (PRIMARY_FAMILIES.includes(resolvedFace.family) && resolvedFace.style === 'normal') {
+    await assertWebfontsInUse(page, [resolvedFace]);
+  }
+
   return page.evaluate(
     ({ id, a, b }) => {
       const el = document.querySelector(`[data-i18n="${id}"]`) ?? document.querySelector(id);

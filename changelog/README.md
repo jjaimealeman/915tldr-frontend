@@ -10,6 +10,7 @@ Entries are named `YYYY-MM-DD-HHMM_slug.md` and grouped by month, newest first.
 
 | Date | Entry | Keywords |
 |------|-------|----------|
+| 2026-09-17 | [Spanish Text-Width Checks Now Refuse to Measure the Wrong Font, and the PRD Catches Up](2026-09-17-1235_01-13-guard-spanish-width-measurements-amend-prd-6.md) | `[FEATURE]` `[TESTING]` `[DOCUMENTATION]` |
 | 2026-09-17 | [Full Font-Swap Matrix Passes Cleanly, With a Built-In Check That the Test Itself Still Works](2026-09-17-1234_01-13-full-matrix-positive-control-and-strict-crit.md) | `[FEATURE]` `[TESTING]` `[PERFORMANCE]` `[BUG_FIX]` |
 | 2026-09-17 | [Fixed the Real Bugs Behind the Chrome Font-Swap Scare, Reversing Yesterday's Diagnosis](2026-09-17-1233_01-13-correct-the-chromium-swap-misdiagnosis-fontc.md) | `[BUG_FIX]` `[TESTING]` `[PERFORMANCE]` `[CONFIG]` |
 | 2026-09-17 | [Recorded the Diagnosis Session and Updated Progress Tracking](2026-09-17-1147_01-13-record-diagnosis-session-progress-and-roadma.md) | `[DOCUMENTATION]` `[PLANNING]` |

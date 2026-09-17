@@ -414,10 +414,14 @@ Source Serif 4 and Instrument Serif, **self-hosted, not fetched from Google at r
 
 - Subset to the characters actually used, including Spanish diacritics
 - `woff2` only
-- `<link rel="preload">` for the faces used above the fold
-- `font-display: swap`, with metric-compatible fallbacks declared via `size-adjust` so the
-  swap does not shift layout — a serif swap is a classic CLS source
+- `font-display: optional`, with `<link rel="preload">` for the above-the-fold faces — each page
+  view renders either the webfont from first paint or the metric-compatible fallback throughout;
+  there is no mid-render swap and so no swap-triggered layout shift. Fallbacks keep `size-adjust`
+  metric compatibility because the fallback-kept view still has to look right.
 - Variable fonts where available, to cut requests
+
+Amended 2026-09-17 — owner decision D-GAP-A during the Phase 1 design review (see
+.planning/phases/01-design-sketch-editorial-identity/01-APPROVAL.md). Previously: font-display: swap.
 
 ### 6.6 SEO
 
