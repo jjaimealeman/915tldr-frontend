@@ -1,6 +1,6 @@
 # Contrast evidence (D-13)
 
-Generated from `design/mockups/style.css` — re-run `npm run check:contrast` after any token edit.
+Generated from `design/mockups/style.css` — re-run `pnpm run check:contrast` after any token edit.
 
 ## Neutrals
 

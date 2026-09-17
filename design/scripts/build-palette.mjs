@@ -194,7 +194,7 @@ function buildEvidenceMarkdown(perCategory) {
   lines.push('');
   lines.push(
     'Generated from `design/palette/photo-sources.json`, `design/palette/hue-sources.json` and ' +
-      '`design/palette/palette.json` by `npm run palette:build` — re-run after any hue, offset or ' +
+      '`design/palette/palette.json` by `pnpm run palette:build` — re-run after any hue, offset or ' +
       'stop change.'
   );
   lines.push('');

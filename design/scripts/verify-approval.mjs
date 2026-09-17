@@ -46,7 +46,7 @@ function main() {
   const pendingOk = process.argv.includes('--pending-ok');
 
   if (!existsSync(path.resolve(PACKET_PATH))) {
-    console.error(`FATAL: ${PACKET_PATH} does not exist. Run "npm run approval:packet" first.`);
+    console.error(`FATAL: ${PACKET_PATH} does not exist. Run "pnpm run approval:packet" first.`);
     process.exit(1);
   }
 

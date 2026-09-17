@@ -500,7 +500,7 @@ async function finish(state, outPath, jsonMode, cssPath) {
   const lines = [];
   lines.push('# Contrast evidence (D-13)');
   lines.push('');
-  lines.push(`Generated from \`${cssPath}\` — re-run \`npm run check:contrast\` after any token edit.`);
+  lines.push(`Generated from \`${cssPath}\` — re-run \`pnpm run check:contrast\` after any token edit.`);
   lines.push('');
 
   lines.push('## Neutrals');

@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // Dependency-free static file server rooted at design/. Serves mockups,
 // fonts, and test fixtures for Playwright's webServer, and can be started
-// directly by the OWNER via `npm run serve:mockups` for manual browsing.
+// directly by the OWNER via `pnpm run serve:mockups` for manual browsing.
 //
 // Security posture (see 01-01-PLAN.md threat model T-01-01):
 //   - binds to the loopback address only, never a wildcard/all-interfaces host
