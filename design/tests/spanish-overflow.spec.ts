@@ -23,9 +23,22 @@ const fixture = loadSpanishFixture();
  */
 const DRAWN_ONLY_COMPONENT_IDS = new Set(['worst-case']);
 
+/**
+ * SPANISH_COMPONENTS narrows a run to a comma-separated id list, in the same
+ * spirit as MOCKUP_PAGES narrowing pages — unset (the default), every
+ * component for the page runs, as before.
+ */
 function componentsForPage(pageName: string): SpanishComponent[] {
+  const envValue = process.env.SPANISH_COMPONENTS;
+  const idFilter =
+    envValue && envValue.trim().length > 0
+      ? new Set(envValue.split(',').map((s) => s.trim()).filter(Boolean))
+      : null;
   return fixture.components.filter(
-    (c) => (c.page === 'all' || c.page === pageName) && !DRAWN_ONLY_COMPONENT_IDS.has(c.id)
+    (c) =>
+      (c.page === 'all' || c.page === pageName) &&
+      !DRAWN_ONLY_COMPONENT_IDS.has(c.id) &&
+      (idFilter === null || idFilter.has(c.id))
   );
 }
 
@@ -129,14 +142,25 @@ for (const pageName of pagesUnderTest()) {
             // tight, content-scoped wrapper — not a broad landmark
             // (nav/header/main) whose height reflects the whole
             // page/section and fluctuates for reasons unrelated to this
-            // element — and (b) when the injected text is not itself
+            // element — (b) when the injected text is not itself
             // shorter than what was already rendered there: some stress
             // hooks carry real corpus/placeholder text longer than a given
             // fixture component's own text, and a shorter replacement
-            // legitimately produces a shorter (not clipped) box. vClipped,
-            // asserted above, is the authoritative "did it actually clip"
-            // signal in every case.
-            if (report.containerTight && text.length >= baseline.textLength) {
+            // legitimately produces a shorter (not clipped) box — and (c)
+            // when the element is not hyphenation-eligible: headline
+            // elements carry `hyphens: auto` (01-08/D-01's long-word
+            // overflow defense), which only actually engages a hyphenation
+            // dictionary once `lang` is known, and injectText() always sets
+            // `lang="es"` as part of injection. A hyphenation-eligible
+            // headline can legitimately re-wrap onto FEWER lines than its
+            // un-hyphenated baseline for the exact same (or longer) text,
+            // shrinking its container with nothing lost or clipped — 01-15
+            // confirmed this with a minimal setAttribute('lang','es')-only
+            // repro that reproduces the identical shrink with no text
+            // change at all. vClipped, asserted above, is the authoritative
+            // "did it actually clip" signal in every case, unaffected by
+            // this exemption.
+            if (report.containerTight && text.length >= baseline.textLength && !baseline.hyphensAuto) {
               expect(
                 report.containerHeight,
                 `${label}: container must grow to fit longer text, never clip`

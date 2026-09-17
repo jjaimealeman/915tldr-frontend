@@ -14,8 +14,25 @@ import path from 'node:path';
 import { chromium } from '@playwright/test';
 import { startServer } from './serve-mockups.mjs';
 import { blockThirdParty } from '../tests/support/harness.ts';
+import { assertWebfontsInUse } from '../tests/support/fonts-in-use.ts';
 
 const FIXTURE_PATH = path.resolve('design/fixtures/spanish-stress.json');
+
+// D-15 (01-15): after 01-14's type-system change, these seven ids render
+// headlines in Source Serif 4 Bold (--font-headline, weight 700); the
+// standfirst deck moved to the body face, italic. Applied unconditionally on
+// every run (independent of --only) so the fixture's fontRole field is never
+// stale even when a run recalibrates only one component.
+const HEADLINE_ROLE_IDS = new Set([
+  'card-headline',
+  'lead-headline',
+  'category-masthead-title',
+  'category-lead-headline',
+  'article-headline',
+  'changelog-title',
+  'worst-case',
+]);
+const BODY_ROLE_OVERRIDE_IDS = new Set(['article-standfirst']);
 
 // Sorted longest-first so the padding loop's "first word that fits" is
 // always the longest word from PAD_WORDS that fits — see calibrateComponent.
@@ -38,14 +55,14 @@ const PAD_WORDS = [
   'y',
 ].sort((a, b) => b.length - a.length);
 
-const PRIMARY_FAMILIES = ['Instrument Serif', 'Source Serif 4'];
-
 /**
  * Renders `text` in an offscreen, hidden span using the real token-layer
- * font-family (`var(--font-<role>)`) and the component's font-style, at a
- * fixed 100px font-size so ratios are comparable across components
- * regardless of the fluid --step-* clamp() tokens. Returns the rendered
- * width in CSS pixels.
+ * font-family (`var(--font-<role>)`), the component's font-style, and (for
+ * role "headline") the real headline weight token (`var(--weight-headline)`,
+ * 700) rather than a browser-default 400 — a headline component measured at
+ * the wrong weight is not measuring what actually ships. Fixed at a 100px
+ * font-size so ratios are comparable across components regardless of the
+ * fluid --step-* clamp() tokens. Returns the rendered width in CSS pixels.
  */
 async function measureWidth(page, text, fontRole, fontStyle) {
   return page.evaluate(
@@ -55,6 +72,7 @@ async function measureWidth(page, text, fontRole, fontStyle) {
       span.style.visibility = 'hidden';
       span.style.whiteSpace = 'nowrap';
       span.style.fontFamily = `var(--font-${fontRole})`;
+      span.style.fontWeight = fontRole === 'headline' ? 'var(--weight-headline)' : '400';
       span.style.fontStyle = fontStyle;
       span.style.fontSize = '100px';
       span.textContent = text;
@@ -68,40 +86,46 @@ async function measureWidth(page, text, fontRole, fontStyle) {
 }
 
 /**
- * Asserts every primary face (normal + italic, both families) reaches
- * 'loaded' — never merely relying on document.fonts.ready, since an unused
- * variant correctly stays 'unloaded' until `load()` is called for it
- * (01-02's geometry.ts establishes this pattern).
+ * Returns the deduped (family, style, weight) faces exercised by `components`
+ * — Instrument Serif normal 400 only when a display-role component is
+ * present, Source Serif 4 normal 400 / normal 700 / italic 400 as the roles
+ * and styles actually in `components` require. Passed straight into
+ * assertWebfontsInUse so the guard proves exactly (and only) the faces this
+ * run is about to measure.
  */
-async function assertPrimaryFontsLoaded(page) {
-  const result = await page.evaluate(async (families) => {
-    const statusByFace = {};
-    for (const family of families) {
-      for (const style of ['normal', 'italic']) {
-        const key = `${family} ${style}`;
-        try {
-          await document.fonts.load(`${style} 1em "${family}"`);
-        } catch {
-          // status check below reports the outcome either way
-        }
-        const faces = [...document.fonts].filter(
-          (f) => f.family === family && f.style === style
-        );
-        statusByFace[key] = faces.map((f) => f.status);
-      }
+function facesForComponents(components) {
+  const faces = new Map();
+  for (const comp of components) {
+    const style = comp.fontStyle ?? 'normal';
+    let family;
+    let weight;
+    if (comp.fontRole === 'display') {
+      family = 'Instrument Serif';
+      weight = '400';
+    } else if (comp.fontRole === 'headline') {
+      family = 'Source Serif 4';
+      weight = '700';
+    } else {
+      family = 'Source Serif 4';
+      weight = '400';
     }
-    return statusByFace;
-  }, PRIMARY_FAMILIES);
-
-  for (const [key, statuses] of Object.entries(result)) {
-    const anyLoaded = statuses.some((s) => s === 'loaded');
-    if (!anyLoaded) {
-      throw new Error(
-        `calibrate-spanish: primary face "${key}" never reached "loaded" (saw: ${JSON.stringify(statuses)}) — only fallback faces would be measured`
-      );
-    }
+    const key = `${family}|${style}|${weight}`;
+    if (!faces.has(key)) faces.set(key, { family, style, weight });
   }
-  console.log('calibrate-spanish: primary faces loaded ->', JSON.stringify(result));
+  return [...faces.values()];
+}
+
+/**
+ * Proves every face in `faces` is actually rendering (not a fallback caught
+ * mid font-display:optional block period) before any measurement runs —
+ * delegates to fonts-in-use.ts's assertWebfontsInUse, the same guard the
+ * spanish-overflow.spec.ts in-page widthRatio check uses, so a calibration
+ * run and the test that consumes its numbers can never disagree about
+ * whether the primary webfont was actually in use.
+ */
+async function assertPrimaryFontsLoaded(page, faces) {
+  await assertWebfontsInUse(page, faces);
+  console.log('calibrate-spanish: primary faces in use ->', JSON.stringify(faces));
 }
 
 function tokenize(text) {
@@ -247,9 +271,46 @@ async function calibrateComponent(page, comp) {
   };
 }
 
+/**
+ * Parses `--only=<id>[,<id>...]` from argv. Returns null when the flag is
+ * absent (meaning "recalibrate every component").
+ */
+function parseOnlyArg(argv) {
+  const arg = argv.find((a) => a.startsWith('--only='));
+  if (!arg) return null;
+  return arg
+    .slice('--only='.length)
+    .split(',')
+    .map((s) => s.trim())
+    .filter(Boolean);
+}
+
 async function main() {
+  const onlyIds = parseOnlyArg(process.argv.slice(2));
+
   const raw = await readFile(FIXTURE_PATH, 'utf8');
   const fixture = JSON.parse(raw);
+
+  const allIds = new Set(fixture.components.map((c) => c.id));
+  if (onlyIds) {
+    const unknown = onlyIds.filter((id) => !allIds.has(id));
+    if (unknown.length > 0) {
+      console.error(`calibrate-spanish: unknown component id(s) in --only: ${unknown.join(', ')}`);
+      process.exit(1);
+    }
+  }
+  const targetIds = onlyIds ? new Set(onlyIds) : allIds;
+
+  // Role overrides are unconditional — applied every run, regardless of
+  // --only, so the fixture's fontRole field is never left stale just because
+  // a run only recalibrated one component's widthRatio/es_synthetic.
+  for (const comp of fixture.components) {
+    if (HEADLINE_ROLE_IDS.has(comp.id)) {
+      comp.fontRole = 'headline';
+    } else if (BODY_ROLE_OVERRIDE_IDS.has(comp.id)) {
+      comp.fontRole = 'body';
+    }
+  }
 
   const { url, close } = await startServer({ port: 0 });
   const browser = await chromium.launch();
@@ -264,12 +325,20 @@ async function main() {
 
     await page.goto(`${url}/mockups/index.html`, { waitUntil: 'domcontentloaded' });
     await page.evaluate(() => document.fonts.ready);
-    await assertPrimaryFontsLoaded(page);
+
+    const targetComponents = fixture.components.filter((c) => targetIds.has(c.id));
+    await assertPrimaryFontsLoaded(page, facesForComponents(targetComponents));
 
     const calibratedComponents = [];
+    let recalibratedCount = 0;
     for (const comp of fixture.components) {
+      if (!targetIds.has(comp.id)) {
+        calibratedComponents.push(comp);
+        continue;
+      }
       const result = await calibrateComponent(page, comp);
       calibratedComponents.push(result);
+      recalibratedCount += 1;
       console.log(
         `calibrate-spanish: ${comp.id} widthRatio=${result.calibration.widthRatio.toFixed(4)} hi=${result.calibration.hi.toFixed(4)}`
       );
@@ -278,7 +347,7 @@ async function main() {
     fixture.components = calibratedComponents;
 
     await writeFile(FIXTURE_PATH, JSON.stringify(fixture, null, 2) + '\n', 'utf8');
-    console.log(`calibrate-spanish: wrote ${calibratedComponents.length} calibrated component(s) to ${FIXTURE_PATH}`);
+    console.log(`calibrate-spanish: wrote ${fixture.components.length} component(s) (${recalibratedCount} recalibrated) to ${FIXTURE_PATH}`);
   } finally {
     await browser.close();
     await close();

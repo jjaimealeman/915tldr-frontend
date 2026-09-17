@@ -157,6 +157,23 @@ export interface OverflowReport {
    * meaningful in the tight case.
    */
   containerTight: boolean;
+  /**
+   * True when the resolved element's computed `hyphens` is `auto` (headline
+   * elements — 01-08/D-01's long-word overflow defense). `hyphens: auto`
+   * only actually engages a hyphenation dictionary once an element's
+   * resolved `lang` is known — injectText() sets `lang="es"` as part of
+   * every injection — so a same-length or even longer string can
+   * legitimately wrap onto FEWER lines than the un-hyphenated baseline once
+   * injected, shrinking its container with no text lost or clipped. This is
+   * a real, desired effect of the CSS (confirmed 01-15 via a minimal
+   * setAttribute('lang','es')-only repro reproducing the exact same
+   * shrink with no text change at all), not a regression — the
+   * container-growth heuristic below is not meaningful for an element where
+   * this is true, so spanish-overflow.spec.ts skips it in that case and
+   * relies solely on vClipped (the authoritative clip signal, unaffected by
+   * this field).
+   */
+  hyphensAuto: boolean;
 }
 
 const TIGHT_CONTAINER_SELECTORS = '[data-card], [data-lead], [data-block], [data-dispatch], form';
@@ -236,6 +253,7 @@ export async function overflowReport(page: Page, id: string, containerSelector: 
       const pastViewport = rect.right > window.innerWidth + 0.5;
       const docOverflow = document.documentElement.scrollWidth > window.innerWidth;
       const textLength = ((el as HTMLElement).innerText || '').trim().length;
+      const hyphensAuto = getComputedStyle(el).hyphens === 'auto';
 
       return {
         visible,
@@ -249,6 +267,7 @@ export async function overflowReport(page: Page, id: string, containerSelector: 
         containerHeight,
         containerTight,
         textLength,
+        hyphensAuto,
       };
     },
     { id, containerSelector, tightSelector: TIGHT_CONTAINER_SELECTORS }
