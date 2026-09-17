@@ -19,7 +19,13 @@ export interface LayoutRect {
 }
 
 export interface LayoutSnapshot {
-  elements: Record<string, LayoutRect>;
+  /**
+   * Per-element array of rendered LINE FRAGMENTS (getClientRects()), not a
+   * single bounding-rect envelope — see snapshotLayout's own doc comment for
+   * why an envelope-only comparison under-counts real shift for any
+   * multi-line-wrapping text element.
+   */
+  elements: Record<string, LayoutRect[]>;
   innerWidth: number;
   innerHeight: number;
   scrollHeight: number;
@@ -109,6 +115,22 @@ export function holdFonts(page: Page): FontHold {
  * node child, or is an img/[data-card]/[data-lead]/[data-block], keyed by a
  * stable tag+nth-of-type path so before/after snapshots can be diffed by key
  * rather than by element identity (elements aren't reused across snapshots).
+ *
+ * Each element is recorded as its array of rendered LINE FRAGMENTS
+ * (el.getClientRects()), not a single getBoundingClientRect() envelope.
+ * 01-09's own investigation of WINDOWS.md entry 6 (a Chromium native-CLS
+ * reading that this instrument's earlier envelope-only version reported as
+ * zero shift) found the root cause here: an inline text element that wraps
+ * across multiple lines (e.g. changelog.html's `[data-item-sentence]`
+ * spans, several sentences long) can have individual LINES reflow onto
+ * different characters/positions after a font swap while its overall
+ * bounding-rect *envelope* (top-left of the first line to bottom-right of
+ * the last) stays nearly unchanged — the same "envelope hides real
+ * per-fragment movement" failure mode 01-08's focus.ts already documented
+ * for focus rings on wrapped links. Native layout-shift tracks the
+ * browser's own render-tree fragment/paint boxes, which this project's own
+ * "01-08 standard" (focus.ts) already established is the correct
+ * granularity for exactly this reason.
  */
 export async function snapshotLayout(page: Page): Promise<LayoutSnapshot> {
   return page.evaluate(() => {
@@ -152,10 +174,14 @@ export async function snapshotLayout(page: Page): Promise<LayoutSnapshot> {
       candidates.add(el);
     }
 
-    const elements: Record<string, LayoutRect> = {};
+    const elements: Record<string, { left: number; top: number; width: number; height: number }[]> = {};
     for (const el of candidates) {
-      const rect = el.getBoundingClientRect();
-      elements[stableKey(el)] = { left: rect.left, top: rect.top, width: rect.width, height: rect.height };
+      elements[stableKey(el)] = Array.from(el.getClientRects()).map((rect) => ({
+        left: rect.left,
+        top: rect.top,
+        width: rect.width,
+        height: rect.height,
+      }));
     }
 
     return {
@@ -217,20 +243,47 @@ export function layoutShiftScore(before: LayoutSnapshot, after: LayoutSnapshot):
 
   const keys = new Set([...Object.keys(before.elements), ...Object.keys(after.elements)]);
   for (const key of keys) {
-    const b = before.elements[key];
-    const a = after.elements[key];
-    if (!b || !a) continue; // only elements present in both snapshots can be compared
+    const bFragments = before.elements[key];
+    const aFragments = after.elements[key];
+    if (!bFragments || !aFragments) continue; // only elements present in both snapshots can be compared
 
-    const dLeft = Math.abs(a.left - b.left);
-    const dTop = Math.abs(a.top - b.top);
-    if (dLeft < 1 && dTop < 1) continue; // stable
+    const pairedCount = Math.min(bFragments.length, aFragments.length);
 
-    movedCount++;
-    const displacement = Math.max(dLeft, dTop);
-    if (displacement > maxDisplacementPx) maxDisplacementPx = displacement;
+    // Fragment-by-fragment (line-by-line), not envelope-to-envelope: a
+    // multi-line element whose overall bounding box barely changes can
+    // still have individual lines reflow onto different positions — see
+    // snapshotLayout's doc comment.
+    for (let i = 0; i < pairedCount; i++) {
+      const b = bFragments[i];
+      const a = aFragments[i];
+      const dLeft = Math.abs(a.left - b.left);
+      const dTop = Math.abs(a.top - b.top);
+      if (dLeft < 1 && dTop < 1) continue; // stable
 
-    markCells(clipToViewport(b));
-    markCells(clipToViewport(a));
+      movedCount++;
+      const displacement = Math.max(dLeft, dTop);
+      if (displacement > maxDisplacementPx) maxDisplacementPx = displacement;
+
+      markCells(clipToViewport(b));
+      markCells(clipToViewport(a));
+    }
+
+    // A fragment COUNT change (a line gained or lost — exactly the "same
+    // envelope, different line count" case this fragment-level rewrite
+    // exists to catch) is itself real, visible movement: every fragment
+    // beyond the shorter array's length has no counterpart to diff
+    // against, so it's counted directly, with its own height standing in
+    // for "how far" (a gained/lost line displaces roughly one line-height
+    // of content, a reasonable local proxy without needing to trace every
+    // downstream element's own cascading position change, which those
+    // elements' own keys already capture independently).
+    const longer = bFragments.length >= aFragments.length ? bFragments : aFragments;
+    for (let i = pairedCount; i < longer.length; i++) {
+      const rect = longer[i];
+      movedCount++;
+      if (rect.height > maxDisplacementPx) maxDisplacementPx = rect.height;
+      markCells(clipToViewport(rect));
+    }
   }
 
   const impactFraction = viewportArea > 0 ? (impactedCells.size * cellSize * cellSize) / viewportArea : 0;
@@ -244,10 +297,31 @@ export function layoutShiftScore(before: LayoutSnapshot, after: LayoutSnapshot):
   };
 }
 
+export type FontSwapVariant = 'full' | 'size-adjust-only';
+
 export interface MeasureFontSwapOptions {
   width: number;
   theme?: 'light' | 'dark';
   scroll?: 'top' | 'mid';
+  /**
+   * 'full' (default) leaves style.css's fonts region untouched.
+   * 'size-adjust-only' strips every ascent-override/descent-override/
+   * line-gap-override declaration from the fonts region before the page
+   * loads — the proxy for shipped Safari, which does not implement the
+   * -override trio (01-RESEARCH.md Pitfall 1; WebKit bug 219735 is
+   * RESOLVED FIXED on trunk but not shipped in any released Safari).
+   */
+  variant?: FontSwapVariant;
+  /**
+   * When set, forces --font-display/--font-body to
+   * `"<primary>", "<primary> Fallback: <fallbackFamily>", serif` — bypassing
+   * the natural fallback-priority chain (which face wins depends on which
+   * system fonts happen to be installed) so a specific capsize-corrected
+   * fallback tier can be measured deterministically in both engines,
+   * corrections intact. Combine with `variant` to additionally test that
+   * tier with the -override descriptors stripped.
+   */
+  fallbackFamily?: string | null;
 }
 
 export interface FontSwapResult {
