@@ -345,10 +345,10 @@
   /* palette-dark:end */
 }
 /* tokens:end */
-
 /* ==========================================================================
    Component CSS — mobile-first (D-07): base rules written for 320px, then
-   min-width media queries widen the layout. No extra stylesheet files.
+   min-width media queries widen the layout. No extra stylesheet files. Only
+   two layout breakpoints exist: 48em and 80em (plus prefers-reduced-motion).
    ========================================================================== */
 
 *,
@@ -389,10 +389,11 @@ a {
 }
 
 /* Colour blocks (D-01: category masthead, article category header) re-point
-   the focus ring so it still clears 3:1 against the block background. */
+   the focus ring so it still clears 3:1 against the block background, and
+   paint from the block stop rather than the grid-stripe stop. */
 [data-block] {
   --focus-ring: var(--focus-ring-on-block);
-  background: var(--cat, var(--cat-none));
+  background: var(--cat-block, var(--cat-none));
   color: var(--block-ink);
 }
 
@@ -414,16 +415,17 @@ a {
 }
 
 /* Category identity — one custom property per slug, consumed by
-   [data-stripe], [data-block] and any component that reads var(--cat). */
-[data-category="crime"] { --cat: var(--cat-crime); }
-[data-category="politics"] { --cat: var(--cat-politics); }
-[data-category="sports"] { --cat: var(--cat-sports); }
-[data-category="business"] { --cat: var(--cat-business); }
-[data-category="education"] { --cat: var(--cat-education); }
-[data-category="community"] { --cat: var(--cat-community); }
-[data-category="health"] { --cat: var(--cat-health); }
-[data-category="weather"] { --cat: var(--cat-weather); }
-[data-category="none"] { --cat: var(--cat-none); }
+   [data-stripe] (--cat, grid tier) and [data-block] (--cat-block, the two
+   D-01 darkened-block contexts). */
+[data-category="crime"] { --cat: var(--cat-crime); --cat-block: var(--cat-crime-block); }
+[data-category="politics"] { --cat: var(--cat-politics); --cat-block: var(--cat-politics-block); }
+[data-category="sports"] { --cat: var(--cat-sports); --cat-block: var(--cat-sports-block); }
+[data-category="business"] { --cat: var(--cat-business); --cat-block: var(--cat-business-block); }
+[data-category="education"] { --cat: var(--cat-education); --cat-block: var(--cat-education-block); }
+[data-category="community"] { --cat: var(--cat-community); --cat-block: var(--cat-community-block); }
+[data-category="health"] { --cat: var(--cat-health); --cat-block: var(--cat-health-block); }
+[data-category="weather"] { --cat: var(--cat-weather); --cat-block: var(--cat-weather-block); }
+[data-category="none"] { --cat: var(--cat-none); --cat-block: var(--rule-strong); }
 
 [data-stripe] {
   display: inline-block;
@@ -433,26 +435,61 @@ a {
   border-radius: 1px;
 }
 
-/* Masthead / wordmark */
-header {
+/* Masthead / wordmark — bold in the chrome (PRD §5.1). A thick rule closes
+   the masthead; the spectrum rule (below) carries the brand signature. */
+header:not([data-block]) {
   padding: var(--space-4) var(--space-4) var(--space-3);
-  border-bottom: var(--rule-thin) solid var(--rule);
+  border-bottom: var(--rule-thick) solid var(--ink);
 }
 
-header h1 {
+header:not([data-block]) h1 {
   font-family: var(--font-display);
   line-height: var(--leading-display);
   font-size: var(--step-6);
   margin: 0;
 }
 
-header p {
+[data-wordmark] {
+  margin: 0;
+  font-family: var(--font-display);
+  line-height: var(--leading-display);
+  font-size: var(--step-6);
+}
+
+[data-wordmark] a {
+  color: var(--ink);
+  text-decoration: none;
+}
+
+[data-tagline] {
+  margin: var(--space-2) 0 0;
+  font-family: var(--font-body);
+  font-size: var(--step-0);
+}
+
+[data-dateline] {
   margin: var(--space-1) 0 0;
   color: var(--ink-muted);
   font-size: var(--step--1);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-variant-caps: small-caps;
 }
 
-/* Category nav — wraps into columns at 320px, no overflow container. */
+/* Spectrum rule — eight equal segments in canonical order, the brand
+   signature (915 TLDR has no ninth brand hue; open item 2). */
+[data-spectrum] {
+  display: flex;
+  height: var(--space-2);
+}
+
+[data-spectrum] span {
+  flex: 1 1 0;
+  background: var(--cat, var(--cat-none));
+}
+
+/* Category nav — two columns at 320px, four at 48em, one row of eight at
+   80em. No element in the nav has overflow other than visible (open item 3). */
 nav[aria-label="Sections"] {
   padding: var(--space-3) var(--space-4);
   border-bottom: var(--rule-thin) solid var(--rule);
@@ -463,9 +500,9 @@ nav[aria-label="Sections"] ul {
   list-style: none;
   margin: 0;
   padding: 0;
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-2) var(--space-4);
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--space-3) var(--space-4);
   overflow: visible;
 }
 
@@ -480,6 +517,11 @@ nav[aria-label="Sections"] a {
   text-transform: uppercase;
 }
 
+nav[aria-label="Sections"] a[aria-current="page"] {
+  text-decoration: underline;
+  text-decoration-thickness: 2px;
+}
+
 /* Theme toggle */
 [data-theme-toggle] {
   font: inherit;
@@ -488,7 +530,7 @@ nav[aria-label="Sections"] a {
   border: var(--rule-thin) solid var(--rule-strong);
   border-radius: 999px;
   padding: var(--space-1) var(--space-3);
-  margin: 0 var(--space-4) var(--space-3);
+  margin: var(--space-3) var(--space-4);
   cursor: pointer;
 }
 
@@ -500,15 +542,32 @@ main {
   padding: 0 var(--space-4) var(--space-8);
 }
 
+/* Image frame — a fixed 3:2 thumbnail duplicating the linked headline. The
+   frame's background is --rule so a missing/blocked image never shows a
+   broken-image look (tests abort third-party requests; D-09). */
+[data-frame] {
+  aspect-ratio: 3 / 2;
+  background: var(--rule);
+  overflow: hidden;
+  margin: 0 0 var(--space-2);
+}
+
+[data-frame] img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
 /* Lead story (D-09) — type-led; the imageless variant is a deliberate
    treatment, not a fallback. */
 [data-lead] {
-  padding: var(--space-5) 0;
-  border-bottom: var(--rule-thin) solid var(--rule);
+  padding: var(--space-6) 0 var(--space-5);
+  border-bottom: var(--rule-thick) solid var(--ink);
 }
 
 [data-lead] [data-stripe] {
-  margin-bottom: var(--space-2);
+  width: var(--space-6);
+  margin-bottom: var(--space-3);
 }
 
 [data-lead] h2 {
@@ -516,12 +575,20 @@ main {
   line-height: var(--leading-display);
   font-size: var(--step-5);
   margin: 0 0 var(--space-3);
+  overflow-wrap: anywhere;
+  hyphens: auto;
+}
+
+[data-lead] h2 a {
+  color: var(--ink);
+  text-decoration: none;
 }
 
 [data-lead] p[data-summary] {
   max-width: var(--measure);
   font-size: var(--step-1);
   margin: 0 0 var(--space-3);
+  white-space: pre-line;
 }
 
 [data-lead] p[data-byline] {
@@ -530,10 +597,16 @@ main {
   margin: 0;
 }
 
+/* The imageless (typographic) lead never reserves an empty image slot. */
+[data-lead-variant="type"] [data-frame] {
+  display: none;
+}
+
 /* Grid — pure HTML, reverse-chronological, all categories mixed (D-12). */
 [data-grid] {
   display: grid;
   grid-template-columns: 1fr;
+  align-items: start;
   gap: var(--space-6);
   padding: var(--space-5) 0 0;
   list-style: none;
@@ -557,6 +630,8 @@ main {
   line-height: var(--leading-display);
   font-size: var(--step-3);
   margin: 0 0 var(--space-2);
+  overflow-wrap: anywhere;
+  hyphens: auto;
 }
 
 [data-card] h3 a {
@@ -571,6 +646,7 @@ main {
 [data-card] p[data-summary] {
   max-width: var(--measure);
   margin: 0 0 var(--space-2);
+  white-space: pre-line;
 }
 
 [data-card] p[data-byline] {
@@ -590,13 +666,25 @@ footer a {
   color: var(--ink-muted);
 }
 
+footer [data-attribution] {
+  max-width: var(--measure);
+}
+
 @media (min-width: 48em) {
+  nav[aria-label="Sections"] ul {
+    grid-template-columns: repeat(4, 1fr);
+  }
+
   [data-grid] {
     grid-template-columns: repeat(2, 1fr);
   }
 }
 
 @media (min-width: 80em) {
+  nav[aria-label="Sections"] ul {
+    grid-template-columns: repeat(8, 1fr);
+  }
+
   [data-grid] {
     grid-template-columns: repeat(3, 1fr);
   }
@@ -606,7 +694,7 @@ footer a {
     margin: 0 auto;
   }
 
-  header,
+  header:not([data-block]),
   nav[aria-label="Sections"],
   footer {
     max-width: 80rem;

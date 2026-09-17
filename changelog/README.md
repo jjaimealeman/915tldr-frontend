@@ -10,6 +10,7 @@ Entries are named `YYYY-MM-DD-HHMM_slug.md` and grouped by month, newest first.
 
 | Date | Entry | Keywords |
 |------|-------|----------|
+| 2026-09-16 | [Final Chrome and Home Page: Typographic Lead Plus Full Stress Grid](2026-09-16-1843_home-page-final-chrome-and-stress-grid.md) | `[FEATURE]` `[STYLING]` `[UI]` `[DESIGN]` `[ACCESSIBILITY]` `[TESTING]` |
 | 2026-09-16 | [GREEN: Implement the Hardened D-13 Contrast Gate](2026-09-16-1814_green-contrast-gate-hardening.md) | `[FEATURE]` `[STYLING]` `[ACCESSIBILITY]` `[TESTING]` `[DESIGN]` |
 | 2026-09-16 | [RED: Failing Suite and Fixtures for the Hardened D-13 Contrast Gate](2026-09-16-1804_red-contrast-gate-hardening-tests.md) | `[TESTING]` `[STYLING]` `[ACCESSIBILITY]` `[BUG_FIX]` |
 | 2026-09-16 | [Render Swatch Evidence for Both Themes (D-01, C-01)](2026-09-16-1548_render-palette-swatches.md) | `[FEATURE]` `[STYLING]` `[TESTING]` `[DESIGN]` |
