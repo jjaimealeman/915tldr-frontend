@@ -10,6 +10,7 @@ Entries are named `YYYY-MM-DD-HHMM_slug.md` and grouped by month, newest first.
 
 | Date | Entry | Keywords |
 |------|-------|----------|
+| 2026-09-17 | [Changelog Dispatch Placement Fixed, Adopts Rail Layout (Revision Request 4, Task 1)](2026-09-17-1631_01-20-changelog-dispatch-placement-fixed-adopts-ra.md) | `[FEATURE]` `[BUG_FIX]` `[TESTING]` `[STYLING]` |
 | 2026-09-17 | [Rail Content Integrity and the Spanish Rail Heading (Task 2)](2026-09-17-1623_01-19-rail-content-integrity-and-the-spanish-rail-.md) | `[FEATURE]` `[TESTING]` |
 | 2026-09-17 | [Right Rail on the Article Page (Revision Request 3, Task 1)](2026-09-17-1620_01-19-right-rail-on-the-article-page-revision-requ.md) | `[FEATURE]` `[TESTING]` `[STYLING]` |
 | 2026-09-17 | [Phase 1 Plan 18 Complete: Summary Markdown and Category Lead Fallback Closed](2026-09-17-1614_01-18-complete-summary-markdown-and-category-lead-.md) | `[DOCUMENTATION]` `[PLANNING]` |

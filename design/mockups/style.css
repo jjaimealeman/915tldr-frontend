@@ -1033,6 +1033,16 @@ body[data-page="article"] main > article [data-frame] {
   [data-layout="with-rail"] > [data-rail] {
     grid-column: 2;
   }
+
+  /* Changelog's reading column holds h1, the lede and eight dispatches, not
+     a single article — its own children ([data-lede], [data-dispatch] h2,
+     [data-dispatch-body]) already carry --measure individually (base rule
+     above the 80em block), so capping the column itself would only add a
+     second, redundant width limit. Unset it here so the column is exactly
+     as wide as its children need. */
+  body[data-page="changelog"] [data-layout="with-rail"] > [data-reading-column] {
+    max-width: none;
+  }
 }
 
 /* ==========================================================================
@@ -1042,13 +1052,11 @@ body[data-page="article"] main > article [data-frame] {
    ========================================================================== */
 
 [data-lede] {
-  max-width: var(--measure);
   margin: 0 0 var(--space-6);
   font-size: var(--step-1);
 }
 
 [data-dispatch] {
-  max-width: var(--measure);
   margin: 0 0 var(--space-6);
   padding-top: var(--space-4);
   border-top: var(--rule-thick) solid var(--ink);
@@ -1080,19 +1088,37 @@ body[data-page="article"] main > article [data-frame] {
 }
 
 @media (min-width: 80em) {
+  /* Revision request 4: the previous rule
+     (display:grid; grid-template-columns:12rem 1fr) left the date, title and
+     body to auto-place into the implicit grid it creates — with only two
+     explicit column tracks and three items, auto-placement put the date in
+     column 1 row 1, the title in column 2 row 1, and then wrapped the body
+     into column 1 row 2 (under the date), squeezing it into the 12rem date
+     column instead of sitting beside the date at the title's own width.
+     Named template-areas placement fixes this explicitly: each item is
+     assigned its own area regardless of source order or implicit grid
+     behaviour. */
   [data-dispatch] {
     display: grid;
-    grid-template-columns: 12rem 1fr;
-    gap: var(--space-5);
-    max-width: none;
+    grid-template-columns: 10rem minmax(0, 1fr);
+    grid-template-areas:
+      "date title"
+      "date body";
+    column-gap: var(--space-5);
   }
 
   [data-dispatch-date] {
+    grid-area: date;
     margin: 0;
   }
 
-  [data-dispatch] h2,
+  [data-dispatch] h2 {
+    grid-area: title;
+    max-width: var(--measure);
+  }
+
   [data-dispatch-body] {
+    grid-area: body;
     max-width: var(--measure);
   }
 }
