@@ -1,0 +1,130 @@
+/* fonts:start */
+/* fonts:end */
+
+/* tokens:start */
+:root {
+  /* neutrals — near-neutral, barely warm (D-04); see design/evidence/contrast.md */
+  --paper: #FAFAF8;
+  --ink: #14161A;
+  --ink-muted: #6D6F71;
+  --rule: #DDDEE0;
+  --rule-strong: #8A8C8F;
+
+  /* links — ink-coloured with a visible underline, no separate link hue */
+  --link: var(--ink);
+  --link-underline: currentColor;
+
+  /* focus — ink-coloured on paper; re-pointed inside colour blocks below */
+  --focus-ring: var(--ink);
+  --focus-ring-width: 3px;
+  --focus-ring-offset: 2px;
+
+  /* blocks — text colour reserved for the two D-01 darkened-block contexts */
+  --block-ink: #FAFAF8;
+  --focus-ring-on-block: var(--block-ink);
+
+  /* uncategorized */
+  --cat-none: var(--rule-strong);
+
+  /* type */
+  --leading-body: 1.55;
+  --leading-display: 1.08;
+  --step--1: clamp(0.833rem, 0.8rem + 0.1vw, 0.889rem);
+  --step-0: clamp(1rem, 0.96rem + 0.2vw, 1.125rem);
+  --step-1: clamp(1.125rem, 1.05rem + 0.35vw, 1.333rem);
+  --step-2: clamp(1.266rem, 1.15rem + 0.55vw, 1.6rem);
+  --step-3: clamp(1.424rem, 1.25rem + 0.85vw, 1.929rem);
+  --step-4: clamp(1.602rem, 1.35rem + 1.25vw, 2.369rem);
+  --step-5: clamp(1.802rem, 1.45rem + 1.75vw, 2.827rem);
+  --step-6: clamp(2.027rem, 1.55rem + 2.4vw, 3.5rem);
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.5rem;
+  --space-6: 2rem;
+  --space-7: 3rem;
+  --space-8: 4rem;
+  --measure: 68ch;
+  --rule-thin: 1px;
+  --rule-thick: 4px;
+
+  /* palette:start */
+  /* palette stops (D-02/D-03) — shared by all eight hues; hue alone carries identity */
+  --stop-vivid-light-l: 0.600;
+  --stop-vivid-light-c: 0.150;
+  --stop-block-l: 0.460;
+  --stop-block-c: 0.150;
+  --stop-vivid-dark-l: 0.780;
+  --stop-vivid-dark-c: 0.150;
+
+  --hue-crime: 24.7;
+  --cat-crime-vivid-light: oklch(0.600 0.150 24.7);
+  --cat-crime-block: oklch(0.460 0.150 24.7);
+  --cat-crime-vivid-dark: oklch(0.780 0.128 24.7);
+  --cat-crime: var(--cat-crime-vivid-light);
+
+  --hue-politics: 269.5;
+  --cat-politics-vivid-light: oklch(0.600 0.150 269.5);
+  --cat-politics-block: oklch(0.460 0.150 269.5);
+  --cat-politics-vivid-dark: oklch(0.780 0.111 269.5);
+  --cat-politics: var(--cat-politics-vivid-light);
+
+  --hue-sports: 49.4;
+  --cat-sports-vivid-light: oklch(0.600 0.150 49.4);
+  --cat-sports-block: oklch(0.460 0.122 49.4);
+  --cat-sports-vivid-dark: oklch(0.780 0.141 49.4);
+  --cat-sports: var(--cat-sports-vivid-light);
+
+  --hue-business: 94.5;
+  --cat-business-vivid-light: oklch(0.600 0.123 94.5);
+  --cat-business-block: oklch(0.460 0.094 94.5);
+  --cat-business-vivid-dark: oklch(0.780 0.150 94.5);
+  --cat-business: var(--cat-business-vivid-light);
+
+  --hue-education: 295.9;
+  --cat-education-vivid-light: oklch(0.600 0.150 295.9);
+  --cat-education-block: oklch(0.460 0.150 295.9);
+  --cat-education-vivid-dark: oklch(0.780 0.126 295.9);
+  --cat-education: var(--cat-education-vivid-light);
+
+  --hue-community: 359.9;
+  --cat-community-vivid-light: oklch(0.600 0.150 359.9);
+  --cat-community-block: oklch(0.460 0.150 359.9);
+  --cat-community-vivid-dark: oklch(0.780 0.140 359.9);
+  --cat-community: var(--cat-community-vivid-light);
+
+  --hue-health: 124.7;
+  --cat-health-vivid-light: oklch(0.600 0.150 124.7);
+  --cat-health-block: oklch(0.460 0.115 124.7);
+  --cat-health-vivid-dark: oklch(0.780 0.150 124.7);
+  --cat-health: var(--cat-health-vivid-light);
+
+  --hue-weather: 242.5;
+  --cat-weather-vivid-light: oklch(0.600 0.300 195);
+  --cat-weather-block: oklch(0.460 0.110 242.5);
+  --cat-weather-vivid-dark: oklch(0.780 0.122 242.5);
+  --cat-weather: var(--cat-weather-vivid-light);
+  /* palette:end */
+}
+
+[data-theme="dark"] {
+  --paper: #121417;
+  --ink: #E8EAED;
+  --ink-muted: #848688;
+  --rule: #1A1B1C;
+  --rule-strong: #6A6C6E;
+  --block-ink: #E8EAED;
+
+  /* palette-dark:start */
+  --cat-crime: var(--cat-crime-vivid-dark);
+  --cat-politics: var(--cat-politics-vivid-dark);
+  --cat-sports: var(--cat-sports-vivid-dark);
+  --cat-business: var(--cat-business-vivid-dark);
+  --cat-education: var(--cat-education-vivid-dark);
+  --cat-community: var(--cat-community-vivid-dark);
+  --cat-health: var(--cat-health-vivid-dark);
+  --cat-weather: var(--cat-weather-vivid-dark);
+  /* palette-dark:end */
+}
+/* tokens:end */

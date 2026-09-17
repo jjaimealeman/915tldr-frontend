@@ -10,6 +10,7 @@ Entries are named `YYYY-MM-DD-HHMM_slug.md` and grouped by month, newest first.
 
 | Date | Entry | Keywords |
 |------|-------|----------|
+| 2026-09-16 | [RED: Failing Suite and Fixtures for the Hardened D-13 Contrast Gate](2026-09-16-1804_red-contrast-gate-hardening-tests.md) | `[TESTING]` `[STYLING]` `[ACCESSIBILITY]` `[BUG_FIX]` |
 | 2026-09-16 | [Render Swatch Evidence for Both Themes (D-01, C-01)](2026-09-16-1548_render-palette-swatches.md) | `[FEATURE]` `[STYLING]` `[TESTING]` `[DESIGN]` |
 | 2026-09-16 | [Phase 1 Plan 4 Complete: D-06 Stress Set + D-15 Spanish Calibration](2026-09-16-1510_01-04-complete-plan-summary-state-roadmap-requirem.md) | `[DOCUMENTATION]` `[TESTING]` `[DATABASE]` `[ACCESSIBILITY]` `[DESIGN]` |
 | 2026-09-16 | [Author Real Spanish Copy and Calibrate the Synthetic +25% Floor in the Real Fonts (D-15)](2026-09-16-1507_spanish-copy-and-width-calibration.md) | `[FEATURE]` `[STYLING]` `[TESTING]` `[ACCESSIBILITY]` `[DESIGN]` |

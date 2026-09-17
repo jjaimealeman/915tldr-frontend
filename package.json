@@ -23,6 +23,7 @@
     "fonts:build": "node design/scripts/build-fonts.mjs",
     "palette:sample": "node design/scripts/sample-hues.mjs",
     "palette:build": "node design/scripts/build-palette.mjs",
-    "palette:swatches": "node design/scripts/render-swatches.mjs"
+    "palette:swatches": "node design/scripts/render-swatches.mjs",
+    "test:unit": "node --test \"design/tests/unit/**/*.test.mjs\""
   }
 }

@@ -10,10 +10,14 @@ import { wcagContrast } from 'culori';
 import { extractRegion, parseTokenRules, resolveTheme, toSrgb } from './lib/css-tokens.mjs';
 
 function parseArgs(argv) {
-  const args = { css: 'design/mockups/style.css', out: 'design/evidence/contrast.md' };
-  for (const arg of argv) {
-    if (arg.startsWith('--css=')) args.css = arg.slice('--css='.length);
-    if (arg.startsWith('--out=')) args.out = arg.slice('--out='.length);
+  const args = { css: 'design/mockups/style.css', out: 'design/evidence/contrast.md', json: false };
+  for (let i = 0; i < argv.length; i++) {
+    const arg = argv[i];
+    if (arg === '--css') { args.css = argv[++i]; continue; }
+    if (arg === '--out') { args.out = argv[++i]; continue; }
+    if (arg === '--json') { args.json = true; continue; }
+    if (arg.startsWith('--css=')) { args.css = arg.slice('--css='.length); continue; }
+    if (arg.startsWith('--out=')) { args.out = arg.slice('--out='.length); continue; }
   }
   return args;
 }
