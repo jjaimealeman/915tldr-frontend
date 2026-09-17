@@ -10,6 +10,7 @@ Entries are named `YYYY-MM-DD-HHMM_slug.md` and grouped by month, newest first.
 
 | Date | Entry | Keywords |
 |------|-------|----------|
+| 2026-09-17 | [summary-markdown implementation, suite green (D-GAP revision 9, GREEN)](2026-09-17-1102_summary-markdown-green-implementation.md) | `[FEATURE]` `[TESTING]` |
 | 2026-09-17 | [Failing summary-markdown test suite (D-GAP revision 9, RED)](2026-09-17-1057_summary-markdown-red-suite.md) | `[TESTING]` `[FEATURE]` |
 | 2026-09-17 | [Track docs/PRD.md in Git](2026-09-17-1052_track-prd-in-git.md) | `[DOCUMENTATION]` `[PLANNING]` |
 | 2026-09-17 | [Phase 1 Plan 11 Complete: D-GAP-D pnpm Closed, STATE/ROADMAP Updated](2026-09-17-1715_01-11-complete-plan-summary-state-roadmap.md) | `[DOCUMENTATION]` `[PLANNING]` |
