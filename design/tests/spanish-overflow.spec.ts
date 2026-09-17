@@ -1,6 +1,7 @@
 import { test, expect } from '@playwright/test';
 import { openPage, pagesUnderTest, ZOOM_200 } from './support/harness.ts';
 import { loadSpanishFixture, injectText, overflowReport, widthRatio, type SpanishComponent } from './support/i18n.ts';
+import { expandFeed } from './support/feed.ts';
 
 /**
  * D-07/D-15, criterion 4: the +25% Spanish case is actually exercised (real
@@ -119,6 +120,84 @@ async function collectHorizontalOverflow(page: import('@playwright/test').Page) 
   });
 }
 
+/**
+ * Injects both Spanish variants of `component` into `page` and asserts the
+ * full D-15 overflow/clip/loss contract, exactly the body that used to be
+ * inlined in the per-width loop below. Extracted (01-22) so the
+ * `load-more-button` component — which legitimately disappears once the
+ * feed is fully expanded, per 01-21's own "nothing left to load" behavior —
+ * can be checked once, before expandFeed runs, while every other component
+ * is checked after. No threshold or assertion changed, only the call site.
+ */
+async function checkComponentSpanishOverflow(
+  page: import('@playwright/test').Page,
+  pageName: string,
+  width: number,
+  component: SpanishComponent
+) {
+  const baseline = await overflowReport(page, component.id, CONTAINER_SELECTOR);
+
+  for (const variant of ['es_real', 'es_synthetic'] as const) {
+    const text = component[variant];
+    await injectText(page, component.id, text);
+    const report = await overflowReport(page, component.id, CONTAINER_SELECTOR);
+    const label = `${pageName}@${width}px ${component.id} (${variant})`;
+
+    expect(report.visible, `${label}: must render`).toBe(true);
+    expect(report.textMatches, `${label}: rendered text must match injected text`).toBe(true);
+    expect(report.hOverflow, `${label}: must not overflow horizontally`).toBe(false);
+    expect(report.ellipsis, `${label}: must not be truncated with an ellipsis`).toBe(false);
+    expect(report.clamp, `${label}: must not be line-clamped`).toBe(false);
+    expect(report.vClipped, `${label}: must not be vertically clipped`).toBe(false);
+    expect(report.pastViewport, `${label}: must not extend past the viewport`).toBe(false);
+    expect(report.docOverflow, `${label}: must not cause page-level horizontal scroll`).toBe(false);
+    // The container-growth check is only meaningful (a) against a
+    // tight, content-scoped wrapper — not a broad landmark
+    // (nav/header/main) whose height reflects the whole
+    // page/section and fluctuates for reasons unrelated to this
+    // element — (b) when the injected text is not itself
+    // shorter than what was already rendered there: some stress
+    // hooks carry real corpus/placeholder text longer than a given
+    // fixture component's own text, and a shorter replacement
+    // legitimately produces a shorter (not clipped) box — and (c)
+    // when the element is not hyphenation-eligible: headline
+    // elements carry `hyphens: auto` (01-08/D-01's long-word
+    // overflow defense), which only actually engages a hyphenation
+    // dictionary once `lang` is known, and injectText() always sets
+    // `lang="es"` as part of injection. A hyphenation-eligible
+    // headline can legitimately re-wrap onto FEWER lines than its
+    // un-hyphenated baseline for the exact same (or longer) text,
+    // shrinking its container with nothing lost or clipped — 01-15
+    // confirmed this with a minimal setAttribute('lang','es')-only
+    // repro that reproduces the identical shrink with no text
+    // change at all. vClipped, asserted above, is the authoritative
+    // "did it actually clip" signal in every case, unaffected by
+    // this exemption.
+    if (report.containerTight && text.length >= baseline.textLength && !baseline.hyphensAuto) {
+      expect(
+        report.containerHeight,
+        `${label}: container must grow to fit longer text, never clip`
+      ).toBeGreaterThanOrEqual(baseline.containerHeight - 0.5);
+    }
+
+    if (variant === 'es_synthetic') {
+      const ratio = await widthRatio(page, component.id, component.en, component.es_synthetic);
+      expect(ratio, `${label}: measured width ratio must be at least +24%`).toBeGreaterThanOrEqual(1.24);
+      expect(
+        ratio,
+        `${label}: measured width ratio must not exceed the calibrated ceiling`
+      ).toBeLessThanOrEqual(component.calibration.hi + 0.01);
+      test.info().annotations.push({
+        type: `width-ratio:${component.id}`,
+        description: JSON.stringify({
+          widthRatio: ratio,
+          utf8ByteRatio: component.calibration.utf8ByteRatio,
+        }),
+      });
+    }
+  }
+}
+
 for (const pageName of pagesUnderTest()) {
   const components = componentsForPage(pageName);
 
@@ -127,68 +206,24 @@ for (const pageName of pagesUnderTest()) {
       test(`injected real+synthetic Spanish causes no overflow/clip/loss at ${width}px @c4`, async ({ page }) => {
         await openPage(page, pageName as any, { width, height: 1400 });
 
+        // load-more-button (index only) must be checked before the feed is
+        // fully expanded: once every page has loaded, the button
+        // legitimately hides itself (01-21's own "nothing left to load"
+        // behavior, load-more.spec.ts's own failure-path test relies on the
+        // same mechanism) — testing it against a fully-expanded page would
+        // always fail "must render", regardless of the injected text. It is
+        // guaranteed visible on a fresh load (index always has 27 more
+        // cards behind it), so check it here first.
+        const loadMoreButtonComponent = components.find((c) => c.id === 'load-more-button');
+        if (loadMoreButtonComponent) {
+          await checkComponentSpanishOverflow(page, pageName, width, loadMoreButtonComponent);
+        }
+
+        if (pageName === 'index') await expandFeed(page);
+
         for (const component of components) {
-          const baseline = await overflowReport(page, component.id, CONTAINER_SELECTOR);
-
-          for (const variant of ['es_real', 'es_synthetic'] as const) {
-            const text = component[variant];
-            await injectText(page, component.id, text);
-            const report = await overflowReport(page, component.id, CONTAINER_SELECTOR);
-            const label = `${pageName}@${width}px ${component.id} (${variant})`;
-
-            expect(report.visible, `${label}: must render`).toBe(true);
-            expect(report.textMatches, `${label}: rendered text must match injected text`).toBe(true);
-            expect(report.hOverflow, `${label}: must not overflow horizontally`).toBe(false);
-            expect(report.ellipsis, `${label}: must not be truncated with an ellipsis`).toBe(false);
-            expect(report.clamp, `${label}: must not be line-clamped`).toBe(false);
-            expect(report.vClipped, `${label}: must not be vertically clipped`).toBe(false);
-            expect(report.pastViewport, `${label}: must not extend past the viewport`).toBe(false);
-            expect(report.docOverflow, `${label}: must not cause page-level horizontal scroll`).toBe(false);
-            // The container-growth check is only meaningful (a) against a
-            // tight, content-scoped wrapper — not a broad landmark
-            // (nav/header/main) whose height reflects the whole
-            // page/section and fluctuates for reasons unrelated to this
-            // element — (b) when the injected text is not itself
-            // shorter than what was already rendered there: some stress
-            // hooks carry real corpus/placeholder text longer than a given
-            // fixture component's own text, and a shorter replacement
-            // legitimately produces a shorter (not clipped) box — and (c)
-            // when the element is not hyphenation-eligible: headline
-            // elements carry `hyphens: auto` (01-08/D-01's long-word
-            // overflow defense), which only actually engages a hyphenation
-            // dictionary once `lang` is known, and injectText() always sets
-            // `lang="es"` as part of injection. A hyphenation-eligible
-            // headline can legitimately re-wrap onto FEWER lines than its
-            // un-hyphenated baseline for the exact same (or longer) text,
-            // shrinking its container with nothing lost or clipped — 01-15
-            // confirmed this with a minimal setAttribute('lang','es')-only
-            // repro that reproduces the identical shrink with no text
-            // change at all. vClipped, asserted above, is the authoritative
-            // "did it actually clip" signal in every case, unaffected by
-            // this exemption.
-            if (report.containerTight && text.length >= baseline.textLength && !baseline.hyphensAuto) {
-              expect(
-                report.containerHeight,
-                `${label}: container must grow to fit longer text, never clip`
-              ).toBeGreaterThanOrEqual(baseline.containerHeight - 0.5);
-            }
-
-            if (variant === 'es_synthetic') {
-              const ratio = await widthRatio(page, component.id, component.en, component.es_synthetic);
-              expect(ratio, `${label}: measured width ratio must be at least +24%`).toBeGreaterThanOrEqual(1.24);
-              expect(
-                ratio,
-                `${label}: measured width ratio must not exceed the calibrated ceiling`
-              ).toBeLessThanOrEqual(component.calibration.hi + 0.01);
-              test.info().annotations.push({
-                type: `width-ratio:${component.id}`,
-                description: JSON.stringify({
-                  widthRatio: ratio,
-                  utf8ByteRatio: component.calibration.utf8ByteRatio,
-                }),
-              });
-            }
-          }
+          if (component.id === 'load-more-button') continue;
+          await checkComponentSpanishOverflow(page, pageName, width, component);
         }
       });
     }
@@ -196,6 +231,7 @@ for (const pageName of pagesUnderTest()) {
     test(`drawn Spanish (already in the markup) causes no overflow/clip/loss @c4`, async ({ page }) => {
       for (const width of WIDTHS) {
         await openPage(page, pageName as any, { width, height: 1400 });
+        if (pageName === 'index') await expandFeed(page);
 
         const drawnKeys: string[] = await page.evaluate(() => {
           function stableKey(el: Element): string {
@@ -235,6 +271,7 @@ for (const pageName of pagesUnderTest()) {
 
     test(`every [data-summary] has non-empty text @c4`, async ({ page }) => {
       await openPage(page, pageName as any, { width: 1280, height: 1400 });
+      if (pageName === 'index') await expandFeed(page);
       const empties: string[] = await page.evaluate(() =>
         Array.from(document.querySelectorAll('[data-summary]'))
           .filter((el) => (el.textContent || '').trim().length === 0)
@@ -246,6 +283,7 @@ for (const pageName of pagesUnderTest()) {
     if (pageName === 'index') {
       test(`no-summary card has no [data-summary] and reserves no blank space @c4`, async ({ page }) => {
         await openPage(page, 'index' as any, { width: 1280, height: 1400 });
+        await expandFeed(page);
         const result = await page.evaluate(() => {
           const card = document.querySelector('[data-stress="no-summary"]');
           if (!card) return null;
@@ -326,6 +364,7 @@ for (const pageName of pagesUnderTest()) {
       browser,
     }) => {
       await openPage(page, pageName as any, { width: 1280, height: 800 });
+      if (pageName === 'index') await expandFeed(page);
       const baseline = new Set(await collectVisibleTextByLandmark(page));
 
       await page.setViewportSize({ width: 320, height: 640 });
@@ -343,6 +382,7 @@ for (const pageName of pagesUnderTest()) {
       try {
         const zoomPage = await zoomContext.newPage();
         await openPage(zoomPage, pageName as any, { width: ZOOM_200.width, height: ZOOM_200.height });
+        if (pageName === 'index') await expandFeed(zoomPage);
         const zoomOverflow = await collectHorizontalOverflow(zoomPage);
         expect(zoomOverflow.docOverflow, `${pageName}@200% zoom: no page-level horizontal scroll`).toBe(false);
         expect(zoomOverflow.pastViewport, `${pageName}@200% zoom: no text-bearing element past the viewport`).toBe(
