@@ -5,8 +5,8 @@ milestone_name: milestone
 current_phase: 01
 current_phase_name: design-sketch-editorial-identity
 status: executing
-stopped_at: "01-13 Task 1 diagnosis complete (WINDOWS entry 10): font-display:optional swap in Chromium confirmed as genuine engine behavior, not a harness bug. Tasks 2-3 remain paused pending owner decision on font-display strategy."
-last_updated: "2026-09-17T17:47:36.711Z"
+stopped_at: "Completed 01-13-PLAN.md (font-display:optional confirmed working after correcting two misdiagnoses; fontconfig contamination and a theme-toggle CLS bug fixed; full matrix + positive control + Spanish guard all pass; PRD §6.5 amended)"
+last_updated: "2026-09-17T18:40:42.052Z"
 last_activity: 2026-09-17
 last_activity_desc: Phase 01 execution started
 progress:
@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-09-16)
 ## Current Position
 
 Phase: 01 (design-sketch-editorial-identity) — EXECUTING
-Plan: 3 of 23
+Plan: 4 of 23
 Status: Ready to execute
 Last activity: 2026-09-17 — Phase 01 execution started
 
@@ -69,6 +69,7 @@ Progress: [██████░░░░] 57%
 | Phase 01 P09 | 45min | 2 tasks | 8 files |
 | Phase 01 P11 | 55min | 3 tasks | 12 files |
 | Phase 01 P12 | 8min | 2 tasks | 2 files |
+| Phase 01 P13 | 76min | 3 tasks | 12 files |
 
 ## Accumulated Context
 
@@ -107,6 +108,8 @@ Recent decisions affecting current work:
 - [Phase ?]: 01-11: 01-10-SUMMARY.md written retroactively — Phase 1 round 1 ended on outcome: revise (owner review 2026-09-17), not approved; 14-item closure table maps to gap plans 01-11..01-23
 - [Phase ?]: 01-12: parseGroup explicitly splits a lone **Key Details:** header line from preceding prose when both share one blank-line-delimited group (no blank line between them) — needed because the generic space-join rule would otherwise merge them into one paragraph
 - [Phase ?]: 01-12: validateBlocks treats strong:false as invalid, not merely redundant — the block contract's only allowed value for strong is true
+- [Phase ?]: 01-13: font-display:optional genuinely works in both Chromium and WebKit — two prior 'genuine Chromium bug' conclusions (prior session's and this continuation's own first pass) were both wrong, refuted by a coordinator's CDP-based reproduction; true causes were test-host fontconfig contamination (Instrument Serif/Source Serif 4 locally installed) and an unrelated theme-toggle CLS bug, both fixed
+- [Phase ?]: 01-13: WINDOWS entry 13 (open) — article.html's italic Instrument Serif standfirst deck is not preloaded and deterministically never wins the optional block period on any load, in either engine; a real, permanent, content-visible consequence of the fixed 2-preload D-GAP-A scope, flagged for owner judgement
 
 ### Pending Todos
 
@@ -133,6 +136,6 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-09-17T17:47:36.699Z
-Stopped at: 01-13 Task 1 diagnosis complete (WINDOWS entry 10): font-display:optional swap in Chromium confirmed as genuine engine behavior, not a harness bug. Tasks 2-3 remain paused pending owner decision on font-display strategy.
+Last session: 2026-09-17T18:40:42.040Z
+Stopped at: Completed 01-13-PLAN.md (font-display:optional confirmed working after correcting two misdiagnoses; fontconfig contamination and a theme-toggle CLS bug fixed; full matrix + positive control + Spanish guard all pass; PRD §6.5 amended)
 Resume file: None

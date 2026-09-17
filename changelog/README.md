@@ -10,6 +10,7 @@ Entries are named `YYYY-MM-DD-HHMM_slug.md` and grouped by month, newest first.
 
 | Date | Entry | Keywords |
 |------|-------|----------|
+| 2026-09-17 | [Phase 1 Plan 13 Complete: Advanced to Plan 14](2026-09-17-1240_01-13-complete-plan-advance-plan-counter-record-de.md) | `[DOCUMENTATION]` `[PLANNING]` |
 | 2026-09-17 | [Rewrote 01-13's Summary to Tell the Real Story, Including Getting It Wrong Twice First](2026-09-17-1239_01-13-rewrite-summary-to-reflect-the-corrected-dia.md) | `[DOCUMENTATION]` `[PLANNING]` |
 | 2026-09-17 | [Spanish Text-Width Checks Now Refuse to Measure the Wrong Font, and the PRD Catches Up](2026-09-17-1235_01-13-guard-spanish-width-measurements-amend-prd-6.md) | `[FEATURE]` `[TESTING]` `[DOCUMENTATION]` |
 | 2026-09-17 | [Full Font-Swap Matrix Passes Cleanly, With a Built-In Check That the Test Itself Still Works](2026-09-17-1234_01-13-full-matrix-positive-control-and-strict-crit.md) | `[FEATURE]` `[TESTING]` `[PERFORMANCE]` `[BUG_FIX]` |
