@@ -2,6 +2,8 @@ import { test, expect } from '@playwright/test';
 import { readFileSync } from 'node:fs';
 import path from 'node:path';
 import { openPage, pagesUnderTest, THEMES } from './support/harness.ts';
+import { expandFeed } from './support/feed.ts';
+import { summaryPlainText } from '../scripts/lib/summary-markdown.mjs';
 
 /**
  * Content-integrity checks (D-01, D-06, D-10, D-11, D-12, DSGN-04, DSGN-07):
@@ -13,6 +15,28 @@ import { openPage, pagesUnderTest, THEMES } from './support/harness.ts';
 
 const CHANGELOG_PATH = path.resolve('design/fixtures/changelog.json');
 const STRESS_SET_PATH = path.resolve('design/fixtures/stress-set.json');
+const HOME_FEED_PATH = path.resolve('design/fixtures/home-feed.json');
+
+/**
+ * All 12 D-06/D-07 stress markers named at 01-22 planning time. "no-image"
+ * lives on the static lead, never inside [data-grid] — every other marker
+ * is a [data-card]'s data-stress attribute somewhere in the fully loaded
+ * feed.
+ */
+const EXPECTED_STRESS_MARKERS = [
+  'junk-image',
+  'longest-headline',
+  'longest-summary',
+  'no-image',
+  'no-summary',
+  'shortest-headline',
+  'shortest-summary',
+  'spanish-real',
+  'spanish-synthetic',
+  'uncategorized',
+  'usable-image',
+  'worst-case',
+];
 
 const CANONICAL_CATEGORY_ORDER = ['crime', 'politics', 'sports', 'business', 'education', 'community', 'health', 'weather'];
 
@@ -157,6 +181,7 @@ for (const name of pagesUnderTest()) {
       page,
     }) => {
       await openPage(page, name as any);
+      if (name === 'index') await expandFeed(page);
 
       const noneStripeColor = await page.evaluate(() =>
         getComputedStyle(document.documentElement).getPropertyValue('--cat-none').trim()
@@ -231,6 +256,7 @@ for (const name of pagesUnderTest()) {
 
     test(`every data-uuid belongs to a processed, non-duplicate fixture row @c1`, async ({ page }) => {
       await openPage(page, name as any);
+      if (name === 'index') await expandFeed(page);
       const uuids = await page.locator('[data-uuid]').evaluateAll((els) => els.map((el) => el.getAttribute('data-uuid')));
       expect(uuids.length).toBeGreaterThan(0);
 
@@ -256,6 +282,7 @@ for (const name of pagesUnderTest()) {
       page,
     }) => {
       await openPage(page, name as any);
+      if (name === 'index') await expandFeed(page);
 
       const linkResults = await page.evaluate(() => {
         return Array.from(document.querySelectorAll('a[href]')).map((a, index) => {
@@ -334,6 +361,7 @@ for (const name of pagesUnderTest()) {
       page,
     }) => {
       await openPage(page, name as any);
+      if (name === 'index') await expandFeed(page);
 
       const bodyText = await page.locator('body').innerText();
       expect(bodyText.includes('**'), 'rendered body text must not contain a literal "**" marker').toBe(false);
@@ -406,6 +434,7 @@ for (const name of pagesUnderTest()) {
 for (const name of ['index', 'category']) {
   test(`${name}: [data-grid] time[datetime] values are non-increasing @c1 @c5`, async ({ page }) => {
     await openPage(page, name as any);
+    if (name === 'index') await expandFeed(page);
     const times = await page
       .locator('[data-grid] [data-card] time[datetime]')
       .evaluateAll((els) => els.map((el) => el.getAttribute('datetime')));
@@ -492,6 +521,92 @@ for (const name of ['index', 'category']) {
     expect(offenders, offenders.join(' | ')).toEqual([]);
   });
 }
+
+test('index: fully loaded feed equals home-feed.json, with every stress case @c1', async ({ page }) => {
+  await openPage(page, 'index');
+  await expandFeed(page);
+
+  const fixture = JSON.parse(readFileSync(HOME_FEED_PATH, 'utf8'));
+  const fixtureCards: Array<Record<string, unknown>> = fixture.cards;
+
+  const rendered = await page.evaluate(() => {
+    const cards = Array.from(document.querySelectorAll('[data-grid] [data-card]'));
+    return cards.map((card) => {
+      const summaryEl = card.querySelector('[data-summary]');
+      return {
+        uuid: card.getAttribute('data-uuid'),
+        stress: card.getAttribute('data-stress'),
+        lang: card.getAttribute('lang'),
+        headline: card.querySelector('h3')?.textContent ?? '',
+        hasSummary: !!summaryEl,
+        summaryInnerText: summaryEl ? (summaryEl as HTMLElement).innerText : null,
+      };
+    });
+  });
+
+  const leadStress = await page.evaluate(() => document.querySelector('[data-lead]')?.getAttribute('data-stress') ?? null);
+
+  expect(rendered.length, `expected ${fixtureCards.length} cards after full expansion, got ${rendered.length}`).toBe(
+    fixtureCards.length
+  );
+
+  // The (uuid, stress) sequence equals the fixture order, with no duplicate pair.
+  const renderedPairs = rendered.map((c) => `${c.uuid}::${c.stress ?? ''}`);
+  const fixturePairs = fixtureCards.map((c) => `${c.uuid}::${(c.stress as string | null) ?? ''}`);
+  expect(renderedPairs, `rendered (uuid,stress) order !== home-feed.json order`).toEqual(fixturePairs);
+  expect(new Set(renderedPairs).size, 'a (uuid, stress) pair repeats in the rendered feed').toBe(renderedPairs.length);
+
+  // All 12 stress markers present — the lead counts for no-image.
+  const allStress = new Set([leadStress, ...rendered.map((c) => c.stress)].filter((s): s is string => !!s));
+  const missingMarkers = EXPECTED_STRESS_MARKERS.filter((m) => !allStress.has(m));
+  expect(missingMarkers, `missing stress marker(s): ${missingMarkers.join(', ')}`).toEqual([]);
+
+  // Every [lang="es"] card's h3 text and summary text equal the fixture
+  // strings after NFC normalisation and whitespace collapse.
+  const normalise = (s: string) => s.normalize('NFC').replace(/\s+/g, ' ').trim();
+  const esMismatches: string[] = [];
+  for (const card of rendered) {
+    if (card.lang !== 'es') continue;
+    const fixtureCard = fixtureCards.find((c) => c.uuid === card.uuid && c.stress === card.stress);
+    if (!fixtureCard) {
+      esMismatches.push(`${card.uuid} (${card.stress}): no matching fixture card`);
+      continue;
+    }
+    if (normalise(card.headline) !== normalise(fixtureCard.headline as string)) {
+      esMismatches.push(`${card.uuid} (${card.stress}): headline mismatch`);
+    }
+    if (fixtureCard.summary) {
+      const expectedSummary = normalise(summaryPlainText(fixtureCard.summary as any));
+      const actualSummary = normalise(card.summaryInnerText ?? '');
+      if (expectedSummary !== actualSummary) {
+        esMismatches.push(`${card.uuid} (${card.stress}): summary mismatch`);
+      }
+    }
+  }
+  expect(esMismatches, esMismatches.join(' | ')).toEqual([]);
+
+  // No card has an empty h3 or an empty [data-summary].
+  const emptyOffenders: string[] = [];
+  for (const card of rendered) {
+    if (!card.headline.trim()) emptyOffenders.push(`${card.uuid} (${card.stress}): empty h3`);
+    if (card.hasSummary && !(card.summaryInnerText ?? '').trim()) {
+      emptyOffenders.push(`${card.uuid} (${card.stress}): empty [data-summary]`);
+    }
+  }
+  expect(emptyOffenders, emptyOffenders.join(' | ')).toEqual([]);
+
+  // Encoding check: every loaded card's h3 textContent equals the fixture
+  // headline exactly (decoded, so no literal &amp; or other escaped text).
+  const encodingMismatches: string[] = [];
+  for (const card of rendered) {
+    const fixtureCard = fixtureCards.find((c) => c.uuid === card.uuid && c.stress === card.stress);
+    if (!fixtureCard) continue;
+    if (card.headline !== fixtureCard.headline) {
+      encodingMismatches.push(`${card.uuid} (${card.stress}): "${card.headline}" !== fixture "${fixtureCard.headline}"`);
+    }
+  }
+  expect(encodingMismatches, encodingMismatches.join(' | ')).toEqual([]);
+});
 
 test('index: no per-category section or heading outside a card (D-12) @c1', async ({ page }) => {
   await openPage(page, 'index');

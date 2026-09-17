@@ -3,6 +3,7 @@ import { existsSync, mkdirSync, readFileSync } from 'node:fs';
 import path from 'node:path';
 import { formatHex } from 'culori';
 import { openPage, pagesUnderTest, WIDTHS, THEMES, THEME_STORAGE_KEY } from './support/harness.ts';
+import { expandFeed } from './support/feed.ts';
 import {
   CANONICAL_SLUGS,
   extractRegion,
@@ -127,6 +128,32 @@ for (const name of pagesUnderTest()) {
           return false;
         });
         expect(hasOnAttr).toBe(false);
+      }
+
+      // Gap-closure (01-22): on index, the client-built load-more cards
+      // (createElement/setAttribute/textContent only, per T-01-58) must be
+      // exactly as pure as the server-rendered ones — re-assert zero script
+      // elements and zero on* attributes once the feed is fully expanded,
+      // not just against the first 6 server-rendered cards.
+      if (name === 'index') {
+        await expandFeed(page);
+        const expandedGridCount = await grids.count();
+        for (let i = 0; i < expandedGridCount; i++) {
+          const grid = grids.nth(i);
+          expect(await grid.locator('script').count()).toBe(0);
+
+          const hasOnAttrExpanded = await grid.evaluate((el) => {
+            const walker = document.createTreeWalker(el, NodeFilter.SHOW_ELEMENT);
+            let node: Element | null = el as Element;
+            do {
+              for (const attr of Array.from(node.attributes)) {
+                if (attr.name.toLowerCase().startsWith('on')) return true;
+              }
+            } while ((node = walker.nextNode() as Element | null));
+            return false;
+          });
+          expect(hasOnAttrExpanded).toBe(false);
+        }
       }
     });
 

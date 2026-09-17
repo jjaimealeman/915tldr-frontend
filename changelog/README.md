@@ -10,6 +10,7 @@ Entries are named `YYYY-MM-DD-HHMM_slug.md` and grouped by month, newest first.
 
 | Date | Entry | Keywords |
 |------|-------|----------|
+| 2026-09-17 | [Feed-Expansion Helper, Content + Structure Coverage of the Full 33-Card Feed (Task 1)](2026-09-17-1712_01-22-feed-expansion-helper-content-structure-cove.md) | `[FEATURE]` `[TESTING]` `[ACCESSIBILITY]` |
 | 2026-09-17 | [Phase 1 Plan 21 Complete: Homepage Load-More Closed](2026-09-17-1705_01-21-complete-homepage-load-more-plan.md) | `[DOCUMENTATION]` `[PLANNING]` |
 | 2026-09-17 | [Load-More Styling, Keyboard Coverage, feed:build Script, D-05/D-12 Amendments (Task 3)](2026-09-17-1659_01-21-load-more-styling-keyboard-coverage-feed-bui.md) | `[FEATURE]` `[TESTING]` `[STYLING]` `[ACCESSIBILITY]` `[DOCUMENTATION]` |
 | 2026-09-17 | [Shared Load-More Script on All Five Pages, Runner Checks the Feed (Task 2)](2026-09-17-1654_01-21-shared-load-more-script-on-all-five-pages-ru.md) | `[FEATURE]` `[TESTING]` |
