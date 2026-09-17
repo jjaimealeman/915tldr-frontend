@@ -294,3 +294,104 @@ test.describe('layout: changelog', () => {
     }
   }
 });
+
+/**
+ * Contact layout (revision request 5 — centred column and the
+ * Send-message/Latest-Stories spacing bug; the contact part of revision
+ * request 7 — full width at 768px).
+ */
+
+async function readContactLayout(page: Page) {
+  const base = await readLayout(page);
+  const extra = await page.evaluate(() => {
+    function rect(el: Element | null) {
+      if (!el) return null;
+      const r = el.getBoundingClientRect();
+      return { left: r.left, right: r.right, top: r.top, bottom: r.bottom };
+    }
+    const column = document.querySelector('[data-contact-column]');
+    const submit = document.querySelector('[data-contact-form] button[type="submit"]');
+    const gridHeading = document.querySelector('[data-grid-heading]');
+    return {
+      columnRect: rect(column),
+      submitRect: rect(submit),
+      gridHeadingRect: rect(gridHeading),
+    };
+  });
+  return { ...base, ...extra };
+}
+
+const CONTACT_BREAKPOINT = 1024; // 64em at the default 16px root the media query resolves against
+
+test.describe('layout: contact', () => {
+  for (const { width, theme } of COMBOS) {
+    test(`no horizontal page scroll @${width}px ${theme} @c1`, async ({ page }) => {
+      await openPage(page, 'contact', { theme, width, height: HEIGHT });
+      expect(
+        await hasHorizontalScroll(page),
+        `contact @${width}px ${theme}: unexpected horizontal page scroll`
+      ).toBe(false);
+    });
+
+    test(`"Latest Stories" sits at least 32px below the Send message button @${width}px ${theme} @c1`, async ({
+      page,
+    }) => {
+      await openPage(page, 'contact', { theme, width, height: HEIGHT });
+      const layout = await readContactLayout(page);
+      expect(layout.submitRect, `contact @${width}px ${theme}: submit button not found`).not.toBeNull();
+      expect(layout.gridHeadingRect, `contact @${width}px ${theme}: [data-grid-heading] not found`).not.toBeNull();
+      const gap = layout.gridHeadingRect!.top - layout.submitRect!.bottom;
+      expect(
+        gap,
+        `contact @${width}px ${theme}: gap between Send message bottom and Latest Stories top is ${gap}, expected >= 32`
+      ).toBeGreaterThanOrEqual(32);
+    });
+
+    if (width >= CONTACT_BREAKPOINT) {
+      test(`contact column is centred and capped at --column-narrow @${width}px ${theme} @c1`, async ({ page }) => {
+        await openPage(page, 'contact', { theme, width, height: HEIGHT });
+        const layout = await readContactLayout(page);
+        expect(layout.columnRect, `contact @${width}px ${theme}: [data-contact-column] not found`).not.toBeNull();
+        const col = layout.columnRect!;
+
+        const leftGap = col.left - layout.mainContentLeft;
+        const rightGap = layout.mainContentRight - col.right;
+        expect(
+          Math.abs(leftGap - rightGap),
+          `contact @${width}px ${theme}: column not centred — left gap ${leftGap}, right gap ${rightGap}`
+        ).toBeLessThanOrEqual(1);
+
+        const columnNarrowPx = await page.evaluate(() => {
+          const probe = document.createElement('div');
+          probe.style.width = '44rem';
+          probe.style.position = 'absolute';
+          probe.style.visibility = 'hidden';
+          document.body.appendChild(probe);
+          const px = probe.getBoundingClientRect().width;
+          probe.remove();
+          return px;
+        });
+        expect(
+          col.right - col.left,
+          `contact @${width}px ${theme}: column width ${col.right - col.left} exceeds 44rem (${columnNarrowPx}) + 1`
+        ).toBeLessThanOrEqual(columnNarrowPx + 1);
+      });
+    } else {
+      test(`contact column spans the page column's full width @${width}px ${theme} @c1`, async ({ page }) => {
+        await openPage(page, 'contact', { theme, width, height: HEIGHT });
+        const layout = await readContactLayout(page);
+        expect(layout.columnRect, `contact @${width}px ${theme}: [data-contact-column] not found`).not.toBeNull();
+        const col = layout.columnRect!;
+
+        expect(
+          Math.abs(col.left - layout.mainContentLeft),
+          `contact @${width}px ${theme}: column left ${col.left} not within 1px of main content-box left ${layout.mainContentLeft}`
+        ).toBeLessThanOrEqual(1);
+        expect(
+          Math.abs(col.right - layout.mainContentRight),
+          `contact @${width}px ${theme}: column right ${col.right} not within 1px of main content-box right ${layout.mainContentRight}`
+        ).toBeLessThanOrEqual(1);
+      });
+    }
+  }
+});

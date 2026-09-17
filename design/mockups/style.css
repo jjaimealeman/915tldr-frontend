@@ -224,6 +224,7 @@
   --rule-thin: 1px;
   --rule-thick: 4px;
   --rail-width: 20rem;
+  --column-narrow: 44rem;
 
   /* D-GAP-B (owner decision, 2026-09-17, 01-APPROVAL.md): headlines move off */
   /* the display face onto Source Serif 4 Bold. Instrument Serif ships one */
@@ -1043,6 +1044,19 @@ body[data-page="article"] main > article [data-frame] {
   body[data-page="changelog"] [data-layout="with-rail"] > [data-reading-column] {
     max-width: none;
   }
+
+  /* Revision request 5 ("looks great, should be centerer?"). Width is in
+     rem on purpose — the 01-07 house rule against centring a ch/em-width
+     container with margin:auto (font-swap CLS risk) does not apply here,
+     since --column-narrow is a fixed rem value with no font-relative
+     component. Below 64em the column spans the full page column
+     (contact part of revision request 7), matching
+     [data-contact-intro]/form[data-contact-form] losing their own base
+     max-width above. */
+  [data-contact-column] {
+    max-width: var(--column-narrow);
+    margin-inline: auto;
+  }
 }
 
 /* ==========================================================================
@@ -1129,7 +1143,6 @@ body[data-page="article"] main > article [data-frame] {
    ========================================================================== */
 
 [data-contact-intro] {
-  max-width: var(--measure);
   margin: 0 0 var(--space-5);
 }
 
@@ -1137,8 +1150,13 @@ body[data-page="article"] main > article [data-frame] {
   margin: 0 0 var(--space-6);
 }
 
-form[data-contact-form] {
-  max-width: var(--measure);
+/* Revision request 5 (spacing bug): [data-grid-heading] had no top margin
+   of its own, so "Send message" touched "Latest Stories" directly. Scoped
+   to the sibling combinator (not a blanket [data-grid-heading] rule) so
+   article's rail headings, which already carry their own [data-rail]
+   spacing, are untouched. Applies at every width, not just >=64em. */
+[data-contact-column] + [data-grid-heading] {
+  margin-top: var(--space-7);
 }
 
 [data-field] {
