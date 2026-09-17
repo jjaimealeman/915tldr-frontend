@@ -40,6 +40,15 @@ const SPANISH_STRESS_PATH = path.resolve('design/fixtures/spanish-stress.json');
 const MAX_BYTES = 150000;
 const MAX_RATIO = 0.25;
 
+// Owner decision D-GAP-A (2026-09-17, .planning/phases/01-design-sketch-editorial-identity/01-APPROVAL.md):
+// PRD §6.5 reopened from font-display: swap to font-display: optional (preloads
+// kept). Under optional, a page view either renders the webfont from first
+// paint or keeps the fallback for the whole view -- no mid-render swap, and so
+// no swap-triggered layout shift. Used for every primary @font-face block and
+// for capsize's fallback-face fontDisplay so the whole fonts region is
+// consistent.
+const FONT_DISPLAY = 'optional';
+
 // ---- Step 1-4: build the glyph set ----
 
 function collectFixtureStrings(value, acc) {
@@ -247,7 +256,7 @@ function buildFallbackStack(primaryMetrics, fallbackMetrics, style, fontWeight) 
     [primaryMetrics, fallbackMetrics.georgia, fallbackMetrics.notoSerif, fallbackMetrics.timesNewRoman],
     {
       fontFaceFormat: 'styleObject',
-      fontFaceProperties: { fontStyle: style, fontWeight, fontDisplay: 'swap' },
+      fontFaceProperties: { fontStyle: style, fontWeight, fontDisplay: FONT_DISPLAY },
     }
   );
 
@@ -313,28 +322,28 @@ function primaryFontFaceBlocks() {
       src: 'url("fonts/InstrumentSerif-Regular.woff2") format("woff2")',
       fontWeight: '400',
       fontStyle: 'normal',
-      fontDisplay: 'swap',
+      fontDisplay: FONT_DISPLAY,
     }),
     serializeFontFace({
       fontFamily: '"Instrument Serif"',
       src: 'url("fonts/InstrumentSerif-Italic.woff2") format("woff2")',
       fontWeight: '400',
       fontStyle: 'italic',
-      fontDisplay: 'swap',
+      fontDisplay: FONT_DISPLAY,
     }),
     serializeFontFace({
       fontFamily: '"Source Serif 4"',
       src: 'url("fonts/SourceSerif4-Roman.woff2") format("woff2")',
       fontWeight: '400 700',
       fontStyle: 'normal',
-      fontDisplay: 'swap',
+      fontDisplay: FONT_DISPLAY,
     }),
     serializeFontFace({
       fontFamily: '"Source Serif 4"',
       src: 'url("fonts/SourceSerif4-Italic.woff2") format("woff2")',
       fontWeight: '400 700',
       fontStyle: 'italic',
-      fontDisplay: 'swap',
+      fontDisplay: FONT_DISPLAY,
     }),
   ];
 }

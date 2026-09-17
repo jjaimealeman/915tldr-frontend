@@ -84,6 +84,21 @@ for (const name of pagesUnderTest()) {
                 .toBeGreaterThan(0);
               expect.soft(result.geometryScore, `${label}: geometryScore`).toBeLessThan(0.005);
 
+              // D-GAP-A: under font-display: optional, a load either kept
+              // the fallback throughout or had the webfont ready at first
+              // paint -- it must never classify as a mid-render swap or as
+              // indeterminate, and the served descriptor must actually be
+              // optional (not stale/mis-served CSS).
+              expect
+                .soft(result.pathObserved, `${label}: pathObserved`)
+                .toEqual(expect.stringMatching(/^(fallback-kept|webfont-at-first-paint)$/));
+              expect.soft(result.fontDisplay, `${label}: fontDisplay`).toBe('optional');
+              if (result.referenceNativeCls !== null) {
+                expect
+                  .soft(result.referenceNativeCls, `${label}: referenceNativeCls`)
+                  .toBeLessThan(0.005);
+              }
+
               if (result.nativeSupported) {
                 expect.soft(result.nativeCls, `${label}: nativeCls must be reported when supported`).not.toBeNull();
                 expect.soft(result.nativeCls as number, `${label}: nativeCls`).toBeLessThan(0.005);

@@ -1,5 +1,6 @@
-import type { Page } from '@playwright/test';
+import type { Browser, Page } from '@playwright/test';
 import { blockThirdParty, THEME_STORAGE_KEY, type PageName } from './harness.ts';
+import { assertWebfontsInUse, renderedPrimaryFaces } from './fonts-in-use.ts';
 
 /**
  * D-08: font-swap CLS measurement instrument. Everything here is written to
@@ -297,7 +298,94 @@ export function layoutShiftScore(before: LayoutSnapshot, after: LayoutSnapshot):
   };
 }
 
-export type FontSwapVariant = 'full' | 'size-adjust-only';
+export type FontSwapVariant = 'full' | 'size-adjust-only' | 'swap-control';
+
+/**
+ * True when `rect` (from `snapshot`) intersects that snapshot's own viewport
+ * ([0, innerWidth] x [0, innerHeight]) -- i.e. it is actually visible to a
+ * user at the moment the snapshot was taken, not merely present somewhere on
+ * a much taller scrollable page.
+ */
+function intersectsViewport(rect: LayoutRect, snapshot: LayoutSnapshot): boolean {
+  return (
+    rect.top < snapshot.innerHeight &&
+    rect.top + rect.height > 0 &&
+    rect.left < snapshot.innerWidth &&
+    rect.left + rect.width > 0
+  );
+}
+
+/**
+ * Per-element fragments filtered to only those visible in `snapshot`'s own
+ * viewport, dropping any element left with zero visible fragments entirely.
+ */
+function visibleElements(snapshot: LayoutSnapshot): Record<string, LayoutRect[]> {
+  const result: Record<string, LayoutRect[]> = {};
+  for (const [key, fragments] of Object.entries(snapshot.elements)) {
+    const visible = fragments.filter((r) => intersectsViewport(r, snapshot));
+    if (visible.length > 0) result[key] = visible;
+  }
+  return result;
+}
+
+/**
+ * Compares two layout snapshots for approximate equality, RESTRICTED to each
+ * snapshot's own viewport-visible fragments: same visible element keys, same
+ * visible fragment count per element, and every visible fragment's
+ * left/top/width/height within 0.5px. Used to classify which of the two
+ * user-visible paths under `font-display: optional` a load actually took
+ * (see measureFontSwap's pathObserved classification): a load whose "after"
+ * state matches a reference load that is proven to have the webfonts in use
+ * took the webfont-first path; a load whose "after" state matches its own
+ * "before" state (and not the reference) kept the fallback throughout.
+ *
+ * The viewport restriction is deliberate, not an approximation of
+ * convenience: comparing two INDEPENDENT page loads (this function's actual
+ * caller, measureFontSwap's before/after/reference triad) across an entire
+ * multi-thousand-pixel-tall document accumulates inherent, real, but
+ * font-swap-UNRELATED sub-pixel rendering jitter (measured directly while
+ * building this instrument: two separate loads of the identical HTML/CSS/
+ * webfont, one held-and-released and one never held, disagreed by up to
+ * ~1.3px per text line purely from independent-renderer sub-pixel text
+ * shaping -- no different font, no different content). That jitter is
+ * additive down a long page of headlines and produced spurious ~139px
+ * "mismatches" on elements far below the fold that were never on screen at
+ * all for the scroll position being measured. CLS itself is defined the same
+ * way: only the viewport-clipped impact region counts (layoutShiftScore's
+ * own clipToViewport already does this for the SAME reason). A within-page
+ * before/after comparison (no independent-renderer jitter, since it's the
+ * same render) is unaffected by this restriction -- it only ever prunes
+ * fragments a user could not have seen anyway.
+ */
+export function layoutsMatch(a: LayoutSnapshot, b: LayoutSnapshot): boolean {
+  const aVisible = visibleElements(a);
+  const bVisible = visibleElements(b);
+
+  const aKeys = Object.keys(aVisible);
+  const bKeys = Object.keys(bVisible);
+  if (aKeys.length !== bKeys.length) return false;
+
+  const bSet = new Set(bKeys);
+  for (const key of aKeys) {
+    if (!bSet.has(key)) return false;
+    const aFragments = aVisible[key];
+    const bFragments = bVisible[key];
+    if (aFragments.length !== bFragments.length) return false;
+    for (let i = 0; i < aFragments.length; i++) {
+      const af = aFragments[i];
+      const bf = bFragments[i];
+      if (
+        Math.abs(af.left - bf.left) >= 0.5 ||
+        Math.abs(af.top - bf.top) >= 0.5 ||
+        Math.abs(af.width - bf.width) >= 0.5 ||
+        Math.abs(af.height - bf.height) >= 0.5
+      ) {
+        return false;
+      }
+    }
+  }
+  return true;
+}
 
 export interface MeasureFontSwapOptions {
   width: number;
@@ -350,6 +438,34 @@ export interface FontSwapResult {
    * real CLS.
    */
   prePaintObserved: boolean;
+  /**
+   * Which of the user-visible paths this load actually took, classified by
+   * comparing before/after/reference snapshots (see the classification logic
+   * inside measureFontSwap). 'swapped' should never occur under
+   * font-display: optional in an engine that honours the spec -- it is the
+   * value the swap-control variant's positive control is expected to
+   * produce, proving the instrument can still see a real swap when one
+   * happens. 'indeterminate' means the three snapshots did not fit either
+   * recognised pattern and is itself gate-worthy (see report-font-cls.mjs).
+   */
+  pathObserved: 'fallback-kept' | 'webfont-at-first-paint' | 'swapped' | 'indeterminate';
+  /**
+   * Native layout-shift CLS (sum of entries with hadRecentInput:false, from
+   * navigation start) measured on the REFERENCE load -- a fresh page load of
+   * the same page/width/theme/scroll/variant/fallbackFamily with no font
+   * hold, whose webfonts are proven in use by assertWebfontsInUse before this
+   * value is trusted. null when the engine does not support the layout-shift
+   * PerformanceObserver entry type (matches nativeCls's own null convention).
+   */
+  referenceNativeCls: number | null;
+  /**
+   * The font-display descriptor value of the first primary @font-face rule,
+   * read from document.styleSheets in the page actually under measurement
+   * (not the reference) -- proves the served CSS matches what this row's
+   * variant is supposed to carry (e.g. 'swap' for the swap-control variant,
+   * 'optional' everywhere else).
+   */
+  fontDisplay: string;
 }
 
 const FONTS_REGION_RE = /\/\* fonts:start \*\/[\s\S]*?\/\* fonts:end \*\//;
@@ -385,6 +501,15 @@ async function installStyleOverride(
 
     if (variant === 'size-adjust-only') {
       region = region.replace(/[ \t]*(ascent-override|descent-override|line-gap-override):[^;]+;\n?/g, '');
+    }
+
+    if (variant === 'swap-control') {
+      // The positive control (font-cls.spec.ts's swap-control test): rewrite
+      // every font-display descriptor to swap for this load only, so a real
+      // mid-render swap can be measured, proving measureFontSwap's
+      // instrument still detects a swap when one actually happens. Other
+      // variants never touch this descriptor.
+      region = region.replace(/font-display:\s*[^;]+;/g, 'font-display: swap;');
     }
 
     if (fallbackFamily) {
@@ -515,6 +640,94 @@ async function openPageForMeasurement(
 }
 
 /**
+ * Opens a REFERENCE load in a fresh browser context: same width/theme/scroll/
+ * variant/fallbackFamily as the measurement under test, but no font hold at
+ * all -- a plain, unthrottled load. Its webfonts are proven in use (via
+ * assertWebfontsInUse) before its layout snapshot and native CLS are
+ * trusted, since a reference load whose own webfont silently missed the
+ * optional block period would prove nothing. Used as the "what does a
+ * webfont-first render of this exact combination look like" baseline that
+ * measureFontSwap's pathObserved classification diffs against.
+ */
+async function measureReferenceLoad(
+  browser: Browser,
+  name: PageName,
+  width: number,
+  theme: 'light' | 'dark',
+  scroll: 'top' | 'mid',
+  variant: FontSwapVariant,
+  fallbackFamily: string | null
+): Promise<{ snapshot: LayoutSnapshot; referenceNativeCls: number | null }> {
+  const context = await browser.newContext();
+  const refPage = await context.newPage();
+  try {
+    await installClsObserver(refPage);
+    // Registered before openPageForMeasurement()'s call to blockThirdParty(),
+    // for the same reverse-registration-order reason documented on
+    // installStyleOverride itself.
+    await installStyleOverride(refPage, variant, fallbackFamily);
+    await openPageForMeasurement(refPage, name, theme, width, 900);
+
+    if (scroll === 'mid') {
+      await refPage.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight / 2));
+    }
+
+    await refPage.evaluate(() => document.fonts.ready);
+    await nextTwoFrames(refPage);
+
+    const faces = await renderedPrimaryFaces(refPage);
+    await assertWebfontsInUse(refPage, faces);
+
+    const snapshot = await snapshotLayout(refPage);
+
+    const nativeResult = await refPage.evaluate(() => {
+      const supported = (window as any).__clsSupported === true;
+      if (!supported) return { supported: false, value: null as number | null };
+      const entries = ((window as any).__cls ?? []) as Array<{
+        value: number;
+        startTime: number;
+        hadRecentInput: boolean;
+      }>;
+      const sum = entries.filter((e) => !e.hadRecentInput).reduce((acc, e) => acc + e.value, 0);
+      return { supported: true, value: sum };
+    });
+
+    return {
+      snapshot,
+      referenceNativeCls: nativeResult.supported ? nativeResult.value : null,
+    };
+  } finally {
+    await context.close();
+  }
+}
+
+/**
+ * Reads the font-display descriptor of the first @font-face rule found
+ * across the page's stylesheets -- the value actually served for this row
+ * (e.g. rewritten to 'swap' for the swap-control variant, 'optional'
+ * everywhere else), not what build-fonts.mjs generated on disk.
+ */
+async function readFontDisplay(page: Page): Promise<string> {
+  return page.evaluate(() => {
+    for (const sheet of Array.from(document.styleSheets)) {
+      let rules: CSSRuleList;
+      try {
+        rules = sheet.cssRules;
+      } catch {
+        continue; // cross-origin sheet; none exist on this project's pages
+      }
+      for (const rule of Array.from(rules)) {
+        if (rule.type === CSSRule.FONT_FACE_RULE) {
+          const value = (rule as CSSFontFaceRule).style.getPropertyValue('font-display').trim();
+          if (value) return value;
+        }
+      }
+    }
+    return 'auto';
+  });
+}
+
+/**
  * Measures the font-swap layout shift for one page/width/theme/scroll
  * combination, in whichever engine `page` belongs to. See the 01-02-PLAN.md
  * Task 2 action block ("Measurement (D-08)") for the exact step sequence;
@@ -624,6 +837,34 @@ export async function measureFontSwap(
   const engine = browser?.browserType().name() ?? 'unknown';
   const engineVersion = browser?.version() ?? 'unknown';
 
+  const fontDisplay = await readFontDisplay(page);
+
+  // Independent context/page, no font hold: the "what does a webfont-first
+  // render of this exact combination look like" baseline. Run after the main
+  // measurement's own network hold has been released so the two loads never
+  // contend over the same route/context state.
+  let referenceNativeCls: number | null = null;
+  let pathObserved: FontSwapResult['pathObserved'] = 'indeterminate';
+  if (browser) {
+    const reference = await measureReferenceLoad(browser, name, width, theme, scroll, variant, fallbackFamily);
+    referenceNativeCls = reference.referenceNativeCls;
+
+    const beforeMatchesAfter = before ? layoutsMatch(before, after) : true; // no pre-swap state observed
+    const afterMatchesReference = layoutsMatch(after, reference.snapshot);
+
+    if (prePaintObserved) {
+      if (beforeMatchesAfter && !afterMatchesReference) {
+        pathObserved = 'fallback-kept';
+      } else if (!beforeMatchesAfter && afterMatchesReference) {
+        pathObserved = 'swapped';
+      } else {
+        pathObserved = 'indeterminate';
+      }
+    } else {
+      pathObserved = afterMatchesReference ? 'webfont-at-first-paint' : 'fallback-kept';
+    }
+  }
+
   return {
     page: name,
     engine,
@@ -641,5 +882,8 @@ export async function measureFontSwap(
     fallbackFacesLoaded: fallbackResult.loaded,
     fallbackFacesMissing: fallbackResult.missing,
     prePaintObserved,
+    pathObserved,
+    referenceNativeCls,
+    fontDisplay,
   };
 }
