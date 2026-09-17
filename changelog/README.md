@@ -10,6 +10,7 @@ Entries are named `YYYY-MM-DD-HHMM_slug.md` and grouped by month, newest first.
 
 | Date | Entry | Keywords |
 |------|-------|----------|
+| 2026-09-17 | [Phase 1 Plan 15 Complete: D-15/I18N-07 Closed, Spanish Calibration Made More Robust](2026-09-17-1443_01-15-complete-plan-summary-state-roadmap-windows-.md) | `[DOCUMENTATION]` `[PLANNING]` |
 | 2026-09-17 | [Every Spanish Stress String Recalibrated; a Real Small-Size Measurement Gap Fixed](2026-09-17-1440_01-15-recalibrate-every-spanish-component-widen-hi.md) | `[FEATURE]` `[TESTING]` `[BUG_FIX]` |
 | 2026-09-17 | [One Headline Recalibrated in the New Type System, Proven in Both Engines](2026-09-17-1431_01-15-recalibrate-one-headline-in-the-post-01-14-t.md) | `[FEATURE]` `[TESTING]` `[BUG_FIX]` |
 | 2026-09-17 | [Phase 1 Plan 14 Complete: Source Serif 4 Bold Headlines, Wordmark Only, Font Subset Shrink](2026-09-17-1306_01-14-complete-plan-summary-state-roadmap-windows-.md) | `[DOCUMENTATION]` `[PLANNING]` |

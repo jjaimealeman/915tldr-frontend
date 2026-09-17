@@ -5,15 +5,15 @@ milestone_name: milestone
 current_phase: 01
 current_phase_name: design-sketch-editorial-identity
 status: executing
-stopped_at: Completed 01-14-PLAN.md (D-GAP-B headlines Source Serif 4 Bold, Instrument Serif wordmark only; D-GAP-A Source Serif 4 subsets shrunk 40.8%/22.2%; Instrument Serif Italic retired)
-last_updated: "2026-09-17T19:05:54.862Z"
+stopped_at: Completed 01-15-PLAN.md (Spanish stress recalibration after 01-14's type-system change; D-15/I18N-07 closed)
+last_updated: "2026-09-17T20:43:01.216Z"
 last_activity: 2026-09-17
 last_activity_desc: Phase 01 execution started
 progress:
   total_phases: 1
   completed_phases: 0
   total_plans: 23
-  completed_plans: 14
+  completed_plans: 15
 ---
 
 # Project State
@@ -28,11 +28,11 @@ See: .planning/PROJECT.md (updated 2026-09-16)
 ## Current Position
 
 Phase: 01 (design-sketch-editorial-identity) — EXECUTING
-Plan: 5 of 23
+Plan: 6 of 23
 Status: Ready to execute
 Last activity: 2026-09-17 — Phase 01 execution started
 
-Progress: [██████░░░░] 61%
+Progress: [███████░░░] 65%
 
 ## Performance Metrics
 
@@ -71,6 +71,7 @@ Progress: [██████░░░░] 61%
 | Phase 01 P12 | 8min | 2 tasks | 2 files |
 | Phase 01 P13 | 76min | 3 tasks | 12 files |
 | Phase 01 P14 | 25min | 3 tasks | 15 files |
+| Phase 01 P15 | 35min | 2 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -115,6 +116,8 @@ Recent decisions affecting current work:
 - [Phase ?]: 01-14: fixed a dormant bug in css-tokens.mjs's isColorValue() — culori's hex parser accepts bare hex digits with no '#', misclassifying a font-weight value like 700 as a colour; tightened to require the '#' prefix
 - [Phase ?]: 01-14: Source Serif 4 subsets shrunk 40.8%/22.2% of baseline by pinning the opsz axis to each source's own fvar default (design/scripts/lib/font-axes.mjs); Instrument Serif Italic retired from git index (file kept on disk)
 - [Phase ?]: 01-14: WINDOWS.md entry 13 updated, not closed — its Instrument-Serif-specific framing is now stale after D-GAP-B, but the underlying non-preload-italic risk persists for the smaller Source Serif 4 Italic file
+- [Phase ?]: 01-15: Container-growth overflow heuristic exempted hyphenation-eligible elements (hyphens:auto only engages once lang is known, which injectText() sets) — fixed a real false positive, not a threshold weakening; vClipped remains authoritative.
+- [Phase ?]: 01-15: calibrate-spanish.mjs's 100px calibration proxy under-predicted real in-page ratios for short strings at small UI sizes (skip-link: 1.3303@100px vs 1.3784@16.896px real); added a dense 12-58px sweep that widens each component's hi to cover its worst realistic-size ratio (9/22 components widened).
 
 ### Pending Todos
 
@@ -141,6 +144,6 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-09-17T19:05:54.851Z
-Stopped at: Completed 01-14-PLAN.md (D-GAP-B headlines Source Serif 4 Bold, Instrument Serif wordmark only; D-GAP-A Source Serif 4 subsets shrunk 40.8%/22.2%; Instrument Serif Italic retired)
+Last session: 2026-09-17T20:43:01.203Z
+Stopped at: Completed 01-15-PLAN.md (Spanish stress recalibration after 01-14's type-system change; D-15/I18N-07 closed)
 Resume file: None
