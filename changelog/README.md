@@ -10,6 +10,7 @@ Entries are named `YYYY-MM-DD-HHMM_slug.md` and grouped by month, newest first.
 
 | Date | Entry | Keywords |
 |------|-------|----------|
+| 2026-09-17 | [pnpm End to End: Lockfile Parity, Local Playwright CLI Launcher, packageManager Pin](2026-09-17-1700_pnpm-lockfile-parity-local-cli-launcher.md) | `[TESTING]` `[DEPENDENCIES]` `[CONFIG]` `[FEATURE]` |
 | 2026-09-17 | [Record Phase 1 Gap-Closure Planning in STATE](2026-09-17-1040_record-gap-closure-planning-in-state.md) | `[PLANNING]` `[DOCUMENTATION]` |
 | 2026-09-17 | [Phase 1 Gap-Closure Plans 01-11 to 01-23 (Round-1 Owner Review)](2026-09-17-1034_gap-closure-plans-01-11-to-01-23.md) | `[DOCUMENTATION]` `[DESIGN]` `[ACCESSIBILITY]` `[PERFORMANCE]` `[TESTING]` |
 | 2026-09-17 | [Phase 1 Owner Review Recorded: Revisions Requested](2026-09-17-0942_owner-review-revisions-requested.md) | `[DOCUMENTATION]` `[DESIGN]` `[ACCESSIBILITY]` `[PERFORMANCE]` |

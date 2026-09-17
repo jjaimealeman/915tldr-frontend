@@ -2,6 +2,7 @@
   "name": "915tldr-v2",
   "private": true,
   "type": "module",
+  "packageManager": "pnpm@11.26.0",
   "engines": {
     "node": ">=24"
   },

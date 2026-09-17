@@ -7,8 +7,16 @@
 //   node design/scripts/pw.mjs --project=all       [...extra playwright test args]
 //
 // chromium always runs natively. webkit reads design/.webkit-mode.json
-// (written by `npm run probe:webkit`) to decide whether to run natively or
+// (written by `pnpm run probe:webkit`) to decide whether to run natively or
 // inside the pinned Playwright Docker image.
+//
+// Every launch below (host Chromium, host WebKit, and Docker WebKit) calls
+// `node` directly on the locally installed node_modules/@playwright/test/cli.js
+// rather than going through a package runner (npx/pnpm exec/etc). A package
+// runner can silently download a package from the registry when the local
+// binary is missing; `node <path>` on a local file cannot reach the network
+// at all — it either finds the file or fails loudly. That is the point of
+// this indirection (T-01-35).
 
 import { spawnSync } from 'node:child_process';
 import { readFileSync, existsSync } from 'node:fs';
@@ -16,6 +24,17 @@ import path from 'node:path';
 
 const DOCKER_IMAGE = 'mcr.microsoft.com/playwright:v1.63.0-noble';
 const WEBKIT_MODE_FILE = path.resolve('design/.webkit-mode.json');
+const PLAYWRIGHT_CLI = 'node_modules/@playwright/test/cli.js';
+const PLAYWRIGHT_CLI_ABS = path.resolve(PLAYWRIGHT_CLI);
+
+function requirePlaywrightCli() {
+  if (!existsSync(PLAYWRIGHT_CLI_ABS)) {
+    console.error(
+      `Playwright CLI not found at ${PLAYWRIGHT_CLI} — run pnpm install (owner)`
+    );
+    process.exit(2);
+  }
+}
 
 function parseProjectArg(argv) {
   const projectArgIndex = argv.findIndex((a) => a.startsWith('--project='));
@@ -29,10 +48,11 @@ function parseProjectArg(argv) {
 }
 
 function runChromium(extraArgs) {
+  requirePlaywrightCli();
   const jsonOut = process.env.PW_JSON_OUT ?? 'design/.cache/pw-report-chromium.json';
   const result = spawnSync(
-    'npx',
-    ['playwright', 'test', '--project=chromium', ...extraArgs],
+    'node',
+    [PLAYWRIGHT_CLI_ABS, 'test', '--project=chromium', ...extraArgs],
     { stdio: 'inherit', env: { ...process.env, PW_JSON_OUT: jsonOut } }
   );
   return result.status ?? 1;
@@ -40,7 +60,7 @@ function runChromium(extraArgs) {
 
 function runWebkit(extraArgs) {
   if (!existsSync(WEBKIT_MODE_FILE)) {
-    console.error('design/.webkit-mode.json not found — run npm run probe:webkit first');
+    console.error('design/.webkit-mode.json not found — run pnpm run probe:webkit first');
     process.exit(2);
   }
 
@@ -48,21 +68,26 @@ function runWebkit(extraArgs) {
   const jsonOut = process.env.PW_JSON_OUT ?? 'design/.cache/pw-report-webkit.json';
 
   if (mode.mode === 'native') {
+    requirePlaywrightCli();
     const result = spawnSync(
-      'npx',
-      ['playwright', 'test', '--project=webkit', ...extraArgs],
+      'node',
+      [PLAYWRIGHT_CLI_ABS, 'test', '--project=webkit', ...extraArgs],
       { stdio: 'inherit', env: { ...process.env, PW_JSON_OUT: jsonOut } }
     );
     return result.status ?? 1;
   }
 
   if (mode.mode === 'docker') {
+    requirePlaywrightCli();
     const repoRoot = spawnSync('git', ['rev-parse', '--show-toplevel'], {
       encoding: 'utf8',
     }).stdout.trim();
     const uid = process.getuid();
     const gid = process.getgid();
 
+    // Path is relative to the /work mount inside the container. pnpm's
+    // symlinks under node_modules/.pnpm are relative, so they resolve
+    // correctly inside the mounted repo.
     const dockerArgs = [
       'run',
       '--rm',
@@ -83,8 +108,8 @@ function runWebkit(extraArgs) {
       '-w',
       '/work',
       DOCKER_IMAGE,
-      'npx',
-      'playwright',
+      'node',
+      PLAYWRIGHT_CLI,
       'test',
       '--project=webkit',
       ...extraArgs,
