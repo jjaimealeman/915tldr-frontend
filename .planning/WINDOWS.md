@@ -1,10 +1,10 @@
 ---
 schema_version: 1
-open_count: 3
+open_count: 4
 waived_count: 0
 fixed_count: 12
-total_count: 15
-last_updated: 2026-09-17T21:14:35.114Z
+total_count: 16
+last_updated: 2026-09-17T22:14:16.814Z
 ---
 
 # Broken Windows Ledger
@@ -30,6 +30,7 @@ last_updated: 2026-09-17T21:14:35.114Z
 | 13 | 01 | deviation | design/mockups/article.html |  | 01-13 Tasks 2-3: discovered while fixing entry 11/getting the new referenceNativeCls and Spanish-width guards to pass honestly. article.html (data-standfirst], the prominent above-the-fold standfirst deck) is set in italic Instrument Serif, but D-GAP-A preloads exactly two resources -- InstrumentSerif-Regular.woff2 and SourceSerif4-Roman.woff2 -- both font-style normal; InstrumentSerif-Italic.woff2 is not preloaded. Confirmed deterministic (not a timing flake: an explicit extra 2s wait before checking does not change the outcome, and it reproduces identically in both Chromium and WebKit): under font-display optional, the italic face consistently misses the very short block period on every load tested, held or not, because nothing accelerates its fetch start the way preload does for the other two -- so in practice the standfirst deck almost always renders in its metric-compatible fallback, not Instrument Serif Italic, even on a plain, unthrottled load. This is a real, permanent, content-visible consequence of the fixed 2-preload D-GAP-A scope (Task 1s own acceptance criteria require exactly 2 preloads per page), not a bug in the harness -- the size-adjust metric-compatible fallback should look acceptably close, but the intended italic display face is not what most readers will actually see for that element. Worked around narrowly in this plans own new checks (geometry.ts measureReferenceLoad, i18n.ts widthRatio) by scoping their prove-the-webfont-is-in-use guard to font-style normal only, since italic can never satisfy that guard under the current preload scope and enforcing it there would make every measurement of that element throw unconditionally rather than catching a genuine silent-fallback risk. Flagged for owner judgement: either accept the italic fallback as the de facto standfirst display face, or add a third preload for the italic weight actually used above the fold (an architectural/PRD-scope change, Rule 4, not applied here). UPDATED by 01-14: D-GAP-B (this plan, Task 1) moves article.html's [data-standfirst] deck off Instrument Serif entirely -- it now renders font-family: var(--font-body) (Source Serif 4), italic, weight 400, never Instrument Serif. Instrument Serif Italic is retired outright (Task 3): no longer subsetted, built, referenced in style.css, or tracked in git (git rm --cached; the file stays on disk). The original claim ("set in italic Instrument Serif") is now factually superseded and this entry's file/font-name framing is stale. The underlying risk this entry named -- an italic face that is not among D-GAP-A's two preloaded resources (still exactly InstrumentSerif-Regular.woff2 and SourceSerif4-Roman.woff2, both font-style normal) likely misses the short optional block period and renders in its fallback -- still applies in kind, now to Source Serif 4 Italic (weight 400) rather than Instrument Serif Italic. Source Serif 4 Italic shrank substantially in this same plan (91,096 -> 20,216 bytes, Task 3), which should narrow but not eliminate the window, since a non-preloaded resource's fetch start is unaffected by its own size. Not re-measured against the smaller file here -- Task 3's own verification targeted the coverage (font-cls.spec.ts) and CLS (criterion 5) gates, not a fresh preload-timing measurement of the standfirst specifically -- left open for whoever next touches D-GAP-A/preload scope or the standfirst treatment to measure the smaller file's actual pathObserved rate, or make the same accept-fallback-vs-add-a-third-preload call 01-13 already flagged. | open |  | 2026-09-17T18:32:05.084Z |  |
 | 14 | 01 | deviation | design/tests/spanish-overflow.spec.ts |  | 01-15: fixed container-growth heuristic false positive from headline hyphens:auto engaging on lang=es injection — vClipped remains authoritative, no threshold weakened | fixed |  | 2026-09-17T20:43:10.476Z | 2026-09-17T20:43:14.594Z |
 | 15 | 01 | deviation | design/scripts/calibrate-spanish.mjs |  | 01-15: 100px calibration proxy under-predicted real in-page ratio for short strings at small UI sizes; added dense 12-58px sweep to widen hi (9/22 components widened) | fixed |  | 2026-09-17T20:43:10.568Z | 2026-09-17T20:43:14.690Z |
+| 16 | 01 | unrun-verify | design/mockups/category.html |  | 01-18 Task 3 human-check outstanding: owner must view category.html with real network access at 1280px light/dark to confirm the lead's loaded KTSM photo sits comfortably beside the text column (tests block third-party requests, so this was never automatable) | open |  | 2026-09-17T22:14:16.814Z |  |
 
 ````json
 [
@@ -212,6 +213,18 @@ last_updated: 2026-09-17T21:14:35.114Z
     "reason": "",
     "recorded_at": "2026-09-17T20:43:10.568Z",
     "resolved_at": "2026-09-17T20:43:14.690Z"
+  },
+  {
+    "id": 16,
+    "kind": "unrun-verify",
+    "phase": "01",
+    "file": "design/mockups/category.html",
+    "line": null,
+    "description": "01-18 Task 3 human-check outstanding: owner must view category.html with real network access at 1280px light/dark to confirm the lead's loaded KTSM photo sits comfortably beside the text column (tests block third-party requests, so this was never automatable)",
+    "status": "open",
+    "reason": "",
+    "recorded_at": "2026-09-17T22:14:16.814Z",
+    "resolved_at": null
   }
 ]
 ````
