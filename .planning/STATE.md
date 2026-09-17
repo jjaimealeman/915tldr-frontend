@@ -5,15 +5,15 @@ milestone_name: milestone
 current_phase: 01
 current_phase_name: design-sketch-editorial-identity
 status: executing
-stopped_at: "Completed 01-16-PLAN.md (D-GAP-C closed: Business hue re-sampled outside the amber/olive band)"
-last_updated: "2026-09-17T21:20:14.435Z"
+stopped_at: "Completed 01-17-PLAN.md (revision request 1: header rule; defect 10: toggle position; revision request 6: external links open in a new tab with an accessible cue)"
+last_updated: "2026-09-17T21:53:55.985Z"
 last_activity: 2026-09-17
 last_activity_desc: Phase 01 execution started
 progress:
   total_phases: 1
   completed_phases: 0
   total_plans: 23
-  completed_plans: 16
+  completed_plans: 17
 ---
 
 # Project State
@@ -28,11 +28,11 @@ See: .planning/PROJECT.md (updated 2026-09-16)
 ## Current Position
 
 Phase: 01 (design-sketch-editorial-identity) — EXECUTING
-Plan: 7 of 23
+Plan: 8 of 23
 Status: Ready to execute
 Last activity: 2026-09-17 — Phase 01 execution started
 
-Progress: [███████░░░] 70%
+Progress: [███████░░░] 74%
 
 ## Performance Metrics
 
@@ -73,6 +73,7 @@ Progress: [███████░░░] 70%
 | Phase 01 P14 | 25min | 3 tasks | 15 files |
 | Phase 01 P15 | 35min | 2 tasks | 4 files |
 | Phase 01 P16 | 35min | 2 tasks | 15 files |
+| Phase 01 P17 | 32min | 3 tasks | 9 files |
 
 ## Accumulated Context
 
@@ -122,6 +123,8 @@ Recent decisions affecting current work:
 - [Phase ?]: 01-16: D-GAP-C closed -- Business's colour is re-sampled from a real Ciudad Juárez neon-sign photo (152.1deg, forest green), moving out of the 40-100deg amber/olive register entirely rather than trying another yellow-orange photo.
 - [Phase ?]: 01-16: Business's hueOffset is 0 -- the new photo-sampled hue alone clears the 0.05 minimum pairwise OKLab distance floor with no hand-picked nudge; Health's retained +4 offset reason rewritten to stand alone.
 - [Phase ?]: 01-16: WINDOWS.md entry 3 closed -- Sports (49.4deg) was accepted by the owner in round 1 in their own words; Business is resolved by construction (outside the amber/olive band), not by owner tolerance.
+- [Phase ?]: 01-17: (1920-1280)/2 acceptance-check premise was wrong -- html's font-size is a fluid clamp() token resolving to 18px at 1920px viewport width, not a fixed 16px/rem; chrome.spec.ts now derives the expected 80rem pixel value from the root's real computed font-size
+- [Phase ?]: 01-17: tab-order must-have truth omitted a real, pre-existing focus stop -- category/article/changelog/contact.html's masthead is a real <a href=index.html> home link (index.html alone uses a plain non-link h1); chrome.spec.ts's expected sequence now detects [data-wordmark] a per page instead of asserting a sequence that contradicts 4 of 5 pages' actual markup
 
 ### Pending Todos
 
@@ -148,6 +151,6 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-09-17T21:20:14.423Z
-Stopped at: Completed 01-16-PLAN.md (D-GAP-C closed: Business hue re-sampled outside the amber/olive band)
+Last session: 2026-09-17T21:53:55.973Z
+Stopped at: Completed 01-17-PLAN.md (revision request 1: header rule; defect 10: toggle position; revision request 6: external links open in a new tab with an accessible cue)
 Resume file: None
