@@ -5,15 +5,15 @@ milestone_name: milestone
 current_phase: 01
 current_phase_name: design-sketch-editorial-identity
 status: executing
-stopped_at: "Completed 01-06-PLAN.md (Tasks 1-2: final home + category mockups)"
-last_updated: "2026-09-17T00:47:58.417Z"
+stopped_at: "Completed 01-07-PLAN.md (Tasks 1-3: article, changelog, contact + font subset rebuild and 5-page verify)"
+last_updated: "2026-09-17T01:24:07.439Z"
 last_activity: 2026-09-16
 last_activity_desc: Roadmap created; 137/137 v1 requirements mapped across 12 phases
 progress:
   total_phases: 1
   completed_phases: 0
   total_plans: 10
-  completed_plans: 6
+  completed_plans: 7
 ---
 
 # Project State
@@ -28,11 +28,11 @@ See: .planning/PROJECT.md (updated 2026-09-16)
 ## Current Position
 
 Phase: 01 (design-sketch-editorial-identity) — EXECUTING
-Plan: 7 of 10
+Plan: 8 of 10
 Status: Ready to execute
 Last activity: 2026-09-16 — Phase 01 execution started
 
-Progress: [██████░░░░] 60%
+Progress: [███████░░░] 70%
 
 ## Performance Metrics
 
@@ -64,6 +64,7 @@ Progress: [██████░░░░] 60%
 | Phase 01 P04 | 20min | 2 tasks | 6 files |
 | Phase 01 P05 | 40min | 2 tasks | 18 files |
 | Phase 01 P06 | 155min | 2 tasks | 4 files |
+| Phase 01 P07 | 55min | 3 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -90,6 +91,9 @@ Recent decisions affecting current work:
 - [Phase ?]: 01-05: fixed a pre-existing (01-02) check-contrast.mjs CLI bug — parseArgs only accepted --flag=value, not the documented --flag value form, which silently invalidated every fixture-based test until fixed.
 - [Phase ?]: [Phase 01] 01-06: D-06/D-07 stress cards merged into the home grid's true reverse-chronological order (by real published_at), not appended as a separate block — required by D-12's 'no per-category sections' read literally.
 - [Phase ?]: [Phase 01] 01-06: root-caused a WebKit font-swap CLS gate failure to the pinned Docker test image lacking Georgia/Noto Serif (fc-list confirmed only Liberation family installed) rather than weakening the CLS threshold; flagged non-blocking in WINDOWS.md for owner review, real devices commonly have these fonts.
+- [Phase ?]: 01-07: A pre-existing structural test requires a populated [data-grid] on every mockup page; changelog.html and contact.html each got a Latest Stories grid to satisfy it (Rule 2).
+- [Phase ?]: 01-07: main > article's margin:auto against a ch-unit max-width was a real font-swap CLS bug (centering shifts the left edge when ch's pixel value changes on swap) — fixed by left-anchoring instead of centering.
+- [Phase ?]: 01-07: Two criterion-5 findings (WebKit on article.html, Chromium native-CLS on changelog.html) were investigated to a specific root cause and recorded in WINDOWS.md rather than force-fixed or dismissed.
 
 ### Pending Todos
 
@@ -114,6 +118,6 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-09-17T00:47:58.400Z
-Stopped at: Completed 01-06-PLAN.md (Tasks 1-2: final home + category mockups)
+Last session: 2026-09-17T01:24:07.429Z
+Stopped at: Completed 01-07-PLAN.md (Tasks 1-3: article, changelog, contact + font subset rebuild and 5-page verify)
 Resume file: None
