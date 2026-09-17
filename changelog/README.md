@@ -10,6 +10,7 @@ Entries are named `YYYY-MM-DD-HHMM_slug.md` and grouped by month, newest first.
 
 | Date | Entry | Keywords |
 |------|-------|----------|
+| 2026-09-17 | [Extend structure.spec.ts: Landmarks, DSGN-05, Reduced Motion, Fonts, Head-Script Drift, Page Evidence](2026-09-17-0533_structure-spec-landmarks-tokens-fonts-drift-guard.md) | `[FEATURE]` `[TESTING]` `[ACCESSIBILITY]` `[BUG_FIX]` `[STYLING]` |
 | 2026-09-17 | [Scripted Keyboard Walk (D-14), and a Real WebKit Focus-Obscuring Bug It Caught](2026-09-17-0521_keyboard-walk-webkit-scroll-into-view-fix.md) | `[FEATURE]` `[TESTING]` `[ACCESSIBILITY]` `[BUG_FIX]` `[STYLING]` |
 | 2026-09-16 | [Phase 1 Plan 7 Complete: Article, Changelog, Contact Pages](2026-09-16-1924_01-07-complete-plan-summary-state-roadmap.md) | `[DOCUMENTATION]` `[TESTING]` `[STYLING]` `[DESIGN]` `[ACCESSIBILITY]` |
 | 2026-09-16 | [Rebuild Font Subset, Fix a Font-Swap CLS Regression, Verify All Five Pages](2026-09-16-1920_rebuild-font-subset-fix-cls-regression-five-page-verify.md) | `[BUG_FIX]` `[TESTING]` `[STYLING]` `[ACCESSIBILITY]` `[PERFORMANCE]` |

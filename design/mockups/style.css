@@ -555,6 +555,17 @@ header[data-block] {
   padding: var(--space-7) var(--space-4);
 }
 
+/* The masthead lives inside <main> (not as a body-level sibling) so it is
+   not a second `banner`-role landmark alongside the site's own page-level
+   header — HTML-ARIA maps a header to `banner` unless it is a descendant of
+   article/aside/main/nav/section, and `main` is on that list. `main` still
+   has its own horizontal padding, though, which would otherwise pull this
+   block in from the page edges and break its full-bleed look; cancel it out
+   here so the visual result is unchanged from before the landmark fix. */
+body[data-page="category"] main > header[data-block] {
+  margin: 0 calc(var(--space-4) * -1);
+}
+
 header[data-block] h1 {
   font-family: var(--font-display);
   line-height: var(--leading-display);
