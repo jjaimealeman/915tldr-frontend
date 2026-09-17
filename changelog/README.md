@@ -10,6 +10,7 @@ Entries are named `YYYY-MM-DD-HHMM_slug.md` and grouped by month, newest first.
 
 | Date | Entry | Keywords |
 |------|-------|----------|
+| 2026-09-17 | [Phase 1 Plan 14 Complete: Source Serif 4 Bold Headlines, Wordmark Only, Font Subset Shrink](2026-09-17-1306_01-14-complete-plan-summary-state-roadmap-windows-.md) | `[DOCUMENTATION]` `[PLANNING]` |
 | 2026-09-17 | [Source Serif 4 Shrinks by More Than Half, Instrument Serif Italic Retired](2026-09-17-1301_01-14-shrink-source-serif-4-retire-instrument-seri.md) | `[PERFORMANCE]` `[FEATURE]` `[TESTING]` `[DOCUMENTATION]` |
 | 2026-09-17 | [GREEN: Implement the Font Variation-Axis Reader](2026-09-17-1254_01-14-implement-the-fvar-axis-reader-task-2-green.md) | `[FEATURE]` `[TESTING]` |
 | 2026-09-17 | [RED: Failing Test for the Font Variation-Axis Reader](2026-09-17-1252_01-14-add-failing-test-for-the-fvar-axis-reader-ta.md) | `[TESTING]` `[FEATURE]` |

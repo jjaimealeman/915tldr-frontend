@@ -5,15 +5,15 @@ milestone_name: milestone
 current_phase: 01
 current_phase_name: design-sketch-editorial-identity
 status: executing
-stopped_at: "Completed 01-13-PLAN.md (font-display:optional confirmed working after correcting two misdiagnoses; fontconfig contamination and a theme-toggle CLS bug fixed; full matrix + positive control + Spanish guard all pass; PRD §6.5 amended)"
-last_updated: "2026-09-17T18:40:42.052Z"
+stopped_at: Completed 01-14-PLAN.md (D-GAP-B headlines Source Serif 4 Bold, Instrument Serif wordmark only; D-GAP-A Source Serif 4 subsets shrunk 40.8%/22.2%; Instrument Serif Italic retired)
+last_updated: "2026-09-17T19:05:54.862Z"
 last_activity: 2026-09-17
 last_activity_desc: Phase 01 execution started
 progress:
   total_phases: 1
   completed_phases: 0
   total_plans: 23
-  completed_plans: 13
+  completed_plans: 14
 ---
 
 # Project State
@@ -28,11 +28,11 @@ See: .planning/PROJECT.md (updated 2026-09-16)
 ## Current Position
 
 Phase: 01 (design-sketch-editorial-identity) — EXECUTING
-Plan: 4 of 23
+Plan: 5 of 23
 Status: Ready to execute
 Last activity: 2026-09-17 — Phase 01 execution started
 
-Progress: [██████░░░░] 57%
+Progress: [██████░░░░] 61%
 
 ## Performance Metrics
 
@@ -70,6 +70,7 @@ Progress: [██████░░░░] 57%
 | Phase 01 P11 | 55min | 3 tasks | 12 files |
 | Phase 01 P12 | 8min | 2 tasks | 2 files |
 | Phase 01 P13 | 76min | 3 tasks | 12 files |
+| Phase 01 P14 | 25min | 3 tasks | 15 files |
 
 ## Accumulated Context
 
@@ -110,6 +111,10 @@ Recent decisions affecting current work:
 - [Phase ?]: 01-12: validateBlocks treats strong:false as invalid, not merely redundant — the block contract's only allowed value for strong is true
 - [Phase ?]: 01-13: font-display:optional genuinely works in both Chromium and WebKit — two prior 'genuine Chromium bug' conclusions (prior session's and this continuation's own first pass) were both wrong, refuted by a coordinator's CDP-based reproduction; true causes were test-host fontconfig contamination (Instrument Serif/Source Serif 4 locally installed) and an unrelated theme-toggle CLS bug, both fixed
 - [Phase ?]: 01-13: WINDOWS entry 13 (open) — article.html's italic Instrument Serif standfirst deck is not preloaded and deterministically never wins the optional block period on any load, in either engine; a real, permanent, content-visible consequence of the fixed 2-preload D-GAP-A scope, flagged for owner judgement
+- [Phase ?]: 01-14: D-GAP-B closed literally — headlines Source Serif 4 Bold via --font-headline (aliases --font-body); Instrument Serif is the wordmark alone, weight 400, font-synthesis:none
+- [Phase ?]: 01-14: fixed a dormant bug in css-tokens.mjs's isColorValue() — culori's hex parser accepts bare hex digits with no '#', misclassifying a font-weight value like 700 as a colour; tightened to require the '#' prefix
+- [Phase ?]: 01-14: Source Serif 4 subsets shrunk 40.8%/22.2% of baseline by pinning the opsz axis to each source's own fvar default (design/scripts/lib/font-axes.mjs); Instrument Serif Italic retired from git index (file kept on disk)
+- [Phase ?]: 01-14: WINDOWS.md entry 13 updated, not closed — its Instrument-Serif-specific framing is now stale after D-GAP-B, but the underlying non-preload-italic risk persists for the smaller Source Serif 4 Italic file
 
 ### Pending Todos
 
@@ -136,6 +141,6 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-09-17T18:40:42.040Z
-Stopped at: Completed 01-13-PLAN.md (font-display:optional confirmed working after correcting two misdiagnoses; fontconfig contamination and a theme-toggle CLS bug fixed; full matrix + positive control + Spanish guard all pass; PRD §6.5 amended)
+Last session: 2026-09-17T19:05:54.851Z
+Stopped at: Completed 01-14-PLAN.md (D-GAP-B headlines Source Serif 4 Bold, Instrument Serif wordmark only; D-GAP-A Source Serif 4 subsets shrunk 40.8%/22.2%; Instrument Serif Italic retired)
 Resume file: None
