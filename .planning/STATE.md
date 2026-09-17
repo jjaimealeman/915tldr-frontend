@@ -5,15 +5,15 @@ milestone_name: milestone
 current_phase: 01
 current_phase_name: design-sketch-editorial-identity
 status: executing
-stopped_at: "Completed 01-21-PLAN.md (revision request 8: homepage load-more with static feed pages, first 6 cards on load)"
-last_updated: "2026-09-17T23:05:25.979Z"
+stopped_at: "Completed 01-22-PLAN.md (gap-closure: content/Spanish/glyph coverage of the full 33-card load-more feed)"
+last_updated: "2026-09-17T23:27:28.703Z"
 last_activity: 2026-09-17
 last_activity_desc: Phase 01 execution started
 progress:
   total_phases: 1
   completed_phases: 0
   total_plans: 23
-  completed_plans: 21
+  completed_plans: 22
 ---
 
 # Project State
@@ -28,11 +28,11 @@ See: .planning/PROJECT.md (updated 2026-09-16)
 ## Current Position
 
 Phase: 01 (design-sketch-editorial-identity) — EXECUTING
-Plan: 12 of 23
+Plan: 13 of 23
 Status: Ready to execute
 Last activity: 2026-09-17 — Phase 01 execution started
 
-Progress: [█████████░] 91%
+Progress: [██████████] 96%
 
 ## Performance Metrics
 
@@ -78,6 +78,7 @@ Progress: [█████████░] 91%
 | Phase 01 P19 | 25min | 2 tasks | 21 files |
 | Phase 01 P20 | 11min | 2 tasks | 34 files |
 | Phase 01 P21 | 35min | 3 tasks | 20 files |
+| Phase 01 P22 | 19min | 3 tasks | 8 files |
 
 ## Accumulated Context
 
@@ -141,6 +142,9 @@ Recent decisions affecting current work:
 - [Phase ?]: 01-21: split the 33-card feed by pure document order (6 initial + feed pages of 6) with no reordering, since D-12's reverse-chronological order is a must-have; the Spanish/long-content stress cards now sit behind the button, deliberately deferred to already-planned 01-22
 - [Phase ?]: 01-21: build-feed.mjs's --extract self-verifies renderCardHtml against the live DOM before ever writing home-feed.json, catching a lossy extraction at the source
 - [Phase ?]: 01-21: measured (PerformanceObserver layout-shift), not assumed, zero native CLS during a real load-more click -- the apparent rect movement is a uniform scroll offset from focus moving to the off-screen 7th card, not a reflow
+- [Phase ?]: 01-22: expandFeed(page) real-click loop restores content/Spanish/glyph coverage of all 27 load-more cards; no threshold weakened, no feed reorder
+- [Phase ?]: 01-22: load-more-button's Spanish-overflow check runs before expandFeed (button legitimately hides once the feed is exhausted, per 01-21's own behavior) — extracted checkComponentSpanishOverflow so the same assertion body runs at both moments
+- [Phase ?]: 01-22: build-fonts.mjs's feed-expansion is a self-contained expandFeedInPage, not an import of the test-only feed.ts helper — keeps the build script independent of the test suite
 
 ### Pending Todos
 
@@ -167,6 +171,6 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-09-17T23:05:25.966Z
-Stopped at: Completed 01-21-PLAN.md (revision request 8: homepage load-more with static feed pages, first 6 cards on load)
+Last session: 2026-09-17T23:27:28.690Z
+Stopped at: Completed 01-22-PLAN.md (gap-closure: content/Spanish/glyph coverage of the full 33-card load-more feed)
 Resume file: None
