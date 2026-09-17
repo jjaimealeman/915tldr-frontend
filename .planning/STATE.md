@@ -5,15 +5,15 @@ milestone_name: milestone
 current_phase: 01
 current_phase_name: design-sketch-editorial-identity
 status: executing
-stopped_at: "Completed 01-22-PLAN.md (gap-closure: content/Spanish/glyph coverage of the full 33-card load-more feed)"
-last_updated: "2026-09-17T23:27:28.703Z"
+stopped_at: 01-23 Task 1 complete (strict D-16 gate restored, unscoped 5/5 run, round-2 01-APPROVAL.md regenerated). Halted at Task 2 (owner keyboard walk/visual review) — checkpoint requires the owner.
+last_updated: "2026-09-17T23:41:47.718Z"
 last_activity: 2026-09-17
 last_activity_desc: Phase 01 execution started
 progress:
   total_phases: 1
-  completed_phases: 0
+  completed_phases: 1
   total_plans: 23
-  completed_plans: 22
+  completed_plans: 23
 ---
 
 # Project State
@@ -145,6 +145,8 @@ Recent decisions affecting current work:
 - [Phase ?]: 01-22: expandFeed(page) real-click loop restores content/Spanish/glyph coverage of all 27 load-more cards; no threshold weakened, no feed reorder
 - [Phase ?]: 01-22: load-more-button's Spanish-overflow check runs before expandFeed (button legitimately hides once the feed is exhausted, per 01-21's own behavior) — extracted checkComponentSpanishOverflow so the same assertion body runs at both moments
 - [Phase ?]: 01-22: build-fonts.mjs's feed-expansion is a self-contained expandFeedInPage, not an import of the test-only feed.ts helper — keeps the build script independent of the test suite
+- [Phase ?]: 01-23: strict D-16 gate restored (01-10's criterion-5 exception removed); unscoped verify:phase-1 5/5 PASS both engines; round-2 01-APPROVAL.md regenerated with round-1 history preserved verbatim; plan halted at Task 2 pending owner review
+- [Phase ?]: 01-23: fixed a real bug in write-approval-packet.mjs's readFallbackFacesPerEngine — font-cls.md's newer positive-control table was polluting the Environment section's fallback-face list
 
 ### Pending Todos
 
@@ -159,7 +161,8 @@ None yet.
 - Phase 1: WebKit (Playwright 26.6, Docker) never composites while a font resource is pending, regardless of font-display:swap — font-swap CLS measurement reports prePaintObserved:false honestly for this engine; needs a real-Safari spot-check before 01-APPROVAL.md sign-off (see 01-02-SUMMARY.md coverage D8).
 - Phase 1: three items need owner C-01/subject-fidelity sign-off before 01-APPROVAL.md -- politics' photo is Santa Fe dusk not El Paso/Franklin Mountains; weather's sampled hue reads azure-blue not turquoise; Sports/Business block-stop hues (49.4deg/94.5deg) visually sit near the amber-olive-reading-as-brown risk C-01 flags. See 01-03-SUMMARY.md.
 - Phase 1: Criterion 5 (font-swap CLS) requires an owner decision before 01-APPROVAL.md — accept the documented residual shift, adjust the fallback font stack, or reopen the font-display:swap PRD decision. See 01-09-SUMMARY.md and design/evidence/font-cls.md.
-- **RESOLVED — Phase 1, 01-13 Task 1** (see WINDOWS.md entries 9-12, all `fixed`; supersedes the two prior blocker lines this replaces). Entries 9/10's claim that Chromium's `font-display:optional` genuinely fails to prevent a late swap was WRONG — refuted by the coordinator's rigorous reflow-probe (scroll + forced reflow + a new same-family span never swapped) and confirmed via authoritative CDP `CSS.getPlatformFontsForNode`. True root cause (entry 11): this dev machine has "Instrument Serif"/"Source Serif 4" (this project's own primary webfont names) installed as local user fonts under `~/.local/share/fonts` (leftover from earlier design work); a same-named local font collision makes Chromium apply a late-arriving optional font, purely a test-environment contamination bug. Fixed in `design/scripts/pw.mjs` by isolating `XDG_DATA_HOME` for native (non-Docker) Playwright launches. A second, unrelated, real bug (entry 12) was found while getting the new `referenceNativeCls` check to pass honestly: index.html's theme-toggle button used `display:none` while `[hidden]`, so JS revealing it after DOMContentLoaded caused a real, font-unrelated CLS (confirmed with a fonts-free control). Fixed in `design/mockups/style.css` (`visibility:hidden` instead, same box reserved). `MOCKUP_PAGES=index node design/scripts/pw.mjs --project=all design/tests/font-cls.spec.ts` now passes cleanly and repeatably (3/3 runs, both engines): every row classifies fallback-kept/prePaintObserved:true/fontDisplay:optional. Tasks 2-3 unblocked, no owner decision needed, no threshold weakened.
+- **RESOLVED — Phase 1, 01-13 Task 1** (see WINDOWS.md entries 9-12, all `fixed`; supersedes the two prior blocker lines this replaces). Entries 9/10's claim that Chromium's `font-display:optional` genuinely fails to prevent a late swap was WRONG — refuted by the coordinator's rigorous reflow-probe (scroll + forced reflow + a new same-family span never swapped) and confirmed via authoritative CDP `CSS.getPlatformFontsForNode`. True root cause (entry 11): this dev machine has "Instrument Serif"/"Source Serif 4" (this project's own primary webfont names) installed as local user fonts under `~/.local/share/fonts` (leftover from earlier design work); a same-named local font collision makes Chromium apply a late-arriving optional font, purely a test-environment contamination bug. Fixed in `design/scripts/pw.mjs` by isolating `XDG_DATA_HOME` for native (non-Docker) Playwright launches. A second, unrelated, real bug (entry 12) was found while getting the new `referenceNativeCls` check to pass honestly: index.html's theme-toggle button used `display:` while `[hidden]`, so JS revealing it after DOMContentLoaded caused a real, font-unrelated CLS (confirmed with a fonts-free control). Fixed in `design/mockups/style.css` (`visibility:hidden` instead, same box reserved). `MOCKUP_PAGES=index node design/scripts/pw.mjs --project=all design/tests/font-cls.spec.ts` now passes cleanly and repeatably (3/3 runs, both engines): every row classifies fallback-kept/prePaintObserved:true/fontDisplay:optional. Tasks 2-3 unblocked, no owner decision needed, no threshold weakened.
+- Phase 1: 01-23 halted at Task 2/3 — round-2 01-APPROVAL.md is regenerated and unsigned, awaiting the owner's own keyboard walk/visual re-review and approve-or-revise decision. Not a code blocker; requires the owner's hands and eyes.
 
 ## Deferred Items
 
@@ -171,6 +174,6 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-09-17T23:27:28.690Z
-Stopped at: Completed 01-22-PLAN.md (gap-closure: content/Spanish/glyph coverage of the full 33-card load-more feed)
-Resume file: None
+Last session: 2026-09-17T23:41:47.706Z
+Stopped at: 01-23 Task 1 complete (strict D-16 gate restored, unscoped 5/5 run, round-2 01-APPROVAL.md regenerated). Halted at Task 2 (owner keyboard walk/visual review) — checkpoint requires the owner.
+Resume file: 01-23-PLAN.md (Task 2)

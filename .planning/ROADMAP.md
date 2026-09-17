@@ -52,7 +52,7 @@ Decimal phases appear between their surrounding integers in numeric order.
   4. Mockups render Spanish copy running 25% longer than the English equivalent with no overflow, clipping or content loss in cards and headlines.
   5. Instrument Serif (display) and Source Serif 4 (body) are self-hosted, subset to include Spanish diacritics, woff2-only, with `size-adjust` metric-compatible fallbacks measured to produce zero layout shift on swap; Playfair Display and Merriweather appear nowhere; the article grid is pure HTML with zero JavaScript.
 
-**Plans:** 22/23 plans executed (21 waves) — 13 gap-closure plans (01-11 … 01-23) added 2026-09-17 after the owner's round-1 review requested revisions
+**Plans:** 23/23 plans executed (21 waves) — 13 gap-closure plans (01-11 … 01-23) added 2026-09-17 after the owner's round-1 review requested revisions
 
 Plans:
 **Wave 1**
@@ -141,7 +141,7 @@ Plans:
 
 **Wave 21** *(blocked on Wave 20 completion)*
 
-- [ ] 01-23-PLAN.md — Unscoped run, strict round-2 packet with revision history, owner re-review and decision (D-16)
+- [x] 01-23-PLAN.md — Unscoped run, strict round-2 packet with revision history, owner re-review and decision (D-16)
 
 **UI hint**: yes
 
@@ -326,7 +326,7 @@ Phase 3 and may run alongside Phases 5-7.
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Design Sketch & Editorial Identity | 22/23 | In Progress|  |
+| 1. Design Sketch & Editorial Identity | 23/23 | In Progress|  |
 | 2. Content Quality & Grounding | 0/TBD | Not started | - |
 | 3. Foundation & Read-Budget Guardrails | 0/TBD | Not started | - |
 | 4. Static Generation, Templates & SEO | 0/TBD | Not started | - |
