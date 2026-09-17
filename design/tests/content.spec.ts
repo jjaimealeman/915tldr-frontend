@@ -186,19 +186,69 @@ for (const name of pagesUnderTest()) {
       expect(offenders, offenders.join(' | ')).toEqual([]);
     });
 
-    test(`external links carry rel=noopener; every img has width/height/alt; the junk-image stress card has no img @c1`, async ({
+    test(`external links open in a new tab with rel=noopener, an icon and an accessible "(opens in a new tab)" cue; same-origin links carry neither; every img has width/height/alt; the junk-image stress card has no img @c1`, async ({
       page,
     }) => {
       await openPage(page, name as any);
 
-      const offenders = await page.evaluate(() => {
-        const bad: string[] = [];
-        for (const a of Array.from(document.querySelectorAll('a[href^="http"]'))) {
-          const rel = a.getAttribute('rel') || '';
-          if (!rel.split(/\s+/).includes('noopener')) {
-            bad.push(`link to ${a.getAttribute('href')} missing rel=noopener (rel="${rel}")`);
+      const linkResults = await page.evaluate(() => {
+        return Array.from(document.querySelectorAll('a[href]')).map((a, index) => {
+          const href = a.getAttribute('href') || '';
+          const resolved = new URL(href, window.location.href);
+          return {
+            index,
+            href,
+            external: resolved.origin !== window.location.origin,
+            scheme: resolved.protocol,
+            rel: a.getAttribute('rel') || '',
+            target: a.getAttribute('target'),
+            cueCount: a.querySelectorAll('[data-new-tab-cue]').length,
+            iconCount: a.querySelectorAll('[data-new-tab-icon][aria-hidden="true"]').length,
+          };
+        });
+      });
+
+      const offenders: string[] = [];
+      for (const link of linkResults) {
+        if (link.external) {
+          if (link.target !== '_blank') {
+            offenders.push(`external link ${link.href} missing target="_blank" (target="${link.target}")`);
+          }
+          if (!link.rel.split(/\s+/).includes('noopener')) {
+            offenders.push(`external link ${link.href} missing rel=noopener (rel="${link.rel}")`);
+          }
+          if (link.scheme !== 'https:') {
+            offenders.push(`external link ${link.href} is not https (${link.scheme})`);
+          }
+          if (link.cueCount !== 1) {
+            offenders.push(`external link ${link.href} has ${link.cueCount} [data-new-tab-cue] element(s) (expected 1)`);
+          }
+          if (link.iconCount !== 1) {
+            offenders.push(
+              `external link ${link.href} has ${link.iconCount} [data-new-tab-icon][aria-hidden="true"] element(s) (expected 1)`
+            );
+          }
+        } else {
+          if (link.target !== null) {
+            offenders.push(`same-origin link ${link.href} unexpectedly has target="${link.target}"`);
+          }
+          if (link.cueCount !== 0) {
+            offenders.push(`same-origin link ${link.href} unexpectedly carries a new-tab cue`);
           }
         }
+      }
+      expect(offenders, offenders.join(' | ')).toEqual([]);
+
+      for (const link of linkResults) {
+        if (!link.external) continue;
+        await expect(
+          page.locator('a[href]').nth(link.index),
+          `external link ${link.href} (index ${link.index}) accessible name must end with "(opens in a new tab)"`
+        ).toHaveAccessibleName(/\(opens in a new tab\)$/);
+      }
+
+      const imageOffenders = await page.evaluate(() => {
+        const bad: string[] = [];
         for (const img of Array.from(document.querySelectorAll('img'))) {
           if (!img.getAttribute('width') || !img.getAttribute('height') || img.getAttribute('alt') === null) {
             bad.push(`img ${img.getAttribute('src')} missing width/height/alt`);
@@ -211,7 +261,7 @@ for (const name of pagesUnderTest()) {
         return bad;
       });
 
-      expect(offenders, offenders.join(' | ')).toEqual([]);
+      expect(imageOffenders, imageOffenders.join(' | ')).toEqual([]);
     });
   });
 }

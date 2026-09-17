@@ -538,6 +538,29 @@ nav[aria-label="Sections"] a[aria-current="page"] {
   pointer-events: none;
 }
 
+/* Utility: external-link new-tab marker (revision request 6). No colour
+   literal in either rule — the icon inherits `color: currentColor` from its
+   surrounding link text, and the cue carries no visual paint at all. */
+[data-visually-hidden] {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  border: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+[data-new-tab-icon] {
+  display: inline-block;
+  width: 0.75em;
+  height: 0.75em;
+  margin-inline-start: 0.2em;
+  vertical-align: -0.05em;
+}
+
 /* Category masthead block (D-01; open item 4) — full-bleed, the riskiest
    block at full size (C-01 review). */
 header[data-block] {
