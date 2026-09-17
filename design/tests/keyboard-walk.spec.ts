@@ -192,6 +192,115 @@ for (const name of pagesUnderTest()) {
   });
 }
 
+// ---- Load more keyboard operability (revision request 8, 01-21) ----
+
+if (pagesUnderTest().includes('index')) {
+  for (const theme of THEMES) {
+    for (const width of [WIDTHS.narrow, WIDTHS.wide]) {
+      test(`load more is keyboard-operable and keeps the footer reachable: ${theme} @${width}px @c3`, async ({
+        page,
+      }) => {
+        await openPage(page, 'index', { theme, width });
+
+        function nthCardLinkFocused(n: number): Promise<boolean> {
+          return page.evaluate((index) => {
+            const cards = Array.from(document.querySelectorAll('[data-grid] [data-card]'));
+            const link = cards[index]?.querySelector('h3 a');
+            return !!link && document.activeElement === link;
+          }, n);
+        }
+
+        async function footerFirstLinkFocused(): Promise<boolean> {
+          return page.evaluate(() => {
+            const first = document.querySelector('footer a');
+            return !!first && document.activeElement === first;
+          });
+        }
+
+        // (a) From the 6th card's h3 a, Tab reaches the button; Tab again
+        // reaches the footer's first link.
+        const sixthLink = page.locator('[data-grid] [data-card] h3 a').nth(5);
+        await sixthLink.focus();
+        await page.keyboard.press('Tab');
+        const onButton = await page.evaluate(() => !!document.activeElement?.hasAttribute('data-load-more'));
+        expect(onButton, 'Tab from the 6th card link did not land on the load-more button').toBe(true);
+
+        await page.keyboard.press('Tab');
+        expect(
+          await footerFirstLinkFocused(),
+          "Tab from the button did not reach the footer's first link"
+        ).toBe(true);
+
+        // (b) Enter on the button gives 12 cards, focus on card 7's h3 a,
+        // inspectFocus reports a clean, visible ring.
+        await sixthLink.focus();
+        await page.keyboard.press('Tab');
+        await page.keyboard.press('Enter');
+        await expect(page.locator('[data-grid] [data-card]')).toHaveCount(12);
+        expect(await nthCardLinkFocused(6), 'focus did not land on the 7th card link after Enter').toBe(true);
+
+        const inspection = await inspectFocus(page);
+        expect(inspection.focusVisible, 'load-more focus target is not :focus-visible').toBe(true);
+        expect(
+          (inspection.outlineStyle !== 'none' && inspection.outlineWidth >= 2) || inspection.boxShadowSet,
+          'no visible >=2px focus ring after load-more'
+        ).toBe(true);
+        expect(inspection.clippedBy, `focus ring clipped by ${inspection.clippedBy}`).toBeNull();
+        expect(inspection.outsideViewport, 'focus ring extends outside the viewport').toBe(false);
+        expect(inspection.obscured, 'focus ring is obscured').toBe(false);
+        expect(inspection.ringContrast, `focus ring contrast ${inspection.ringContrast} < 3`).toBeGreaterThanOrEqual(3);
+
+        // (c) Shift+Tab from there focuses card 6's h3 a.
+        await page.keyboard.press('Shift+Tab');
+        expect(await nthCardLinkFocused(5), "Shift+Tab did not return focus to the 6th card's link").toBe(true);
+
+        // (d) Tab forward to the button, then Space, gives 18 cards and
+        // focus on card 13's link. The grid now holds 12 cards (cards 7-12
+        // still sit between here and the button), so "Tab forward" is
+        // driven directly rather than a single hard-coded Tab press.
+        await page.locator('[data-load-more]').focus();
+        await page.keyboard.press('Space');
+        await expect(page.locator('[data-grid] [data-card]')).toHaveCount(18);
+        expect(await nthCardLinkFocused(12), 'focus did not land on the 13th card link after Space').toBe(true);
+
+        // (e) Repeat until the button is hidden. The status then contains
+        // "That's everything for now.". Tab from the last card's link
+        // reaches the footer's first link.
+        let guard = 0;
+        while (await page.locator('[data-load-more]').isVisible()) {
+          await page.locator('[data-load-more]').focus();
+          await page.keyboard.press('Enter');
+          // Each press must settle (aria-disabled cleared, or the button
+          // hidden on the last page) before the next loop iteration's
+          // isVisible() re-check and Enter press — otherwise a second Enter
+          // fired while the fetch is still in flight is ignored by the
+          // click handler's own aria-disabled guard, and the loop spins
+          // forever waiting for a load that will never happen.
+          await page.waitForFunction(() => {
+            const btn = document.querySelector('[data-load-more]');
+            return !btn || (btn as HTMLElement).hidden || btn.getAttribute('aria-disabled') !== 'true';
+          });
+          guard++;
+          if (guard > 10) throw new Error('load-more: button did not become hidden within 10 activations');
+        }
+
+        const status = (await page.locator('[data-load-more-status]').innerText()).trim();
+        expect(status, `status "${status}" does not contain "That's everything for now."`).toContain(
+          "That's everything for now."
+        );
+
+        const lastLink = page.locator('[data-grid] [data-card] h3 a').last();
+        await lastLink.focus();
+        await page.keyboard.press('Tab');
+        expect(
+          await footerFirstLinkFocused(),
+          "Tab from the last card link did not reach the footer's first link"
+        ).toBe(true);
+      });
+    }
+  }
+}
+
 // ---- New-tab activation safety (revision request 6, T-01-50/T-01-52) ----
 
 const PAGES_WITH_EXTERNAL_LINKS = ['article', 'contact'] as const;

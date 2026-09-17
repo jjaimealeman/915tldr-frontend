@@ -401,6 +401,28 @@ decisions above.
 - **DSGN-03's wording** ("Display type is Instrument Serif") needs rewording to reflect
   D-GAP-B at the phase transition. This is the owner's call and is not edited mid-phase.
 
+- **D-05 amended (01-21):** the mockups directory gains an eighth entry, `feed/` — static JSON
+  pages (`page-2.json … page-N.json`) for the homepage's load-more control. Rationale
+  unchanged from D-05's own reversibility note: the file layout is local to the mockup
+  directory and reversible; the real site will serve pre-built feed JSON beside its pages, so
+  keeping the mockup in that shape lets Phase 3 copy the contract instead of redesigning it.
+
+- **D-12 amended (01-21):** the home grid now server-renders the lead plus the first 6 cards
+  of the reverse-chronological feed, then a Load more button appends further pre-built cards
+  from static same-origin JSON, in pages of 6, continuing the same true reverse-chronological
+  order across pages (revision request 8 — "first load is overwhelming... maybe a load more
+  button? start with maybe 2-3 rows?!"). D-12's other rule — no category-reserved space
+  anywhere on the homepage — is unchanged; load-more only paginates the single mixed feed, it
+  does not introduce per-category sections.
+
+- **DSGN-06 / ROADMAP criterion 5 wording flagged for the phase transition:** the requirement
+  text ("article grid is pure HTML with zero JavaScript") should be reworded once this phase
+  transitions. The server-rendered grid stays script-free and identical with JavaScript
+  disabled (proven by structure.spec.ts's "grid renders identically with JavaScript disabled"
+  test, now covering the trimmed 6-card grid); the PRD §5.5 load-more island is a separate,
+  explicitly-named genuine interaction that appends pre-built cards on request, not part of
+  the pure-HTML grid claim. This is the owner's call, not edited mid-phase.
+
 ---
 
 *Phase: 1-Design Sketch & Editorial Identity*

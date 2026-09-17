@@ -24,6 +24,7 @@
     "verify:approval": "node design/scripts/verify-approval.mjs",
     "fonts:fetch": "node design/scripts/fetch-fonts.mjs",
     "fonts:build": "node design/scripts/build-fonts.mjs",
+    "feed:build": "node design/scripts/build-feed.mjs",
     "palette:sample": "node design/scripts/sample-hues.mjs",
     "palette:build": "node design/scripts/build-palette.mjs",
     "palette:swatches": "node design/scripts/render-swatches.mjs",
