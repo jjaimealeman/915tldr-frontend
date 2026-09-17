@@ -266,6 +266,16 @@
   --rule-thin: 1px;
   --rule-thick: 4px;
 
+  /* D-GAP-B (owner decision, 2026-09-17, 01-APPROVAL.md): headlines move off */
+  /* the display face onto Source Serif 4 Bold. Instrument Serif ships one */
+  /* weight, so the "Instrument Serif - 700" the owner saw was browser- */
+  /* synthesised bold, not a real weight. --font-headline aliases */
+  /* --font-body so geometry.ts's fallback override (fonts region) still */
+  /* reaches headlines through the body family's own fallback stack. */
+  --font-headline: var(--font-body);
+  --weight-headline: 700;
+  --leading-headline: 1.15;
+
   /* palette:start */
   /* palette stops (D-02/D-03) — shared by all eight hues; hue alone carries identity */
   --stop-vivid-light-l: 0.600;
@@ -455,6 +465,8 @@ header:not([data-block]) {
 
 header:not([data-block]) h1 {
   font-family: var(--font-display);
+  font-weight: 400;
+  font-synthesis: none;
   line-height: var(--leading-display);
   font-size: var(--step-6);
   margin: 0;
@@ -463,6 +475,8 @@ header:not([data-block]) h1 {
 [data-wordmark] {
   margin: 0;
   font-family: var(--font-display);
+  font-weight: 400;
+  font-synthesis: none;
   line-height: var(--leading-display);
   font-size: var(--step-6);
 }
@@ -577,8 +591,9 @@ body[data-page="category"] main > header[data-block] {
 }
 
 header[data-block] h1 {
-  font-family: var(--font-display);
-  line-height: var(--leading-display);
+  font-family: var(--font-headline);
+  font-weight: var(--weight-headline);
+  line-height: var(--leading-headline);
   font-size: var(--step-6);
   margin: 0 0 var(--space-2);
 }
@@ -637,8 +652,9 @@ main {
 }
 
 [data-lead] h2 {
-  font-family: var(--font-display);
-  line-height: var(--leading-display);
+  font-family: var(--font-headline);
+  font-weight: var(--weight-headline);
+  line-height: var(--leading-headline);
   font-size: var(--step-5);
   margin: 0 0 var(--space-3);
   overflow-wrap: anywhere;
@@ -699,8 +715,9 @@ main {
 }
 
 [data-card] h3 {
-  font-family: var(--font-display);
-  line-height: var(--leading-display);
+  font-family: var(--font-headline);
+  font-weight: var(--weight-headline);
+  line-height: var(--leading-headline);
   font-size: var(--step-3);
   margin: 0 0 var(--space-2);
   overflow-wrap: anywhere;
@@ -805,8 +822,9 @@ footer [data-attribution] {
    ========================================================================== */
 
 main h1 {
-  font-family: var(--font-display);
-  line-height: var(--leading-display);
+  font-family: var(--font-headline);
+  font-weight: var(--weight-headline);
+  line-height: var(--leading-headline);
   font-size: var(--step-6);
   margin: 0 0 var(--space-4);
   overflow-wrap: anywhere;
@@ -854,8 +872,9 @@ body[data-page="article"] main > article {
    the pull quote PRD §5.1 names but which this content model cannot honestly
    support (see 01-CONTEXT.md D-10). */
 [data-standfirst] {
-  font-family: var(--font-display);
+  font-family: var(--font-body);
   font-style: italic;
+  font-weight: 400;
   line-height: var(--leading-display);
   font-size: var(--step-3);
   margin: 0 0 var(--space-4);
@@ -911,8 +930,9 @@ body[data-page="article"] main > article [data-frame] {
 }
 
 [data-grid-heading] {
-  font-family: var(--font-display);
-  line-height: var(--leading-display);
+  font-family: var(--font-headline);
+  font-weight: var(--weight-headline);
+  line-height: var(--leading-headline);
   font-size: var(--step-4);
   margin: 0 0 var(--space-3);
 }
@@ -946,8 +966,9 @@ body[data-page="article"] main > article [data-frame] {
 }
 
 [data-dispatch] h2 {
-  font-family: var(--font-display);
-  line-height: var(--leading-display);
+  font-family: var(--font-headline);
+  font-weight: var(--weight-headline);
+  line-height: var(--leading-headline);
   font-size: var(--step-3);
   margin: 0 0 var(--space-2);
 }

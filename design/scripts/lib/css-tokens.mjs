@@ -57,6 +57,35 @@ export function extractRegion(css, name) {
   return css.slice(contentStart, endIndex);
 }
 
+/**
+ * Parses the fonts region's own `:root { ... }` rule (written by
+ * build-fonts.mjs — exactly `--font-display` and `--font-body`, each a
+ * fully-resolved font-stack string with no `var()` references) into a Map of
+ * name -> raw value. D-GAP-B's `--font-headline: var(--font-body);` lives in
+ * the *tokens* region but references a value owned by the *fonts* region;
+ * callers that resolve the tokens region merge this map in first so that
+ * reference is not reported as missing. Returns an empty Map if the fonts
+ * region or its `:root` rule is absent (tolerant — callers that don't need
+ * font tokens, e.g. a tokens-only fixture in a unit test, are unaffected).
+ */
+export function parseFontsRootVars(css) {
+  const map = new Map();
+  let fontsRegion;
+  try {
+    fontsRegion = extractRegion(css, 'fonts');
+  } catch {
+    return map;
+  }
+  const rootMatch = fontsRegion.match(/:root\s*\{([^}]*)\}/);
+  if (!rootMatch) return map;
+  const declRe = /(--[\w-]+):\s*([^;]+);/g;
+  let match;
+  while ((match = declRe.exec(rootMatch[1]))) {
+    map.set(match[1], match[2].trim());
+  }
+  return map;
+}
+
 const ROOT_SELECTOR = ':root {';
 const DARK_SELECTOR = '[data-theme="dark"] {';
 const DECLARATION_RE = /^(--[\w-]+):\s*(.+);$/;
@@ -223,7 +252,16 @@ export function toSrgb(value) {
  * the gate must either check or explicitly exempt) — a bare number, unit
  * value, `var()` reference, or keyword like `currentColor` all parse to
  * `undefined` and are never colour-valued.
+ *
+ * D-GAP-B correction: culori's hex parser accepts a bare 3/4/6/8-digit hex
+ * string with no leading `#` (verified empirically — `parse('700')` returns
+ * an rgb colour), which silently contradicts the contract above for any
+ * token whose value happens to look like hex digits, e.g. a font-weight of
+ * `700`. A CSS `<color>` hex notation always requires the `#` prefix (CSS
+ * Color Module Level 4 SS4.2.1), so a bare hex-digit-only string is rejected
+ * before it ever reaches culori.
  */
 export function isColorValue(value) {
+  if (/^[0-9a-fA-F]{3,8}$/.test(value.trim())) return false;
   return parse(value) !== undefined;
 }

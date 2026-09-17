@@ -14,6 +14,7 @@ const toOklchConverter = converter('oklch');
 import {
   extractRegion,
   parseTokenRules,
+  parseFontsRootVars,
   resolveTheme,
   toSrgb,
   isColorValue,
@@ -112,6 +113,13 @@ async function run() {
 
   const tokensRegion = extractRegion(css, 'tokens');
   const rules = parseTokenRules(tokensRegion);
+  // D-GAP-B: --font-headline (tokens region) aliases --font-body, which is
+  // owned by the fonts region — merge it in so resolveTheme's eager
+  // resolution doesn't report it as a missing reference. Non-colour values,
+  // so no effect on any gamut/contrast check below.
+  for (const [key, value] of parseFontsRootVars(css)) {
+    if (!rules.light.has(key)) rules.light.set(key, value);
+  }
 
   let light;
   let dark;

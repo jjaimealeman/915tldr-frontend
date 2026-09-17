@@ -3,7 +3,14 @@ import { existsSync, mkdirSync, readFileSync } from 'node:fs';
 import path from 'node:path';
 import { formatHex } from 'culori';
 import { openPage, pagesUnderTest, WIDTHS, THEMES, THEME_STORAGE_KEY } from './support/harness.ts';
-import { CANONICAL_SLUGS, extractRegion, parseTokenRules, resolveTheme, toSrgb } from '../scripts/lib/css-tokens.mjs';
+import {
+  CANONICAL_SLUGS,
+  extractRegion,
+  parseTokenRules,
+  parseFontsRootVars,
+  resolveTheme,
+  toSrgb,
+} from '../scripts/lib/css-tokens.mjs';
 
 const STYLE_CSS_PATH = path.resolve('design/mockups/style.css');
 const EVIDENCE_PAGES_DIR = path.resolve('design/evidence/pages');
@@ -11,6 +18,12 @@ const EVIDENCE_PAGES_DIR = path.resolve('design/evidence/pages');
 function readTokens() {
   const css = readFileSync(STYLE_CSS_PATH, 'utf8');
   const rules = parseTokenRules(extractRegion(css, 'tokens'));
+  // D-GAP-B: --font-headline aliases --font-body, which is owned by the
+  // fonts region — merge it in so resolveTheme's eager resolution doesn't
+  // report it as a missing reference (see check-contrast.mjs's identical fix).
+  for (const [key, value] of parseFontsRootVars(css)) {
+    if (!rules.light.has(key)) rules.light.set(key, value);
+  }
   return {
     light: resolveTheme(rules, 'light'),
     dark: resolveTheme(rules, 'dark'),
@@ -138,28 +151,99 @@ for (const name of pagesUnderTest()) {
       expect(toggleVisibleNoJs).toBe(false);
     });
 
-    test(`body is set in Source Serif 4; headlines are set in Instrument Serif @c5`, async ({ page }) => {
+    test(`type roles: Source Serif 4 body, Source Serif 4 Bold headlines, Instrument Serif wordmark only @c5`, async ({
+      page,
+    }) => {
       await openPage(page, name as any);
 
+      // Body: first family is Source Serif 4.
       const bodyFont = await page.evaluate(() => getComputedStyle(document.body).fontFamily);
       expect(firstFamily(bodyFont)).toBe('Source Serif 4');
 
-      const hasLead = (await page.locator('[data-lead]').count()) > 0;
+      // Headlines: every headline-role element is Source Serif 4 at
+      // computed weight 700 (D-GAP-B — Instrument Serif ships one weight,
+      // so a "700" on it would have been browser-synthesised).
+      const HEADLINE_SELECTOR =
+        '[data-card] h3, [data-lead] h2, [data-dispatch] h2, main h1, [data-grid-heading], header[data-block] h1';
+      const headlineResults = await page.evaluate((selector) => {
+        const els = Array.from(document.querySelectorAll(selector));
+        return els.map((el) => {
+          const cs = getComputedStyle(el as Element);
+          return { fontFamily: cs.fontFamily, fontWeight: cs.fontWeight };
+        });
+      }, HEADLINE_SELECTOR);
 
-      const headlineFonts = await page.evaluate((hasLead) => {
-        const els = hasLead
-          ? [
-              ...Array.from(document.querySelectorAll('[data-card] h3')),
-              ...Array.from(document.querySelectorAll('[data-lead] h2')),
-              ...Array.from(document.querySelectorAll('[data-dispatch] h2')),
-            ]
-          : [document.querySelector('h1')].filter(Boolean);
-        return els.map((el) => getComputedStyle(el as Element).fontFamily);
-      }, hasLead);
+      expect(headlineResults.length).toBeGreaterThan(0);
+      for (const { fontFamily, fontWeight } of headlineResults) {
+        expect(firstFamily(fontFamily)).toBe('Source Serif 4');
+        expect(fontWeight).toBe('700');
+      }
 
-      expect(headlineFonts.length).toBeGreaterThan(0);
-      for (const font of headlineFonts) {
-        expect(firstFamily(font)).toBe('Instrument Serif');
+      // Wordmark: every rendered element with a direct non-empty text node
+      // whose first family is Instrument Serif must live inside body >
+      // header, match the wordmark selectors, be weight 400 / style normal,
+      // and have font synthesis disabled.
+      const wordmarkResults = await page.evaluate(() => {
+        const WORDMARK_SELECTOR = '[data-wordmark], [data-wordmark] a, body > header > h1';
+        const wordmarkEls = new Set(Array.from(document.querySelectorAll(WORDMARK_SELECTOR)));
+        const offenders: string[] = [];
+        let wordmarkCount = 0;
+
+        const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_ELEMENT);
+        let node: Element | null = document.body;
+        do {
+          const hasDirectText = Array.from(node.childNodes).some(
+            (n) => n.nodeType === Node.TEXT_NODE && (n.textContent || '').trim().length > 0
+          );
+          if (!hasDirectText) continue;
+          const cs = getComputedStyle(node);
+          const first = cs.fontFamily.split(',')[0].trim().replace(/^"(.*)"$/, '$1');
+          if (first !== 'Instrument Serif') continue;
+
+          const isBodyHeaderDescendant = !!node.closest('body > header');
+          const matchesWordmarkSelector = wordmarkEls.has(node);
+
+          const synthesisNone =
+            (cs as any).fontSynthesis === 'none' ||
+            ((cs as any).fontSynthesisWeight === 'none' && (cs as any).fontSynthesisStyle === 'none');
+
+          if (
+            !isBodyHeaderDescendant ||
+            !matchesWordmarkSelector ||
+            cs.fontWeight !== '400' ||
+            cs.fontStyle !== 'normal' ||
+            !synthesisNone
+          ) {
+            offenders.push(
+              `${node.tagName}${node.className ? '.' + node.className : ''}: weight=${cs.fontWeight} style=${cs.fontStyle} insideBodyHeader=${isBodyHeaderDescendant} matchesSelector=${matchesWordmarkSelector} synthesisNone=${synthesisNone}`
+            );
+          } else {
+            wordmarkCount++;
+          }
+        } while ((node = walker.nextNode() as Element | null));
+
+        return { offenders, wordmarkCount };
+      });
+
+      expect(
+        wordmarkResults.offenders,
+        `Instrument Serif-rendering element(s) outside the wordmark contract: ${wordmarkResults.offenders.join(' | ')}`
+      ).toEqual([]);
+      expect(wordmarkResults.wordmarkCount, 'no wordmark element found').toBeGreaterThan(0);
+
+      // Standfirst deck (article only): Source Serif 4, italic, weight 400.
+      const standfirstCount = await page.locator('[data-standfirst]').count();
+      if (standfirstCount > 0) {
+        const standfirst = await page.evaluate(() => {
+          const el = document.querySelector('[data-standfirst]');
+          if (!el) return null;
+          const cs = getComputedStyle(el);
+          return { fontFamily: cs.fontFamily, fontStyle: cs.fontStyle, fontWeight: cs.fontWeight };
+        });
+        expect(standfirst).not.toBeNull();
+        expect(firstFamily(standfirst!.fontFamily)).toBe('Source Serif 4');
+        expect(standfirst!.fontStyle).toBe('italic');
+        expect(standfirst!.fontWeight).toBe('400');
       }
     });
 

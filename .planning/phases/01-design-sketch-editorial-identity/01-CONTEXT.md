@@ -367,6 +367,40 @@ planning, not from the owner:
 
 </deferred>
 
+## Amendments after owner review (2026-09-17)
+
+The owner reviewed all five mockups in a real browser on 2026-09-17 and chose **revise, not
+approve** (see `01-APPROVAL.md`, "Revision requests" and "Owner decisions (answered
+2026-09-17)" for the owner's own words). This section records how that review amended the
+decisions above.
+
+- **D-08 is superseded in method by D-GAP-A**: `font-display: optional` + preloads, with
+  zero swap-triggered layout shift proven by classified measurement plus a positive control
+  (01-13).
+- **D-09 is amended by D-GAP-B**: headlines move to Source Serif 4 Bold; Instrument Serif is
+  kept for the "915 TLDR" wordmark only (01-14). The type-led card rule (D-09's other half) is
+  unchanged.
+- **C-01 is applied by D-GAP-C**: Business is re-sampled from a new photo; Sports is accepted
+  by the owner as-is (01-16).
+- **D-GAP-D**: pnpm is the sole package manager (01-11).
+- **Round-1 revision requests 1–10**, by number, with the plan that closes each:
+
+  | Item | Closed by |
+  |---|---|
+  | 1 — remove the black/white header rule | 01-17 |
+  | 2 — category lead image only when usable; typographic fallback | 01-18 |
+  | 3 — article right rail at >=1024px | 01-19 |
+  | 4 — changelog layout bug and whitespace | 01-20 |
+  | 5 — contact centred; button/heading spacing | 01-20 |
+  | 6 — external links open in a new tab with an accessible cue | 01-17 |
+  | 7 — full width at 768px for article, changelog and contact | 01-19, 01-20 |
+  | 8 — Load more (static JSON, button) | 01-21, 01-22 |
+  | 9 — raw markdown in summaries | 01-12, 01-18 |
+  | 10 — theme toggle outside the column at 1920px | 01-17 |
+
+- **DSGN-03's wording** ("Display type is Instrument Serif") needs rewording to reflect
+  D-GAP-B at the phase transition. This is the owner's call and is not edited mid-phase.
+
 ---
 
 *Phase: 1-Design Sketch & Editorial Identity*

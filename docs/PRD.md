@@ -299,11 +299,15 @@ is a site that photographs beautifully and reads badly.
 
 | Role | Face | Note |
 |---|---|---|
-| Display / headlines | **Instrument Serif** | high contrast, distinctive, not yet everywhere |
+| Wordmark "915 TLDR" | **Instrument Serif** | single weight; never synthesised bold |
+| Headlines | **Source Serif 4 Bold** | 700, variable wght |
 | Body / UI | **Source Serif 4** | variable, designed for screen reading |
 
 Serif throughout. Deliberately **not** Playfair Display or Merriweather (the current
 headline face) — both are signatures of AI-generated sites.
+
+**Amended 2026-09-17 — owner decision D-GAP-B (Phase 1 review):** "not too crazy about the
+thin font for the headings". Previously: Instrument Serif for display/headlines.
 
 ### 5.3 Theme
 
@@ -479,7 +483,8 @@ designed surface, not a meta tag afterthought.
 **Generated share cards.** Where an article has no strong photograph, generate a branded card
 at build time: headline in Instrument Serif, category colour block, 915 TLDR mark, source
 attribution. This is deterministic image composition, not AI generation — no per-article cost,
-and it guarantees every share looks intentional.
+and it guarantees every share looks intentional. [Headline face under review after D-GAP-B —
+re-decide when share cards are built.]
 
 **Validation is part of the definition of done.** Cards are checked in the Facebook Sharing
 Debugger, X Card Validator, and by pasting real links into iMessage, WhatsApp and Slack —
