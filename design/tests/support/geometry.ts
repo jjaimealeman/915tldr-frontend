@@ -331,7 +331,8 @@ export interface FontSwapResult {
   width: number;
   theme: string;
   scroll: string;
-  variant: 'full';
+  variant: FontSwapVariant;
+  fallbackFamily: string | null;
   nativeSupported: boolean;
   nativeCls: number | null;
   geometryScore: number;
@@ -349,6 +350,101 @@ export interface FontSwapResult {
    * real CLS.
    */
   prePaintObserved: boolean;
+}
+
+const FONTS_REGION_RE = /\/\* fonts:start \*\/[\s\S]*?\/\* fonts:end \*\//;
+
+/**
+ * Routes style.css requests and rewrites only the fonts region — never the
+ * rest of the stylesheet — to test one variant/fallbackFamily combination
+ * without touching the file on disk. Registered (when needed) before
+ * openPageForMeasurement's call to blockThirdParty, for the same
+ * reverse-registration-order reason documented on holdFonts above: the
+ * later-registered blockThirdParty handler runs first and falls through
+ * for local requests, letting this earlier-registered handler still
+ * process the matching style.css request.
+ */
+async function installStyleOverride(
+  page: Page,
+  variant: FontSwapVariant,
+  fallbackFamily: string | null
+): Promise<void> {
+  if (variant === 'full' && !fallbackFamily) return;
+
+  await page.route('**/mockups/style.css', async (route) => {
+    const response = await route.fetch();
+    const original = await response.text();
+    const regionMatch = original.match(FONTS_REGION_RE);
+
+    if (!regionMatch || regionMatch.index === undefined) {
+      await route.fulfill({ response, body: original });
+      return;
+    }
+
+    let region = regionMatch[0];
+
+    if (variant === 'size-adjust-only') {
+      region = region.replace(/[ \t]*(ascent-override|descent-override|line-gap-override):[^;]+;\n?/g, '');
+    }
+
+    if (fallbackFamily) {
+      region = region.replace(
+        /--font-display:\s*[^;]+;/,
+        `--font-display: "Instrument Serif", "Instrument Serif Fallback: ${fallbackFamily}", serif;`
+      );
+      region = region.replace(
+        /--font-body:\s*[^;]+;/,
+        `--font-body: "Source Serif 4", "Source Serif 4 Fallback: ${fallbackFamily}", serif;`
+      );
+    }
+
+    const rewritten = original.slice(0, regionMatch.index) + region + original.slice(regionMatch.index + regionMatch[0].length);
+    await route.fulfill({ response, body: rewritten, headers: { ...response.headers(), 'content-type': 'text/css' } });
+  });
+}
+
+/**
+ * After the page has loaded (with style.css served exactly as it will be
+ * for the measurement about to run), calls document.fonts.load() for every
+ * registered "<Primary> Fallback: <label>" face and returns the distinct
+ * bare labels (e.g. "Georgia", "Noto Serif", "Times New Roman") for which
+ * at least one such face reaches 'loaded' — i.e. the fallback tiers this
+ * engine/host combination can actually exercise. An empty result means no
+ * metric-compatible fallback face is available at all; callers should treat
+ * that the same way font-cls.spec.ts's existing
+ * "no metric-compatible fallback face available — measurement meaningless"
+ * check does.
+ */
+export async function listLoadableFallbacks(page: Page): Promise<string[]> {
+  return page.evaluate(async () => {
+    const fallbacks = [...document.fonts].filter((f) => f.family.includes('Fallback:'));
+    const labels = new Set<string>();
+    for (const face of fallbacks) {
+      // FontFace.family is unquoted in Chromium but arrives already
+      // double-quoted in this Playwright-WebKit build for any family name
+      // containing a character (here, ':') that requires quoting in the
+      // original @font-face rule. Re-wrapping an already-quoted string in
+      // another pair of quotes produces a malformed font shorthand
+      // (`1em ""Instrument Serif Fallback: Georgia""`), which
+      // document.fonts.load() rejects with a SyntaxError in WebKit —
+      // discovered empirically as the actual cause of what first looked
+      // like WebKit-Docker font-matching flakiness (different pages
+      // failing on different runs), not a real availability difference.
+      // Stripping any pre-existing quotes before re-wrapping is correct in
+      // both engines.
+      const bareFamily = face.family.replace(/^["']|["']$/g, '');
+      try {
+        await document.fonts.load(`1em "${bareFamily}"`);
+      } catch {
+        // status check below reports the outcome either way
+      }
+      if (face.status === 'loaded') {
+        const match = bareFamily.match(/Fallback:\s*(.+)$/);
+        if (match) labels.add(match[1].trim());
+      }
+    }
+    return [...labels];
+  });
 }
 
 /**
@@ -427,10 +523,21 @@ async function openPageForMeasurement(
 export async function measureFontSwap(
   page: Page,
   name: PageName,
-  { width, theme = 'light', scroll = 'top' }: MeasureFontSwapOptions
+  {
+    width,
+    theme = 'light',
+    scroll = 'top',
+    variant = 'full',
+    fallbackFamily = null,
+  }: MeasureFontSwapOptions
 ): Promise<FontSwapResult> {
   await installClsObserver(page);
   const hold = holdFonts(page);
+
+  // Registered before openPageForMeasurement()'s call to blockThirdParty(),
+  // for the same reverse-registration-order reason as holdFonts above —
+  // see installStyleOverride's own doc comment.
+  await installStyleOverride(page, variant, fallbackFamily);
 
   // openPageForMeasurement() registers blockThirdParty() as its first
   // action; per the holdFonts doc comment above, holdFonts must be
@@ -524,7 +631,8 @@ export async function measureFontSwap(
     width,
     theme,
     scroll,
-    variant: 'full',
+    variant,
+    fallbackFamily,
     nativeSupported: nativeResult.supported,
     nativeCls: nativeResult.supported ? nativeResult.value : null,
     geometryScore: shift.score,

@@ -1,63 +1,127 @@
 import { test, expect } from '@playwright/test';
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 import { pagesUnderTest } from './support/harness.ts';
-import { measureFontSwap } from './support/geometry.ts';
+import { measureFontSwap, listLoadableFallbacks, type FontSwapVariant } from './support/geometry.ts';
+import { loadSpanishFixture } from './support/i18n.ts';
 import { collectPageText } from '../scripts/lib/glyphs.mjs';
 
-// Serial: measureFontSwap results are appended (read-modify-write) to a
-// shared design/.cache/font-cls-<engine>.json per engine; fullyParallel
-// (playwright.config.ts) would race that write across workers otherwise.
-test.describe.configure({ mode: 'serial' });
-
-const CACHE_DIR = path.resolve('design/.cache');
+/**
+ * No describe.configure({ mode: 'serial' }) here (unlike 01-02's original
+ * version of this file): each (page, width) test now writes its own
+ * uniquely-named fragment file under design/.cache/font-cls-fragments/,
+ * never a shared read-modify-write target — so tests can run fully in
+ * parallel with no race, AND a failure in one test's matrix no longer
+ * cascade-skips every later page/width the way serial mode's own
+ * fail-fast semantics did (the exact "serial mode hides later pages"
+ * problem 01-06/01-07-SUMMARY.md already documented and worked around by
+ * hand for the old, single-variant version of this file). report-font-cls.mjs
+ * merges every fragment for an engine into the canonical
+ * design/.cache/font-cls-<engine>.json.
+ */
+const FRAGMENTS_DIR = path.resolve('design/.cache/font-cls-fragments');
 const MANIFEST_PATH = path.resolve('design/mockups/fonts/subset-manifest.json');
+const VARIANTS: FontSwapVariant[] = ['full', 'size-adjust-only'];
+const SCROLLS = ['top', 'mid'] as const;
 
-function appendFontClsResult(engine: string, result: unknown) {
-  mkdirSync(CACHE_DIR, { recursive: true });
-  const file = path.join(CACHE_DIR, `font-cls-${engine}.json`);
-  const existing = existsSync(file) ? JSON.parse(readFileSync(file, 'utf8')) : [];
-  existing.push(result);
-  writeFileSync(file, JSON.stringify(existing, null, 2) + '\n', 'utf8');
+function writeFragment(engine: string, name: string, width: number, results: unknown[]) {
+  mkdirSync(FRAGMENTS_DIR, { recursive: true });
+  const file = path.join(FRAGMENTS_DIR, `${engine}__${name}__${width}.json`);
+  writeFileSync(file, JSON.stringify(results, null, 2) + '\n', 'utf8');
 }
 
 for (const name of pagesUnderTest()) {
-  for (const width of [320, 1280]) {
-    test(`font swap is CLS-safe: ${name} @ ${width}px @c5`, async ({ page }) => {
-      const result = await measureFontSwap(page, name as any, {
-        width,
-        theme: 'light',
-        scroll: 'top',
-      });
+  for (const width of [320, 1280] as const) {
+    test(`font swap is CLS-safe across the swap matrix: ${name} @ ${width}px @c5`, async ({ page, browser }) => {
+      const engine = browser.browserType().name();
 
+      // document.fonts is only populated once a page carrying the fonts
+      // region's @font-face rules has actually loaded — the default `page`
+      // fixture starts blank. document.fonts.ready is awaited too: WebKit
+      // (via the pinned Docker image) needs a moment after navigation
+      // settles before its local()-list font matching against installed
+      // system fonts stabilises, and calling listLoadableFallbacks before
+      // that produced flaky, environment-timing-dependent empty results.
+      await page.goto(`/mockups/${name}.html`);
+      await page.evaluate(() => document.fonts.ready);
+      const loadableFallbacks = await listLoadableFallbacks(page);
       expect(
-        result.fallbackFacesLoaded.length,
+        loadableFallbacks.length,
         'no metric-compatible fallback face available — measurement meaningless'
       ).toBeGreaterThan(0);
 
-      expect(result.geometryScore).toBeLessThan(0.005);
+      const results: unknown[] = [];
 
-      if (result.nativeSupported) {
-        expect(result.nativeCls).not.toBeNull();
-        expect(result.nativeCls as number).toBeLessThan(0.005);
-        // The geometry instrument must not be blind relative to Chromium's
-        // own native CLS — it may report *more* shift than native (it
-        // measures a coarser, rasterised approximation) but not meaningfully
-        // less.
-        expect(result.geometryScore).toBeGreaterThanOrEqual((result.nativeCls as number) - 0.001);
-      } else {
-        expect(result.nativeCls).toBeNull();
+      for (const scroll of SCROLLS) {
+        for (const variant of VARIANTS) {
+          for (const fallbackFamily of loadableFallbacks) {
+            const label = `${name}@${width}px scroll=${scroll} variant=${variant} fallback=${fallbackFamily} (${engine})`;
+
+            // A fresh context/page per combination: measureFontSwap
+            // registers page.route() handlers (holdFonts, the style.css
+            // override) without ever unrouting them, so reusing one page
+            // across many combinations would stack stale handlers — a
+            // fresh page per combination matches "each combination is a
+            // real, independent page load" and keeps every route override
+            // scoped to exactly the combination it belongs to.
+            const context = await browser.newContext();
+            const combinationPage = await context.newPage();
+            try {
+              const result = await measureFontSwap(combinationPage, name as any, {
+                width,
+                theme: 'light',
+                scroll,
+                variant,
+                fallbackFamily,
+              });
+              results.push(result);
+
+              // expect.soft: every combination in the matrix must actually
+              // run and be recorded (and every fragment file written),
+              // even when an earlier combination in this same test fails.
+              expect
+                .soft(result.fallbackFacesLoaded.length, `${label}: fallback face must actually load`)
+                .toBeGreaterThan(0);
+              expect.soft(result.geometryScore, `${label}: geometryScore`).toBeLessThan(0.005);
+
+              if (result.nativeSupported) {
+                expect.soft(result.nativeCls, `${label}: nativeCls must be reported when supported`).not.toBeNull();
+                expect.soft(result.nativeCls as number, `${label}: nativeCls`).toBeLessThan(0.005);
+                // The geometry instrument must not be blind relative to
+                // native CLS — it may report *more* shift than native (a
+                // coarser, rasterised approximation) but not meaningfully
+                // less.
+                expect
+                  .soft(result.geometryScore, `${label}: geometryScore vs nativeCls`)
+                  .toBeGreaterThanOrEqual((result.nativeCls as number) - 0.001);
+              } else {
+                expect.soft(result.nativeCls, `${label}: nativeCls must be null when unsupported`).toBeNull();
+              }
+            } finally {
+              await context.close();
+            }
+          }
+        }
       }
 
-      appendFontClsResult(result.engine, result);
+      // Written unconditionally (even if some combinations above failed
+      // their soft assertions) so the evidence report always reflects the
+      // full matrix this run actually measured.
+      writeFragment(engine, name, width, results);
     });
   }
 
-  test(`every rendered character on ${name} is in the font subset @c5`, async ({ page }) => {
+  test(`every rendered character on ${name}, including every Spanish fixture string, is in the font subset @c5`, async ({
+    page,
+  }) => {
     const response = await page.goto(`/mockups/${name}.html`);
     expect(response?.status()).toBe(200);
 
-    const text: string = await page.evaluate(collectPageText);
+    const pageText: string = await page.evaluate(collectPageText);
+    const fixture = loadSpanishFixture();
+    const fixtureText = fixture.components.map((c) => `${c.en}${c.es_real}${c.es_synthetic}`).join('');
+    const text = pageText + fixtureText;
+
     const manifest = JSON.parse(readFileSync(MANIFEST_PATH, 'utf8'));
     const codepoints: string[] = manifest.codepoints;
     const codepointSet = new Set(codepoints);
@@ -73,6 +137,9 @@ for (const name of pagesUnderTest()) {
       if (!codepointSet.has(hex)) missing.add(`${JSON.stringify(ch)} (U+${hex})`);
     }
 
-    expect([...missing], 'characters rendered on the page but absent from the font subset').toEqual([]);
+    expect(
+      [...missing],
+      'characters rendered on the page, or in a Spanish fixture string, but absent from the font subset'
+    ).toEqual([]);
   });
 }

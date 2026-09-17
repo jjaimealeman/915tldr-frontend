@@ -200,6 +200,17 @@ function nodeCheckC5() {
     walk(MOCKUPS_DIR);
   }
 
+  // D-08: after the criterion-5 Playwright runs above have written their
+  // per-(engine,page,width) swap-matrix fragments, merge them into the
+  // canonical per-engine cache files and regenerate the evidence report. A
+  // non-zero exit here (any measured combination at or above the 0.005
+  // threshold) fails C5 — report-font-cls.mjs is itself an enforcement
+  // gate, not just a report generator (same philosophy as check-contrast.mjs).
+  const reportResult = spawnSync('node', ['design/scripts/report-font-cls.mjs'], { stdio: 'pipe' });
+  if (reportResult.status !== 0) {
+    problems.push('report-font-cls.mjs exited non-zero — see design/evidence/font-cls.md');
+  }
+
   return { pass: problems.length === 0, problems };
 }
 
