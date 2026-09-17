@@ -414,11 +414,12 @@ a {
   border-radius: 1px;
 }
 
-/* Masthead / wordmark — bold in the chrome (PRD §5.1). A thick rule closes
-   the masthead; the spectrum rule (below) carries the brand signature. */
+/* Masthead / wordmark — bold in the chrome (PRD §5.1). The eight-segment
+   spectrum rule (below), not a border here, now closes the masthead
+   (revision request 1, 2026-09-17) — it carries the brand signature and
+   reads better than a plain black/white rule in either theme. */
 header:not([data-block]) {
   padding: var(--space-4) var(--space-4) var(--space-3);
-  border-bottom: var(--rule-thick) solid var(--ink);
 }
 
 header:not([data-block]) h1 {
@@ -505,8 +506,14 @@ nav[aria-label="Sections"] a[aria-current="page"] {
   text-decoration-thickness: 2px;
 }
 
-/* Theme toggle */
+/* Theme toggle — a body-level sibling between nav and main on every page
+   (01-APPROVAL.md defect 10). `display: block; width: fit-content` keeps it
+   sized to its own content while letting the 80em block below align its
+   left edge with the header/nav/main/footer content column instead of the
+   viewport edge. */
 [data-theme-toggle] {
+  display: block;
+  width: fit-content;
   font: inherit;
   color: var(--ink);
   background: transparent;
@@ -747,6 +754,16 @@ footer [data-attribution] {
   footer {
     max-width: 80rem;
     margin: 0 auto;
+  }
+
+  /* Defect 10: the toggle is not one of the max-width/margin:auto-centred
+     elements above (it must stay a fit-content block, not stretch to
+     80rem), so its own left edge is aligned to the same content column
+     independently. A percentage margin resolves against body's content
+     width, which (unlike 100vw) excludes the scrollbar, so this lines up
+     with the header's own content edge with no scrollbar-width fudge. */
+  [data-theme-toggle] {
+    margin-inline-start: calc(max(0px, (100% - 80rem) / 2) + var(--space-4));
   }
 
   [data-lead-variant="image"] {

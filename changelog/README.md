@@ -10,6 +10,7 @@ Entries are named `YYYY-MM-DD-HHMM_slug.md` and grouped by month, newest first.
 
 | Date | Entry | Keywords |
 |------|-------|----------|
+| 2026-09-17 | [Header Rule Removed, Theme Toggle Aligned to the Content Column (Revision Request 1, Defect 10)](2026-09-17-1540_01-17-remove-header-bottom-border-align-theme-togg.md) | `[FEATURE]` `[BUG_FIX]` `[TESTING]` `[STYLING]` |
 | 2026-09-17 | [Phase 1 Plan 16 Complete: D-GAP-C Closed, Business No Longer Reads as Brown](2026-09-17-1520_01-16-complete-business-hue-re-sample-plan-d-gap-c.md) | `[DOCUMENTATION]` `[PLANNING]` |
 | 2026-09-17 | [Swatch Evidence Regenerated, Nav-Stripe Distinctness Verified, WINDOWS Entry 3 Closed](2026-09-17-1516_01-16-regenerate-swatch-evidence-verify-nav-stripe.md) | `[FEATURE]` `[TESTING]` `[DOCUMENTATION]` |
 | 2026-09-17 | [Business's Palette Hue Re-Sampled From a Real Juárez Neon Sign](2026-09-17-1512_01-16-re-sample-business-hue-from-a-real-ju-rez-ne.md) | `[FEATURE]` `[BUG_FIX]` |
