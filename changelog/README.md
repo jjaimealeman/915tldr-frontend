@@ -10,6 +10,7 @@ Entries are named `YYYY-MM-DD-HHMM_slug.md` and grouped by month, newest first.
 
 | Date | Entry | Keywords |
 |------|-------|----------|
+| 2026-09-17 | [Record Owner's APPROVED Decision, Capture Two Phase-8 Follow-Ups (Tasks 2/3)](2026-09-17-1948_01-23-record-owner-s-approved-decision-capture-two.md) | `[DOCUMENTATION]` `[PLANNING]` |
 | 2026-09-17 | [Record Task 1 Summary — Plan Halted Pending Owner Review (Task 2/3)](2026-09-17-1742_01-23-record-task-1-summary-plan-halted-pending-ow.md) | `[DOCUMENTATION]` `[PLANNING]` |
 | 2026-09-17 | [Strict D-16 Gate Restored, Unscoped 5/5 Run, Round-2 Approval Packet (Task 1)](2026-09-17-1739_01-23-strict-d-16-gate-restored-unscoped-5-5-run-r.md) | `[FEATURE]` `[TESTING]` `[BUG_FIX]` `[DOCUMENTATION]` |
 | 2026-09-17 | [Phase 1 Plan 22 Complete: Feed-Expansion Gap-Closure](2026-09-17-1727_01-22-complete-feed-expansion-gap-closure-plan.md) | `[DOCUMENTATION]` `[PLANNING]` |

@@ -155,9 +155,31 @@ then the date as `YYYY-MM-DD`) — for example: `Approved-by: Jaime Aleman — 2
 
 Then leave this section otherwise empty. This generator never writes that line.
 
+## Round 2 owner review notes
+
+**Outcome (2026-09-17): APPROVED.** The owner reviewed the round-2 packet and replied, verbatim:
+
+> "article page is much better."
+> "changelog is great. can the latest stories be made to float? is that a sticky? so as the reader scrolls, the latest stories remains visible?"
+> "contact looks good too."
+> "load more stories on homepage, nice."
+> "since the site is astro. i would like view transitions. a nice subtle fade in/out of content as the navigation remains static/visible with no transition."
+> "APPROVED."
+
+These comments confirm article, changelog, contact and the homepage Load More as reviewed and approved. They do not individually re-confirm every line of the "Owner review focus (round 2)" list (the Business subject-wording/palette-caption staleness, the Politics photo, real-Safari/Georgia, or the remaining open WINDOWS.md entries) — the approval covers the design as packaged, but this packet does not claim the owner separately re-addressed each of those specific items this round, and no WINDOWS.md entry was marked accepted on the strength of this reply alone. The owner review checklist above is left unticked by this generator/executor, as it always is; ticking it is the owner's own act.
+
+Two items raised during this review are forward-carried scope, not round-2 revision requests — see "## Follow-ups captured at approval" below. Recording them here does not reopen this round's gate: the round-2 machine evidence and mockups are approved as-is, unchanged.
+
+## Follow-ups captured at approval
+
+Captured 2026-09-17, scoped by owner decision the same day, both targeting the Astro build phase (**Phase 8: Server Islands & Interactivity**) rather than a Phase 1 mockup revision. Phase 1's approved mockups are unchanged by either item.
+
+1. **Sticky "Latest Stories" rail.** Owner: "can the latest stories be made to float? is that a sticky? so as the reader scrolls, the latest stories remains visible?" (raised against changelog.html; article.html's `aside[data-rail]` carries the same rail, 01-19/01-20). Owner decision: build in the Astro build phase (Phase 8), not as a Phase 1 addition — the rail's scroll behaviour is deliberately unproven until then. Implementation note: `position: sticky` on the rail column, a `top` offset clearing the masthead, disabled below the 64em breakpoint where the rail stacks below the reading column. No existing requirement ID covers this; flagged as an unmapped requirement candidate for whoever scopes Phase 8 — not silently added to REQUIREMENTS.md or ROADMAP.md by this session. Sticky positioning and view transitions interact (owner's own framing, see below) — build both together.
+2. **Astro view transitions.** Owner: "since the site is astro. i would like view transitions. a nice subtle fade in/out of content as the navigation remains static/visible with no transition." Maps to existing requirement **ISL-06** ("Page transitions use `<ClientRouter />` from `astro:transitions`", REQUIREMENTS.md) and ROADMAP.md Phase 8 success criterion 5 — already scoped, no new requirement needed. Implementation note for that phase: Astro 7 uses `<ClientRouter />` from `astro:transitions` (`<ViewTransitions />` was removed in v5); the persistent masthead/nav needs `transition:persist` (or a named transition) so it never animates, matching "navigation remains static/visible with no transition."
+
 ## Revision requests
 
-(none yet — round 2)
+(none — round 2 reviewed and approved 2026-09-17. See "Round 2 owner review notes", "Owner sign-off" and "Follow-ups captured at approval" above.)
 
 ## Revision history
 

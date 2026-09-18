@@ -5,13 +5,13 @@ milestone_name: milestone
 current_phase: 01
 current_phase_name: design-sketch-editorial-identity
 status: executing
-stopped_at: 01-23 Task 1 complete (strict D-16 gate restored, unscoped 5/5 run, round-2 01-APPROVAL.md regenerated). Halted at Task 2 (owner keyboard walk/visual review) — checkpoint requires the owner.
-last_updated: "2026-09-17T23:41:47.718Z"
+stopped_at: "01-23: owner approved the round-2 packet (2026-09-17, verbatim quotes recorded in 01-APPROVAL.md); two follow-ups captured for Phase 8. Awaiting only the owner's own Approved-by line on 01-APPROVAL.md to finalize Task 3."
+last_updated: "2026-09-18T01:47:38.063Z"
 last_activity: 2026-09-17
 last_activity_desc: Phase 01 execution started
 progress:
   total_phases: 1
-  completed_phases: 1
+  completed_phases: 0
   total_plans: 23
   completed_plans: 23
 ---
@@ -147,10 +147,12 @@ Recent decisions affecting current work:
 - [Phase ?]: 01-22: build-fonts.mjs's feed-expansion is a self-contained expandFeedInPage, not an import of the test-only feed.ts helper — keeps the build script independent of the test suite
 - [Phase ?]: 01-23: strict D-16 gate restored (01-10's criterion-5 exception removed); unscoped verify:phase-1 5/5 PASS both engines; round-2 01-APPROVAL.md regenerated with round-1 history preserved verbatim; plan halted at Task 2 pending owner review
 - [Phase ?]: 01-23: fixed a real bug in write-approval-packet.mjs's readFallbackFacesPerEngine — font-cls.md's newer positive-control table was polluting the Environment section's fallback-face list
+- [Phase ?]: 01-23: owner reviewed the round-2 packet and replied APPROVED (2026-09-17), with two forward-carried feature requests (sticky rail, Astro view transitions) both deferred to Phase 8 per owner decision; executor did not write the Approved-by sign-off line itself — that remains the owner's own act per T-01-32/T-01-33
 
 ### Pending Todos
 
-None yet.
+- **Sticky "Latest Stories" rail** (Phase 8: Server Islands & Interactivity, alongside ISL-06). Owner decision 2026-09-17: deferred to the Astro build phase, not a Phase 1 mockup addition — Phase 1's approved mockups are unchanged; the rail's scroll behaviour is deliberately unproven until then. Owner: "can the latest stories be made to float? is that a sticky? so as the reader scrolls, the latest stories remains visible?" (raised against changelog.html; article.html carries the same rail per 01-19). Implementation note: `position: sticky` on the rail column (`aside[data-rail]`), a `top` offset clearing the masthead, disabled below the 64em breakpoint where the rail stacks below the reading column. No existing requirement ID covers this — flag as an unmapped requirement candidate for whoever scopes Phase 8 (ROADMAP.md's current Phase 8 criteria don't mention rail stickiness); not added to REQUIREMENTS.md/ROADMAP.md by this session. Sticky positioning and view transitions interact (owner's own framing) — build both together.
+- **Astro view transitions** (Phase 8: Server Islands & Interactivity). Owner decision 2026-09-17, same phase as the sticky rail: "since the site is astro. i would like view transitions. a nice subtle fade in/out of content as the navigation remains static/visible with no transition." Already covered by existing requirement **ISL-06** ("Page transitions use `<ClientRouter />` from `astro:transitions`", REQUIREMENTS.md, mapped to Phase 8) and ROADMAP.md Phase 8 success criterion 5. Implementation note for that phase: Astro 7 uses `<ClientRouter />` from `astro:transitions` (`<ViewTransitions />` was removed in v5); the persistent masthead/nav needs `transition:persist` (or a named transition) so it never animates, matching the owner's "navigation remains static/visible with no transition" request.
 
 ### Blockers/Concerns
 
@@ -162,7 +164,7 @@ None yet.
 - Phase 1: three items need owner C-01/subject-fidelity sign-off before 01-APPROVAL.md -- politics' photo is Santa Fe dusk not El Paso/Franklin Mountains; weather's sampled hue reads azure-blue not turquoise; Sports/Business block-stop hues (49.4deg/94.5deg) visually sit near the amber-olive-reading-as-brown risk C-01 flags. See 01-03-SUMMARY.md.
 - Phase 1: Criterion 5 (font-swap CLS) requires an owner decision before 01-APPROVAL.md — accept the documented residual shift, adjust the fallback font stack, or reopen the font-display:swap PRD decision. See 01-09-SUMMARY.md and design/evidence/font-cls.md.
 - **RESOLVED — Phase 1, 01-13 Task 1** (see WINDOWS.md entries 9-12, all `fixed`; supersedes the two prior blocker lines this replaces). Entries 9/10's claim that Chromium's `font-display:optional` genuinely fails to prevent a late swap was WRONG — refuted by the coordinator's rigorous reflow-probe (scroll + forced reflow + a new same-family span never swapped) and confirmed via authoritative CDP `CSS.getPlatformFontsForNode`. True root cause (entry 11): this dev machine has "Instrument Serif"/"Source Serif 4" (this project's own primary webfont names) installed as local user fonts under `~/.local/share/fonts` (leftover from earlier design work); a same-named local font collision makes Chromium apply a late-arriving optional font, purely a test-environment contamination bug. Fixed in `design/scripts/pw.mjs` by isolating `XDG_DATA_HOME` for native (non-Docker) Playwright launches. A second, unrelated, real bug (entry 12) was found while getting the new `referenceNativeCls` check to pass honestly: index.html's theme-toggle button used `display:` while `[hidden]`, so JS revealing it after DOMContentLoaded caused a real, font-unrelated CLS (confirmed with a fonts-free control). Fixed in `design/mockups/style.css` (`visibility:hidden` instead, same box reserved). `MOCKUP_PAGES=index node design/scripts/pw.mjs --project=all design/tests/font-cls.spec.ts` now passes cleanly and repeatably (3/3 runs, both engines): every row classifies fallback-kept/prePaintObserved:true/fontDisplay:optional. Tasks 2-3 unblocked, no owner decision needed, no threshold weakened.
-- Phase 1: 01-23 halted at Task 2/3 — round-2 01-APPROVAL.md is regenerated and unsigned, awaiting the owner's own keyboard walk/visual re-review and approve-or-revise decision. Not a code blocker; requires the owner's hands and eyes.
+- **UPDATED — Phase 1, 01-23 Task 2/3** (supersedes the prior line above). The owner completed the round-2 review and replied **APPROVED**, with spot comments on article/changelog/contact/load-more and two new feature requests (sticky rail, Astro view transitions — both deferred to the Astro build phase, see Pending Todos). Per this plan's own non-negotiable rule (T-01-32/T-01-33, "the executor never writes the owner's sign-off line, and never records an approval on the owner's behalf"), the executor did NOT add the `Approved-by:` line to `01-APPROVAL.md` — that relayed "APPROVED" came through the orchestrator, not the owner's own hand on the file, and the plan requires the literal line to be the owner's own act. **Remaining step (owner-only, not a code blocker):** add `Approved-by: <name> — 2026-09-17` to the "## Owner sign-off" section of `01-APPROVAL.md`, then `pnpm run verify:approval` will exit 0 and a trivial follow-up commit finalizes Task 3.
 
 ## Deferred Items
 
@@ -174,6 +176,6 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-09-17T23:41:47.706Z
-Stopped at: 01-23 Task 1 complete (strict D-16 gate restored, unscoped 5/5 run, round-2 01-APPROVAL.md regenerated). Halted at Task 2 (owner keyboard walk/visual review) — checkpoint requires the owner.
-Resume file: 01-23-PLAN.md (Task 2)
+Last session: 2026-09-18T01:47:38.050Z
+Stopped at: 01-23: owner approved the round-2 packet (2026-09-17, verbatim quotes recorded in 01-APPROVAL.md); two follow-ups captured for Phase 8. Awaiting only the owner's own Approved-by line on 01-APPROVAL.md to finalize Task 3.
+Resume file: 01-APPROVAL.md (owner adds Approved-by line, then re-run pnpm run verify:approval)
