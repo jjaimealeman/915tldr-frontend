@@ -154,6 +154,7 @@ and the date after the `Approved-by:` label (label, a space, your name, an em da
 then the date as `YYYY-MM-DD`) — for example: `Approved-by: Jaime Aleman — 2026-09-17`.
 
 Then leave this section otherwise empty. This generator never writes that line.
+Approved-by: Jaime Aleman — 2026-09-17
 
 ## Round 2 owner review notes
 
