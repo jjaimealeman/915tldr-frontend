@@ -210,6 +210,28 @@ Phase 1 and gates Phases 4 and 6.
   **OPEN for research:** when `elpasolocalnews.org` went dark and what corpus gap that left.
   Query production D1 for that source's last article date; the gap may overlap CONT-12's
   outage window and should be folded into the same audit.
+  **Superseded by production reality — amended 2026-09-19:** `02-03-PLAN.md` Task 2's read-only
+  audit against production D1 (`915tldr-db`, `--remote`) found **zero rows** in `sources` whose
+  `feed_url` or `website_url` reference `elpasolocalnews.org` — a measured zero, recorded with
+  its query in `915tldr.com2/docs/phase-02/corpus-measurements.md` under "Source death date".
+  Production's `sources` table holds exactly 3 rows: El Paso Matters (id 1), KTSM (id 2), and
+  **KVIA** (id 5, `kvia.com`). History (`changelog/2025-12-18-2215-task-06-rss-fetching.md`,
+  `changelog/2025-12-21-2130-admin-automation-and-about-redesign.md`, `REVIVAL.md`) shows the
+  original `elpasolocalnews.org` source returned HTTP 530 (Cloudflare bot-block) during the
+  December 2025 build and was dropped; **KVIA was added as its replacement that same week**
+  (2025-12-21) and has been actively ingesting since — 25,707 articles as of this measurement,
+  the largest of the three sources. `elpasonews.org` (the domain this decision proposed
+  repointing to) was considered as a candidate at the time per `REVIVAL.md`, and KVIA was
+  chosen instead. PROJECT.md's pinned three-source mix — the stated rationale for this
+  decision — is therefore already satisfied by KVIA; there is no dead row to repoint, and
+  D-16's premise ("the third source's feed_url and website_url both point at the dead domain")
+  does not hold against current production state.
+
+  The owner reviewed this evidence 2026-09-19 and decided: **retire D-16.** No repoint script
+  was written and no write was issued against production D1. `915tldr.com2/scripts/repoint-source.mjs`
+  does not exist and is not planned. CONT-12/CONT-01's underlying obligation — that
+  PROJECT.md's three-source mix stays intact for unconfounded budget validation — is satisfied
+  by measurement, not by code from this decision.
 
 ### Workflow
 

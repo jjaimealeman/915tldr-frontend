@@ -10,6 +10,7 @@ Entries are named `YYYY-MM-DD-HHMM_slug.md` and grouped by month, newest first.
 
 | Date | Entry | Keywords |
 |------|-------|----------|
+| 2026-09-19 | [Phase 2 Plan 3: Retire D-16 Source Repoint After Production Measurement Disproved Its Premise](2026-09-19-1328_02-03-retire-d16-source-repoint.md) | `[PLANNING]` `[DOCUMENTATION]` `[DATABASE]` |
 | 2026-09-19 | [Phase 2 Plan 2 Complete: Chunked Reprocess Reset and Prettier Cleanup](2026-09-19-1230_02-02-complete-chunked-reprocess-reset-and-prettier-cleanup.md) | `[PLANNING]` `[DOCUMENTATION]` `[DATABASE]` `[TESTING]` |
 | 2026-09-19 | [Phase 2 Plan 1 Complete: wrangler Dependency Fix and Production D1 Access Proof](2026-09-19-1213_02-01-complete-wrangler-fix-and-d1-access-proof.md) | `[PLANNING]` `[DOCUMENTATION]` `[INFRA]` `[DATABASE]` |
 | 2026-09-19 | [Phase 2 planned: ten plans across eight waves for content quality & grounding](2026-09-19-1114_phase-2-plan-content-quality-grounding.md) | `[PLANNING]` `[DOCUMENTATION]` `[BACKEND]` `[SECURITY]` |
