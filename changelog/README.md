@@ -10,7 +10,9 @@ Entries are named `YYYY-MM-DD-HHMM_slug.md` and grouped by month, newest first.
 
 | Date | Entry | Keywords |
 |------|-------|----------|
+| 2026-09-19 | [Phase 2 planned: ten plans across eight waves for content quality & grounding](2026-09-19-1114_phase-2-plan-content-quality-grounding.md) | `[PLANNING]` `[DOCUMENTATION]` `[BACKEND]` `[SECURITY]` |
 | 2026-09-19 | [Phase 2 Content Quality & Grounding Research](2026-09-19-1630_phase-2-content-quality-research.md) | `[DOCUMENTATION]` `[BACKEND]` `[API]` |
+| 2026-09-19 | [docs(phase-2): add validation strategy](2026-09-19-1035_phase-2-add-validation-strategy.md) | `[docs]` `[auto-generated]` |
 | 2026-09-19 | [Phase 2 Context: Content Quality & Grounding](2026-09-19-1015_02-capture-phase-context.md) | `[DOCUMENTATION]` `[PLANNING]` `[CONTENT]` `[AI]` |
 | 2026-09-19 | [Record Phase 2 Context Session in STATE.md](2026-09-19-1014_state-record-phase-2-context-session.md) | `[DOCUMENTATION]` `[PLANNING]` |
 | 2026-09-17 | [Phase 1 Complete: Design Sketch & Editorial Identity](2026-09-17-2339_phase-1-complete.md) | `[DOCUMENTATION]` `[DESIGN]` `[ACCESSIBILITY]` `[PLANNING]` |

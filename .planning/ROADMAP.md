@@ -159,7 +159,42 @@ Plans:
   5. `reprocess-all.post.ts` chunks its ID lists to at most 100 bound parameters per statement and completes against the real corpus without `SQLITE_ERROR`; `pnpm deploy` and `pnpm deploy:dev` resolve `wrangler` as a real dependency; `app/pages/privacy.vue` passes Prettier.
   6. The 2026-09-04 → 2026-09-16 OpenAI outage gap is quantified before the dry run in criterion 3: the count of articles ingested in that window with a null, truncated or absent summary, and whether `detect-duplicates` ran. Any affected rows join this phase's re-processing set rather than being discovered later. **Checked in `915tldr.com2`, not this repo.**
 
-**Plans**: TBD
+**Plans:** 10 plans in 8 waves
+
+Plans:
+**Wave 1**
+
+- [ ] 02-01-PLAN.md — Toolchain: package-legitimacy gate, pinned installs (FIX-02), proven production D1 read access
+- [ ] 02-02-PLAN.md — Known defects: D1 100-parameter chunking helper + reprocess-all fix (FIX-01), Prettier (FIX-03)
+
+**Wave 2** *(blocked on Wave 1)*
+
+- [ ] 02-03-PLAN.md — Production corpus measurement: D-04 cap, CONT-12 outage audit, source death date, D-16 repoint
+
+**Wave 3** *(blocked on Wave 2)*
+
+- [ ] 02-04-PLAN.md — Tracer: one article end-to-end — fetch → extract → summarise → ground → columnar write, plus the one-way production migration gate
+
+**Wave 4** *(blocked on Wave 3)*
+
+- [ ] 02-05-PLAN.md — Extraction at scale: allowlisted polite fetcher, per-source fixtures, 200-article marker-rate sample (CONT-01)
+- [ ] 02-06-PLAN.md — Prompt: proportional length, facts-only key points, code-decided thin-source attribution, `gpt-5.6-luna` (CONT-02/03/07/08)
+
+**Wave 5** *(blocked on Wave 4)*
+
+- [ ] 02-07-PLAN.md — Grounding detection: shared length unit, deterministic suite, verbatim overlap, claim-level judge with span re-verification (CONT-04/06/07)
+
+**Wave 6** *(blocked on Wave 5)*
+
+- [ ] 02-08-PLAN.md — Labelled fixture set, false-positive ceiling, live gating with one stricter retry and a visible review queue (CONT-05)
+
+**Wave 7** *(blocked on Wave 6)*
+
+- [ ] 02-09-PLAN.md — Dry run: free corpus sweep, outage union, token-validated cost projection, corpus fingerprint (CONT-09, OPS-11)
+
+**Wave 8** *(blocked on Wave 7)*
+
+- [ ] 02-10-PLAN.md — Owner approval gate, report-gated Batch execution with expired-remainder resubmission, public changelog, editorial read (CONT-10/11, OPS-11)
 
 ### Phase 3: Foundation & Read-Budget Guardrails
 
@@ -327,7 +362,7 @@ Phase 3 and may run alongside Phases 5-7.
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Design Sketch & Editorial Identity | 23/23 | Complete    | 2026-09-17 |
-| 2. Content Quality & Grounding | 0/TBD | Not started | - |
+| 2. Content Quality & Grounding | 0/10 | Planned | - |
 | 3. Foundation & Read-Budget Guardrails | 0/TBD | Not started | - |
 | 4. Static Generation, Templates & SEO | 0/TBD | Not started | - |
 | 5. Hybrid Archive & Zero-Reads Proof | 0/TBD | Not started | - |
