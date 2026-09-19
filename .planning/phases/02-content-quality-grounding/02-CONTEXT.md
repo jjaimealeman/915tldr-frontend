@@ -213,8 +213,12 @@ Phase 1 and gates Phases 4 and 6.
 
 ### Workflow
 
-- **D-17:** Phase 2 planning artifacts (`02-CONTEXT.md`, `02-DISCUSSION-LOG.md`) commit to
-  **`feature/phase-02`** in this repo.
+- **D-17 [informational]:** Phase 2 planning artifacts (`02-CONTEXT.md`, `02-DISCUSSION-LOG.md`)
+  commit to **`feature/phase-02`** in this repo.
+  Tagged `[informational]` at plan time 2026-09-19 (owner-approved): this is a planning-workflow
+  decision about *this* repo, not implementation work, so no PLAN.md can cite it. It is already
+  satisfied — `feature/phase-02` is the active branch and the phase's research, validation and
+  plan commits all landed on it.
   Rationale: originally decided as `develop`, to keep `feature/phase-01`'s approved diff clean.
   **Amended 2026-09-19:** the owner merged `feature/phase-01` into `develop` (merge commit
   `1b66ffb`), deleted the phase-01 branch, and created `feature/phase-02` — which is level with
