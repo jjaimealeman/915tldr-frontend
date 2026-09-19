@@ -54,24 +54,24 @@
 - [ ] **I18N-04**: `/es/...` routes exist for every public page type
 - [ ] **I18N-05**: Every page emits correct `hreflang` pairs including `x-default`
 - [ ] **I18N-06**: Separate sitemaps and RSS feeds exist per language
-- [ ] **I18N-07**: Card and headline layouts survive Spanish text running 15-25% longer without overflow or clipping
+- [x] **I18N-07**: Card and headline layouts survive Spanish text running 15-25% longer without overflow or clipping
 - [ ] **I18N-08**: Language is chosen by the reader, never by IP or browser auto-redirect
 - [ ] **I18N-09**: Spanish summaries carry the same AI-generation disclosure as English
 - [ ] **I18N-10**: `Accept-Language` is logged at the edge to inform the `/es` launch decision
 
 ### Design
 
-- [ ] **DSGN-01**: Static HTML/CSS mockups exist and are approved before any Astro component work begins
-- [ ] **DSGN-02**: Mockups pass contrast and keyboard review before the design is accepted
-- [ ] **DSGN-03**: Display type is Instrument Serif, body is Source Serif 4; neither Playfair Display nor Merriweather appears
-- [ ] **DSGN-04**: Each of the eight categories owns a distinct colour from a Chihuahuan desert palette
-- [ ] **DSGN-05**: Light and dark themes are both fully designed, light being the default
-- [ ] **DSGN-06**: The article grid renders as pure HTML, not as a hydrated island
-- [ ] **DSGN-07**: `/changelog` receives an editorial treatment rather than a bulleted list, with history preserved
+- [x] **DSGN-01**: Static HTML/CSS mockups exist and are approved before any Astro component work begins
+- [x] **DSGN-02**: Mockups pass contrast and keyboard review before the design is accepted
+- [x] **DSGN-03**: Display type is Instrument Serif, body is Source Serif 4; neither Playfair Display nor Merriweather appears
+- [x] **DSGN-04**: Each of the eight categories owns a distinct colour from a Chihuahuan desert palette
+- [x] **DSGN-05**: Light and dark themes are both fully designed, light being the default
+- [x] **DSGN-06**: The article grid renders as pure HTML, not as a hydrated island
+- [x] **DSGN-07**: `/changelog` receives an editorial treatment rather than a bulleted list, with history preserved
 
 ### Accessibility
 
-- [ ] **A11Y-01**: Body text meets 4.5:1 contrast and large text/UI components meet 3:1, verified in both themes
+- [x] **A11Y-01**: Body text meets 4.5:1 contrast and large text/UI components meet 3:1, verified in both themes
 - [ ] **A11Y-02**: Every interactive element is keyboard reachable and operable with a visible, unclipped focus indicator
 - [ ] **A11Y-03**: A working skip link is present and the tab order is logical
 - [ ] **A11Y-04**: Each page has exactly one `h1` with a correct heading hierarchy and landmark regions
@@ -91,7 +91,7 @@
 - [ ] **PERF-04**: FCP is under 1.0s and lab TBT under 100ms
 - [ ] **PERF-05**: Lighthouse performance is at least 95 across the representative page set
 - [ ] **PERF-06**: Lighthouse CI fails the build below the blocking thresholds
-- [ ] **PERF-07**: Fonts are self-hosted, subset including Spanish diacritics, woff2 only, with `size-adjust` metric-compatible fallbacks
+- [x] **PERF-07**: Fonts are self-hosted, subset including Spanish diacritics, woff2 only, with `size-adjust` metric-compatible fallbacks
 - [ ] **PERF-08**: The LCP image carries `fetchpriority="high"` and is not lazy-loaded
 - [ ] **PERF-09**: Every image has explicit `width`/`height`
 - [ ] **PERF-10**: Responsive images emit `srcset`/`sizes` with AVIF and WebP plus fallback
@@ -196,6 +196,7 @@
 Deferred. Tracked, not in this roadmap.
 
 ### Content Sources
+
 - **SRC-01**: Diagnose why El Paso Matters produces 595 articles against KVIA's 25,284
 - **SRC-02**: Survey El Paso and Las Cruces print, radio, university, government and Spanish-language outlets
 - **SRC-03**: Evaluate `fetch_method: 'scrape'` for outlets without usable RSS
@@ -203,6 +204,7 @@ Deferred. Tracked, not in this roadmap.
 - **SRC-05**: Source-level trust weighting for the lead story
 
 ### Product Surface
+
 - **PROD-01**: Entity pages for the top few hundred entities by article count
 - **PROD-02**: Story threads grouping repeated coverage of one event over time
 - **PROD-03**: Border wait times, ported from `logistics.915website.com/server/utils/border.ts`
@@ -212,11 +214,13 @@ Deferred. Tracked, not in this roadmap.
 - **PROD-07**: Civic layer — council agendas, elections, public meeting calendars
 
 ### Messaging
+
 - **MSG-01**: Daily or weekly digest sending via Cloudflare Email Service
 - **MSG-02**: Breaking-news alerts, sequenced ahead of scheduled digests
 - **MSG-03**: SPF, DKIM, DMARC, one-click `List-Unsubscribe`, bounce and complaint handling
 
 ### Pipeline
+
 - **PIPE-01**: Workers AI vs OpenAI summarisation comparison on the fixed prompt
 
 ## Out of Scope
@@ -282,18 +286,18 @@ Deferred. Tracked, not in this roadmap.
 | I18N-04 | Phase 6 | Pending |
 | I18N-05 | Phase 6 | Pending |
 | I18N-06 | Phase 6 | Pending |
-| I18N-07 | Phase 1 | Pending |
+| I18N-07 | Phase 1 | Complete |
 | I18N-08 | Phase 6 | Pending |
 | I18N-09 | Phase 6 | Pending |
 | I18N-10 | Phase 6 | Pending |
-| DSGN-01 | Phase 1 | Pending |
-| DSGN-02 | Phase 1 | Pending |
-| DSGN-03 | Phase 1 | Pending |
-| DSGN-04 | Phase 1 | Pending |
-| DSGN-05 | Phase 1 | Pending |
-| DSGN-06 | Phase 1 | Pending |
-| DSGN-07 | Phase 1 | Pending |
-| A11Y-01 | Phase 1 | Pending |
+| DSGN-01 | Phase 1 | Complete |
+| DSGN-02 | Phase 1 | Complete |
+| DSGN-03 | Phase 1 | Complete |
+| DSGN-04 | Phase 1 | Complete |
+| DSGN-05 | Phase 1 | Complete |
+| DSGN-06 | Phase 1 | Complete |
+| DSGN-07 | Phase 1 | Complete |
+| A11Y-01 | Phase 1 | Complete |
 | A11Y-02 | Phase 11 | Pending |
 | A11Y-03 | Phase 11 | Pending |
 | A11Y-04 | Phase 11 | Pending |
@@ -310,7 +314,7 @@ Deferred. Tracked, not in this roadmap.
 | PERF-04 | Phase 11 | Pending |
 | PERF-05 | Phase 11 | Pending |
 | PERF-06 | Phase 11 | Pending |
-| PERF-07 | Phase 1 | Pending |
+| PERF-07 | Phase 1 | Complete |
 | PERF-08 | Phase 7 | Pending |
 | PERF-09 | Phase 7 | Pending |
 | PERF-10 | Phase 7 | Pending |
@@ -384,6 +388,7 @@ Deferred. Tracked, not in this roadmap.
 | FIX-05 | Phase 4 | Pending |
 
 **Coverage:**
+
 - v1 requirements: 138 total
 - Mapped to phases: 138
 - Unmapped: 0 ✓

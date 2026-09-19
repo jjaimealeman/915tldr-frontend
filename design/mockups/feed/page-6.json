@@ -1,0 +1,190 @@
+{
+  "schema": 1,
+  "page": 6,
+  "next": null,
+  "cards": [
+    {
+      "uuid": "f63b5753-90b6-4a54-b78d-160461c08bf8",
+      "category": "politics",
+      "categoryName": "Politics",
+      "stress": "spanish-real",
+      "lang": "es",
+      "variant": "es-real",
+      "image": null,
+      "headline": "Ucrania intensifica ofensiva contra la infraestructura petrolera rusa en medio de ganancias inesperadas del Kremlin",
+      "headlineI18n": null,
+      "summaryI18n": null,
+      "bylineI18n": null,
+      "href": "article.html",
+      "summary": [
+        {
+          "type": "p",
+          "inlines": [
+            {
+              "text": "El Ejército de Ucrania ha intensificado sus ataques a la infraestructura energética de Rusia, apuntando a refinerías y terminales de exportación en un esfuerzo por debilitar una de las principales fuentes de ingresos del Kremlin. En las últimas semanas, se han llevado a cabo al menos diez ataques significativos, incluyendo uno en una refinería en Yaroslavl, que resultó en daños a edificios residenciales. Mientras tanto, Rusia ha visto un aumento en los precios del petróleo, beneficiándose de la flexibilización de algunas sanciones estadounidenses. El presidente ucraniano, Volodymyr Zelensky, ha criticado estas medidas, argumentando que permiten a Rusia continuar sus ataques. Se espera que el gobierno ruso reintroduzca una prohibición a las exportaciones de gasolina a partir del 1 de abril debido a los efectos en el mercado interno."
+            }
+          ]
+        },
+        {
+          "type": "p",
+          "inlines": [
+            {
+              "text": "Key Details:",
+              "strong": true
+            }
+          ]
+        },
+        {
+          "type": "list",
+          "items": [
+            [
+              {
+                "text": "Ucrania ha realizado al menos 10 ataques significativos a la infraestructura energética rusa este mes."
+              }
+            ],
+            [
+              {
+                "text": "El último ataque fue a una refinería en Yaroslavl, causando un incendio y daños a edificios cercanos."
+              }
+            ],
+            [
+              {
+                "text": "Se espera que Rusia reintroduzca una prohibición a las exportaciones de gasolina a partir del 1 de abril."
+              }
+            ],
+            [
+              {
+                "text": "El presupuesto estatal de Rusia depende de los ingresos petroleros, que han aumentado en el último mes."
+              }
+            ]
+          ]
+        }
+      ],
+      "source": "KVIA",
+      "datetime": "2026-03-28T18:40:54-06:00",
+      "timeLabel": "March 28, 6:40 p.m."
+    },
+    {
+      "uuid": "f63b5753-90b6-4a54-b78d-160461c08bf8",
+      "category": "politics",
+      "categoryName": "Politics",
+      "stress": "spanish-synthetic",
+      "lang": "es",
+      "variant": "es-synthetic",
+      "image": null,
+      "headline": "Ucrania intensifica ofensiva contra la infraestructura petrolera rusa en medio de ganancias inesperadas del Kremlin comunicación comunicación",
+      "headlineI18n": null,
+      "summaryI18n": null,
+      "bylineI18n": null,
+      "href": "article.html",
+      "summary": [
+        {
+          "type": "p",
+          "inlines": [
+            {
+              "text": "El Ejército de Ucrania ha intensificado sus ataques a la infraestructura energética de Rusia, apuntando a refinerías y terminales de exportación en un esfuerzo por debilitar una de las principales fuentes de ingresos del Kremlin. En las últimas semanas, se han llevado a cabo al menos diez ataques significativos, incluyendo uno en una refinería en Yaroslavl, que resultó en daños a edificios residenciales. Mientras tanto, Rusia ha visto un aumento en los precios del petróleo, beneficiándose de la flexibilización de algunas sanciones estadounidenses. El presidente ucraniano, Volodymyr Zelensky, ha criticado estas medidas, argumentando que permiten a Rusia continuar sus ataques. Se espera que el gobierno ruso reintroduzca una prohibición a las exportaciones de gasolina a partir del 1 de abril debido a los efectos en el mercado interno."
+            }
+          ]
+        },
+        {
+          "type": "p",
+          "inlines": [
+            {
+              "text": "Key Details:",
+              "strong": true
+            }
+          ]
+        },
+        {
+          "type": "list",
+          "items": [
+            [
+              {
+                "text": "Ucrania ha realizado al menos 10 ataques significativos a la infraestructura energética rusa este mes."
+              }
+            ],
+            [
+              {
+                "text": "El último ataque fue a una refinería en Yaroslavl, causando un incendio y daños a edificios cercanos."
+              }
+            ],
+            [
+              {
+                "text": "Se espera que Rusia reintroduzca una prohibición a las exportaciones de gasolina a partir del 1 de abril."
+              }
+            ],
+            [
+              {
+                "text": "El presupuesto estatal de Rusia depende de los ingresos petroleros, que han aumentado en el último mes."
+              }
+            ]
+          ]
+        }
+      ],
+      "source": "KVIA",
+      "datetime": "2026-03-28T18:40:54-06:00",
+      "timeLabel": "March 28, 6:40 p.m."
+    },
+    {
+      "uuid": "f63b5753-90b6-4a54-b78d-160461c08bf8",
+      "category": "politics",
+      "categoryName": "Politics",
+      "stress": "worst-case",
+      "lang": "es",
+      "variant": "es-synthetic",
+      "image": null,
+      "headline": "Ucrania intensifica ofensiva contra la infraestructura petrolera rusa en medio de ganancias inesperadas del Kremlin comunicación comunicación",
+      "headlineI18n": null,
+      "summaryI18n": null,
+      "bylineI18n": null,
+      "href": "article.html",
+      "summary": [
+        {
+          "type": "p",
+          "inlines": [
+            {
+              "text": "El Ejército de Ucrania ha intensificado sus ataques a la infraestructura energética de Rusia, apuntando a refinerías y terminales de exportación en un esfuerzo por debilitar una de las principales fuentes de ingresos del Kremlin. En las últimas semanas, se han llevado a cabo al menos diez ataques significativos, incluyendo uno en una refinería en Yaroslavl, que resultó en daños a edificios residenciales. Mientras tanto, Rusia ha visto un aumento en los precios del petróleo, beneficiándose de la flexibilización de algunas sanciones estadounidenses. El presidente ucraniano, Volodymyr Zelensky, ha criticado estas medidas, argumentando que permiten a Rusia continuar sus ataques. Se espera que el gobierno ruso reintroduzca una prohibición a las exportaciones de gasolina a partir del 1 de abril debido a los efectos en el mercado interno."
+            }
+          ]
+        },
+        {
+          "type": "p",
+          "inlines": [
+            {
+              "text": "Key Details:",
+              "strong": true
+            }
+          ]
+        },
+        {
+          "type": "list",
+          "items": [
+            [
+              {
+                "text": "Ucrania ha realizado al menos 10 ataques significativos a la infraestructura energética rusa este mes."
+              }
+            ],
+            [
+              {
+                "text": "El último ataque fue a una refinería en Yaroslavl, causando un incendio y daños a edificios cercanos."
+              }
+            ],
+            [
+              {
+                "text": "Se espera que Rusia reintroduzca una prohibición a las exportaciones de gasolina a partir del 1 de abril."
+              }
+            ],
+            [
+              {
+                "text": "El presupuesto estatal de Rusia depende de los ingresos petroleros, que han aumentado en el último mes."
+              }
+            ]
+          ]
+        }
+      ],
+      "source": "KVIA",
+      "datetime": "2026-03-28T18:40:54-06:00",
+      "timeLabel": "March 28, 6:40 p.m."
+    }
+  ]
+}

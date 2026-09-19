@@ -367,6 +367,62 @@ planning, not from the owner:
 
 </deferred>
 
+## Amendments after owner review (2026-09-17)
+
+The owner reviewed all five mockups in a real browser on 2026-09-17 and chose **revise, not
+approve** (see `01-APPROVAL.md`, "Revision requests" and "Owner decisions (answered
+2026-09-17)" for the owner's own words). This section records how that review amended the
+decisions above.
+
+- **D-08 is superseded in method by D-GAP-A**: `font-display: optional` + preloads, with
+  zero swap-triggered layout shift proven by classified measurement plus a positive control
+  (01-13).
+- **D-09 is amended by D-GAP-B**: headlines move to Source Serif 4 Bold; Instrument Serif is
+  kept for the "915 TLDR" wordmark only (01-14). The type-led card rule (D-09's other half) is
+  unchanged.
+- **C-01 is applied by D-GAP-C**: Business is re-sampled from a new photo; Sports is accepted
+  by the owner as-is (01-16).
+- **D-GAP-D**: pnpm is the sole package manager (01-11).
+- **Round-1 revision requests 1–10**, by number, with the plan that closes each:
+
+  | Item | Closed by |
+  |---|---|
+  | 1 — remove the black/white header rule | 01-17 |
+  | 2 — category lead image only when usable; typographic fallback | 01-18 |
+  | 3 — article right rail at >=1024px | 01-19 |
+  | 4 — changelog layout bug and whitespace | 01-20 |
+  | 5 — contact centred; button/heading spacing | 01-20 |
+  | 6 — external links open in a new tab with an accessible cue | 01-17 |
+  | 7 — full width at 768px for article, changelog and contact | 01-19, 01-20 |
+  | 8 — Load more (static JSON, button) | 01-21, 01-22 |
+  | 9 — raw markdown in summaries | 01-12, 01-18 |
+  | 10 — theme toggle outside the column at 1920px | 01-17 |
+
+- **DSGN-03's wording** ("Display type is Instrument Serif") needs rewording to reflect
+  D-GAP-B at the phase transition. This is the owner's call and is not edited mid-phase.
+
+- **D-05 amended (01-21):** the mockups directory gains an eighth entry, `feed/` — static JSON
+  pages (`page-2.json … page-N.json`) for the homepage's load-more control. Rationale
+  unchanged from D-05's own reversibility note: the file layout is local to the mockup
+  directory and reversible; the real site will serve pre-built feed JSON beside its pages, so
+  keeping the mockup in that shape lets Phase 3 copy the contract instead of redesigning it.
+
+- **D-12 amended (01-21):** the home grid now server-renders the lead plus the first 6 cards
+  of the reverse-chronological feed, then a Load more button appends further pre-built cards
+  from static same-origin JSON, in pages of 6, continuing the same true reverse-chronological
+  order across pages (revision request 8 — "first load is overwhelming... maybe a load more
+  button? start with maybe 2-3 rows?!"). D-12's other rule — no category-reserved space
+  anywhere on the homepage — is unchanged; load-more only paginates the single mixed feed, it
+  does not introduce per-category sections.
+
+- **DSGN-06 / ROADMAP criterion 5 wording flagged for the phase transition:** the requirement
+  text ("article grid is pure HTML with zero JavaScript") should be reworded once this phase
+  transitions. The server-rendered grid stays script-free and identical with JavaScript
+  disabled (proven by structure.spec.ts's "grid renders identically with JavaScript disabled"
+  test, now covering the trimmed 6-card grid); the PRD §5.5 load-more island is a separate,
+  explicitly-named genuine interaction that appends pre-built cards on request, not part of
+  the pure-HTML grid claim. This is the owner's call, not edited mid-phase.
+
 ---
 
 *Phase: 1-Design Sketch & Editorial Identity*

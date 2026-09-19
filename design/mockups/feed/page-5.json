@@ -1,0 +1,274 @@
+{
+  "schema": 1,
+  "page": 5,
+  "next": "feed/page-6.json",
+  "cards": [
+    {
+      "uuid": "e8d5c5fe-9795-403e-9f5d-dd776540a2db",
+      "category": "community",
+      "categoryName": "Community",
+      "stress": "longest-summary",
+      "lang": null,
+      "variant": null,
+      "image": null,
+      "headline": "Crisis de agua en EE.UU.: Niveles históricos bajos en embalses clave afectan a millones",
+      "headlineI18n": null,
+      "summaryI18n": "card-summary",
+      "bylineI18n": null,
+      "href": "article.html",
+      "summary": [
+        {
+          "type": "p",
+          "inlines": [
+            {
+              "text": "Los niveles de agua en Lake Powell y Lake Mead han alcanzado cifras históricamente bajas, lo que representa un grave problema para el suministro de agua y energía en el suroeste de EE.UU. A partir del 12 de julio, Lake Powell estaba a 3,524 pies y Lake Mead a 1,043 pies, rompiendo récords anteriores. Estos embalses son cruciales, ya que abastecen agua a 40 millones de personas y generan electricidad para 700,000 hogares. Con el 95% de la cuenca del río Colorado en sequía, se prevé que los niveles sigan cayendo, lo que podría llevar a una crisis en la gestión del agua entre los siete estados que dependen de este recurso. Las negociaciones para compartir el agua se complican, y se espera que nuevas directrices operativas se publiquen en las próximas semanas para abordar la crisis."
+            }
+          ]
+        },
+        {
+          "type": "p",
+          "inlines": [
+            {
+              "text": "Key Details:",
+              "strong": true
+            }
+          ]
+        },
+        {
+          "type": "list",
+          "items": [
+            [
+              {
+                "text": "Lake Powell actualmente al 23% de su capacidad, y Lake Mead al 27%."
+              }
+            ],
+            [
+              {
+                "text": "Se espera que ambos embalses establezcan nuevos mínimos históricos diariamente hasta la primavera de 2024."
+              }
+            ],
+            [
+              {
+                "text": "Se impuso una fecha límite en febrero para que los estados llegaran a un acuerdo sobre la gestión del agua, pero no se alcanzó un consenso."
+              }
+            ],
+            [
+              {
+                "text": "El Secretario del Interior, Doug Burgum, se reunió con los gobernadores de los siete estados para discutir soluciones."
+              }
+            ],
+            [
+              {
+                "text": "Se anticipa que El Niño podría traer alivio a la sequía en otoño e invierno."
+              }
+            ]
+          ]
+        }
+      ],
+      "source": "KVIA",
+      "datetime": "2026-07-22T16:49:45-06:00",
+      "timeLabel": "July 22, 4:49 p.m."
+    },
+    {
+      "uuid": "adf5f53b-ddb1-4741-be5e-7a75fe847a50",
+      "category": "community",
+      "categoryName": "Community",
+      "stress": "shortest-summary",
+      "lang": null,
+      "variant": null,
+      "image": {
+        "src": "https://www.ktsm.com/wp-content/uploads/sites/38/2020/04/KTSM9-Logo.png?w=753",
+        "width": 1200,
+        "height": 800
+      },
+      "headline": "KTSM+ Broadcasts at 4 PM Featuring Tirza Ortiz",
+      "headlineI18n": null,
+      "summaryI18n": "card-summary-thin",
+      "bylineI18n": null,
+      "href": "article.html",
+      "summary": [
+        {
+          "type": "p",
+          "inlines": [
+            {
+              "text": "KTSM+ will air its program at 4 PM, showcasing Tirza Ortiz. This segment is anticipated to cover various local topics relevant to the El Paso community. Viewers can expect engaging discussions and updates that reflect current events and issues affecting the area."
+            }
+          ]
+        }
+      ],
+      "source": "KTSM",
+      "datetime": "2026-07-22T15:58:44-06:00",
+      "timeLabel": "July 22, 3:58 p.m."
+    },
+    {
+      "uuid": "5f20c478-64a2-44f6-8cc4-cc9478c3c449",
+      "category": "community",
+      "categoryName": "Community",
+      "stress": "shortest-headline",
+      "lang": null,
+      "variant": null,
+      "image": {
+        "src": "https://www.ktsm.com/wp-content/uploads/sites/38/2025/07/basic-graphic.jpg?w=900",
+        "width": 1200,
+        "height": 800
+      },
+      "headline": "Catch KTSM+ at 4 PM for Local News Updates",
+      "headlineI18n": null,
+      "summaryI18n": null,
+      "bylineI18n": null,
+      "href": "article.html",
+      "summary": [
+        {
+          "type": "p",
+          "inlines": [
+            {
+              "text": "Tune in to KTSM+ at 4 p.m. for the latest news and updates from El Paso. The program will feature Monica Cortez and Tirza Ortiz, who will cover important local stories and events. This is a great opportunity for residents to stay informed about what's happening in their community."
+            }
+          ]
+        }
+      ],
+      "source": "KTSM",
+      "datetime": "2026-05-07T15:50:23-06:00",
+      "timeLabel": "May 7, 3:50 p.m."
+    },
+    {
+      "uuid": "5f20c478-64a2-44f6-8cc4-cc9478c3c449",
+      "category": "community",
+      "categoryName": "Community",
+      "stress": "no-summary",
+      "lang": null,
+      "variant": null,
+      "image": {
+        "src": "https://www.ktsm.com/wp-content/uploads/sites/38/2025/07/basic-graphic.jpg?w=900",
+        "width": 1200,
+        "height": 800
+      },
+      "headline": "Catch KTSM+ at 4 PM for Local News Updates",
+      "headlineI18n": null,
+      "summaryI18n": null,
+      "bylineI18n": null,
+      "href": "article.html",
+      "summary": null,
+      "source": "KTSM",
+      "datetime": "2026-05-07T15:50:23-06:00",
+      "timeLabel": "May 7, 3:50 p.m."
+    },
+    {
+      "uuid": "1fa497bd-5e43-4bcd-817e-50d101f4951b",
+      "category": "none",
+      "categoryName": null,
+      "stress": "uncategorized",
+      "lang": null,
+      "variant": null,
+      "image": null,
+      "headline": "Violent Gang Attack in Haiti Claims 16 Lives Amid Ongoing Crisis",
+      "headlineI18n": null,
+      "summaryI18n": null,
+      "bylineI18n": null,
+      "href": "article.html",
+      "summary": [
+        {
+          "type": "p",
+          "inlines": [
+            {
+              "text": "A brutal attack by the armed gang Gran Grif in Haiti resulted in at least 16 fatalities and numerous injuries on Sunday in Jean Denis, near Port-au-Prince. The gang blocked access routes to prevent police intervention, leading to a delayed response. While the police reported 16 deaths, an NGO claims the toll may be as high as 70, with many homes set ablaze and thousands displaced. The U.S. State Department has labeled Gran Grif as a foreign terrorist organization, noting its significant role in civilian deaths since 2022. Haiti continues to grapple with escalating violence, with a new multinational force expected to arrive in April to help restore order."
+            }
+          ]
+        },
+        {
+          "type": "p",
+          "inlines": [
+            {
+              "text": "Key Details:",
+              "strong": true
+            }
+          ]
+        },
+        {
+          "type": "list",
+          "items": [
+            [
+              {
+                "text": "At least 16 confirmed dead; NGO reports suggest 70 fatalities."
+              }
+            ],
+            [
+              {
+                "text": "Gang Gran Grif has been responsible for 80% of civilian deaths in Artibonite since 2022."
+              }
+            ],
+            [
+              {
+                "text": "New multinational forces to arrive in April to combat gang violence."
+              }
+            ]
+          ]
+        }
+      ],
+      "source": "KVIA",
+      "datetime": "2026-03-30T15:10:58-06:00",
+      "timeLabel": "March 30, 3:10 p.m."
+    },
+    {
+      "uuid": "f63b5753-90b6-4a54-b78d-160461c08bf8",
+      "category": "politics",
+      "categoryName": "Politics",
+      "stress": "longest-headline",
+      "lang": null,
+      "variant": null,
+      "image": null,
+      "headline": "Ucrania intensifica ofensiva contra la infraestructura petrolera rusa en medio de ganancias inesperadas del Kremlin",
+      "headlineI18n": "card-headline",
+      "summaryI18n": null,
+      "bylineI18n": null,
+      "href": "article.html",
+      "summary": [
+        {
+          "type": "p",
+          "inlines": [
+            {
+              "text": "El Ejército de Ucrania ha intensificado sus ataques a la infraestructura energética de Rusia, apuntando a refinerías y terminales de exportación en un esfuerzo por debilitar una de las principales fuentes de ingresos del Kremlin. En las últimas semanas, se han llevado a cabo al menos diez ataques significativos, incluyendo uno en una refinería en Yaroslavl, que resultó en daños a edificios residenciales. Mientras tanto, Rusia ha visto un aumento en los precios del petróleo, beneficiándose de la flexibilización de algunas sanciones estadounidenses. El presidente ucraniano, Volodymyr Zelensky, ha criticado estas medidas, argumentando que permiten a Rusia continuar sus ataques. Se espera que el gobierno ruso reintroduzca una prohibición a las exportaciones de gasolina a partir del 1 de abril debido a los efectos en el mercado interno."
+            }
+          ]
+        },
+        {
+          "type": "p",
+          "inlines": [
+            {
+              "text": "Key Details:",
+              "strong": true
+            }
+          ]
+        },
+        {
+          "type": "list",
+          "items": [
+            [
+              {
+                "text": "Ucrania ha realizado al menos 10 ataques significativos a la infraestructura energética rusa este mes."
+              }
+            ],
+            [
+              {
+                "text": "El último ataque fue a una refinería en Yaroslavl, causando un incendio y daños a edificios cercanos."
+              }
+            ],
+            [
+              {
+                "text": "Se espera que Rusia reintroduzca una prohibición a las exportaciones de gasolina a partir del 1 de abril."
+              }
+            ],
+            [
+              {
+                "text": "El presupuesto estatal de Rusia depende de los ingresos petroleros, que han aumentado en el último mes."
+              }
+            ]
+          ]
+        }
+      ],
+      "source": "KVIA",
+      "datetime": "2026-03-28T18:40:54-06:00",
+      "timeLabel": "March 28, 6:40 p.m."
+    }
+  ]
+}

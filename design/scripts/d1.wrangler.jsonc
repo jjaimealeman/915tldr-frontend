@@ -1,0 +1,13 @@
+{
+  // Read-only wrangler config for design-phase D1 access (01-02).
+  // Design scripts never write to this database — see design/scripts/lib/d1-read.mjs,
+  // which refuses any statement that is not a single SELECT/WITH before spawning wrangler.
+  "name": "915tldr-design-readonly",
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "915tldr-db",
+      "database_id": "552ba1d1-024a-4dee-bdaa-3ffd4bdb1f77"
+    }
+  ]
+}

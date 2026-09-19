@@ -1,0 +1,281 @@
+{
+  "schema": 1,
+  "page": 3,
+  "next": "feed/page-4.json",
+  "cards": [
+    {
+      "uuid": "a6047080-bc70-4eab-9fdb-3de80995ee04",
+      "category": "education",
+      "categoryName": "Education",
+      "stress": null,
+      "lang": null,
+      "variant": null,
+      "image": {
+        "src": "https://www.ktsm.com/wp-content/uploads/sites/38/2026/09/artificial_intelligene_classroom_01222026_AP26022717764507-1.jpg?w=900",
+        "width": 1200,
+        "height": 800
+      },
+      "headline": "Majority of Teachers Support Limits on Student Screen Time in Schools",
+      "headlineI18n": null,
+      "summaryI18n": null,
+      "bylineI18n": null,
+      "href": "article.html",
+      "summary": [
+        {
+          "type": "p",
+          "inlines": [
+            {
+              "text": "A recent Gallup poll reveals that nearly 75% of teachers are advocating for restrictions on screen time for students in classrooms. While educators recognize the role of technology in learning, many express concerns about its overuse and potential negative impacts on student engagement and health. This sentiment underscores a growing debate about the balance between digital learning tools and traditional teaching methods. The findings highlight the need for school districts to consider policies that address screen time in order to enhance educational outcomes."
+            }
+          ]
+        }
+      ],
+      "source": "KTSM",
+      "datetime": "2026-09-16T11:18:39-06:00",
+      "timeLabel": "Sept. 16, 11:18 a.m."
+    },
+    {
+      "uuid": "26f5b453-8290-4b40-8e37-2ca0417294d4",
+      "category": "community",
+      "categoryName": "Community",
+      "stress": null,
+      "lang": null,
+      "variant": null,
+      "image": {
+        "src": "https://www.ktsm.com/wp-content/uploads/sites/38/2026/09/7ff31fb41c594182a7a04d8ee00ae0bd.jpg?w=900",
+        "width": 1200,
+        "height": 800
+      },
+      "headline": "Merriam-Webster Expands Dictionary with 1,400 New Terms Including 'Rickroll'",
+      "headlineI18n": null,
+      "summaryI18n": null,
+      "bylineI18n": null,
+      "href": "article.html",
+      "summary": [
+        {
+          "type": "p",
+          "inlines": [
+            {
+              "text": "Merriam-Webster has updated its online dictionary with a significant addition of 1,400 new words and definitions, reflecting evolving language trends. Among the newly included terms are 'looksmaxxing,' which refers to efforts to enhance one's appearance, and 'rickroll,' a popular internet prank. This update highlights the dynamic nature of language and its adaptation to cultural phenomena. The inclusion of these terms allows users to better understand contemporary discussions and online interactions."
+            }
+          ]
+        }
+      ],
+      "source": "KTSM",
+      "datetime": "2026-09-16T11:16:07-06:00",
+      "timeLabel": "Sept. 16, 11:16 a.m."
+    },
+    {
+      "uuid": "ffe39014-337e-4e34-b3ca-c4228ad1c16d",
+      "category": "community",
+      "categoryName": "Community",
+      "stress": null,
+      "lang": null,
+      "variant": null,
+      "image": {
+        "src": "https://kvia.com/wp-content/uploads/2026/09/videoframe_1810.png",
+        "width": 1200,
+        "height": 800
+      },
+      "headline": "Meta Contributes $2.5 Million to Boost El Paso Giving Day Efforts",
+      "headlineI18n": null,
+      "summaryI18n": null,
+      "bylineI18n": null,
+      "href": "article.html",
+      "summary": [
+        {
+          "type": "p",
+          "inlines": [
+            {
+              "text": "Meta has donated $2.5 million to the Paso del Norte Community Foundation (PdNCF) to enhance resources for local nonprofits during El Paso Giving Day, scheduled for October 15. This significant contribution will effectively double the funding available to participating organizations, allowing them to receive up to $25,000 each. The initiative aims to support essential services in areas such as family assistance, education, and health. Meta's investment aligns with its commitment to community development, particularly as it establishes a data center in Northeast El Paso, emphasizing the importance of local engagement."
+            }
+          ]
+        },
+        {
+          "type": "p",
+          "inlines": [
+            {
+              "text": "Key Details:",
+              "strong": true
+            }
+          ]
+        },
+        {
+          "type": "list",
+          "items": [
+            [
+              {
+                "text": "El Paso Giving Day is on October 15, 2023."
+              }
+            ],
+            [
+              {
+                "text": "Nonprofits can receive up to $25,000 from the donation."
+              }
+            ],
+            [
+              {
+                "text": "Meta's donation aims to support services in education, health, and family services."
+              }
+            ]
+          ]
+        }
+      ],
+      "source": "KVIA",
+      "datetime": "2026-09-16T11:10:35-06:00",
+      "timeLabel": "Sept. 16, 11:10 a.m."
+    },
+    {
+      "uuid": "228e8097-3fda-468e-99bf-ba92ddea7d8f",
+      "category": "politics",
+      "categoryName": "Politics",
+      "stress": null,
+      "lang": null,
+      "variant": null,
+      "image": null,
+      "headline": "Supreme Court Ruling on Mail-In Voting Seen as Win for Democracy",
+      "headlineI18n": null,
+      "summaryI18n": null,
+      "bylineI18n": null,
+      "href": "article.html",
+      "summary": [
+        {
+          "type": "p",
+          "inlines": [
+            {
+              "text": "The U.S. Supreme Court's recent decision to block former President Trump's attempts to restrict mail-in voting for the 2026 midterm elections has sparked varied reactions, primarily from Democrats who benefit more from this voting method. While Trump argues that such changes favor Republicans, analysts suggest that the ruling may ultimately enhance democratic participation rather than just benefiting one party. A recent CBS News poll indicates that 38% of Democrats plan to vote by mail compared to 22% of Republicans, highlighting the importance of mail-in voting for older and rural voters, who tend to lean Republican. Concerns remain about the potential for errors in the mail-in voting verification process, which could disenfranchise voters across party lines."
+            }
+          ]
+        },
+        {
+          "type": "p",
+          "inlines": [
+            {
+              "text": "Key Details:",
+              "strong": true
+            }
+          ]
+        },
+        {
+          "type": "list",
+          "items": [
+            [
+              {
+                "text": "Supreme Court decision blocks Trump's mail-in voting restrictions for 2026 elections."
+              }
+            ],
+            [
+              {
+                "text": "CBS News poll shows 38% of Democrats vs. 22% of Republicans plan to vote by mail."
+              }
+            ],
+            [
+              {
+                "text": "Older and rural voters, more likely to vote by mail, are crucial for both parties."
+              }
+            ],
+            [
+              {
+                "text": "Concerns about mail-in voting verification errors could impact voter turnout."
+              }
+            ]
+          ]
+        }
+      ],
+      "source": "KVIA",
+      "datetime": "2026-09-16T10:50:20-06:00",
+      "timeLabel": "Sept. 16, 10:50 a.m."
+    },
+    {
+      "uuid": "61cf76bc-1b2f-4825-90ec-e4ad491f5378",
+      "category": "crime",
+      "categoryName": "Crime",
+      "stress": null,
+      "lang": null,
+      "variant": null,
+      "image": {
+        "src": "https://www.ktsm.com/wp-content/uploads/sites/38/2026/09/Kevin-Daniel-Cuellar.png?w=356",
+        "width": 1200,
+        "height": 800
+      },
+      "headline": "23-Year-Old Arrested for High-Speed Chase in El Paso",
+      "headlineI18n": null,
+      "summaryI18n": null,
+      "bylineI18n": null,
+      "href": "article.html",
+      "summary": [
+        {
+          "type": "p",
+          "inlines": [
+            {
+              "text": "An El Paso man, aged 23, was apprehended early Sunday morning after leading deputies on a high-speed chase, reaching speeds over 100 mph. The incident occurred around 4:18 a.m. on September 13, when a deputy attempted to pull over a black Dodge Charger. This reckless behavior not only endangers public safety but also highlights ongoing issues with traffic violations in the area. Residents are reminded of the importance of adhering to traffic laws to ensure community safety."
+            }
+          ]
+        },
+        {
+          "type": "p",
+          "inlines": [
+            {
+              "text": "Key Details:",
+              "strong": true
+            }
+          ]
+        },
+        {
+          "type": "list",
+          "items": [
+            [
+              {
+                "text": "Incident occurred on September 13 at approximately 4:18 a.m."
+              }
+            ],
+            [
+              {
+                "text": "Chase involved a black Dodge Charger exceeding 100 mph."
+              }
+            ],
+            [
+              {
+                "text": "Emphasizes the dangers of high-speed pursuits in residential areas."
+              }
+            ]
+          ]
+        }
+      ],
+      "source": "KTSM",
+      "datetime": "2026-09-16T10:42:55-06:00",
+      "timeLabel": "Sept. 16, 10:42 a.m."
+    },
+    {
+      "uuid": "a4c0252e-1fbd-4d34-b0ca-bd2769659f7f",
+      "category": "community",
+      "categoryName": "Community",
+      "stress": null,
+      "lang": null,
+      "variant": null,
+      "image": {
+        "src": "https://www.ktsm.com/wp-content/uploads/sites/38/2026/05/69fa2ad64c9159.97822759.jpeg?w=900",
+        "width": 1200,
+        "height": 800
+      },
+      "headline": "Meta Donates $2.5 Million to Paso del Norte Community Foundation",
+      "headlineI18n": null,
+      "summaryI18n": null,
+      "bylineI18n": null,
+      "href": "article.html",
+      "summary": [
+        {
+          "type": "p",
+          "inlines": [
+            {
+              "text": "Meta, the tech company constructing a data center in El Paso, has contributed $2.5 million to the Paso del Norte Community Foundation (PdNCF). This significant donation supports the foundation's initiative, 'The Future Is Everyone,' aimed at enhancing community resources and opportunities. The funds will be utilized to address various local needs, ultimately benefiting residents in the El Paso area. This investment underscores Meta's commitment to supporting the communities where it operates."
+            }
+          ]
+        }
+      ],
+      "source": "KTSM",
+      "datetime": "2026-09-16T10:30:06-06:00",
+      "timeLabel": "Sept. 16, 10:30 a.m."
+    }
+  ]
+}

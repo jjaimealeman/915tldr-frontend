@@ -1,0 +1,7 @@
+| Criterion | Chromium | WebKit (Playwright 26.6, docker) | Node checks | Verdict |
+|---|---|---|---|---|
+| 1 | PASS | PASS | PASS | PASS |
+| 2 | n/a | n/a | PASS | PASS |
+| 3 | PASS | PASS | — | PASS |
+| 4 | PASS | PASS | — | PASS |
+| 5 | PASS | PASS | PASS | PASS |

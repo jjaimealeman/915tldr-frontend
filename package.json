@@ -1,0 +1,33 @@
+{
+  "name": "915tldr-v2",
+  "private": true,
+  "type": "module",
+  "packageManager": "pnpm@11.26.0",
+  "engines": {
+    "node": ">=24"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.63.0",
+    "subset-font": "2.7.0",
+    "@capsizecss/core": "4.1.3",
+    "@capsizecss/metrics": "4.2.0",
+    "culori": "4.0.2"
+  },
+  "scripts": {
+    "probe:webkit": "node design/scripts/probe-webkit.mjs",
+    "test:e2e": "node design/scripts/pw.mjs --project=all",
+    "serve:mockups": "node design/scripts/serve-mockups.mjs --port 4319",
+    "data:stress": "node design/scripts/fetch-stress-set.mjs",
+    "check:contrast": "node design/scripts/check-contrast.mjs",
+    "verify:phase-1": "node design/scripts/verify-phase-1.mjs",
+    "approval:packet": "node design/scripts/write-approval-packet.mjs",
+    "verify:approval": "node design/scripts/verify-approval.mjs",
+    "fonts:fetch": "node design/scripts/fetch-fonts.mjs",
+    "fonts:build": "node design/scripts/build-fonts.mjs",
+    "feed:build": "node design/scripts/build-feed.mjs",
+    "palette:sample": "node design/scripts/sample-hues.mjs",
+    "palette:build": "node design/scripts/build-palette.mjs",
+    "palette:swatches": "node design/scripts/render-swatches.mjs",
+    "test:unit": "node --test \"design/tests/unit/**/*.test.mjs\""
+  }
+}

@@ -18,12 +18,13 @@ real site. Phase 12 moves the admin behind Cloudflare Access, starts the daily b
 ## Phases
 
 **Phase Numbering:**
+
 - Integer phases (1, 2, 3): Planned milestone work
 - Decimal phases (2.1, 2.2): Urgent insertions (marked with INSERTED)
 
 Decimal phases appear between their surrounding integers in numeric order.
 
-- [ ] **Phase 1: Design Sketch & Editorial Identity** - Approved static HTML/CSS mockups that pass contrast and keyboard review before any Astro work
+- [x] **Phase 1: Design Sketch & Editorial Identity** - Approved static HTML/CSS mockups that pass contrast and keyboard review before any Astro work (completed 2026-09-17)
 - [ ] **Phase 2: Content Quality & Grounding** - Fix extraction, prompt and grounding so no fabricated summary is ever written in a second language
 - [ ] **Phase 3: Foundation & Read-Budget Guardrails** - Astro scaffold, the CI D1-import assertion, the render manifest, and the measurements that decide the render step
 - [ ] **Phase 4: Static Generation, Templates & SEO** - A fail-loud D1 loader and every public page type generated at build time
@@ -39,23 +40,118 @@ Decimal phases appear between their surrounding integers in numeric order.
 ## Phase Details
 
 ### Phase 1: Design Sketch & Editorial Identity
+
 **Goal**: An approved, accessible visual system exists as static HTML/CSS — and is *accepted* — before any Astro code is written.
 **Depends on**: Nothing (first phase)
 **Requirements**: DSGN-01, DSGN-02, DSGN-03, DSGN-04, DSGN-05, DSGN-06, DSGN-07, A11Y-01, PERF-07, I18N-07
 **Success Criteria** (what must be TRUE):
+
   1. Static HTML/CSS mockups exist for home, category, article, changelog and contact in both light (default) and dark themes, the owner has explicitly approved them, and no `.astro` component file exists yet.
   2. Every text/background pair in both themes measures ≥4.5:1 for body text and ≥3:1 for large text and UI components, recorded as a checked contrast table covering all eight Chihuahuan-desert category colours — the design is not accepted until this passes.
   3. Every interactive element in the mockups is keyboard reachable and operable with a visible, unclipped focus indicator, verified by a keyboard-only walk of each mockup (not by inspecting CSS).
   4. Mockups render Spanish copy running 25% longer than the English equivalent with no overflow, clipping or content loss in cards and headlines.
   5. Instrument Serif (display) and Source Serif 4 (body) are self-hosted, subset to include Spanish diacritics, woff2-only, with `size-adjust` metric-compatible fallbacks measured to produce zero layout shift on swap; Playfair Display and Merriweather appear nowhere; the article grid is pure HTML with zero JavaScript.
-**Plans**: TBD
+
+**Plans:** 23/23 plans complete
+
+Plans:
+**Wave 1**
+
+- [x] 01-01-PLAN.md — Dependency legitimacy gate, pinned install, WebKit-on-Arch proof (native or Docker), static server and Playwright harness
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
+- [x] 01-02-PLAN.md — Tracer: one real D1 row → index.html → token layer → contrast gate → subset fonts and fallbacks → font-swap measurement → D-16 runner
+
+**Wave 3** *(blocked on Wave 2 completion)*
+
+- [x] 01-03-PLAN.md — Palette: photo-sampled hues on shared OKLCH stops, dark ramp, swatch evidence (D-01–D-04, C-01)
+- [x] 01-04-PLAN.md — D-06 stress set from live D1 (read-only), changelog copy, real + width-calibrated synthetic Spanish (D-15)
+
+**Wave 4** *(blocked on Wave 3 completion)*
+
+- [x] 01-05-PLAN.md — Contrast gate hardened test-first; becomes the Phase 3 CI guard (D-13)
+
+**Wave 5** *(blocked on Wave 4 completion)*
+
+- [x] 01-06-PLAN.md — Home and category mockups: typographic lead, reverse-chron stress grid, masthead colour block (D-01, D-09, D-12)
+
+**Wave 6** *(blocked on Wave 5 completion)*
+
+- [x] 01-07-PLAN.md — Article (standfirst deck, no pull quotes), changelog dispatches, contact; final font subset (D-10, D-11)
+
+**Wave 7** *(blocked on Wave 6 completion)*
+
+- [x] 01-08-PLAN.md — Scripted keyboard walk with clipping checks, structure and content-integrity specs, evidence (D-14)
+
+**Wave 8** *(blocked on Wave 7 completion)*
+
+- [x] 01-09-PLAN.md — Spanish +25% overflow, 320 px / 200% reflow, full font-swap matrix and report (D-07, D-08, D-15)
+
+**Wave 9** *(blocked on Wave 8 completion)*
+
+- [x] 01-10-PLAN.md — Unscoped run, fingerprinted 01-APPROVAL.md, owner keyboard walk and sign-off (D-16) — owner chose **revise** (2026-09-17)
+
+**Gap closure — round 1 owner review (see 01-APPROVAL.md "Revision requests")**
+
+**Wave 10**
+
+- [x] 01-11-PLAN.md — pnpm migration (D-GAP-D): lockfile parity, local Playwright CLI, package-lock.json retired; 01-10 record (not approved)
+- [x] 01-12-PLAN.md — TDD: summary markdown → typed blocks → safe HTML (defect 9 groundwork)
+
+**Wave 11** *(blocked on Wave 10 completion)*
+
+- [x] 01-13-PLAN.md — font-display: optional + classified CLS re-measure with a positive control; PRD §6.5 amended (D-GAP-A)
+
+**Wave 12** *(blocked on Wave 11 completion)*
+
+- [x] 01-14-PLAN.md — Source Serif 4 Bold headlines, Instrument Serif wordmark only (D-GAP-B); opsz-pinned subsets ≤60/30 KB; Instrument Serif Italic retired
+
+**Wave 13** *(blocked on Wave 12 completion)*
+
+- [x] 01-15-PLAN.md — Spanish +25% recalibration for the new type system (criterion 4)
+
+**Wave 14** *(blocked on Wave 13 completion)*
+
+- [x] 01-16-PLAN.md — Business hue from a new photo, outside the amber/olive band (D-GAP-C)
+
+**Wave 15** *(blocked on Wave 14 completion)*
+
+- [x] 01-17-PLAN.md — Header rule removed, toggle in the column at 1920px, external links in a new tab with an accessible cue (requests 1, 6; defect 10)
+
+**Wave 16** *(blocked on Wave 15 completion)*
+
+- [x] 01-18-PLAN.md — Rendered Key Details on all pages; category lead image-or-typographic fallback (defect 9; request 2)
+
+**Wave 17** *(blocked on Wave 16 completion)*
+
+- [x] 01-19-PLAN.md — Article right rail at ≥1024px; full width at 768px (requests 3, 7)
+
+**Wave 18** *(blocked on Wave 17 completion)*
+
+- [x] 01-20-PLAN.md — Changelog layout fix + rail; contact centred with button spacing; full width at 768px (requests 4, 5, 7)
+
+**Wave 19** *(blocked on Wave 18 completion)*
+
+- [x] 01-21-PLAN.md — Load more from static JSON: extraction, feed pages, shared head script, focus management, runner checks (request 8)
+
+**Wave 20** *(blocked on Wave 19 completion)*
+
+- [x] 01-22-PLAN.md — Content, Spanish and glyph checks run against the fully loaded home feed (request 8)
+
+**Wave 21** *(blocked on Wave 20 completion)*
+
+- [x] 01-23-PLAN.md — Unscoped run, strict round-2 packet with revision history, owner re-review and decision (D-16)
+
 **UI hint**: yes
 
 ### Phase 2: Content Quality & Grounding
+
 **Goal**: Summaries are faithful to their sources before a single new summary is written in any language.
 **Depends on**: Nothing (pipeline-side; runs independently of Phase 1)
 **Requirements**: CONT-01, CONT-02, CONT-03, CONT-04, CONT-05, CONT-06, CONT-07, CONT-08, CONT-09, CONT-10, CONT-11, CONT-12, FIX-01, FIX-02, FIX-03, OPS-11
 **Success Criteria** (what must be TRUE):
+
   1. On a 200-article sample of newly ingested articles, the `[...]` truncation marker rate is under 1% (down from 14.7% of the corpus) and zero summaries are longer than their source; summary length tracks source length with no fixed word floor.
   2. The grounding check flags the known production fabrication — *"Residents and dealership owners are urged to remain vigilant…"*, which is length-compliant and well-formed — and runs automatically on every newly ingested article alongside the length check.
   3. A dry run reports exact affected row count and projected cost in dollars before any re-processing begins; the run does not start until the owner approves that figure, uses the Batch API, and detects and resubmits only the remainder of any job unfinished at the 24-hour window.
@@ -66,10 +162,12 @@ Decimal phases appear between their surrounding integers in numeric order.
 **Plans**: TBD
 
 ### Phase 3: Foundation & Read-Budget Guardrails
+
 **Goal**: The project cannot silently reintroduce D1 on the public path, and every layer (deploy / render / cache) can be told apart when debugging.
 **Depends on**: Phase 1
 **Requirements**: ARCH-02, ARCH-03, ARCH-04, ARCH-05, ARCH-06, REND-06, OPS-02, OPS-05, OPS-06, OPS-08
 **Success Criteria** (what must be TRUE):
+
   1. Adding a D1 import to any public route, island component, middleware or endpoint fails the build — demonstrated by deliberately adding one to a `.astro` page *and* one to a file under the island component tree, and watching CI go red both times.
   2. Astro config uses `output: 'static'` with per-route `export const prerender = false`, explicit `imageService: { build: 'compile', runtime: 'passthrough' }`, and `import { env } from 'cloudflare:workers'`; grepping the repo for `'hybrid'` and `Astro.locals.runtime.env` returns zero hits.
   3. The render manifest exists in KV with a documented schema that already carries the Spanish counterpart ID per article, so hreflang pairing never requires a backfill re-render of the corpus.
@@ -79,23 +177,28 @@ Decimal phases appear between their surrounding integers in numeric order.
 **Plans**: TBD
 
 ### Phase 4: Static Generation, Templates & SEO
+
 **Goal**: Every public page type is generated at build time from D1, and a bad read fails the build instead of shipping an empty page.
 **Depends on**: Phase 3
 **Requirements**: REND-01, REND-02, REND-03, REND-04, REND-05, SEO-01, SEO-02, SEO-03, SEO-04, SEO-05, SEO-06, SEO-07, SEO-08, IDNT-03, IDNT-04, OPS-10, FIX-04, FIX-05
 **Success Criteria** (what must be TRUE):
+
   1. A build in which the hand-written `astro/loaders` Loader returns zero rows — or fewer than the manifest expects — exits non-zero and deploys nothing, proven by a regression test that replays the `/changelog` empty-state failure.
   2. Home, category index (both `/crime` and `/crime/**` resolve), article, tag, changelog and contact pages all render real content read from the D1 REST API at build time, and `/changelog` shows its full preserved history on every build.
   3. A cron cycle triggers an incremental build that re-renders only new and changed articles and ships a new Worker deployment; unchanged articles are byte-identical to the previous version.
   4. Every existing `/[category]/[slug]-[uuid]` URL still resolves with a correct canonical; `/rss.xml` and the per-bot `robots.txt` (AI-crawler and `Content-signal` rules intact) are preserved; the 404 suggestion endpoint still answers.
   5. `NewsArticle`, `BreadcrumbList`, `Organization` and `WebSite` structured data validate clean in the Rich Results Test on a real article (validated, not merely emitted); the Google News sitemap contains only the last 48 hours; every article carries an AI-generation disclosure at point of consumption and a prominent canonical link to the originating outlet.
+
 **Plans**: TBD
 **UI hint**: yes
 
 ### Phase 5: Hybrid Archive & Zero-Reads Proof
+
 **Goal**: Prove the premise — a public request reads zero D1 rows — or stop the project here for architecture review.
 **Depends on**: Phase 4
 **Requirements**: ARCH-01, ARCH-08, REND-07, REND-08, REND-09, REND-10, REND-11, REND-12
 **Success Criteria** (what must be TRUE):
+
   1. Cloudflare D1 analytics report **0 rows read** attributable to the public worker across a scripted pass over the homepage, all 8 category pages, 20 hot articles, 20 archived articles, 20 tag pages, the sitemap and `/rss.xml`. A non-zero result halts the project — this is the gate, not a check.
   2. An archived article request misses the static-asset layer, falls through to the Worker and is served from R2, with Worker→R2 `get()` latency for ~30 KB objects recorded as p50/p95 numbers and shown to fit inside the 1.5 s LCP budget.
   3. A public request performs at most 1 KV read and under 5 ms of Worker CPU, measured on the deployed worker rather than estimated.
@@ -105,87 +208,107 @@ Decimal phases appear between their surrounding integers in numeric order.
 **Plans**: TBD
 
 ### Phase 6: Bilingual
+
 **Goal**: Every article exists in English and Spanish, and the reader — never an IP lookup — chooses which one they see.
 **Depends on**: Phase 2 (prompt fixed first), Phase 5 (tiering absorbs the doubled corpus)
 **Requirements**: I18N-01, I18N-02, I18N-03, I18N-04, I18N-05, I18N-06, I18N-08, I18N-09, I18N-10
 **Success Criteria** (what must be TRUE):
+
   1. Each newly ingested article carries an English and a Spanish summary produced in the same model call, with source language detected and stored; the Spanish backfill of the archive runs via the Batch API only after a costed dry run and approval.
   2. `/es/...` exists for every public page type; every page emits self-referencing `hreflang` pairs plus `x-default`, verified per page pair, with separate sitemaps and RSS feeds per language.
   3. Requesting any page with a Spanish `Accept-Language` header lands on the English page — language changes only when the reader chooses it, with no IP or browser auto-redirect anywhere in the stack.
   4. Spanish-language articles render with `lang="es"` on the correct element and carry the same AI-generation disclosure as their English counterparts.
   5. `Accept-Language` is logged at the edge and a report of Spanish-preferring request share is available to inform the `/es` launch decision on 2-4 weeks of measured data.
+
 **Plans**: TBD
 **UI hint**: yes
 
 ### Phase 7: Imagery & Share Cards
+
 **Goal**: Every article has a real image and a share card that renders correctly on the platforms people actually paste links into.
 **Depends on**: Phase 4
 **Requirements**: IMG-01, IMG-02, IMG-03, IMG-04, IMG-05, IMG-06, IMG-07, IMG-08, IMG-09, IMG-10, SOC-01, SOC-02, SOC-03, SOC-04, SOC-05, SOC-06, SOC-07, SOC-08, PERF-08, PERF-09, PERF-10, A11Y-06
 **Success Criteria** (what must be TRUE):
+
   1. Zero articles display an emoji sprite, generic placeholder or undersized image: the ingest filter rejects them going forward and the retroactive pass reclassifies all 1,098 existing junk images.
   2. A 10-image Flux-Schnell quality test is decided by looking at the images, and the 15,624-article backfill runs only after a costed dry run and explicit approval; ongoing per-article generation stays inside the free 10,000 neurons/day allocation.
   3. Eight category heroes read as one visual system (generated via reference images on `gpt-image-2.5-flare`), and real per-image cost is recorded from `usage.output_tokens` as a measured dollar figure — the flat-rate table is not used.
   4. Every article has a 1200×630 share card at an absolute HTTPS URL under 5 MB, produced by deterministic composition with no AI-rendered text, verified by pasting real URLs into the Facebook debugger, X validator, iMessage, WhatsApp and Slack; the file size that actually renders on WhatsApp is recorded as a number.
   5. Generated images live in R2 with assignments recorded in D1 so they survive rebuilds; every image emits explicit `width`/`height`, `srcset`/`sizes` with AVIF and WebP plus fallback, and meaningful `alt` (or `alt=""` when decorative); the LCP image carries `fetchpriority="high"` and is never lazy-loaded; every page emits the full Open Graph, `article:*` and `summary_large_image` Twitter tag set.
+
 **Plans**: TBD
 **UI hint**: yes
 
 ### Phase 8: Server Islands & Interactivity
+
 **Goal**: The few dynamic pieces of the page degrade visibly instead of failing silently.
 **Depends on**: Phase 3
 **Requirements**: ISL-01, ISL-02, ISL-03, ISL-04, ISL-05, ISL-06, ISL-07, ISL-08, A11Y-07
 **Success Criteria** (what must be TRUE):
+
   1. Weather and a 7-day forecast render as server islands from a single existing NWS response (`EPZ/86,64`) with zero additional API calls, and an "updated Xm ago" indicator renders as a server island.
   2. With each upstream deliberately blocked or slowed past its timeout, every island shows its `slot="fallback"` content and the page still renders — verified by actually failing each upstream, not by reading the code.
   3. `ASTRO_KEY` is pinned as a stable secret and every island's encrypted prop payload measures under 2048 bytes, so island requests stay cacheable GETs and survive a rolling deploy without decryption errors.
   4. Islands number exactly five — search, category filter, theme toggle, load-more, weather — the CI D1-import scan covers every island file and `/_server-islands/*` path, and the theme toggle hydrates with no mismatch warning in the console.
   5. `<ClientRouter />` from `astro:transitions` drives page transitions, and every transition and animation is suppressed under `prefers-reduced-motion: reduce`.
+
 **Plans**: TBD
 **UI hint**: yes
 
 ### Phase 9: Search
+
 **Goal**: Readers can search the corpus in both languages without the zero-reads guarantee acquiring a quiet exception.
 **Depends on**: Phase 5, Phase 6 (Spanish content must exist to test cross-language relevance)
 **Requirements**: SRCH-01, SRCH-02, SRCH-03
 **Known constraint (resolved 2026-09-16)**: `articles-semantic` is populated by `@cf/baai/bge-base-en-v1.5` — **768-dim and English-only**. Vectorize as it stands cannot match Spanish queries to English article vectors, so its cross-language advantage does not exist today. Three candidate paths, none free.
 **Success Criteria** (what must be TRUE):
+
   1. All three viable paths are measured against the real corpus in English *and* Spanish on 30-50 test queries — (a) FTS5 with a scoped D1 carve-out, (b) re-embedding the corpus with a multilingual model such as `bge-m3`, (c) per-language indexes — and the choice is written down with the relevance, p95 latency and cost numbers that decided it, not chosen on architecture preference. If (b) is chosen, it is a corpus-wide operation and takes a dry run and approval under the §4.1 rules.
   2. A reader can search from any public page and get relevant results, with p95 query latency under 500 ms and cost per query under $0.001.
   3. Either search performs zero D1 reads and the Core Value holds without exception, or the D1 exception is explicitly scoped, capped with a stated daily read ceiling inside the 2,000,000/day budget, and approved by the owner. Silently reading D1 is not an available outcome.
+
 **Plans**: TBD
 **UI hint**: yes
 
 ### Phase 10: Reader Subscription & Trust Surface
+
 **Goal**: A reader can subscribe on their own terms, and can tell who made this and how the AI works.
 **Depends on**: Phase 4
 **Requirements**: SUB-01, SUB-02, SUB-03, SUB-04, SUB-05, SUB-06, SUB-07, SUB-08, IDNT-01, IDNT-02, IDNT-05, IDNT-06, A11Y-08
 **Success Criteria** (what must be TRUE):
+
   1. A reader submits an email, selects any of the eight categories, follows named entities drawn from the existing 46,090, and picks a preferred language; nothing counts as subscribed until a double opt-in link is clicked.
   2. Every subscriber row carries a working unsubscribe token and link, and preference changes go through a magic link with no password and no session anywhere in the flow.
   3. A scripted subscribe and preference change shows 0 D1 rows read attributable to the public request — the subscribe path writes only.
   4. The About page names a real person with a photo, written in first person, and explains in plain English what is automated, what is summarised and where the reporting comes from; a contact route exists that is not a form-only dead end; links to `jjaimealeman.com` and `915website.com` are present.
   5. Every form input has an associated label and validation errors are announced, verified with an actual screen reader rather than by inspecting markup.
+
 **Plans**: TBD
 **UI hint**: yes
 
 ### Phase 11: Quality Gates
+
 **Goal**: The release-blocking numbers are met on the real site — measured, not asserted.
 **Depends on**: Phases 1, 4, 6, 7, 8, 10
 **Requirements**: A11Y-02, A11Y-03, A11Y-04, A11Y-05, A11Y-09, A11Y-10, A11Y-11, PERF-01, PERF-02, PERF-03, PERF-04, PERF-05, PERF-06, SEO-09
 **Success Criteria** (what must be TRUE):
+
   1. Lighthouse scores 100 accessibility and 100 SEO, and at least 95 performance, across home, category, article, changelog and contact — and Lighthouse CI fails the build below those thresholds.
   2. Field p75 mobile measures LCP under 1.5 s, INP under 100 ms and CLS under 0.05; lab measures FCP under 1.0 s and TBT under 100 ms.
   3. A manual keyboard and screen-reader pass across every page type is completed and recorded with zero blocking findings: the skip link works, tab order is logical, focus indicators stay visible and unclipped inside `overflow` containers, and no island creates a keyboard trap.
   4. Every page has exactly one `h1` with a correct heading hierarchy and landmark regions, and every interactive control is a real `<button>` or `<a>` — zero clickable `div`s in the rendered output.
   5. The site is usable at 200% zoom and at 320 px width with no horizontal scroll and no content loss, in both light and dark themes.
+
 **Plans**: TBD
 **UI hint**: yes
 
 ### Phase 12: Admin Split, Cutover & Budget Routine
+
 **Goal**: v2 serves `915tldr.com` under budget, with the guardrail that was missing for nine months running daily before traffic moves.
 **Depends on**: Phase 11
 **Requirements**: ARCH-07, OPS-01, OPS-03, OPS-04, OPS-07, OPS-09
 **Success Criteria** (what must be TRUE):
+
   1. The Nuxt pipeline and admin serve from `admin.915tldr.com` behind Cloudflare Access, and an unauthenticated request against every admin route — including newly added ones — is blocked at the edge; Better Auth, its four tables, `/admin/login` and all session handling are removed from the repo.
   2. A daily routine reports D1 reads, spend, OpenAI account balance, static-asset file count and field Core Web Vitals against their budget thresholds, and it is confirmed running *before* public traffic moves.
   3. Rollback to the existing v1 worker is exercised as a real route change and verified to serve correctly before cutover — not documented and assumed.
@@ -203,7 +326,7 @@ Phase 3 and may run alongside Phases 5-7.
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Design Sketch & Editorial Identity | 0/TBD | Not started | - |
+| 1. Design Sketch & Editorial Identity | 23/23 | Complete    | 2026-09-17 |
 | 2. Content Quality & Grounding | 0/TBD | Not started | - |
 | 3. Foundation & Read-Budget Guardrails | 0/TBD | Not started | - |
 | 4. Static Generation, Templates & SEO | 0/TBD | Not started | - |

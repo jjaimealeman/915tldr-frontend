@@ -1,0 +1,316 @@
+{
+  "schema": 1,
+  "page": 2,
+  "next": "feed/page-3.json",
+  "cards": [
+    {
+      "uuid": "aee43053-15ad-41e3-8560-2e86a6dc114e",
+      "category": "community",
+      "categoryName": "Community",
+      "stress": null,
+      "lang": null,
+      "variant": null,
+      "image": {
+        "src": "https://kvia.com/wp-content/uploads/2026/09/fredd-young.webp",
+        "width": 1200,
+        "height": 800
+      },
+      "headline": "Fredd Young, NMSU Football Legend and NFL Star, Passes Away at 64",
+      "headlineI18n": null,
+      "summaryI18n": null,
+      "bylineI18n": null,
+      "href": "article.html",
+      "summary": [
+        {
+          "type": "p",
+          "inlines": [
+            {
+              "text": "Fredd Young, a celebrated Hall of Famer from New Mexico State University (NMSU) and former Seattle Seahawks player, has died at the age of 64. Young was a standout linebacker for the Aggies from 1980 to 1983, setting a record with six sacks in a single game against LA Tech in 1983. Drafted by the Seahawks in 1984, he played seven seasons in the NFL, participating in 101 games and starting 79. His contributions to football and the Las Cruces community were recognized in 1991 when he was inducted into the U.S. Bank/NM State Athletics Hall of Fame. His legacy is remembered fondly by NMSU Athletics, highlighting his significant impact on the sport and local community."
+            }
+          ]
+        },
+        {
+          "type": "p",
+          "inlines": [
+            {
+              "text": "Key Details:",
+              "strong": true
+            }
+          ]
+        },
+        {
+          "type": "list",
+          "items": [
+            [
+              {
+                "text": "Fredd Young played for NMSU from 1980-1983."
+              }
+            ],
+            [
+              {
+                "text": "He was drafted by the Seattle Seahawks in the third round of the 1984 NFL Draft."
+              }
+            ],
+            [
+              {
+                "text": "Young set a record with six sacks in a single game against LA Tech in 1983."
+              }
+            ],
+            [
+              {
+                "text": "Inducted into the NMSU Hall of Fame in 1991."
+              }
+            ],
+            [
+              {
+                "text": "He played a total of 101 NFL games, starting 79."
+              }
+            ]
+          ]
+        }
+      ],
+      "source": "KVIA",
+      "datetime": "2026-09-16T12:39:04-06:00",
+      "timeLabel": "Sept. 16, 12:39 p.m."
+    },
+    {
+      "uuid": "df2e5a2b-46e0-4b0f-b7e2-fc98dc975d69",
+      "category": "community",
+      "categoryName": "Community",
+      "stress": null,
+      "lang": null,
+      "variant": null,
+      "image": {
+        "src": "https://www.ktsm.com/wp-content/uploads/sites/38/2024/05/El-Paso-Animal-Services.jpg?w=897",
+        "width": 1200,
+        "height": 800
+      },
+      "headline": "El Paso Animal Services Under Scrutiny Following Rescue Group's Allegations",
+      "headlineI18n": null,
+      "summaryI18n": null,
+      "bylineI18n": null,
+      "href": "article.html",
+      "summary": [
+        {
+          "type": "p",
+          "inlines": [
+            {
+              "text": "El Paso Animal Services is currently under investigation due to serious allegations raised by the local nonprofit, Paws for Promise. The organization claims that animals returned from the city's facilities have exhibited health issues, prompting concerns about the procedures in place. A representative from Paws for Promise shared these concerns through a Facebook video, highlighting the potential impact on animal welfare. This situation is significant as it raises questions about the standards of care provided by Animal Services and the implications for local animal rescue efforts."
+            }
+          ]
+        }
+      ],
+      "source": "KTSM",
+      "datetime": "2026-09-16T12:35:48-06:00",
+      "timeLabel": "Sept. 16, 12:35 p.m."
+    },
+    {
+      "uuid": "dc23f0ba-1cc7-4ad0-b95b-87fa99c5e851",
+      "category": "health",
+      "categoryName": "Health",
+      "stress": null,
+      "lang": null,
+      "variant": null,
+      "image": {
+        "src": "https://kvia.com/wp-content/uploads/2025/06/New-World-Screwworm.png",
+        "width": 1200,
+        "height": 800
+      },
+      "headline": "El Paso Residents Urged to Monitor Pets for New World Screwworm Threat",
+      "headlineI18n": null,
+      "summaryI18n": null,
+      "bylineI18n": null,
+      "href": "article.html",
+      "summary": [
+        {
+          "type": "p",
+          "inlines": [
+            {
+              "text": "Health officials are alerting El Paso pet owners about the potential threat of the New World screwworm, a flesh-eating fly larva recently detected in Juárez and other areas in Texas. Although no cases have been reported in El Paso, the parasite can cause severe tissue damage and infection in animals if not treated promptly. Symptoms to watch for include foul-smelling wounds, lethargy, and visible maggots. Pet owners are advised to seek immediate veterinary care if they suspect an infection. Local animal services are prepared for potential cases, emphasizing the importance of preventative measures."
+            }
+          ]
+        },
+        {
+          "type": "p",
+          "inlines": [
+            {
+              "text": "Key Details:",
+              "strong": true
+            }
+          ]
+        },
+        {
+          "type": "list",
+          "items": [
+            [
+              {
+                "text": "Monitor pets for symptoms like foul-smelling wounds and lethargy."
+              }
+            ],
+            [
+              {
+                "text": "Seek veterinary care immediately if infection is suspected."
+              }
+            ],
+            [
+              {
+                "text": "Stay updated on preventative measures and local health advisories."
+              }
+            ]
+          ]
+        }
+      ],
+      "source": "KVIA",
+      "datetime": "2026-09-16T11:55:00-06:00",
+      "timeLabel": "Sept. 16, 11:55 a.m."
+    },
+    {
+      "uuid": "0fe96c27-5d18-4df6-a9a3-167a4df63212",
+      "category": "community",
+      "categoryName": "Community",
+      "stress": null,
+      "lang": null,
+      "variant": null,
+      "image": null,
+      "headline": "Sunny, Beloved Portuguese Water Dog of the Obamas, Passes Away at 13",
+      "headlineI18n": null,
+      "summaryI18n": null,
+      "bylineI18n": null,
+      "href": "article.html",
+      "summary": [
+        {
+          "type": "p",
+          "inlines": [
+            {
+              "text": "Sunny, the Portuguese water dog who brought joy to the Obama family during their time in the White House, has died at the age of 13. Former President Barack Obama announced her passing on social media, calling her a cherished family member. Sunny joined the Obamas in 2013, providing companionship to their other dog, Bo, and was known for her playful and spirited personality. Throughout her life, she was involved in various official events and even met Pope Francis. The cause of her death has not been disclosed, but her legacy as a beloved first pet endures, as she helped the Obamas transition to life as empty nesters after their daughters left for college."
+            }
+          ]
+        }
+      ],
+      "source": "KVIA",
+      "datetime": "2026-09-16T11:30:21-06:00",
+      "timeLabel": "Sept. 16, 11:30 a.m."
+    },
+    {
+      "uuid": "72a957d7-d5f1-4f95-a88b-f68992bf41fb",
+      "category": "politics",
+      "categoryName": "Politics",
+      "stress": null,
+      "lang": null,
+      "variant": null,
+      "image": null,
+      "headline": "House of Representatives Adjourns Early, Dodges Hegseth Impeachment Vote",
+      "headlineI18n": null,
+      "summaryI18n": null,
+      "bylineI18n": null,
+      "href": "article.html",
+      "summary": [
+        {
+          "type": "p",
+          "inlines": [
+            {
+              "text": "The Speaker of the House, Mike Johnson, has decided to send lawmakers back to their districts early for a seven-week campaign recess, preventing a scheduled vote on the impeachment of Defense Secretary Pete Hegseth. Originally, the House was set to remain in session until Thursday, but will now conclude with key votes on a sanctions bill against Russia on Wednesday night. This decision comes amid growing pressure on Republicans regarding contentious issues and an unexpected impeachment resolution introduced by Representative Thomas Massie. Johnson criticized Massie's actions as a publicity stunt and emphasized that the early adjournment was unrelated to Hegseth's situation. The House will reconvene after the November elections."
+            }
+          ]
+        },
+        {
+          "type": "p",
+          "inlines": [
+            {
+              "text": "Key Details:",
+              "strong": true
+            }
+          ]
+        },
+        {
+          "type": "list",
+          "items": [
+            [
+              {
+                "text": "House adjourns early for a seven-week recess before midterm elections."
+              }
+            ],
+            [
+              {
+                "text": "Final votes will occur on Wednesday night, including a sanctions bill against Russia."
+              }
+            ],
+            [
+              {
+                "text": "Impeachment resolution against Hegseth introduced by Rep. Thomas Massie delayed until November."
+              }
+            ],
+            [
+              {
+                "text": "Johnson dismisses Massie's impeachment initiative as a publicity stunt."
+              }
+            ]
+          ]
+        }
+      ],
+      "source": "KVIA",
+      "datetime": "2026-09-16T11:21:31-06:00",
+      "timeLabel": "Sept. 16, 11:21 a.m."
+    },
+    {
+      "uuid": "a9fa14b6-1f6e-4a95-ae94-e3e7d0281996",
+      "category": "community",
+      "categoryName": "Community",
+      "stress": null,
+      "lang": null,
+      "variant": null,
+      "image": {
+        "src": "https://www.ktsm.com/wp-content/uploads/sites/38/2026/09/Theresa-Caputo-Live-The-Experience.jpg?w=900",
+        "width": 1200,
+        "height": 800
+      },
+      "headline": "Theresa Caputo to Bring Live Medium Experience to El Paso This October",
+      "headlineI18n": null,
+      "summaryI18n": null,
+      "bylineI18n": null,
+      "href": "article.html",
+      "summary": [
+        {
+          "type": "p",
+          "inlines": [
+            {
+              "text": "Theresa Caputo, known from the TV show 'Long Island Medium,' will perform live in El Paso on Sunday, October 18, at 3 p.m. The event will take place at The Plaza Theatre, located at One Civic Center Plaza. Attendees can expect a blend of personal stories, humor, and Caputo's unique ability to connect with the spirit world. This event is significant for fans of the show and those interested in spiritual experiences, offering a chance to see Caputo in person."
+            }
+          ]
+        },
+        {
+          "type": "p",
+          "inlines": [
+            {
+              "text": "Key Details:",
+              "strong": true
+            }
+          ]
+        },
+        {
+          "type": "list",
+          "items": [
+            [
+              {
+                "text": "Event date: Sunday, October 18, 3 p.m."
+              }
+            ],
+            [
+              {
+                "text": "Location: The Plaza Theatre, One Civic Center Plaza, El Paso"
+              }
+            ],
+            [
+              {
+                "text": "Expect personal stories and a mediumship experience"
+              }
+            ]
+          ]
+        }
+      ],
+      "source": "KTSM",
+      "datetime": "2026-09-16T11:19:01-06:00",
+      "timeLabel": "Sept. 16, 11:19 a.m."
+    }
+  ]
+}
