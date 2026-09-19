@@ -145,6 +145,15 @@ None — no external service configuration required.
 - D-16 is closed as retired, not deferred — no later plan needs to revisit the source repoint. `02-CONTEXT.md` reflects this so future context assembly (`/gsd-plan-phase` scanning this phase's decisions) does not re-surface D-16 as still-open work.
 - No blockers identified for `02-04` onward from this plan.
 
+## Self-Check: PASSED
+
+- FOUND: `.planning/phases/02-content-quality-grounding/02-03-SUMMARY.md`
+- FOUND: D-16 amendment ("Superseded by production reality") in `02-CONTEXT.md`
+- CONFIRMED: `915tldr.com2/scripts/repoint-source.mjs` does not exist (not created, as intended)
+- FOUND: commit `fd8d80f` (docs(02-03): retire D-16 source repoint) in the planning repo
+- FOUND: commits `427d44f`, `c6c2e4d`, `8fadd0f`, `a847830` (Tasks 1-2) in the code repo
+- Code repo working tree clean — no uncommitted changes, no scripts/repoint-source.mjs staged or written
+
 ---
 *Phase: 02-content-quality-grounding*
 *Completed: 2026-09-19*
