@@ -28,7 +28,7 @@ repo, not this one. All commands below run from `915tldr.com2` unless stated.
 | **Config file** | `915tldr.com2/vitest.config.ts` |
 | **Quick run command** | `pnpm vitest run <file>` (targeted — never watch mode) |
 | **Full suite command** | `pnpm test:run` |
-| **Estimated runtime** | ~TBD seconds (measure during Wave 0) |
+| **Estimated runtime** | ~7 seconds for the full suite (193 tests, 16 files — measured 2026-09-19 during plan 02-09) |
 
 ---
 
@@ -47,35 +47,35 @@ All commands run from `/home/jaime/www/_github/915tldr.com2`.
 
 | Task ID | Plan | Wave | Requirement | Threat Ref | Secure Behavior | Test Type | Automated Command | File Exists | Status |
 |---------|------|------|-------------|------------|-----------------|-----------|-------------------|-------------|--------|
-| 02-01-T1 | 02-01 | 1 | FIX-02 | T-02-SC | Blocking human legitimacy check before any install | checkpoint | *(blocking-human checkpoint — not auto-verifiable by design)* | n/a | ⬜ pending |
-| 02-01-T2 | 02-01 | 1 | FIX-02 | T-02-05 | No credential in any committed file | CLI | `test -x node_modules/.bin/wrangler && node_modules/.bin/wrangler --version` | ❌ W1 | ⬜ pending |
-| 02-02-T1 | 02-02 | 1 | FIX-01 | T-02-09 | No statement binds >100 parameters | unit | `pnpm vitest run tests/admin/reprocess-chunking.test.ts` | ❌ W1 | ⬜ pending |
-| 02-02-T2 | 02-02 | 1 | FIX-01 | T-02-04, T-02-10 | Admin gate untouched; chunking splits, never drops | integration | `pnpm vitest run tests/admin/reprocess-chunking.test.ts` | ❌ W1 | ⬜ pending |
-| 02-02-T3 | 02-02 | 1 | FIX-03 | — | N/A | lint/format | `npx prettier --check app/pages/privacy.vue && pnpm format:check` | ✅ | ⬜ pending |
-| 02-03-T1 | 02-03 | 2 | CONT-01 | T-02-11 | Measurement script is SELECT-only | unit | `pnpm vitest run tests/measure-corpus.test.ts` | ❌ W2 | ⬜ pending |
-| 02-03-T2 | 02-03 | 2 | CONT-12 | T-02-11 | Inclusive epoch bounds recorded, zero-rows never omitted | unit | `pnpm vitest run tests/measure-corpus.test.ts` | ❌ W2 | ⬜ pending |
-| 02-03-T3 | 02-03 | 2 | CONT-12 | T-02-12, T-02-13 | Dry-run default, explicit `--source-id`, pre-image logged | CLI | `wrangler d1 execute 915tldr-db --remote --command "SELECT id,feed_url,website_url FROM sources WHERE feed_url LIKE '%elpasonews.org%'" --json` | ✅ | ⬜ pending |
-| 02-04-T1 | 02-04 | 3 | CONT-01 | T-02-15 | One-way production migration gated by a human | checkpoint | *(blocking decision checkpoint — not auto-verifiable by design)* | n/a | ⬜ pending |
-| 02-04-T2 | 02-04 | 3 | CONT-01, CONT-02, CONT-03, CONT-04, CONT-06, CONT-08 | T-02-01, T-02-02, T-02-04, T-02-14, T-02-15 | SSRF allowlist; labelled prompt sections; additive-only migration; grounding gates the write | integration (real Workers runtime) | `pnpm typecheck && wrangler d1 execute 915tldr-db --local --persist-to .wrangler/state --command "SELECT acquisition_status, grounding_status, LENGTH(content), LENGTH(summary), key_points FROM articles WHERE acquisition_status='fetched' ORDER BY id DESC LIMIT 1" --json` | ❌ W3 | ⬜ pending |
-| 02-04-T3 | 02-04 | 3 | CONT-01 | — | N/A | doc assertion | `node -e "…tracer-evidence.md contains 'D-03 decision'…"` | ❌ W3 | ⬜ pending |
-| 02-05-T1 | 02-05 | 4 | CONT-01 | T-02-01, T-02-16, T-02-17 | Full-hostname allowlist, redirect containment, politeness, timeout, one retry | unit | `pnpm vitest run tests/source-fetch.test.ts` | ❌ W4 | ⬜ pending |
-| 02-05-T2 | 02-05 | 4 | CONT-01 | — | N/A | unit (committed fixtures, offline) | `pnpm vitest run tests/content-extraction.test.ts` | ❌ W4 | ⬜ pending |
-| 02-05-T3 | 02-05 | 4 | CONT-01 | T-02-18 | Degraded acquisition counted per run | integration + measured sample | `wrangler d1 execute 915tldr-db --remote --command "SELECT acquisition_status, COUNT(*) FROM articles WHERE acquisition_status IS NOT NULL GROUP BY acquisition_status" --json` | ❌ W4 | ⬜ pending |
-| 02-06-T1 | 02-06 | 4 | CONT-02, CONT-03, CONT-08 | T-02-02, T-02-14 | Labelled sections preserved; bounded input at the measured cap | unit | `pnpm vitest run tests/prompt-shape.test.ts` | ❌ W4 | ⬜ pending |
-| 02-06-T2 | 02-06 | 4 | CONT-07 | T-02-02 | Variant axis cannot select a weaker prohibition block | unit | `pnpm vitest run tests/prompt-shape.test.ts` | ❌ W4 | ⬜ pending |
-| 02-06-T3 | 02-06 | 4 | CONT-02 | T-02-20 | Identity freeze on re-processing | unit (in-memory D1) | `pnpm vitest run tests/ai-processor-store.test.ts` | ❌ W4 | ⬜ pending |
-| 02-07-T1 | 02-07 | 5 | CONT-02, CONT-06 | T-02-24 | Logs carry flag codes and truncated evidence, not bodies | unit | `pnpm vitest run tests/grounding/length-check.test.ts` | ❌ W5 | ⬜ pending |
-| 02-07-T2 | 02-07 | 5 | CONT-07 | T-02-23 | Rolling-row LCS bounded for a 35k-character source | unit | `pnpm vitest run tests/grounding/verbatim-overlap.test.ts` | ❌ W5 | ⬜ pending |
-| 02-07-T3 | 02-07 | 5 | CONT-04 | T-02-02, T-02-21, T-02-22 | Cited spans re-verified in code; every failure path flags | unit (mocked client) | `pnpm vitest run tests/grounding/judge.test.ts` | ❌ W5 | ⬜ pending |
-| 02-08-T1 | 02-08 | 6 | CONT-05 | T-02-27 | Read-only fixture build; refuses to write an undersized set | CLI | `node -e "…labelled-set.json has ≥1 bad and ≥20 good, unique uuids…"` | ❌ W6 | ⬜ pending |
-| 02-08-T2 | 02-08 | 6 | CONT-04, CONT-05 | T-02-22 | No false-green against an empty fixture set | unit | `pnpm vitest run tests/grounding/fixture-set.test.ts` | ❌ W6 | ⬜ pending |
-| 02-08-T3 | 02-08 | 6 | CONT-04 | T-02-04, T-02-25, T-02-26 | Held rows unpublishable; admin gate inherited; exactly one retry | integration (in-memory D1) | `pnpm vitest run tests/grounding/gate-invariant.test.ts` | ❌ W6 | ⬜ pending |
-| 02-09-T1 | 02-09 | 7 | CONT-09, OPS-11 | T-02-03 | Ceiling-to-the-cent threshold comparison | unit | `pnpm vitest run tests/reprocess/cost-estimate.test.ts` | ❌ W7 | ⬜ pending |
-| 02-09-T2 | 02-09 | 7 | CONT-09, CONT-12, OPS-11 | T-02-03, T-02-11, T-02-28, T-02-29 | Calls nothing paid; import boundary forbids re-fetch | CLI | `node scripts/reprocess-dry-run.mjs --limit 200 && grep -c 'chat.completions' scripts/reprocess-dry-run.mjs` | ❌ W7 | ⬜ pending |
-| 02-09-T3 | 02-09 | 7 | CONT-12, OPS-11 | T-02-03 | Union dedupe; zero-row report still written | unit | `pnpm vitest run tests/reprocess/dry-run.test.ts` | ❌ W7 | ⬜ pending |
-| 02-10-T1 | 02-10 | 8 | OPS-11, CONT-10 | T-02-03 | Human approves an exact figure against a live balance | checkpoint | *(blocking decision checkpoint — not auto-verifiable by design)* | n/a | ⬜ pending |
-| 02-10-T2 | 02-10 | 8 | CONT-10, CONT-11, OPS-11, CONT-12 | T-02-03, T-02-06, T-02-09, T-02-20, T-02-28, T-02-29, T-02-30, T-02-31 | Report gate, fingerprint re-check, run lock, identity freeze, chunked write-back | unit + CLI | `pnpm vitest run tests/batch/ && node scripts/reprocess-execute.mjs` *(expects non-zero with no `--report`)* | ❌ W8 | ⬜ pending |
-| 02-10-T3 | 02-10 | 8 | CONT-07 | T-02-20 | Public disclosure of a content change readers already saw | doc assertion + human-check | `node -e "…editorial-review.md covers 30 uuids; changelog.json carries both entries…"` | ❌ W8 | ⬜ pending |
+| 02-01-T1 | 02-01 | 1 | FIX-02 | T-02-SC | Blocking human legitimacy check before any install | checkpoint | *(blocking-human checkpoint — not auto-verifiable by design)* | n/a | ✅ resolved (owner approved 02-01-PLAN.md Task 1) |
+| 02-01-T2 | 02-01 | 1 | FIX-02 | T-02-05 | No credential in any committed file | CLI | `test -x node_modules/.bin/wrangler && node_modules/.bin/wrangler --version` | ✅ | ✅ green (re-verified 02-09: `4.135.0`) |
+| 02-02-T1 | 02-02 | 1 | FIX-01 | T-02-09 | No statement binds >100 parameters | unit | `pnpm vitest run tests/admin/reprocess-chunking.test.ts` | ✅ | ✅ green |
+| 02-02-T2 | 02-02 | 1 | FIX-01 | T-02-04, T-02-10 | Admin gate untouched; chunking splits, never drops | integration | `pnpm vitest run tests/admin/reprocess-chunking.test.ts` | ✅ | ✅ green |
+| 02-02-T3 | 02-02 | 1 | FIX-03 | — | N/A | lint/format | `npx prettier --check app/pages/privacy.vue && pnpm format:check` | ✅ | ✅ green for `privacy.vue`; `format:check` alone flags 3 PRE-EXISTING files unrelated to any 02-02 change (fixture-set.test.ts, judge.test.ts, verbatim-overlap.test.ts — see deferred-items.md) |
+| 02-03-T1 | 02-03 | 2 | CONT-01 | T-02-11 | Measurement script is SELECT-only | unit | `pnpm vitest run tests/measure-corpus.test.ts` | ✅ | ✅ green |
+| 02-03-T2 | 02-03 | 2 | CONT-12 | T-02-11 | Inclusive epoch bounds recorded, zero-rows never omitted | unit | `pnpm vitest run tests/measure-corpus.test.ts` | ✅ | ✅ green |
+| 02-03-T3 | 02-03 | 2 | CONT-12 | T-02-12, T-02-13 | Dry-run default, explicit `--source-id`, pre-image logged | CLI | `wrangler d1 execute 915tldr-db --remote --command "SELECT id,feed_url,website_url FROM sources WHERE feed_url LIKE '%elpasonews.org%'" --json` | ✅ | ✅ green — re-verified 02-09: 0 rows (D-16 retired, no dead source row exists; matches corpus-measurements.md) |
+| 02-04-T1 | 02-04 | 3 | CONT-01 | T-02-15 | One-way production migration gated by a human | checkpoint | *(blocking decision checkpoint — not auto-verifiable by design)* | n/a | ✅ resolved (migration 0007 applied to production, 02-04-SUMMARY.md) |
+| 02-04-T2 | 02-04 | 3 | CONT-01, CONT-02, CONT-03, CONT-04, CONT-06, CONT-08 | T-02-01, T-02-02, T-02-04, T-02-14, T-02-15 | SSRF allowlist; labelled prompt sections; additive-only migration; grounding gates the write | integration (real Workers runtime) | `pnpm typecheck && wrangler d1 execute 915tldr-db --local --persist-to .wrangler/state --command "SELECT acquisition_status, grounding_status, LENGTH(content), LENGTH(summary), key_points FROM articles WHERE acquisition_status='fetched' ORDER BY id DESC LIMIT 1" --json` | ✅ | ✅ green per 02-04-SUMMARY.md self-check; `pnpm typecheck` re-confirmed clean during 02-09 |
+| 02-04-T3 | 02-04 | 3 | CONT-01 | — | N/A | doc assertion | `node -e "…tracer-evidence.md contains 'D-03 decision'…"` | ✅ | ✅ green (`docs/phase-02/tracer-evidence.md` present) |
+| 02-05-T1 | 02-05 | 4 | CONT-01 | T-02-01, T-02-16, T-02-17 | Full-hostname allowlist, redirect containment, politeness, timeout, one retry | unit | `pnpm vitest run tests/source-fetch.test.ts` | ✅ | ✅ green |
+| 02-05-T2 | 02-05 | 4 | CONT-01 | — | N/A | unit (committed fixtures, offline) | `pnpm vitest run tests/content-extraction.test.ts` | ✅ | ✅ green |
+| 02-05-T3 | 02-05 | 4 | CONT-01 | T-02-18 | Degraded acquisition counted per run | integration + measured sample | `wrangler d1 execute 915tldr-db --remote --command "SELECT acquisition_status, COUNT(*) FROM articles WHERE acquisition_status IS NOT NULL GROUP BY acquisition_status" --json` | ✅ | ✅ green — re-run 02-09: 100% `feed_fallback` (41,932 rows; the acquisition_status column's default, matching D-02 not having shipped to any re-fetched row yet) |
+| 02-06-T1 | 02-06 | 4 | CONT-02, CONT-03, CONT-08 | T-02-02, T-02-14 | Labelled sections preserved; bounded input at the measured cap | unit | `pnpm vitest run tests/prompt-shape.test.ts` | ✅ | ✅ green |
+| 02-06-T2 | 02-06 | 4 | CONT-07 | T-02-02 | Variant axis cannot select a weaker prohibition block | unit | `pnpm vitest run tests/prompt-shape.test.ts` | ✅ | ✅ green |
+| 02-06-T3 | 02-06 | 4 | CONT-02 | T-02-20 | Identity freeze on re-processing | unit (in-memory D1) | `pnpm vitest run tests/ai-processor-store.test.ts` | ✅ | ✅ green |
+| 02-07-T1 | 02-07 | 5 | CONT-02, CONT-06 | T-02-24 | Logs carry flag codes and truncated evidence, not bodies | unit | `pnpm vitest run tests/grounding/length-check.test.ts` | ✅ | ✅ green |
+| 02-07-T2 | 02-07 | 5 | CONT-07 | T-02-23 | Rolling-row LCS bounded for a 35k-character source | unit | `pnpm vitest run tests/grounding/verbatim-overlap.test.ts` | ✅ | ✅ green |
+| 02-07-T3 | 02-07 | 5 | CONT-04 | T-02-02, T-02-21, T-02-22 | Cited spans re-verified in code; every failure path flags | unit (mocked client) | `pnpm vitest run tests/grounding/judge.test.ts` | ✅ | ✅ green |
+| 02-08-T1 | 02-08 | 6 | CONT-05 | T-02-27 | Read-only fixture build; refuses to write an undersized set | CLI | `node -e "…labelled-set.json has ≥1 bad and ≥20 good, unique uuids…"` | ✅ | ✅ green — re-verified 02-09: 7 bad, 21 good, all uuids unique |
+| 02-08-T2 | 02-08 | 6 | CONT-04, CONT-05 | T-02-22 | No false-green against an empty fixture set | unit | `pnpm vitest run tests/grounding/fixture-set.test.ts` | ✅ | ✅ green |
+| 02-08-T3 | 02-08 | 6 | CONT-04 | T-02-04, T-02-25, T-02-26 | Held rows unpublishable; admin gate inherited; exactly one retry | integration (in-memory D1) | `pnpm vitest run tests/grounding/gate-invariant.test.ts` | ❌ not built | ⏸ DEFERRED — owner decision 2026-09-19 (02-08-SUMMARY.md "Option D"): the full-cascade false-positive rate measured too far outside the target ceiling against pre-fix legacy fixtures to wire D-09 live gating responsibly. `tests/grounding/gate-invariant.test.ts` does not exist and is not planned until unblocked (WINDOWS.md entry 20: needs a post-fix labelled sample). Re-plan this task once that data exists — do not treat the missing file as a regression. |
+| 02-09-T1 | 02-09 | 7 | CONT-09, OPS-11 | T-02-03 | Ceiling-to-the-cent threshold comparison | unit | `pnpm vitest run tests/reprocess/cost-estimate.test.ts` | ✅ | ✅ green (15 tests) |
+| 02-09-T2 | 02-09 | 7 | CONT-09, CONT-12, OPS-11 | T-02-03, T-02-11, T-02-28, T-02-29 | Calls nothing paid; import boundary forbids re-fetch | CLI | `node scripts/reprocess-dry-run.mjs --limit 200 && grep -c 'chat.completions' scripts/reprocess-dry-run.mjs` | ✅ | ✅ green — also verified the FULL unlimited sweep (no `--limit`), report + JSON under `docs/phase-02/` |
+| 02-09-T3 | 02-09 | 7 | CONT-12, OPS-11 | T-02-03 | Union dedupe; zero-row report still written | unit | `pnpm vitest run tests/reprocess/dry-run.test.ts` | ✅ | ✅ green (17 tests) |
+| 02-10-T1 | 02-10 | 8 | OPS-11, CONT-10 | T-02-03 | Human approves an exact figure against a live balance | checkpoint | *(blocking decision checkpoint — not auto-verifiable by design)* | n/a | ⬜ pending (02-10 not yet executed) |
+| 02-10-T2 | 02-10 | 8 | CONT-10, CONT-11, OPS-11, CONT-12 | T-02-03, T-02-06, T-02-09, T-02-20, T-02-28, T-02-29, T-02-30, T-02-31 | Report gate, fingerprint re-check, run lock, identity freeze, chunked write-back | unit + CLI | `pnpm vitest run tests/batch/ && node scripts/reprocess-execute.mjs` *(expects non-zero with no `--report`)* | ❌ W8 | ⬜ pending (02-10 not yet executed) |
+| 02-10-T3 | 02-10 | 8 | CONT-07 | T-02-20 | Public disclosure of a content change readers already saw | doc assertion + human-check | `node -e "…editorial-review.md covers 30 uuids; changelog.json carries both entries…"` | ❌ W8 | ⬜ pending (02-10 not yet executed) |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
 
@@ -95,28 +95,32 @@ All commands run from `/home/jaime/www/_github/915tldr.com2`.
 created by the plan that creates the code it covers, test-first where the task is marked
 `tdd="true"`. The one genuine Wave-0-style hard prerequisite is production D1 read access.
 
-- [ ] **Production D1 read access** — plan **02-01**, Wave 1. Install and authenticate
+- [x] **Production D1 read access** — plan **02-01**, Wave 1. Installed and authenticated
       `wrangler` (also satisfies FIX-02). Hard prerequisite for the length distribution, the
       source death-date lookup, the CONT-12 outage audit and the CONT-09 dry run: the local
       Miniflare replica is 87 rows, last synced 2025-12-21.
-- [ ] `tests/admin/reprocess-chunking.test.ts` — plan 02-02, Wave 1 — FIX-01
-- [ ] `tests/measure-corpus.test.ts` — plan 02-03, Wave 2 — CONT-01, CONT-12
-- [ ] `tests/source-fetch.test.ts` — plan 02-05, Wave 4 — CONT-01
-- [ ] `tests/content-extraction.test.ts` — plan 02-05, Wave 4 — CONT-01
-- [ ] `tests/prompt-shape.test.ts` — plan 02-06, Wave 4 — CONT-02, CONT-03, CONT-07, CONT-08
-- [ ] `tests/ai-processor-store.test.ts` — plan 02-06, Wave 4 — CONT-02 (and D-06, D-12)
-- [ ] `tests/grounding/length-check.test.ts` — plan 02-07, Wave 5 — CONT-02, CONT-06
-- [ ] `tests/grounding/verbatim-overlap.test.ts` — plan 02-07, Wave 5 — CONT-07
-- [ ] `tests/grounding/judge.test.ts` — plan 02-07, Wave 5 — CONT-04
-- [ ] `tests/grounding/fixture-set.test.ts` — plan 02-08, Wave 6 — CONT-04, CONT-05 (requires
+- [x] `tests/admin/reprocess-chunking.test.ts` — plan 02-02, Wave 1 — FIX-01
+- [x] `tests/measure-corpus.test.ts` — plan 02-03, Wave 2 — CONT-01, CONT-12
+- [x] `tests/source-fetch.test.ts` — plan 02-05, Wave 4 — CONT-01
+- [x] `tests/content-extraction.test.ts` — plan 02-05, Wave 4 — CONT-01
+- [x] `tests/prompt-shape.test.ts` — plan 02-06, Wave 4 — CONT-02, CONT-03, CONT-07, CONT-08
+- [x] `tests/ai-processor-store.test.ts` — plan 02-06, Wave 4 — CONT-02 (and D-06, D-12)
+- [x] `tests/grounding/length-check.test.ts` — plan 02-07, Wave 5 — CONT-02, CONT-06
+- [x] `tests/grounding/verbatim-overlap.test.ts` — plan 02-07, Wave 5 — CONT-07
+- [x] `tests/grounding/judge.test.ts` — plan 02-07, Wave 5 — CONT-04
+- [x] `tests/grounding/fixture-set.test.ts` — plan 02-08, Wave 6 — CONT-04, CONT-05 (requires
       the labelled fixture set built from real corpus rows first — a data task, not just a
       test file)
-- [ ] `tests/grounding/gate-invariant.test.ts` — plan 02-08, Wave 6 — CONT-04 (D-09)
-- [ ] `tests/reprocess/cost-estimate.test.ts` — plan 02-09, Wave 7 — CONT-09, OPS-11
-- [ ] `tests/reprocess/dry-run.test.ts` — plan 02-09, Wave 7 — CONT-12, OPS-11
-- [ ] `tests/batch/jsonl.test.ts` — plan 02-10, Wave 8 — CONT-10
+- [ ] `tests/grounding/gate-invariant.test.ts` — plan 02-08, Wave 6 — CONT-04 (D-09). **NOT
+      BUILT — deferred by owner decision 2026-09-19** (02-08-SUMMARY.md "Option D"): the
+      full-cascade false-positive rate against pre-fix legacy fixtures was too far outside the
+      target ceiling to wire D-09 live gating responsibly. Tracked in WINDOWS.md entry 20; needs
+      a post-fix labelled sample to unblock, not a code fix.
+- [x] `tests/reprocess/cost-estimate.test.ts` — plan 02-09, Wave 7 — CONT-09, OPS-11
+- [x] `tests/reprocess/dry-run.test.ts` — plan 02-09, Wave 7 — CONT-12, OPS-11
+- [ ] `tests/batch/jsonl.test.ts` — plan 02-10, Wave 8 — CONT-10 (not yet executed)
 - [ ] `tests/batch/resubmit.test.ts` — plan 02-10, Wave 8 — CONT-11 (mocked OpenAI client; no
-      real API calls in CI)
+      real API calls in CI) (not yet executed)
 
 **Naming:** every file above ends in `.test.ts`. `vitest.config.ts:9` sets
 `include: ['tests/**/*.test.ts']`, so a `.spec.ts` file is silently never run — which is why
