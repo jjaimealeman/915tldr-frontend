@@ -2,9 +2,9 @@
 schema_version: 1
 open_count: 6
 waived_count: 0
-fixed_count: 12
-total_count: 18
-last_updated: 2026-09-20T01:05:59.206Z
+fixed_count: 13
+total_count: 19
+last_updated: 2026-09-20T02:08:25.116Z
 ---
 
 # Broken Windows Ledger
@@ -32,7 +32,8 @@ last_updated: 2026-09-20T01:05:59.206Z
 | 15 | 01 | deviation | design/scripts/calibrate-spanish.mjs |  | 01-15: 100px calibration proxy under-predicted real in-page ratio for short strings at small UI sizes; added dense 12-58px sweep to widen hi (9/22 components widened) | fixed |  | 2026-09-17T20:43:10.568Z | 2026-09-17T20:43:14.690Z |
 | 16 | 01 | unrun-verify | design/mockups/category.html |  | 01-18 Task 3 human-check outstanding: owner must view category.html with real network access at 1280px light/dark to confirm the lead's loaded KTSM photo sits comfortably beside the text column (tests block third-party requests, so this was never automatable) | open |  | 2026-09-17T22:14:16.814Z |  |
 | 17 | 02 | todo | 915tldr.com2/server/utils/queue-processor.ts |  | Queue-mode consumer (disabled by default) still uses old concatenated-summary shape and has no grounding gate — needs reconciling with 02-04's changes before queue mode is ever enabled | open |  | 2026-09-20T01:05:59.110Z |  |
-| 18 | 02 | todo | 915tldr.com/.planning/phases/02-content-quality-grounding/02-04-PLAN.md |  | CONT-01 corpus-level truncation-marker validation (near-zero on newly ingested articles) is proven only for n=1 in this tracer; full validation deferred to plan 02-05+ | open |  | 2026-09-20T01:05:59.206Z |  |
+| 18 | 02 | todo | 915tldr.com/.planning/phases/02-content-quality-grounding/02-04-PLAN.md |  | CONT-01 corpus-level truncation-marker validation (near-zero on newly ingested articles) is proven only for n=1 in this tracer; full validation deferred to plan 02-05+ | fixed |  | 2026-09-20T01:05:59.206Z | 2026-09-20T02:08:18.708Z |
+| 19 | 02 | unmet-truth | 915tldr.com2/docs/phase-02/extraction-sample.md |  | CONT-01 validated at 0% on 112 real, network-fetched articles (El Paso Matters + KVIA), but corpus-wide bar not met (35/162 = 21.6% blended) because KTSM's canonical fetch is 100% network-blocked (50/50, PerimeterX, confirmed at scale — not a one-off). CONT-01 left PENDING pending the KTSM block's resolution or a future production deploy/re-measurement. | open |  | 2026-09-20T02:08:25.116Z |  |
 
 ````json
 [
@@ -247,9 +248,21 @@ last_updated: 2026-09-20T01:05:59.206Z
     "file": "915tldr.com/.planning/phases/02-content-quality-grounding/02-04-PLAN.md",
     "line": null,
     "description": "CONT-01 corpus-level truncation-marker validation (near-zero on newly ingested articles) is proven only for n=1 in this tracer; full validation deferred to plan 02-05+",
-    "status": "open",
+    "status": "fixed",
     "reason": "",
     "recorded_at": "2026-09-20T01:05:59.206Z",
+    "resolved_at": "2026-09-20T02:08:18.708Z"
+  },
+  {
+    "id": 19,
+    "kind": "unmet-truth",
+    "phase": "02",
+    "file": "915tldr.com2/docs/phase-02/extraction-sample.md",
+    "line": null,
+    "description": "CONT-01 validated at 0% on 112 real, network-fetched articles (El Paso Matters + KVIA), but corpus-wide bar not met (35/162 = 21.6% blended) because KTSM's canonical fetch is 100% network-blocked (50/50, PerimeterX, confirmed at scale — not a one-off). CONT-01 left PENDING pending the KTSM block's resolution or a future production deploy/re-measurement.",
+    "status": "open",
+    "reason": "",
+    "recorded_at": "2026-09-20T02:08:25.116Z",
     "resolved_at": null
   }
 ]

@@ -10,6 +10,7 @@ Entries are named `YYYY-MM-DD-HHMM_slug.md` and grouped by month, newest first.
 
 | Date | Entry | Keywords |
 |------|-------|----------|
+| 2026-09-19 | [Phase 2 Plan 5: Complete Source-Fetch Hardening, Extraction Threshold, CONT-01 Measurement](2026-09-19-2015_02-05-complete-source-fetch-extraction-cont01-measurement.md) | `[PLANNING]` `[CONTENT-QUALITY]` `[DOCS]` |
 | 2026-09-19 | [Phase 2 Plan 4: Production Migration Applied, Tracer Halted on Missing .dev.vars](2026-09-19-1830_02-04-migration-applied-tracer-halted-on-devvars.md) | `[DOCUMENTATION]` `[DATABASE]` `[PLANNING]` `[CRITICAL]` |
 | 2026-09-19 | [Append Self-Check Results to Phase 2 Plan 3 Summary](2026-09-19-1332_02-03-append-self-check-to-summary.md) | `[DOCUMENTATION]` `[PLANNING]` |
 | 2026-09-19 | [Phase 2 Plan 3: Retire D-16 Source Repoint After Production Measurement Disproved Its Premise](2026-09-19-1328_02-03-retire-d16-source-repoint.md) | `[PLANNING]` `[DOCUMENTATION]` `[DATABASE]` |
