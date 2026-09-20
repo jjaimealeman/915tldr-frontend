@@ -159,7 +159,7 @@ Plans:
   5. `reprocess-all.post.ts` chunks its ID lists to at most 100 bound parameters per statement and completes against the real corpus without `SQLITE_ERROR`; `pnpm deploy` and `pnpm deploy:dev` resolve `wrangler` as a real dependency; `app/pages/privacy.vue` passes Prettier.
   6. The 2026-09-04 → 2026-09-16 OpenAI outage gap is quantified before the dry run in criterion 3: the count of articles ingested in that window with a null, truncated or absent summary, and whether `detect-duplicates` ran. Any affected rows join this phase's re-processing set rather than being discovered later. **Checked in `915tldr.com2`, not this repo.**
 
-**Plans:** 6/10 plans executed in 8 waves
+**Plans:** 8/10 plans executed in 8 waves
 
 Plans:
 **Wave 1**
@@ -182,11 +182,11 @@ Plans:
 
 **Wave 5** *(blocked on Wave 4)*
 
-- [ ] 02-07-PLAN.md — Grounding detection: shared length unit, deterministic suite, verbatim overlap, claim-level judge with span re-verification (CONT-04/06/07)
+- [x] 02-07-PLAN.md — Grounding detection: shared length unit, deterministic suite, verbatim overlap, claim-level judge with span re-verification (CONT-04/06/07)
 
 **Wave 6** *(blocked on Wave 5)*
 
-- [ ] 02-08-PLAN.md — Labelled fixture set, false-positive ceiling, live gating with one stricter retry and a visible review queue (CONT-05)
+- [x] 02-08-PLAN.md — Labelled fixture set, false-positive ceiling, live gating with one stricter retry and a visible review queue (CONT-05)
 
 **Wave 7** *(blocked on Wave 6)*
 
@@ -362,7 +362,7 @@ Phase 3 and may run alongside Phases 5-7.
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Design Sketch & Editorial Identity | 23/23 | Complete    | 2026-09-17 |
-| 2. Content Quality & Grounding | 6/10 | In Progress|  |
+| 2. Content Quality & Grounding | 8/10 | In Progress|  |
 | 3. Foundation & Read-Budget Guardrails | 0/TBD | Not started | - |
 | 4. Static Generation, Templates & SEO | 0/TBD | Not started | - |
 | 5. Hybrid Archive & Zero-Reads Proof | 0/TBD | Not started | - |
