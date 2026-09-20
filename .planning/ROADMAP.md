@@ -159,7 +159,7 @@ Plans:
   5. `reprocess-all.post.ts` chunks its ID lists to at most 100 bound parameters per statement and completes against the real corpus without `SQLITE_ERROR`; `pnpm deploy` and `pnpm deploy:dev` resolve `wrangler` as a real dependency; `app/pages/privacy.vue` passes Prettier.
   6. The 2026-09-04 → 2026-09-16 OpenAI outage gap is quantified before the dry run in criterion 3: the count of articles ingested in that window with a null, truncated or absent summary, and whether `detect-duplicates` ran. Any affected rows join this phase's re-processing set rather than being discovered later. **Checked in `915tldr.com2`, not this repo.**
 
-**Plans:** 3/10 plans executed in 8 waves
+**Plans:** 4/10 plans executed in 8 waves
 
 Plans:
 **Wave 1**
@@ -173,7 +173,7 @@ Plans:
 
 **Wave 3** *(blocked on Wave 2)*
 
-- [ ] 02-04-PLAN.md — Tracer: one article end-to-end — fetch → extract → summarise → ground → columnar write, plus the one-way production migration gate
+- [x] 02-04-PLAN.md — Tracer: one article end-to-end — fetch → extract → summarise → ground → columnar write, plus the one-way production migration gate
 
 **Wave 4** *(blocked on Wave 3)*
 
@@ -362,7 +362,7 @@ Phase 3 and may run alongside Phases 5-7.
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Design Sketch & Editorial Identity | 23/23 | Complete    | 2026-09-17 |
-| 2. Content Quality & Grounding | 3/10 | In Progress|  |
+| 2. Content Quality & Grounding | 4/10 | In Progress|  |
 | 3. Foundation & Read-Budget Guardrails | 0/TBD | Not started | - |
 | 4. Static Generation, Templates & SEO | 0/TBD | Not started | - |
 | 5. Hybrid Archive & Zero-Reads Proof | 0/TBD | Not started | - |

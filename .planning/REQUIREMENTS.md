@@ -34,13 +34,13 @@
 ### Content Quality
 
 - [ ] **CONT-01**: Content extraction no longer truncates mid-article; the `[...]` marker rate drops to near zero on newly ingested articles
-- [ ] **CONT-02**: Summary length is proportional to source length, with no fixed word floor
-- [ ] **CONT-03**: The prompt explicitly prohibits advisories, calls to action, impact analysis, and editorial framing absent from the source
-- [ ] **CONT-04**: An automated grounding check flags any summary containing a claim not traceable to its source
+- [x] **CONT-02**: Summary length is proportional to source length, with no fixed word floor
+- [x] **CONT-03**: The prompt explicitly prohibits advisories, calls to action, impact analysis, and editorial framing absent from the source
+- [x] **CONT-04**: An automated grounding check flags any summary containing a claim not traceable to its source
 - [ ] **CONT-05**: The grounding check catches the known production example (the fabricated "urged to remain vigilant" advisory), which is length-compliant
-- [ ] **CONT-06**: An automated check flags any summary longer than its source
+- [x] **CONT-06**: An automated check flags any summary longer than its source
 - [ ] **CONT-07**: Thin sources produce a short summary or attributed excerpt without resorting to verbatim-heavy quoting
-- [ ] **CONT-08**: Summarisation runs on `gpt-5.6-luna`
+- [x] **CONT-08**: Summarisation runs on `gpt-5.6-luna`
 - [ ] **CONT-09**: A dry run reports exact row count and projected cost before any re-processing run
 - [ ] **CONT-10**: The affected archive is re-processed once, via the Batch API, after explicit approval
 - [ ] **CONT-11**: Batch jobs handle the 24-hour cancellation window — unfinished work is detected and resubmitted, not silently lost
@@ -269,13 +269,13 @@ Deferred. Tracked, not in this roadmap.
 | REND-11 | Phase 5 | Pending |
 | REND-12 | Phase 5 | Pending |
 | CONT-01 | Phase 2 | Pending |
-| CONT-02 | Phase 2 | Pending |
-| CONT-03 | Phase 2 | Pending |
-| CONT-04 | Phase 2 | Pending |
+| CONT-02 | Phase 2 | Complete |
+| CONT-03 | Phase 2 | Complete |
+| CONT-04 | Phase 2 | Complete |
 | CONT-05 | Phase 2 | Pending |
-| CONT-06 | Phase 2 | Pending |
+| CONT-06 | Phase 2 | Complete |
 | CONT-07 | Phase 2 | Pending |
-| CONT-08 | Phase 2 | Pending |
+| CONT-08 | Phase 2 | Complete |
 | CONT-09 | Phase 2 | Pending |
 | CONT-10 | Phase 2 | Pending |
 | CONT-11 | Phase 2 | Pending |

@@ -5,15 +5,15 @@ milestone_name: milestone
 current_phase: 02
 current_phase_name: content-quality-grounding
 status: executing
-stopped_at: Phase 2 context gathered
-last_updated: "2026-09-19T18:01:09.657Z"
+stopped_at: Completed 02-04-PLAN.md
+last_updated: "2026-09-20T01:07:46.868Z"
 last_activity: 2026-09-19
 last_activity_desc: Phase 02 execution started
 progress:
   total_phases: 2
   completed_phases: 1
   total_plans: 33
-  completed_plans: 23
+  completed_plans: 27
 ---
 
 # Project State
@@ -28,11 +28,11 @@ See: .planning/PROJECT.md (updated 2026-09-16)
 ## Current Position
 
 Phase: 02 (content-quality-grounding) — EXECUTING
-Plan: 1 of 10
-Status: Executing Phase 02
+Plan: 2 of 10
+Status: Ready to execute
 Last activity: 2026-09-19 — Phase 02 execution started
 
-Progress: [██████████] 96%
+Progress: [████████░░] 82%
 
 ## Performance Metrics
 
@@ -79,6 +79,7 @@ Progress: [██████████] 96%
 | Phase 01 P20 | 11min | 2 tasks | 34 files |
 | Phase 01 P21 | 35min | 3 tasks | 20 files |
 | Phase 01 P22 | 19min | 3 tasks | 8 files |
+| Phase 02 P04 | 131min | 3 tasks | 13 files |
 
 ## Accumulated Context
 
@@ -148,6 +149,9 @@ Recent decisions affecting current work:
 - [Phase ?]: 01-23: strict D-16 gate restored (01-10's criterion-5 exception removed); unscoped verify:phase-1 5/5 PASS both engines; round-2 01-APPROVAL.md regenerated with round-1 history preserved verbatim; plan halted at Task 2 pending owner review
 - [Phase ?]: 01-23: fixed a real bug in write-approval-packet.mjs's readFallbackFacesPerEngine — font-cls.md's newer positive-control table was polluting the Environment section's fallback-face list
 - [Phase ?]: 01-23: owner reviewed the round-2 packet and replied APPROVED (2026-09-17), with two forward-carried feature requests (sticky rail, Astro view transitions) both deferred to Phase 8 per owner decision; executor did not write the Approved-by sign-off line itself — that remains the owner's own act per T-01-32/T-01-33
+- [Phase ?]: 02-04: D-03/D-CAUTION-2 CONFIRMED — linkedom/worker + Readability runs inside a real Workers runtime, proven via a live wrangler dev tracer run (no HTMLRewriter fallback needed)
+- [Phase ?]: 02-04: requirements-completed deliberately omits CONT-01 — its success criterion is a corpus-level statistic (near-zero truncation-marker rate at ingest), proven only for n=1 by this tracer; left pending for plan 02-05+'s at-scale validation
+- [Phase ?]: 02-04: grounding gate (checkGrounding) proven live — correctly held a real article after catching two genuine unsupported claims, and published a clean one; gpt-5.6-luna needed max_completion_tokens (not max_tokens) and no custom temperature, discovered only by running the live endpoint
 
 ### Pending Todos
 
@@ -176,6 +180,6 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-09-19T16:14:49.684Z
-Stopped at: Phase 2 context gathered
-Resume file: .planning/phases/02-content-quality-grounding/02-CONTEXT.md
+Last session: 2026-09-20T01:07:46.854Z
+Stopped at: Completed 02-04-PLAN.md
+Resume file: None
