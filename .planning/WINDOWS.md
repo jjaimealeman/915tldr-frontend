@@ -1,10 +1,10 @@
 ---
 schema_version: 1
-open_count: 6
+open_count: 7
 waived_count: 0
 fixed_count: 13
-total_count: 19
-last_updated: 2026-09-20T02:08:25.116Z
+total_count: 20
+last_updated: 2026-09-20T04:19:30.695Z
 ---
 
 # Broken Windows Ledger
@@ -34,6 +34,7 @@ last_updated: 2026-09-20T02:08:25.116Z
 | 17 | 02 | todo | 915tldr.com2/server/utils/queue-processor.ts |  | Queue-mode consumer (disabled by default) still uses old concatenated-summary shape and has no grounding gate — needs reconciling with 02-04's changes before queue mode is ever enabled | open |  | 2026-09-20T01:05:59.110Z |  |
 | 18 | 02 | todo | 915tldr.com/.planning/phases/02-content-quality-grounding/02-04-PLAN.md |  | CONT-01 corpus-level truncation-marker validation (near-zero on newly ingested articles) is proven only for n=1 in this tracer; full validation deferred to plan 02-05+ | fixed |  | 2026-09-20T01:05:59.206Z | 2026-09-20T02:08:18.708Z |
 | 19 | 02 | unmet-truth | 915tldr.com2/docs/phase-02/extraction-sample.md |  | CONT-01 validated at 0% on 112 real, network-fetched articles (El Paso Matters + KVIA), but corpus-wide bar not met (35/162 = 21.6% blended) because KTSM's canonical fetch is 100% network-blocked (50/50, PerimeterX, confirmed at scale — not a one-off). CONT-01 left PENDING pending the KTSM block's resolution or a future production deploy/re-measurement. | open |  | 2026-09-20T02:08:25.116Z |  |
+| 20 | 02 | deviation | 915tldr.com2/server/utils/ai-processor.ts |  | 02-08 Task 3 (D-09 live gating: retry-once-then-hold, grounding_status='held', review queue admin route) is DEFERRED to a later plan — owner decision 2026-09-19 (Option D), made after calibration (Task 2) found the full-cascade false-positive rate at ~88-90% against genuinely faithful known-good production summaries (see 915tldr.com2/docs/phase-02/grounding-calibration.md). Unblocked by: a small batch of articles processed under the 02-06 prompt, measured against this same cascade, showing the rate at or near the 15% D-09 target ceiling. | open |  | 2026-09-20T04:19:30.695Z |  |
 
 ````json
 [
@@ -263,6 +264,18 @@ last_updated: 2026-09-20T02:08:25.116Z
     "status": "open",
     "reason": "",
     "recorded_at": "2026-09-20T02:08:25.116Z",
+    "resolved_at": null
+  },
+  {
+    "id": 20,
+    "kind": "deviation",
+    "phase": "02",
+    "file": "915tldr.com2/server/utils/ai-processor.ts",
+    "line": null,
+    "description": "02-08 Task 3 (D-09 live gating: retry-once-then-hold, grounding_status='held', review queue admin route) is DEFERRED to a later plan — owner decision 2026-09-19 (Option D), made after calibration (Task 2) found the full-cascade false-positive rate at ~88-90% against genuinely faithful known-good production summaries (see 915tldr.com2/docs/phase-02/grounding-calibration.md). Unblocked by: a small batch of articles processed under the 02-06 prompt, measured against this same cascade, showing the rate at or near the 15% D-09 target ceiling.",
+    "status": "open",
+    "reason": "",
+    "recorded_at": "2026-09-20T04:19:30.695Z",
     "resolved_at": null
   }
 ]

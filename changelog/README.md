@@ -10,6 +10,7 @@ Entries are named `YYYY-MM-DD-HHMM_slug.md` and grouped by month, newest first.
 
 | Date | Entry | Keywords |
 |------|-------|----------|
+| 2026-09-20 | [Complete Plan 8: Grounding Calibration, Checkpoint Resolved (Option C+D)](2026-09-20-0421_02-08-complete-grounding-calibration-checkpoint-resolved.md) | `[FEATURE]` `[SECURITY]` `[TESTING]` `[AI]` `[DOCS]` |
 | 2026-09-19 | [Replace auto-generated placeholders in Phase 2 tracking changelogs](2026-09-19-2101_replace-auto-generated-tracking-changelog-placeholders.md) | `[DOCUMENTATION]` `[PLANNING]` `[PROCESS]` |
 | 2026-09-19 | [Complete Plan 7: Grounding Detection Cascade](2026-09-19-2100_02-07-complete-grounding-detection-cascade.md) | `[FEATURE]` `[SECURITY]` `[TESTING]` `[AI]` |
 | 2026-09-19 | [Phase 2 Wave 4 complete: real extraction path and prompt rewrite](2026-09-19-2032_phase-02-update-tracking-after-wave-4.md) | `[TRACKING]` `[PHASE-02]` `[AI]` `[MEASUREMENT]` |
