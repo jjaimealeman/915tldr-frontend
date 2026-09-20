@@ -10,6 +10,7 @@ Entries are named `YYYY-MM-DD-HHMM_slug.md` and grouped by month, newest first.
 
 | Date | Entry | Keywords |
 |------|-------|----------|
+| 2026-09-19 | [Phase 2 Plan 7: Complete Grounding Detection Cascade](2026-09-19-2100_02-07-complete-grounding-detection-cascade.md) | `[FEATURE]` `[SECURITY]` `[TESTING]` `[AI]` |
 | 2026-09-19 | [Phase 2 Plan 6: Complete Faithfulness Prompt Rewrite, Thin-Source Attribution, Columnar Key Points](2026-09-19-2030_02-06-complete-faithfulness-prompt-rewrite.md) | `[FEATURE]` `[AI]` `[TESTING]` `[DATABASE]` |
 | 2026-09-19 | [Phase 2 Plan 5: Complete Source-Fetch Hardening, Extraction Threshold, CONT-01 Measurement](2026-09-19-2015_02-05-complete-source-fetch-extraction-cont01-measurement.md) | `[PLANNING]` `[CONTENT-QUALITY]` `[DOCS]` |
 | 2026-09-19 | [Phase 2 Plan 4: Production Migration Applied, Tracer Halted on Missing .dev.vars](2026-09-19-1830_02-04-migration-applied-tracer-halted-on-devvars.md) | `[DOCUMENTATION]` `[DATABASE]` `[PLANNING]` `[CRITICAL]` |
