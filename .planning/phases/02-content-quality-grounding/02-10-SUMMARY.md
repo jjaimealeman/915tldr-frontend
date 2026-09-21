@@ -19,8 +19,13 @@ provides:
     giving September 2026 articles with no summary their FIRST summary
   - Reusable batch JSONL request/response utilities (server/utils/batch-jsonl.ts) —
     buildBatchRequests, parseBatchOutput, expiredCustomIds — with 42 unit tests
-  - A REAL submitted OpenAI Batch API job (batch_6ab0d29a301881908c35ab566f61f84a,
-    2,703 requests) — in progress at hand-off, not yet complete
+  - A REAL, COMPLETED OpenAI Batch API job (batch_6ab0d29a301881908c35ab566f61f84a,
+    2,703/2,703, 0 failures) — summarisation is done; write-back is 275/2,703 (126
+    written, 149 held) and paused on the checkpoint finding below
+  - The FIRST real evidence of the post-fix grounding judge's false-positive rate
+    (02-08's previously-unmeasured open question) — a concrete, reproducible structural
+    conflict between D-07 (thin-source in-text attribution) and the judge's claim
+    decomposition
 
 affects: [02-10-followup-writeback, phase-06-spanish-generation]
 
@@ -95,28 +100,113 @@ completed: 2026-09-21
 status: halted
 ---
 
-# Phase 2 Plan 10: September Backfill — Batch Submitted, Write-Back Pending Summary
+# Phase 2 Plan 10: September Backfill — CHECKPOINT: Grounding Judge False-Positive Pattern Found Mid-Run Summary
 
-**Report-gated Batch API execute script built, tested (42 tests), and run for real: live
-scope re-verified against production D1 (2,709 candidates, 6 fewer than the dry run's
-2,715 — safe direction), 2,703 summarisation requests uploaded and submitted as a real
-OpenAI Batch API job. The batch is IN PROGRESS at hand-off (222/2,703 completed when last
-checked) — grounding, write-back, and Task 3's changelog/editorial work are NOT done and
-require a follow-up run once the batch completes.**
+**Report-gated Batch API execute script built, tested (42 tests), and run for real. The
+Batch API summarisation job completed in full (2,703/2,703, $0 failures) and grounding +
+write-back began — but was DELIBERATELY STOPPED after 275 of 2,703 rows (126 written, 149
+held) on discovering a systematic false-positive pattern: the grounding judge is holding
+the large majority of thin-source (KTSM) articles specifically BECAUSE they correctly
+follow D-07's in-text attribution instruction ("According to KTSM, ..."), which the judge's
+claim-decomposition then flags as an unsupported claim ("KTSM reported X" — of course the
+source text never says that about itself). This is exactly the checkpoint condition the
+execution prompt named in advance. No further rows were processed pending owner review.**
 
 ## Performance
 
-- **Duration:** ~2h05m (context-gathering, script build, test-writing, and the real run)
+- **Duration:** ~2h35m (context-gathering, script build, test-writing, the real submission,
+  and the grounding/write-back run that surfaced the checkpoint below)
 - **Started:** 2026-09-21T04:43:00Z (approx, from first file read)
-- **Completed:** N/A — HALTED. Batch submitted at 2026-09-21T06:45:46Z, expires
-  2026-09-22T06:45:46Z (24h window). Last status check: 2026-09-21T06:48Z, `in_progress`,
-  222/2,703 completed.
-- **Tasks:** 2 of 3 plan tasks addressed (Task 1's owner-approval checkpoint was already
-  resolved by the prompt's own authorization text; Task 2's build+execute is
-  build-complete and execute-submitted, write-back pending; Task 3 not started — depends
-  on real summaries existing)
+- **Completed:** N/A — HALTED ON A CHECKPOINT, not merely on batch duration. Batch
+  submitted 2026-09-21T06:45:46Z, **completed in full** by ~2026-09-21T07:00Z (2,703/2,703,
+  0 failures — resumed and confirmed across three background poll cycles). Grounding +
+  write-back then ran for 275 of 2,703 rows and was DELIBERATELY STOPPED on discovering
+  the false-positive pattern documented in "CHECKPOINT" below — not stopped by a timeout
+  or a crash.
+- **Tasks:** Task 1 (owner-approval checkpoint) resolved by the prompt's own authorization
+  text. Task 2 (build+execute) is fully built, tested, and the summarisation half executed
+  to completion; the grounding+write-back half is 275/2,703 done and paused on a genuine
+  finding requiring owner input. Task 3 not started — depends on the held-rate question
+  being resolved first, since re-processing may be needed before the "real" numbers exist.
 - **Files modified:** 7 (committed), plus 1 generated run manifest (not yet committed —
   see below)
+
+## CHECKPOINT — Grounding Judge Holds ~54% of Thin-Source Summaries on a Structural False Positive
+
+**This is the checkpoint condition the execution prompt named in advance** ("the grounding
+gate holds a large fraction of the new summaries... the owner needs to know before it is
+written off as normal"). Found live, with real production data, partway through the
+grounding+write-back pass — processing was stopped immediately rather than continuing to
+spend judge-call money holding what is very likely good content.
+
+**The number:** of the first 275 rows judged, **126 written (clean), 149 held** — a 54%
+hold rate. `docs/phase-02/september-backfill-run-manifest.json`'s `heldIds`/`writtenIds`
+arrays hold the real counts.
+
+**The root cause, confirmed against real held rows (`grounding_report` read live from
+production D1):** of a 15-row sample of held articles, **13 of 15 (87%) were held
+primarily or entirely because the judge flagged the article's own required in-text
+attribution phrase as an "unsupported claim."** D-07 (02-CONTEXT.md) requires thin-source
+(sub-90-word, mostly KTSM) summaries to name the outlet in-text — "According to KTSM,
+...". The judge's claim-decomposition then atomizes that sentence into a SEPARATE claim
+like *"KTSM reported X"* or *"KTSM is the source of the information"* and marks it
+unsupported, because the source article obviously never states "I, KTSM, am reporting
+this" about itself. D-07 and the judge are working exactly as separately designed and
+directly contradicting each other:
+
+```
+--- id 38788 (held) ---
+unsupported claim: "KTSM is the source of the information." — not supported by the source
+
+--- id 38784 (held) ---
+unsupported claim: "The information is according to KTSM." — not supported by the source
+
+--- id 38785 (held) ---
+unsupported claim: "KTSM reported that John Ternus became Apple's CEO on Tuesday." — not supported by the source
+```
+
+The written (clean) rows spot-checked read as genuinely faithful, well-formed summaries
+(e.g. article 38776, Texas voter-registration suspense-list context) — this is NOT evidence
+the pipeline broadly produces bad output. It is narrowly the thin-source attribution
+requirement (D-07) colliding with the judge's atomic-claim decomposition (the internal
+design of D-08's judge, 02-RESEARCH.md Pattern 2).
+
+**A secondary, smaller pattern also present in the sample:** two held rows (38769, 38792)
+carry Spanish-language summaries (e.g. *"Seth Moulton es un marine retirado"* — a
+Massachusetts politician, unrelated to El Paso) — worth flagging separately: either the
+source content itself is in Spanish/non-local (a possible corpus-quality question outside
+this plan's scope), or the model produced a Spanish summary for an English source. Not
+investigated further here — noted for awareness, not blocking.
+
+**What was NOT done, and why:** the remaining 2,428 rows were NOT processed. Continuing
+under the current judge behavior would very likely hold roughly half of them for the same
+structural reason, both wasting further judge-call spend (each hold still costs a real
+synchronous API call) and leaving ~1,200+ genuinely faithful thin-source summaries stuck
+in the `held` review queue instead of published — a worse outcome than pausing now.
+
+**Held rows are NOT data-damaged.** Per D-09/`storeProcessingResults`'s held branch
+(faithfully replicated in this script), a held row gets ONLY `grounding_status`/
+`grounding_report` written — `summary`/`key_points`/category/tags/entities are left
+completely untouched (still NULL, exactly as before this run). Nothing is lost; the 149
+held rows can be re-judged (not re-summarised — the Batch API output already has their
+real summaries, still in the batch's output file) once a fix is decided.
+
+**Decision needed before continuing:** options, not mutually exclusive —
+1. **Fix the judge prompt** to not decompose an in-text attribution clause ("According to
+   X, ...") into its own checkable claim — likely the correct long-term fix, but changes
+   `grounding-check.ts`, a shared module also used by live cron ingest, so needs its own
+   care and probably its own test pass against the D-10 labelled fixture set before
+   re-running against the remaining 2,428+149 rows.
+2. **Continue as-is, accept ~50% held for manual review** — gets the majority of the
+   backfill done now, leaves a large held queue for a human (or a later automated pass)
+   to clear.
+3. **Re-judge only the 149 already-held rows first** (cheap — their real summaries already
+   exist in the batch output, no new summarisation spend) as a fast way to validate a
+   judge-prompt fix before spending on the remaining ~2,428.
+
+This SUMMARY does not choose an option — that is the owner's call, per the execution
+prompt's own instruction that this exact scenario needs the owner to know before being
+written off as normal.
 
 ## Accomplishments
 
@@ -242,8 +332,10 @@ recovered from this SUMMARY (recorded above) or from OpenAI's own batch list API
 explicit allowance ("You are NOT expected to block until it finishes... report the batch
 id, the submitted row count, and how to check status... do NOT fabricate completion"),
 this is the expected outcome for a job of this size against a 24-hour completion window,
-not a failure. Status at last check (2026-09-21T06:48Z): `in_progress`, 222/2,703
-completed, 0 failed.
+not a failure — and in fact the batch DID complete within this session, by ~2026-09-21T07:00Z
+(2,703/2,703 completed, 0 failed), confirmed across three background poll-and-resume
+cycles. The reason this plan is still halted is the checkpoint finding above, not batch
+duration.
 
 **Minor cosmetic bug, non-blocking:** the script's "still in progress" console message
 prints `status: unknown` instead of the actual last-observed status (`in_progress`) —
@@ -261,26 +353,28 @@ D1 reads).
 
 ## Next Phase Readiness
 
-**NOT ready to close this plan.** To finish:
+**NOT ready to close this plan — blocked on the CHECKPOINT decision above, not on batch
+completion (the batch is done).** To finish, once the owner decides how to handle the
+~54% hold rate:
 
-1. **Check batch status** (read-only, no cost):
-   ```
-   node -e "const OpenAI=require('openai');const fs=require('fs');const k=fs.readFileSync('.dev.vars','utf8').match(/^OPENAI_API_KEY\s*=\s*(.+)$/m)[1].trim().replace(/^['\"]|['\"]$/g,'');new OpenAI({apiKey:k}).batches.retrieve('batch_6ab0d29a301881908c35ab566f61f84a').then(s=>console.log(s.status,s.request_counts))"
-   ```
-2. **Once `status` is `completed` or `expired`**, re-run the exact same command (the
-   script auto-detects the manifest's existing batch id and resumes rather than
-   resubmitting — no `--resume` flag is actually required, though it's harmless to add):
+1. **If fixing the judge prompt (option 1):** update `grounding-check.ts`'s judge system
+   prompt so an in-text attribution clause ("According to X, ...") is not decomposed into
+   its own separately-checked claim, re-validate against the D-10 labelled fixture set
+   (`pnpm vitest run tests/grounding/fixture-set.test.ts`), then re-run this same command
+   — the script's idempotent resume (`writtenIds`/`heldIds` tracking) will skip the 275
+   rows already processed and continue with the remaining 2,428, and the 149 already-held
+   rows can be re-judged separately (their real summaries already exist in the completed
+   batch's output file — no new summarisation spend needed):
    ```
    node scripts/september-backfill-execute.mjs --report docs/phase-02/september-backfill-dry-run.json
    ```
-   This will: fetch the output/error files, resubmit any `batch_expired` remainder (up to
-   5 times), then run the grounding judge synchronously on every successful summary
-   (D-08) and write back to production D1 with title/slug frozen.
-3. **After write-back completes**, verify against production with read-only queries (how
-   many of the 2,703 now have a summary, how many are held by the grounding gate, how
+2. **If accepting the current hold rate (option 2):** re-run the exact same command above
+   to process the remaining 2,428 rows under the current judge behavior — expect roughly
+   half to land in the held review queue.
+3. **After write-back completes** (whichever option), verify against production with
+   read-only queries (how many of the 2,703 now have a summary, how many are held, how
    many failed and why) and report the real numbers — this is the "results" step Task 3
-   and the plan's own verification section require, and it cannot be honestly done before
-   the batch finishes.
+   and the plan's own verification section require.
 4. **Then** write Task 3: the two public `/changelog` entries (D-19, citing the REAL row
    count from the completed manifest) and the 30-summary editorial read (criterion 4) —
    both need real written summaries to exist first.
