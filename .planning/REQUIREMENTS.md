@@ -33,18 +33,18 @@
 
 ### Content Quality
 
-- [ ] **CONT-01**: Content extraction no longer truncates mid-article; the `[...]` marker rate drops to near zero on newly ingested articles
+- [x] **CONT-01**: Content extraction no longer truncates mid-article; the `[...]` marker rate drops to near zero on newly ingested articles
 - [x] **CONT-02**: Summary length is proportional to source length, with no fixed word floor
 - [x] **CONT-03**: The prompt explicitly prohibits advisories, calls to action, impact analysis, and editorial framing absent from the source
 - [x] **CONT-04**: An automated grounding check flags any summary containing a claim not traceable to its source
-- [ ] **CONT-05**: The grounding check catches the known production example (the fabricated "urged to remain vigilant" advisory), which is length-compliant
+- [x] **CONT-05**: The grounding check catches the known production example (the fabricated "urged to remain vigilant" advisory), which is length-compliant
 - [x] **CONT-06**: An automated check flags any summary longer than its source
-- [ ] **CONT-07**: Thin sources produce a short summary or attributed excerpt without resorting to verbatim-heavy quoting
+- [x] **CONT-07**: Thin sources produce a short summary or attributed excerpt without resorting to verbatim-heavy quoting
 - [x] **CONT-08**: Summarisation runs on `gpt-5.6-luna`
-- [ ] **CONT-09**: A dry run reports exact row count and projected cost before any re-processing run
-- [ ] **CONT-10**: The affected archive is re-processed once, via the Batch API, after explicit approval
-- [ ] **CONT-11**: Batch jobs handle the 24-hour cancellation window — unfinished work is detected and resubmitted, not silently lost
-- [ ] **CONT-12**: Articles ingested during the 2026-09-04 → 2026-09-16 OpenAI outage window are audited for missing or truncated summaries and for skipped duplicate detection; any gap is quantified and folded into the re-processing set
+- [x] **CONT-09**: A dry run reports exact row count and projected cost before any re-processing run
+- [x] **CONT-10**: The affected archive is re-processed once, via the Batch API, after explicit approval
+- [x] **CONT-11**: Batch jobs handle the 24-hour cancellation window — unfinished work is detected and resubmitted, not silently lost
+- [x] **CONT-12**: Articles ingested during the 2026-09-04 → 2026-09-16 OpenAI outage window are audited for missing or truncated summaries and for skipped duplicate detection; any gap is quantified and folded into the re-processing set
 
 ### Bilingual
 
@@ -181,13 +181,13 @@
 - [ ] **OPS-08**: The read budget is stated in the README
 - [ ] **OPS-09**: Rollback to the existing worker is a route change and is verified before cutover
 - [ ] **OPS-10**: The cron run triggers the public site's incremental build
-- [ ] **OPS-11**: No operation costing more than $1 runs without prior approval and an estimate
+- [x] **OPS-11**: No operation costing more than $1 runs without prior approval and an estimate
 
 ### Known Defect Fixes
 
-- [ ] **FIX-01**: `reprocess-all.post.ts` no longer binds an unbounded ID list across `inArray` calls; D1's 100-parameter ceiling is respected
-- [ ] **FIX-02**: `pnpm deploy` and `pnpm deploy:dev` resolve `wrangler` as a real dependency
-- [ ] **FIX-03**: The Prettier error at `app/pages/privacy.vue:164` is resolved
+- [x] **FIX-01**: `reprocess-all.post.ts` no longer binds an unbounded ID list across `inArray` calls; D1's 100-parameter ceiling is respected
+- [x] **FIX-02**: `pnpm deploy` and `pnpm deploy:dev` resolve `wrangler` as a real dependency
+- [x] **FIX-03**: The Prettier error at `app/pages/privacy.vue:164` is resolved
 - [ ] **FIX-04**: Category index routes resolve (`/crime` as well as `/crime/**`)
 - [ ] **FIX-05**: `/changelog` renders its content reliably
 
@@ -268,18 +268,18 @@ Deferred. Tracked, not in this roadmap.
 | REND-10 | Phase 5 | Pending |
 | REND-11 | Phase 5 | Pending |
 | REND-12 | Phase 5 | Pending |
-| CONT-01 | Phase 2 | Pending |
+| CONT-01 | Phase 2 | Complete |
 | CONT-02 | Phase 2 | Complete |
 | CONT-03 | Phase 2 | Complete |
 | CONT-04 | Phase 2 | Complete |
-| CONT-05 | Phase 2 | Pending |
+| CONT-05 | Phase 2 | Complete |
 | CONT-06 | Phase 2 | Complete |
-| CONT-07 | Phase 2 | Pending |
+| CONT-07 | Phase 2 | Complete |
 | CONT-08 | Phase 2 | Complete |
-| CONT-09 | Phase 2 | Pending |
-| CONT-10 | Phase 2 | Pending |
-| CONT-11 | Phase 2 | Pending |
-| CONT-12 |Phase 2|Pending|
+| CONT-09 | Phase 2 | Complete |
+| CONT-10 | Phase 2 | Complete |
+| CONT-11 | Phase 2 | Complete |
+| CONT-12 |Phase 2| Complete |
 | I18N-01 | Phase 6 | Pending |
 | I18N-02 | Phase 6 | Pending |
 | I18N-03 | Phase 6 | Pending |
@@ -380,10 +380,10 @@ Deferred. Tracked, not in this roadmap.
 | OPS-08 | Phase 3 | Pending |
 | OPS-09 | Phase 12 | Pending |
 | OPS-10 | Phase 4 | Pending |
-| OPS-11 | Phase 2 | Pending |
-| FIX-01 | Phase 2 | Pending |
-| FIX-02 | Phase 2 | Pending |
-| FIX-03 | Phase 2 | Pending |
+| OPS-11 | Phase 2 | Complete |
+| FIX-01 | Phase 2 | Complete |
+| FIX-02 | Phase 2 | Complete |
+| FIX-03 | Phase 2 | Complete |
 | FIX-04 | Phase 4 | Pending |
 | FIX-05 | Phase 4 | Pending |
 

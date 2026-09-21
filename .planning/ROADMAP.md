@@ -25,7 +25,7 @@ real site. Phase 12 moves the admin behind Cloudflare Access, starts the daily b
 Decimal phases appear between their surrounding integers in numeric order.
 
 - [x] **Phase 1: Design Sketch & Editorial Identity** - Approved static HTML/CSS mockups that pass contrast and keyboard review before any Astro work (completed 2026-09-17)
-- [ ] **Phase 2: Content Quality & Grounding** - Fix extraction, prompt and grounding so no fabricated summary is ever written in a second language
+- [x] **Phase 2: Content Quality & Grounding** - Fix extraction, prompt and grounding so no fabricated summary is ever written in a second language (completed 2026-09-21)
 - [ ] **Phase 3: Foundation & Read-Budget Guardrails** - Astro scaffold, the CI D1-import assertion, the render manifest, and the measurements that decide the render step
 - [ ] **Phase 4: Static Generation, Templates & SEO** - A fail-loud D1 loader and every public page type generated at build time
 - [ ] **Phase 5: Hybrid Archive & Zero-Reads Proof** - R2 archive tier, tag tiering, and the measured proof of zero D1 reads on the public path
@@ -159,7 +159,7 @@ Plans:
   5. `reprocess-all.post.ts` chunks its ID lists to at most 100 bound parameters per statement and completes against the real corpus without `SQLITE_ERROR`; `pnpm deploy` and `pnpm deploy:dev` resolve `wrangler` as a real dependency; `app/pages/privacy.vue` passes Prettier.
   6. The 2026-09-04 → 2026-09-16 OpenAI outage gap is quantified before the dry run in criterion 3: the count of articles ingested in that window with a null, truncated or absent summary, and whether `detect-duplicates` ran. Any affected rows join this phase's re-processing set rather than being discovered later. **Checked in `915tldr.com2`, not this repo.**
 
-**Plans:** 8/10 plans executed in 8 waves
+**Plans:** 11/10 plans complete
 
 Plans:
 **Wave 1**
@@ -190,11 +190,11 @@ Plans:
 
 **Wave 7** *(blocked on Wave 6)*
 
-- [ ] 02-09-PLAN.md — Dry run: free corpus sweep, outage union, token-validated cost projection, corpus fingerprint (CONT-09, OPS-11)
+- [x] 02-09-PLAN.md — Dry run: free corpus sweep, outage union, token-validated cost projection, corpus fingerprint (CONT-09, OPS-11)
 
 **Wave 8** *(blocked on Wave 7)*
 
-- [ ] 02-10-PLAN.md — Owner approval gate, report-gated Batch execution with expired-remainder resubmission, public changelog, editorial read (CONT-10/11, OPS-11)
+- [x] 02-10-PLAN.md — Owner approval gate, report-gated Batch execution with expired-remainder resubmission, public changelog, editorial read (CONT-10/11, OPS-11)
 
 ### Phase 3: Foundation & Read-Budget Guardrails
 
@@ -362,7 +362,7 @@ Phase 3 and may run alongside Phases 5-7.
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Design Sketch & Editorial Identity | 23/23 | Complete    | 2026-09-17 |
-| 2. Content Quality & Grounding | 8/10 | In Progress|  |
+| 2. Content Quality & Grounding | 11/10 | Complete    | 2026-09-21 |
 | 3. Foundation & Read-Budget Guardrails | 0/TBD | Not started | - |
 | 4. Static Generation, Templates & SEO | 0/TBD | Not started | - |
 | 5. Hybrid Archive & Zero-Reads Proof | 0/TBD | Not started | - |
