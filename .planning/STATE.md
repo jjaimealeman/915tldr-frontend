@@ -2,18 +2,18 @@
 gsd_state_version: 1.0
 milestone: v1.5
 milestone_name: milestone
-current_phase: 2
-current_phase_name: Content Quality & Grounding
+current_phase: 3
+current_phase_name: Foundation & Read-Budget Guardrails
 status: planning
-stopped_at: "01-23: owner approved the round-2 packet (2026-09-17, verbatim quotes recorded in 01-APPROVAL.md); two follow-ups captured for Phase 8. Awaiting only the owner's own Approved-by line on 01-APPROVAL.md to finalize Task 3."
-last_updated: "2026-09-18T05:38:46.704Z"
-last_activity: 2026-09-17
-last_activity_desc: Phase 01 execution started
+stopped_at: Completed 02-04-PLAN.md
+last_updated: "2026-09-21T16:14:31.899Z"
+last_activity: 2026-09-21
+last_activity_desc: Phase 02 complete, transitioned to Phase 3
 progress:
-  total_phases: 1
-  completed_phases: 1
-  total_plans: 23
-  completed_plans: 23
+  total_phases: 2
+  completed_phases: 2
+  total_plans: 33
+  completed_plans: 33
 ---
 
 # Project State
@@ -23,22 +23,22 @@ progress:
 See: .planning/PROJECT.md (updated 2026-09-16)
 
 **Core value:** Zero D1 reads on the public request path — architecturally zero, enforced structurally at build time.
-**Current focus:** Phase 01 — design-sketch-editorial-identity
+**Current focus:** Phase 02 — content-quality-grounding
 
 ## Current Position
 
-Phase: 2 — Content Quality & Grounding
+Phase: 3 — Foundation & Read-Budget Guardrails
 Plan: Not started
 Status: Ready to plan
-Last activity: 2026-09-17 — Phase 01 complete, transitioned to Phase 2
+Last activity: 2026-09-21 — Phase 02 complete, transitioned to Phase 3
 
-Progress: [██████████] 96%
+Progress: [████████░░] 82%
 
 ## Performance Metrics
 
 **Velocity:**
 
-- Total plans completed: 23
+- Total plans completed: 34
 - Average duration: —
 - Total execution time: —
 
@@ -47,6 +47,7 @@ Progress: [██████████] 96%
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
 | 01 | 23 | - | - |
+| 02 | 11 | - | - |
 
 **Recent Trend:**
 
@@ -79,6 +80,7 @@ Progress: [██████████] 96%
 | Phase 01 P20 | 11min | 2 tasks | 34 files |
 | Phase 01 P21 | 35min | 3 tasks | 20 files |
 | Phase 01 P22 | 19min | 3 tasks | 8 files |
+| Phase 02 P04 | 131min | 3 tasks | 13 files |
 
 ## Accumulated Context
 
@@ -148,6 +150,9 @@ Recent decisions affecting current work:
 - [Phase ?]: 01-23: strict D-16 gate restored (01-10's criterion-5 exception removed); unscoped verify:phase-1 5/5 PASS both engines; round-2 01-APPROVAL.md regenerated with round-1 history preserved verbatim; plan halted at Task 2 pending owner review
 - [Phase ?]: 01-23: fixed a real bug in write-approval-packet.mjs's readFallbackFacesPerEngine — font-cls.md's newer positive-control table was polluting the Environment section's fallback-face list
 - [Phase ?]: 01-23: owner reviewed the round-2 packet and replied APPROVED (2026-09-17), with two forward-carried feature requests (sticky rail, Astro view transitions) both deferred to Phase 8 per owner decision; executor did not write the Approved-by sign-off line itself — that remains the owner's own act per T-01-32/T-01-33
+- [Phase ?]: 02-04: D-03/D-CAUTION-2 CONFIRMED — linkedom/worker + Readability runs inside a real Workers runtime, proven via a live wrangler dev tracer run (no HTMLRewriter fallback needed)
+- [Phase ?]: 02-04: requirements-completed deliberately omits CONT-01 — its success criterion is a corpus-level statistic (near-zero truncation-marker rate at ingest), proven only for n=1 by this tracer; left pending for plan 02-05+'s at-scale validation
+- [Phase ?]: 02-04: grounding gate (checkGrounding) proven live — correctly held a real article after catching two genuine unsupported claims, and published a clean one; gpt-5.6-luna needed max_completion_tokens (not max_tokens) and no custom temperature, discovered only by running the live endpoint
 
 ### Pending Todos
 
@@ -176,6 +181,6 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-09-18T01:47:38.050Z
-Stopped at: 01-23: owner approved the round-2 packet (2026-09-17, verbatim quotes recorded in 01-APPROVAL.md); two follow-ups captured for Phase 8. Awaiting only the owner's own Approved-by line on 01-APPROVAL.md to finalize Task 3.
-Resume file: 01-APPROVAL.md (owner adds Approved-by line, then re-run pnpm run verify:approval)
+Last session: 2026-09-20T01:07:46.854Z
+Stopped at: Completed 02-04-PLAN.md
+Resume file: None

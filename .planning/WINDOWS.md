@@ -1,10 +1,10 @@
 ---
 schema_version: 1
-open_count: 4
+open_count: 11
 waived_count: 0
-fixed_count: 12
-total_count: 16
-last_updated: 2026-09-17T22:14:16.814Z
+fixed_count: 13
+total_count: 24
+last_updated: 2026-09-21T16:04:15.933Z
 ---
 
 # Broken Windows Ledger
@@ -31,6 +31,14 @@ last_updated: 2026-09-17T22:14:16.814Z
 | 14 | 01 | deviation | design/tests/spanish-overflow.spec.ts |  | 01-15: fixed container-growth heuristic false positive from headline hyphens:auto engaging on lang=es injection — vClipped remains authoritative, no threshold weakened | fixed |  | 2026-09-17T20:43:10.476Z | 2026-09-17T20:43:14.594Z |
 | 15 | 01 | deviation | design/scripts/calibrate-spanish.mjs |  | 01-15: 100px calibration proxy under-predicted real in-page ratio for short strings at small UI sizes; added dense 12-58px sweep to widen hi (9/22 components widened) | fixed |  | 2026-09-17T20:43:10.568Z | 2026-09-17T20:43:14.690Z |
 | 16 | 01 | unrun-verify | design/mockups/category.html |  | 01-18 Task 3 human-check outstanding: owner must view category.html with real network access at 1280px light/dark to confirm the lead's loaded KTSM photo sits comfortably beside the text column (tests block third-party requests, so this was never automatable) | open |  | 2026-09-17T22:14:16.814Z |  |
+| 17 | 02 | todo | 915tldr.com2/server/utils/queue-processor.ts |  | Queue-mode consumer (disabled by default) still uses old concatenated-summary shape and has no grounding gate — needs reconciling with 02-04's changes before queue mode is ever enabled | open |  | 2026-09-20T01:05:59.110Z |  |
+| 18 | 02 | todo | 915tldr.com/.planning/phases/02-content-quality-grounding/02-04-PLAN.md |  | CONT-01 corpus-level truncation-marker validation (near-zero on newly ingested articles) is proven only for n=1 in this tracer; full validation deferred to plan 02-05+ | fixed |  | 2026-09-20T01:05:59.206Z | 2026-09-20T02:08:18.708Z |
+| 19 | 02 | unmet-truth | 915tldr.com2/docs/phase-02/extraction-sample.md |  | CONT-01 validated at 0% on 112 real, network-fetched articles (El Paso Matters + KVIA), but corpus-wide bar not met (35/162 = 21.6% blended) because KTSM's canonical fetch is 100% network-blocked (50/50, PerimeterX, confirmed at scale — not a one-off). CONT-01 left PENDING pending the KTSM block's resolution or a future production deploy/re-measurement. | open |  | 2026-09-20T02:08:25.116Z |  |
+| 20 | 02 | deviation | 915tldr.com2/server/utils/ai-processor.ts |  | 02-08 Task 3 (D-09 live gating: retry-once-then-hold, grounding_status='held', review queue admin route) is DEFERRED to a later plan — owner decision 2026-09-19 (Option D), made after calibration (Task 2) found the full-cascade false-positive rate at ~88-90% against genuinely faithful known-good production summaries (see 915tldr.com2/docs/phase-02/grounding-calibration.md). Unblocked by: a small batch of articles processed under the 02-06 prompt, measured against this same cascade, showing the rate at or near the 15% D-09 target ceiling. | open |  | 2026-09-20T04:19:30.695Z |  |
+| 21 | 02 | unmet-truth | 915tldr.com2/docs/phase-02/september-backfill-run-manifest.json |  | September backfill final: of 873 held rows (post attribution-wrapper-fix, post rejudge-held), 155 (17.8%) have source content under 120 chars — a truncated feed teaser genuinely too thin to summarise faithfully, not a judge false positive. By source: KVIA 475, KTSM 389, El Paso Matters 9. Two examples sampled by the owner as genuinely off-topic/unusable source material remain held: id 38769 (Spanish-language Markey/Moulton Massachusetts-politics article, unrelated to El Paso) and id 38830 (hotel-loyalty listicle whose own source text is truncated mid-sentence, 'The article ends during the Best Western section'). These are the gate working correctly on unusable input, not a defect to fix — recorded per plan instruction to quantify and not fix. | open |  | 2026-09-21T08:05:04.788Z |  |
+| 22 | 02 | deviation | 915tldr.com2/scripts/september-backfill-execute.mjs |  | manifest.actualCostUsd/estimatedJudgeCostUsd only reflect the LAST completing invocation's judge-call fraction (judgeCallCount is scoped per-invocation, not accumulated across resumes), so the manifest's own reported $4.9932 understates true cumulative spend across a run resumed 4 times (original pass, --rejudge-held, a crashed resume, and the final completing resume). True total estimated spend, computed by hand from the full call count (2703 first-pass + 149 rejudge = 2852 judge calls at $0.0015983/call, plus $1.3465 real batch cost): approximately $5.90 — still well inside the $10.42 ceiling, but the manifest field itself should not be trusted as the authoritative total for a multi-invocation run without this correction. Not fixed in this session (out of scope, cost was within ceiling either way) — flagged for whoever next touches this script's cost accounting. | open |  | 2026-09-21T08:05:13.681Z |  |
+| 23 | 02 | deviation | 915tldr.com2/server/utils/grounding-check.ts |  | CONT-06 gap closure (02-VERIFICATION.md gap 1, found by /gsd-verify-work 2026-09-21): 253/1,830 (13.8%) of the September backfill's clean rows had LENGTH(summary) > LENGTH(content) because the D-07 attribution wrapper counted toward the length ceiling and the 02-08 Option C decoupling let a clean judge verdict clear a length violation the judge never evaluates. FIXED: stripAttributionWrapper() (text-metrics.ts) excludes the wrapper from the length comparison; checkGrounding() carves the length flag out of Option C as an independent hard gate (grounding-check.ts, commit d77e7ef, 915tldr.com2). REMEDIATED: scripts/cont06-remediate.mjs re-evaluated all 253 rows against production D1 (149 real judge calls, ~$0.22-0.44) -- 113 cleared, 140 held with summary/key_points cleared to NULL (commit 579085f, 915tldr.com2). Verified: raw LENGTH(summary)>LENGTH(content) query now returns 113 (all attribution-wrapper cases, by design -- see next entry), and a wrapper-aware query mirroring the code's actual gate returns 0. Calibration recall held 7/7. Full suite 260/260, typecheck (pre-existing unrelated failure only), lint (0 errors) all pass. | open |  | 2026-09-21T16:04:08.654Z |  |
+| 24 | 02 | unmet-truth | 915tldr.com2/server/utils/text-metrics.ts |  | The RAW production query 'SELECT COUNT(*) FROM articles WHERE ... LENGTH(summary) > LENGTH(content)' (used verbatim in 02-VERIFICATION.md and matching roadmap SC1 clause 2's literal wording) still returns 113, not 0, after the CONT-06 fix (see prior entry) -- BY DESIGN, not a residual defect. All 113 rows are exactly the cases where the required D-07 attribution wrapper text ('According to <outlet>, ') itself accounts for the entire excess (confirmed: 0 of the 113 fail to match the wrapper pattern). The code's actual CONT-06 gate (grounding-check.ts) correctly excludes this wrapper via stripAttributionWrapper() and measures 0 violations. Whoever next re-runs the literal roadmap SC1 raw-SQL check will see a nonzero number and should use the wrapper-aware query instead (documented in 02-11-SUMMARY.md), or the roadmap's own success-criterion wording should be updated to state the wrapper-aware definition explicitly so this is not re-investigated from scratch. | open |  | 2026-09-21T16:04:15.933Z |  |
 
 ````json
 [
@@ -224,6 +232,102 @@ last_updated: 2026-09-17T22:14:16.814Z
     "status": "open",
     "reason": "",
     "recorded_at": "2026-09-17T22:14:16.814Z",
+    "resolved_at": null
+  },
+  {
+    "id": 17,
+    "kind": "todo",
+    "phase": "02",
+    "file": "915tldr.com2/server/utils/queue-processor.ts",
+    "line": null,
+    "description": "Queue-mode consumer (disabled by default) still uses old concatenated-summary shape and has no grounding gate — needs reconciling with 02-04's changes before queue mode is ever enabled",
+    "status": "open",
+    "reason": "",
+    "recorded_at": "2026-09-20T01:05:59.110Z",
+    "resolved_at": null
+  },
+  {
+    "id": 18,
+    "kind": "todo",
+    "phase": "02",
+    "file": "915tldr.com/.planning/phases/02-content-quality-grounding/02-04-PLAN.md",
+    "line": null,
+    "description": "CONT-01 corpus-level truncation-marker validation (near-zero on newly ingested articles) is proven only for n=1 in this tracer; full validation deferred to plan 02-05+",
+    "status": "fixed",
+    "reason": "",
+    "recorded_at": "2026-09-20T01:05:59.206Z",
+    "resolved_at": "2026-09-20T02:08:18.708Z"
+  },
+  {
+    "id": 19,
+    "kind": "unmet-truth",
+    "phase": "02",
+    "file": "915tldr.com2/docs/phase-02/extraction-sample.md",
+    "line": null,
+    "description": "CONT-01 validated at 0% on 112 real, network-fetched articles (El Paso Matters + KVIA), but corpus-wide bar not met (35/162 = 21.6% blended) because KTSM's canonical fetch is 100% network-blocked (50/50, PerimeterX, confirmed at scale — not a one-off). CONT-01 left PENDING pending the KTSM block's resolution or a future production deploy/re-measurement.",
+    "status": "open",
+    "reason": "",
+    "recorded_at": "2026-09-20T02:08:25.116Z",
+    "resolved_at": null
+  },
+  {
+    "id": 20,
+    "kind": "deviation",
+    "phase": "02",
+    "file": "915tldr.com2/server/utils/ai-processor.ts",
+    "line": null,
+    "description": "02-08 Task 3 (D-09 live gating: retry-once-then-hold, grounding_status='held', review queue admin route) is DEFERRED to a later plan — owner decision 2026-09-19 (Option D), made after calibration (Task 2) found the full-cascade false-positive rate at ~88-90% against genuinely faithful known-good production summaries (see 915tldr.com2/docs/phase-02/grounding-calibration.md). Unblocked by: a small batch of articles processed under the 02-06 prompt, measured against this same cascade, showing the rate at or near the 15% D-09 target ceiling.",
+    "status": "open",
+    "reason": "",
+    "recorded_at": "2026-09-20T04:19:30.695Z",
+    "resolved_at": null
+  },
+  {
+    "id": 21,
+    "kind": "unmet-truth",
+    "phase": "02",
+    "file": "915tldr.com2/docs/phase-02/september-backfill-run-manifest.json",
+    "line": null,
+    "description": "September backfill final: of 873 held rows (post attribution-wrapper-fix, post rejudge-held), 155 (17.8%) have source content under 120 chars — a truncated feed teaser genuinely too thin to summarise faithfully, not a judge false positive. By source: KVIA 475, KTSM 389, El Paso Matters 9. Two examples sampled by the owner as genuinely off-topic/unusable source material remain held: id 38769 (Spanish-language Markey/Moulton Massachusetts-politics article, unrelated to El Paso) and id 38830 (hotel-loyalty listicle whose own source text is truncated mid-sentence, 'The article ends during the Best Western section'). These are the gate working correctly on unusable input, not a defect to fix — recorded per plan instruction to quantify and not fix.",
+    "status": "open",
+    "reason": "",
+    "recorded_at": "2026-09-21T08:05:04.788Z",
+    "resolved_at": null
+  },
+  {
+    "id": 22,
+    "kind": "deviation",
+    "phase": "02",
+    "file": "915tldr.com2/scripts/september-backfill-execute.mjs",
+    "line": null,
+    "description": "manifest.actualCostUsd/estimatedJudgeCostUsd only reflect the LAST completing invocation's judge-call fraction (judgeCallCount is scoped per-invocation, not accumulated across resumes), so the manifest's own reported $4.9932 understates true cumulative spend across a run resumed 4 times (original pass, --rejudge-held, a crashed resume, and the final completing resume). True total estimated spend, computed by hand from the full call count (2703 first-pass + 149 rejudge = 2852 judge calls at $0.0015983/call, plus $1.3465 real batch cost): approximately $5.90 — still well inside the $10.42 ceiling, but the manifest field itself should not be trusted as the authoritative total for a multi-invocation run without this correction. Not fixed in this session (out of scope, cost was within ceiling either way) — flagged for whoever next touches this script's cost accounting.",
+    "status": "open",
+    "reason": "",
+    "recorded_at": "2026-09-21T08:05:13.681Z",
+    "resolved_at": null
+  },
+  {
+    "id": 23,
+    "kind": "deviation",
+    "phase": "02",
+    "file": "915tldr.com2/server/utils/grounding-check.ts",
+    "line": null,
+    "description": "CONT-06 gap closure (02-VERIFICATION.md gap 1, found by /gsd-verify-work 2026-09-21): 253/1,830 (13.8%) of the September backfill's clean rows had LENGTH(summary) > LENGTH(content) because the D-07 attribution wrapper counted toward the length ceiling and the 02-08 Option C decoupling let a clean judge verdict clear a length violation the judge never evaluates. FIXED: stripAttributionWrapper() (text-metrics.ts) excludes the wrapper from the length comparison; checkGrounding() carves the length flag out of Option C as an independent hard gate (grounding-check.ts, commit d77e7ef, 915tldr.com2). REMEDIATED: scripts/cont06-remediate.mjs re-evaluated all 253 rows against production D1 (149 real judge calls, ~$0.22-0.44) -- 113 cleared, 140 held with summary/key_points cleared to NULL (commit 579085f, 915tldr.com2). Verified: raw LENGTH(summary)>LENGTH(content) query now returns 113 (all attribution-wrapper cases, by design -- see next entry), and a wrapper-aware query mirroring the code's actual gate returns 0. Calibration recall held 7/7. Full suite 260/260, typecheck (pre-existing unrelated failure only), lint (0 errors) all pass.",
+    "status": "open",
+    "reason": "",
+    "recorded_at": "2026-09-21T16:04:08.654Z",
+    "resolved_at": null
+  },
+  {
+    "id": 24,
+    "kind": "unmet-truth",
+    "phase": "02",
+    "file": "915tldr.com2/server/utils/text-metrics.ts",
+    "line": null,
+    "description": "The RAW production query 'SELECT COUNT(*) FROM articles WHERE ... LENGTH(summary) > LENGTH(content)' (used verbatim in 02-VERIFICATION.md and matching roadmap SC1 clause 2's literal wording) still returns 113, not 0, after the CONT-06 fix (see prior entry) -- BY DESIGN, not a residual defect. All 113 rows are exactly the cases where the required D-07 attribution wrapper text ('According to <outlet>, ') itself accounts for the entire excess (confirmed: 0 of the 113 fail to match the wrapper pattern). The code's actual CONT-06 gate (grounding-check.ts) correctly excludes this wrapper via stripAttributionWrapper() and measures 0 violations. Whoever next re-runs the literal roadmap SC1 raw-SQL check will see a nonzero number and should use the wrapper-aware query instead (documented in 02-11-SUMMARY.md), or the roadmap's own success-criterion wording should be updated to state the wrapper-aware definition explicitly so this is not re-investigated from scratch.",
+    "status": "open",
+    "reason": "",
+    "recorded_at": "2026-09-21T16:04:15.933Z",
     "resolved_at": null
   }
 ]
