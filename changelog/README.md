@@ -10,6 +10,7 @@ Entries are named `YYYY-MM-DD-HHMM_slug.md` and grouped by month, newest first.
 
 | Date | Entry | Keywords |
 |------|-------|----------|
+| 2026-09-21 | [Complete Plan 02-10: Attribution-Wrapper Judge Fix, September Backfill Finished](2026-09-21-0212_complete-02-10-attribution-fix-and-backfill-completion.md) | `[DOCUMENTATION]` `[BACKEND]` `[AI]` |
 | 2026-09-21 | [CHECKPOINT: Grounding Judge Holds ~54% of Thin-Source Summaries on Attribution False Positive](2026-09-21-0705_checkpoint-grounding-judge-attribution-false-positive.md) | `[DOCUMENTATION]` `[PLANNING]` `[AI]` `[SECURITY]` |
 | 2026-09-21 | [Plan 10 Halted: September Backfill Batch Submitted, Write-Back Pending](2026-09-21-0650_plan-02-10-halted-batch-submitted-pending.md) | `[DOCUMENTATION]` `[PLANNING]` `[AI]` |
 | 2026-09-19 | [Complete Plan 9: OPS-11 Dry-Run Cost Projection — Checkpoint on the Real Figure](2026-09-19-2350_complete-02-09-dry-run-cost-projection-checkpoint.md) | `[DOCUMENTATION]` `[PLANNING]` `[AI]` |

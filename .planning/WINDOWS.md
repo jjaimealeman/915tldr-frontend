@@ -1,10 +1,10 @@
 ---
 schema_version: 1
-open_count: 7
+open_count: 9
 waived_count: 0
 fixed_count: 13
-total_count: 20
-last_updated: 2026-09-20T04:19:30.695Z
+total_count: 22
+last_updated: 2026-09-21T08:05:13.681Z
 ---
 
 # Broken Windows Ledger
@@ -35,6 +35,8 @@ last_updated: 2026-09-20T04:19:30.695Z
 | 18 | 02 | todo | 915tldr.com/.planning/phases/02-content-quality-grounding/02-04-PLAN.md |  | CONT-01 corpus-level truncation-marker validation (near-zero on newly ingested articles) is proven only for n=1 in this tracer; full validation deferred to plan 02-05+ | fixed |  | 2026-09-20T01:05:59.206Z | 2026-09-20T02:08:18.708Z |
 | 19 | 02 | unmet-truth | 915tldr.com2/docs/phase-02/extraction-sample.md |  | CONT-01 validated at 0% on 112 real, network-fetched articles (El Paso Matters + KVIA), but corpus-wide bar not met (35/162 = 21.6% blended) because KTSM's canonical fetch is 100% network-blocked (50/50, PerimeterX, confirmed at scale — not a one-off). CONT-01 left PENDING pending the KTSM block's resolution or a future production deploy/re-measurement. | open |  | 2026-09-20T02:08:25.116Z |  |
 | 20 | 02 | deviation | 915tldr.com2/server/utils/ai-processor.ts |  | 02-08 Task 3 (D-09 live gating: retry-once-then-hold, grounding_status='held', review queue admin route) is DEFERRED to a later plan — owner decision 2026-09-19 (Option D), made after calibration (Task 2) found the full-cascade false-positive rate at ~88-90% against genuinely faithful known-good production summaries (see 915tldr.com2/docs/phase-02/grounding-calibration.md). Unblocked by: a small batch of articles processed under the 02-06 prompt, measured against this same cascade, showing the rate at or near the 15% D-09 target ceiling. | open |  | 2026-09-20T04:19:30.695Z |  |
+| 21 | 02 | unmet-truth | 915tldr.com2/docs/phase-02/september-backfill-run-manifest.json |  | September backfill final: of 873 held rows (post attribution-wrapper-fix, post rejudge-held), 155 (17.8%) have source content under 120 chars — a truncated feed teaser genuinely too thin to summarise faithfully, not a judge false positive. By source: KVIA 475, KTSM 389, El Paso Matters 9. Two examples sampled by the owner as genuinely off-topic/unusable source material remain held: id 38769 (Spanish-language Markey/Moulton Massachusetts-politics article, unrelated to El Paso) and id 38830 (hotel-loyalty listicle whose own source text is truncated mid-sentence, 'The article ends during the Best Western section'). These are the gate working correctly on unusable input, not a defect to fix — recorded per plan instruction to quantify and not fix. | open |  | 2026-09-21T08:05:04.788Z |  |
+| 22 | 02 | deviation | 915tldr.com2/scripts/september-backfill-execute.mjs |  | manifest.actualCostUsd/estimatedJudgeCostUsd only reflect the LAST completing invocation's judge-call fraction (judgeCallCount is scoped per-invocation, not accumulated across resumes), so the manifest's own reported $4.9932 understates true cumulative spend across a run resumed 4 times (original pass, --rejudge-held, a crashed resume, and the final completing resume). True total estimated spend, computed by hand from the full call count (2703 first-pass + 149 rejudge = 2852 judge calls at $0.0015983/call, plus $1.3465 real batch cost): approximately $5.90 — still well inside the $10.42 ceiling, but the manifest field itself should not be trusted as the authoritative total for a multi-invocation run without this correction. Not fixed in this session (out of scope, cost was within ceiling either way) — flagged for whoever next touches this script's cost accounting. | open |  | 2026-09-21T08:05:13.681Z |  |
 
 ````json
 [
@@ -276,6 +278,30 @@ last_updated: 2026-09-20T04:19:30.695Z
     "status": "open",
     "reason": "",
     "recorded_at": "2026-09-20T04:19:30.695Z",
+    "resolved_at": null
+  },
+  {
+    "id": 21,
+    "kind": "unmet-truth",
+    "phase": "02",
+    "file": "915tldr.com2/docs/phase-02/september-backfill-run-manifest.json",
+    "line": null,
+    "description": "September backfill final: of 873 held rows (post attribution-wrapper-fix, post rejudge-held), 155 (17.8%) have source content under 120 chars — a truncated feed teaser genuinely too thin to summarise faithfully, not a judge false positive. By source: KVIA 475, KTSM 389, El Paso Matters 9. Two examples sampled by the owner as genuinely off-topic/unusable source material remain held: id 38769 (Spanish-language Markey/Moulton Massachusetts-politics article, unrelated to El Paso) and id 38830 (hotel-loyalty listicle whose own source text is truncated mid-sentence, 'The article ends during the Best Western section'). These are the gate working correctly on unusable input, not a defect to fix — recorded per plan instruction to quantify and not fix.",
+    "status": "open",
+    "reason": "",
+    "recorded_at": "2026-09-21T08:05:04.788Z",
+    "resolved_at": null
+  },
+  {
+    "id": 22,
+    "kind": "deviation",
+    "phase": "02",
+    "file": "915tldr.com2/scripts/september-backfill-execute.mjs",
+    "line": null,
+    "description": "manifest.actualCostUsd/estimatedJudgeCostUsd only reflect the LAST completing invocation's judge-call fraction (judgeCallCount is scoped per-invocation, not accumulated across resumes), so the manifest's own reported $4.9932 understates true cumulative spend across a run resumed 4 times (original pass, --rejudge-held, a crashed resume, and the final completing resume). True total estimated spend, computed by hand from the full call count (2703 first-pass + 149 rejudge = 2852 judge calls at $0.0015983/call, plus $1.3465 real batch cost): approximately $5.90 — still well inside the $10.42 ceiling, but the manifest field itself should not be trusted as the authoritative total for a multi-invocation run without this correction. Not fixed in this session (out of scope, cost was within ceiling either way) — flagged for whoever next touches this script's cost accounting.",
+    "status": "open",
+    "reason": "",
+    "recorded_at": "2026-09-21T08:05:13.681Z",
     "resolved_at": null
   }
 ]
