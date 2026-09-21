@@ -69,6 +69,7 @@ tech-stack:
 key-files:
   created:
     - 915tldr.com2/docs/phase-02/september-backfill-run-manifest.json
+    - 915tldr.com2/docs/phase-02/editorial-read.md
   modified:
     - 915tldr.com2/server/utils/grounding-check.ts
     - 915tldr.com2/scripts/judge-prompt-mirror.mjs
@@ -118,9 +119,10 @@ key-decisions:
 
 patterns-established: []
 
-requirements-completed: [CONT-10, CONT-11, OPS-11]
-  # CONT-07 (30-summary thin-source editorial read, criterion 4) remains open — this
-  # continuation's authorization did not request it; see Next Phase Readiness.
+requirements-completed: [CONT-10, CONT-11, OPS-11, CONT-07]
+  # CONT-07 (30-summary thin-source editorial read, criterion 4) completed 2026-09-21 in a
+  # second continuation session — see "CONT-07: The 30-Summary Editorial Read" below and
+  # 915tldr.com2/docs/phase-02/editorial-read.md for the full per-row read.
 
 coverage: []
 
@@ -140,7 +142,9 @@ completed: all 2,703 priceable September 2026 articles have their first groundin
 1,830 published, 873 held for review, 0 failed. Real batch cost $1.35 (fixed, from the prior
 session); estimated total spend across the whole operation (corrected for a disclosed gap
 in the script's own cumulative cost tracking) is approximately $5.90 against the owner's
-$10.42 ceiling.**
+$10.42 ceiling. A second continuation (same day) closed the one item left open above: a
+30-summary editorial read of the finished backfill against Phase 2's fourth success
+criterion (CONT-07). Verdict: MET — read in full below.**
 
 ## Performance
 
@@ -336,6 +340,55 @@ slugs, none showing signs of AI-regenerated identity fields.
   uses "prompt" or names a model
 - Disclosed the cost-tracking accuracy gap in the script's own manifest field via WINDOWS.md
   rather than letting a flattering-but-wrong number stand
+- **(This continuation, same day) Read 30 post-backfill summaries against their sources and
+  ruled on CONT-07** — see below
+
+## CONT-07: The 30-Summary Editorial Read
+
+**A second same-day continuation closed the one item the prior continuation explicitly left
+open** ("Next Phase Readiness" below, as originally written, named this the sole remaining
+gap). Full detail, per-row verdicts and every quoted example live in
+`915tldr.com2/docs/phase-02/editorial-read.md`; this section summarizes the method and the
+ruling.
+
+**Sample:** 30 rows, read-only from production D1, zero OpenAI spend (a human/editorial read
+of already-stored text, not a generated or judged one). Stratified deliberately, not drawn at
+random: 15 KTSM thin-source rows (confirmed to be effectively the entire thin-source
+population in the September window — all 584 clean KTSM rows measure under the 90-word
+threshold), including the three known-good examples from the prior checkpoint (38784, 38785,
+38788); 5 El Paso Matters and 7 KVIA full-content rows for contrast; and 3 rows selected as
+"shortest summary produced," which turned out to be WordPress stub posts with no article
+body at all — an unplanned but real finding, not a failed selection.
+
+**Result:** 30/30 faithful (no invented claims), 30/30 non-padded, 30/30 free of the
+verbatim-heavy excerpting CONT-07 specifically names, 15/15 thin-source rows use natural
+in-text attribution. Two near-verbatim single-clause cases from 12-17-word sources are noted
+but not counted as failures — a mathematical consequence of very short sources, not a
+paraphrasing lapse. **4/30 (13%) are editorially weak despite passing every mechanical
+check** — one KTSM row summarizing a single decontextualized quote fragment ("Music was the
+language of his soul."), and three KVIA rows summarizing content-free WordPress auto-footers
+("The post [title] appeared first on KVIA.") — because the stored source content itself is
+essentially empty, not because the summarizer padded, invented, or over-quoted. All four are
+quoted in full in `editorial-read.md` rather than only counted.
+
+**CONT-07 ruling: MET.** The criterion as written — thin sources produce a short, attributed
+summary "without resorting to verbatim-heavy quoting" — holds cleanly across the actual
+thin-source population. The 4 weak cases fail a harder, unstated bar ("is this
+substantively informative," not just "is this honest and non-verbatim") and trace to an
+acquisition-layer gap (near-empty stored content) that summarization cannot fix without
+inventing facts it doesn't have — which would be the fabrication defect this whole phase
+exists to eliminate. `editorial-read.md` states both readings rather than picking the more
+flattering one: CONT-07 as written is satisfied; a small, identifiable, upstream-caused
+minority of inputs still produce low-value output, and that gap is recorded rather than
+smoothed away.
+
+**Two out-of-scope observations surfaced during the read, not acted on here:** (1) KVIA's
+clean pool is heavily wire-syndicated content (CNN, Stacker) rather than KVIA's own local
+reporting — a corpus-composition fact, not a defect. (2) ids 40574 and 40614 carry
+byte-identical stored content and the same `published_at` but are two separate rows with two
+separate AI-generated summaries — a likely `duplicate-detector.ts` miss, flagged for whoever
+next touches that file, not fixed here (duplicate detection is not part of CONT-07 or this
+plan's authorized scope).
 
 ## Task Commits
 
@@ -343,6 +396,9 @@ slugs, none showing signs of AI-regenerated identity fields.
    september-backfill-execute.mjs (`--rejudge-held` mode), judge-responses.json (re-captured
    under new prompt) — committed via `/jja-commit`
 2. **Public changelog entries (docs):** public/changelog.json, changelog/README.md —
+   committed via `/jja-commit`
+3. **CONT-07 editorial read (docs), this continuation:** 915tldr.com2/docs/phase-02/editorial-read.md
+   (new), .planning/phases/02-content-quality-grounding/02-10-SUMMARY.md (updated) —
    committed via `/jja-commit`
 
 (Exact commit hashes recorded by the `/jja-commit` skill; see `changelog/` entries for full
@@ -408,29 +464,35 @@ real backfill judge calls, and multiple `wrangler d1 execute --remote` reads/wri
 
 ## Next Phase Readiness
 
-**This plan's CONT-10/CONT-11/OPS-11 scope is now complete.** The September backfill that
-plan 02-10 exists to deliver is fully resumed and finished: every priceable September 2026
-row has a definite grounding verdict, and the fabrication-fix prompt work from earlier in
-Phase 2 protects it.
+**This plan's CONT-10/CONT-11/OPS-11/CONT-07 scope is now complete.** The September backfill
+that plan 02-10 exists to deliver is fully resumed and finished: every priceable September
+2026 row has a definite grounding verdict, the fabrication-fix prompt work from earlier in
+Phase 2 protects it, and the one qualitative criterion no automated check can satisfy — do
+these thin-source summaries actually read well — has been read and ruled MET (see "CONT-07:
+The 30-Summary Editorial Read" above; full detail in
+`915tldr.com2/docs/phase-02/editorial-read.md`).
 
-**Still open, not part of this continuation's authorized scope:**
+**Still open, not part of this plan's scope:**
 
-1. **CONT-07 (Phase 2 success criterion 4): the 30-summary thin-source editorial read.**
-   The original 02-10-PLAN.md's Task 3 called for sampling 30 re-processed thin-source
-   summaries and reading them against their sources for padding/invented-advisory/verbatim
-   issues. This continuation's authorization was scoped narrowly to the judge fix and the
-   backfill's completion — it did not request this editorial read, and it was not done here.
-   Whoever picks this up next should sample from the 1,830 now-written September rows
-   (real, fresh, post-fix data — better than what was available when 02-10 was first
-   planned).
-2. **The 873 held rows are a real review queue.** D-09's live-gating admin route (WINDOWS.md
+1. **The 873 held rows are a real review queue.** D-09's live-gating admin route (WINDOWS.md
    entry 20, already deferred) remains the mechanism a human would use to actually clear
    this queue; it doesn't exist yet. 155 of the 873 (17.8%) are likely permanently
    unpublishable (source content under 120 chars) rather than waiting on a fix.
-3. **The cost-tracking gap (WINDOWS.md entry 22)** is a real, if minor, accuracy issue in
+2. **The cost-tracking gap (WINDOWS.md entry 22)** is a real, if minor, accuracy issue in
    `manifest.actualCostUsd` for any future multi-invocation run of this script — worth a
    proper fix (cumulative counters persisted across invocations) before this script's
    pattern is reused elsewhere.
+3. **A minimum meaningful-content-length gate at acquisition**, distinct from the existing
+   90-word thin/standard prompt branch — the editorial read found 4/30 sampled summaries
+   (13%) are honest and non-fabricated but editorially hollow because the stored source
+   content is a decontextualized quote fragment or a body-less WordPress stub. This is an
+   acquisition-layer gap, not a summarization-prompt gap, and was out of this task's
+   read-only, zero-spend scope to fix. See `editorial-read.md`'s "Recommendation for future
+   work."
+4. **A likely `duplicate-detector.ts` miss** — ids 40574 and 40614 carry byte-identical
+   stored content and the same `published_at` but were never collapsed into one row. Noted
+   in `editorial-read.md`, not fixed; `duplicate-detector.ts`'s model (still `gpt-4o-mini`)
+   was already a deferred, undecided item in 02-CONTEXT.md before this finding.
 
 ## Self-Check: PASSED
 
@@ -447,4 +509,8 @@ Phase 2 protects it.
 - VERIFIED: production read-only — 1,830 clean + 873 held = 2,703 = submittedIds.length,
   reconciles exactly
 - VERIFIED: `.planning/WINDOWS.md` entries 21 and 22 present
+- FOUND: `915tldr.com2/docs/phase-02/editorial-read.md` — all 30 sampled article ids present,
+  verified by direct string match against the id list actually sampled from production
+- VERIFIED: the 3 forced known-good ids (38784, 38785, 38788) appear in the Group A table
+  with `publish (known-good, confirmed)` verdicts
 - FOUND: this SUMMARY.md
