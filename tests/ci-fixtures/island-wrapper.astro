@@ -1,0 +1,8 @@
+---
+// D-06 fixture: deliberate violation of ARCH-03. An `.astro` island wrapper (the shape a real
+// `src/islands/**` component takes) that renders a Vue component reaching D1 — proves the
+// checker's walk crosses the `.astro` -> `.vue` boundary, not only `.astro` -> `.ts`. Never a
+// real island; never reachable from `pnpm build` (this file lives outside `src/islands/**`).
+import IslandWithD1Import from './island-with-d1-import.vue';
+---
+<IslandWithD1Import server:defer />

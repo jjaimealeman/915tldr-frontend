@@ -1,0 +1,11 @@
+---
+// D-06 fixture: deliberate clean control (Case 3 / T-03-06), mirroring page-with-d1-import.astro's
+// shape (same simulated `prerender = false` on-demand route) but importing only the harmless
+// helper. Proves the checker does not reject every input it is given — see 03-02-SUMMARY.md for
+// the one-time manual inversion that confirms this case is causal, not unconditional.
+export const prerender = false;
+import { harmlessHelper } from './harmless-helper';
+
+const message = harmlessHelper();
+---
+<p>{message}</p>

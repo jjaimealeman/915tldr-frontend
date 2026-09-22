@@ -165,6 +165,15 @@ export function assertNoD1Plugin() {
 
       for (const entry of entrypoints) {
         const seen = new Set();
+        // 03-02 D-06 finding: the original message named only the entry and the terminal
+        // forbidden module, which is silent about *how* the two connect. For an ARCH-03
+        // island violation the interesting fact is which intermediate `.vue`/`.ts` file the
+        // walk passed through to get there — that's exactly the boundary-crossing coverage
+        // ARCH-03 exists to prove, and 03-02's permanent fixture suite asserts the reported
+        // message names that intermediate file, not just the two endpoints. `parent` records
+        // the first discovery edge for each id so the full chain can be reconstructed once a
+        // forbidden id is reached.
+        const parent = new Map();
         const queue = [entry];
         while (queue.length > 0) {
           const id = queue.pop();
@@ -172,18 +181,26 @@ export function assertNoD1Plugin() {
           seen.add(id);
 
           if (isForbidden(normalizeId(id))) {
+            const chain = [id];
+            let cursor = id;
+            while (parent.has(cursor)) {
+              cursor = parent.get(cursor);
+              chain.unshift(cursor);
+            }
             this.error(
-              `[assert-no-d1] D1-import assertion violated: "${entry}" transitively imports ` +
-                `"${id}", which reaches ${FORBIDDEN_TARGET_SUFFIX}. Public entrypoints must ` +
-                'never reach the D1 chokepoint module (ARCH-02 / ARCH-03 / D-05).'
+              `[assert-no-d1] D1-import assertion violated: public entrypoint "${entry}" ` +
+                `reaches ${FORBIDDEN_TARGET_SUFFIX} via ${chain.join(' -> ')}. Public ` +
+                'entrypoints must never reach the D1 chokepoint module (ARCH-02 / ARCH-03 / D-05).'
             );
             return;
           }
 
           const info = this.getModuleInfo(id);
           if (!info) continue;
-          queue.push(...(info.importedIds ?? []));
-          queue.push(...(info.dynamicallyImportedIds ?? []));
+          for (const next of [...(info.importedIds ?? []), ...(info.dynamicallyImportedIds ?? [])]) {
+            if (!seen.has(next) && !parent.has(next)) parent.set(next, id);
+            queue.push(next);
+          }
         }
       }
     },
