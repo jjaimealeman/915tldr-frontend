@@ -209,7 +209,30 @@ Plans:
   4. `curl -I https://dev.915tldr.com` returns `X-Robots-Tag: noindex` from the edge (not an app meta tag); `/version.json` and the public footer both report the deployed short commit hash and build timestamp; the README states the read budget.
   5. Three numbers are recorded, not guessed: cron-worker CPU headroom, per-page render cost in ms, and D1 REST API pagination p50/p95 at 41,233 rows. The render-step location (cron worker / separate worker via Queues / CI) is decided from them and written down.
 
-**Plans**: TBD
+**Plans**: 7 plans in 5 waves
+
+Plans:
+**Wave 1**
+
+- [ ] 03-01-PLAN.md — Package-legitimacy gate, then the end-to-end tracer: one live D1 row rendered to a real URL with a KV manifest entry, assertion live in the build (wave 1)
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
+- [ ] 03-02-PLAN.md — Permanent negative fixtures proving the assertion fires on a page and an island, plus the comment-stripped config guard (wave 2)
+- [ ] 03-03-PLAN.md — Build stamp: `/version.json` and the footer from one module with recorded provenance, plus the README read budget (wave 2)
+- [ ] 03-04-PLAN.md — Manifest schema hardened and documented; one-way decision on how the Spanish counterpart identity is populated (wave 2)
+
+**Wave 3** *(blocked on Wave 2 completion)*
+
+- [ ] 03-05-PLAN.md — Deploy to dev.915tldr.com and serve the edge noindex Transform Rule, verified by live response header (wave 3)
+
+**Wave 4** *(blocked on Wave 3 completion)*
+
+- [ ] 03-06-PLAN.md — The three D-01 measurements, including an empirical answer to the cron CPU ceiling question (wave 4)
+
+**Wave 5** *(blocked on Wave 4 completion)*
+
+- [ ] 03-07-PLAN.md — Render-step location decided from the measured numbers and written down (wave 5)
 
 ### Phase 4: Static Generation, Templates & SEO
 

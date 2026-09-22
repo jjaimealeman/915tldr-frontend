@@ -10,6 +10,7 @@ Entries are named `YYYY-MM-DD-HHMM_slug.md` and grouped by month, newest first.
 
 | Date | Entry | Keywords |
 |------|-------|----------|
+| 2026-09-22 | [Phase 3 plan set: seven plans, five waves, tracer-first](2026-09-22-1144_phase-03-plan-set-read-budget-guardrails.md) | `[PLANNING]` `[INFRA]` `[TESTING]` `[SECURITY]` `[CONFIG]` |
 | 2026-09-21 | [CONT-06 Gap Closure (Plan 02-11)](2026-09-21-1615_cont06-gap-closure-plan-02-11.md) | `[DOCUMENTATION]` `[PLANNING]` `[BACKEND]` `[AI]` |
 | 2026-09-21 | [CONT-07 Editorial Read Closes Plan 02-10](2026-09-21-0910_cont07-editorial-read-closes-plan-10.md) | `[DOCUMENTATION]` `[PLANNING]` `[AI]` |
 | 2026-09-21 | [Complete Plan 02-10: Attribution-Wrapper Judge Fix, September Backfill Finished](2026-09-21-0212_complete-02-10-attribution-fix-and-backfill-completion.md) | `[DOCUMENTATION]` `[BACKEND]` `[AI]` |
