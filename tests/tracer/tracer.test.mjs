@@ -51,9 +51,10 @@ test('tracer: one real article renders and is recorded', async (t) => {
 
     for (const key of [
       'articleId',
-      'spanishCounterpartId',
+      'translationGroupId',
+      'language',
       'contentHash',
-      'renderVersion',
+      'schemaVersion',
       'renderedAt',
       'buildHash',
       'category',
@@ -66,6 +67,10 @@ test('tracer: one real article renders and is recorded', async (t) => {
     }
 
     assert.equal(entry.articleId, row.id);
+    // 03-04 Option C: translationGroupId equals the article's own uuid for every English-only
+    // entry written today — never null, never a pointer to a record that does not exist yet.
+    assert.equal(entry.translationGroupId, row.id);
+    assert.equal(entry.language, 'en');
     assert.match(entry.contentHash, /^[0-9a-f]{64}$/, 'contentHash must be a 64-char hex string');
   });
 });
