@@ -175,10 +175,10 @@
 - [ ] **OPS-02**: `dev.915tldr.com` returns `X-Robots-Tag: noindex` at the edge, verified by response header
 - [ ] **OPS-03**: The Nuxt pipeline and admin serve from `admin.915tldr.com` behind Cloudflare Access
 - [ ] **OPS-04**: Better Auth, its four tables, `/admin/login` and all session handling are removed
-- [ ] **OPS-05**: The deployed short commit hash and build timestamp appear in the public footer
-- [ ] **OPS-06**: `/version.json` exposes the build hash for scripted checks
+- [x] **OPS-05**: The deployed short commit hash and build timestamp appear in the public footer
+- [x] **OPS-06**: `/version.json` exposes the build hash for scripted checks
 - [ ] **OPS-07**: A daily routine reports D1 reads, spend, OpenAI balance, static-asset file count and Core Web Vitals against budget
-- [ ] **OPS-08**: The read budget is stated in the README
+- [x] **OPS-08**: The read budget is stated in the README
 - [ ] **OPS-09**: Rollback to the existing worker is a route change and is verified before cutover
 - [ ] **OPS-10**: The cron run triggers the public site's incremental build
 - [x] **OPS-11**: No operation costing more than $1 runs without prior approval and an estimate
@@ -374,10 +374,10 @@ Deferred. Tracked, not in this roadmap.
 | OPS-02 | Phase 3 | Pending |
 | OPS-03 | Phase 12 | Pending |
 | OPS-04 | Phase 12 | Pending |
-| OPS-05 | Phase 3 | Pending |
-| OPS-06 | Phase 3 | Pending |
+| OPS-05 | Phase 3 | Complete |
+| OPS-06 | Phase 3 | Complete |
 | OPS-07 | Phase 12 | Pending |
-| OPS-08 | Phase 3 | Pending |
+| OPS-08 | Phase 3 | Complete |
 | OPS-09 | Phase 12 | Pending |
 | OPS-10 | Phase 4 | Pending |
 | OPS-11 | Phase 2 | Complete |
