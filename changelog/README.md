@@ -10,6 +10,7 @@ Entries are named `YYYY-MM-DD-HHMM_slug.md` and grouped by month, newest first.
 
 | Date | Entry | Keywords |
 |------|-------|----------|
+| 2026-09-22 | [README states the read budget in numbers (OPS-08)](2026-09-22-1403_03-03-readme-read-budget.md) | `[DOCUMENTATION]` `[CONFIG]` |
 | 2026-09-22 | [Permanent test proves /version.json and the footer cannot disagree](2026-09-22-1401_03-03-cross-surface-build-stamp-test.md) | `[TESTING]` `[SECURITY]` `[BACKEND]` |
 | 2026-09-22 | [One build-info module drives /version.json and the footer stamp](2026-09-22-1358_03-03-build-info-module.md) | `[BACKEND]` `[CONFIG]` `[SECURITY]` |
 | 2026-09-22 | [Wire the D1-import and config gates into the normal test command](2026-09-22-1352_phase-03-02-wire-gates-into-test-unit.md) | `[CONFIG]` `[TESTING]` `[DEPENDENCIES]` |
