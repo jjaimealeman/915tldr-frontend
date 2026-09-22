@@ -10,6 +10,7 @@ Entries are named `YYYY-MM-DD-HHMM_slug.md` and grouped by month, newest first.
 
 | Date | Entry | Keywords |
 |------|-------|----------|
+| 2026-09-22 | [Render manifest schema documented for Phase 4/5/6](2026-09-22-1420_03-04-render-manifest-schema-documented.md) | `[DOCUMENTATION]` `[BACKEND]` `[SECURITY]` |
 | 2026-09-22 | [Translation identity, validation, versioning and bulk writes for the render manifest](2026-09-22-1415_03-04-translation-identity-validated-bulk-manifest-writer.md) | `[BACKEND]` `[TESTING]` `[SECURITY]` `[CONFIG]` |
 | 2026-09-22 | [README states the read budget in numbers (OPS-08)](2026-09-22-1403_03-03-readme-read-budget.md) | `[DOCUMENTATION]` `[CONFIG]` |
 | 2026-09-22 | [Permanent test proves /version.json and the footer cannot disagree](2026-09-22-1401_03-03-cross-surface-build-stamp-test.md) | `[TESTING]` `[SECURITY]` `[BACKEND]` |
