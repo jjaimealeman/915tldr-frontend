@@ -8,11 +8,11 @@
 ### Architecture & Read Budget
 
 - [ ] **ARCH-01**: A public page request completes with zero D1 row reads, verified against Cloudflare D1 analytics
-- [ ] **ARCH-02**: The build fails if any public route, island component, middleware, or endpoint can reach the D1 binding
-- [ ] **ARCH-03**: The D1-import assertion scans island component files and `/_server-islands/*` paths, not only `.astro` pages
-- [ ] **ARCH-04**: Bindings are accessed via `import { env } from 'cloudflare:workers'`; no use of the removed `Astro.locals.runtime.env`
-- [ ] **ARCH-05**: Astro config uses `output: 'static'` with per-route `export const prerender = false`; `'hybrid'` appears nowhere
-- [ ] **ARCH-06**: `imageService` is set explicitly to `{ build: 'compile', runtime: 'passthrough' }` rather than inheriting the `cloudflare-binding` default
+- [x] **ARCH-02**: The build fails if any public route, island component, middleware, or endpoint can reach the D1 binding
+- [x] **ARCH-03**: The D1-import assertion scans island component files and `/_server-islands/*` paths, not only `.astro` pages
+- [x] **ARCH-04**: Bindings are accessed via `import { env } from 'cloudflare:workers'`; no use of the removed `Astro.locals.runtime.env`
+- [x] **ARCH-05**: Astro config uses `output: 'static'` with per-route `export const prerender = false`; `'hybrid'` appears nowhere
+- [x] **ARCH-06**: `imageService` is set explicitly to `{ build: 'compile', runtime: 'passthrough' }` rather than inheriting the `cloudflare-binding` default
 - [ ] **ARCH-07**: Total D1 reads per day stay under 2,000,000 for 7 consecutive days
 - [ ] **ARCH-08**: A public request performs at most 1 KV read and under 5ms Worker CPU
 
@@ -23,7 +23,7 @@
 - [ ] **REND-03**: A regression test reproduces the `/changelog` empty-state failure and proves the loader rejects it
 - [ ] **REND-04**: Homepage, category pages, tag indexes and static pages regenerate on each cron cycle via a new Worker deployment
 - [ ] **REND-05**: Only new and changed articles re-render; unchanged articles are not recomputed
-- [ ] **REND-06**: A render manifest in KV records what has been rendered and at which version
+- [x] **REND-06**: A render manifest in KV records what has been rendered and at which version
 - [ ] **REND-07**: Articles outside the hot window are rendered once to R2 and served from there
 - [ ] **REND-08**: A request for an archived article falls through the static-asset layer to the Worker and is served from R2
 - [ ] **REND-09**: Tag pages default to the archive tier; only top-N tags by article count are promoted to hot static
@@ -249,11 +249,11 @@ Deferred. Tracked, not in this roadmap.
 | Requirement | Phase | Status |
 |-------------|-------|--------|
 | ARCH-01 | Phase 5 | Pending |
-| ARCH-02 | Phase 3 | Pending |
-| ARCH-03 | Phase 3 | Pending |
-| ARCH-04 | Phase 3 | Pending |
-| ARCH-05 | Phase 3 | Pending |
-| ARCH-06 | Phase 3 | Pending |
+| ARCH-02 | Phase 3 | Complete |
+| ARCH-03 | Phase 3 | Complete |
+| ARCH-04 | Phase 3 | Complete |
+| ARCH-05 | Phase 3 | Complete |
+| ARCH-06 | Phase 3 | Complete |
 | ARCH-07 | Phase 12 | Pending |
 | ARCH-08 | Phase 5 | Pending |
 | REND-01 | Phase 4 | Pending |
@@ -261,7 +261,7 @@ Deferred. Tracked, not in this roadmap.
 | REND-03 | Phase 4 | Pending |
 | REND-04 | Phase 4 | Pending |
 | REND-05 | Phase 4 | Pending |
-| REND-06 | Phase 3 | Pending |
+| REND-06 | Phase 3 | Complete |
 | REND-07 | Phase 5 | Pending |
 | REND-08 | Phase 5 | Pending |
 | REND-09 | Phase 5 | Pending |

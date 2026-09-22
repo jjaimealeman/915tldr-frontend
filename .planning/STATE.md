@@ -2,18 +2,18 @@
 gsd_state_version: 1.0
 milestone: v1.5
 milestone_name: milestone
-current_phase: 3
-current_phase_name: Foundation & Read-Budget Guardrails
+current_phase: 03
+current_phase_name: foundation-read-budget-guardrails
 status: executing
-stopped_at: Phase 3 context gathered
-last_updated: "2026-09-22T17:43:43.467Z"
-last_activity: 2026-09-21
-last_activity_desc: Phase 02 complete, transitioned to Phase 3
+stopped_at: "Completed 03-01-PLAN.md (tracer: one real article end to end)"
+last_updated: "2026-09-22T19:33:20.928Z"
+last_activity: 2026-09-22
+last_activity_desc: Phase 03 execution started
 progress:
   total_phases: 3
   completed_phases: 2
   total_plans: 40
-  completed_plans: 33
+  completed_plans: 34
 ---
 
 # Project State
@@ -23,16 +23,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-09-16)
 
 **Core value:** Zero D1 reads on the public request path — architecturally zero, enforced structurally at build time.
-**Current focus:** Phase 02 — content-quality-grounding
+**Current focus:** Phase 03 — foundation-read-budget-guardrails
 
 ## Current Position
 
-Phase: 3 — Foundation & Read-Budget Guardrails
-Plan: Not started
+Phase: 03 (foundation-read-budget-guardrails) — EXECUTING
+Plan: 2 of 7
 Status: Ready to execute
-Last activity: 2026-09-21 — Phase 02 complete, transitioned to Phase 3
+Last activity: 2026-09-22 — Phase 03 execution started
 
-Progress: [████████░░] 82%
+Progress: [█████████░] 85%
 
 ## Performance Metrics
 
@@ -81,6 +81,7 @@ Progress: [████████░░] 82%
 | Phase 01 P21 | 35min | 3 tasks | 20 files |
 | Phase 01 P22 | 19min | 3 tasks | 8 files |
 | Phase 02 P04 | 131min | 3 tasks | 13 files |
+| Phase 03 P01 | ~10min (continuation) | 2 tasks | 19 files |
 
 ## Accumulated Context
 
@@ -153,6 +154,9 @@ Recent decisions affecting current work:
 - [Phase ?]: 02-04: D-03/D-CAUTION-2 CONFIRMED — linkedom/worker + Readability runs inside a real Workers runtime, proven via a live wrangler dev tracer run (no HTMLRewriter fallback needed)
 - [Phase ?]: 02-04: requirements-completed deliberately omits CONT-01 — its success criterion is a corpus-level statistic (near-zero truncation-marker rate at ingest), proven only for n=1 by this tracer; left pending for plan 02-05+'s at-scale validation
 - [Phase ?]: 02-04: grounding gate (checkGrounding) proven live — correctly held a real article after catching two genuine unsupported claims, and published a clean one; gpt-5.6-luna needed max_completion_tokens (not max_tokens) and no custom temperature, discovered only by running the live endpoint
+- [Phase ?]: wrangler pinned to 4.136.3 (current latest) instead of the plan's researched 4.136.1 — build-time-only CLI, no architectural risk, human-approved within Task 1's package-legitimacy gate
+- [Phase ?]: Dedicated KV namespace 915tldr-render-manifest created (id 3c92531f94294fcc94006455f433885f) rather than reusing the Nuxt pipeline app's existing KV/CACHE namespaces
+- [Phase ?]: wrangler.jsonc corrected against a real build: no main field, assets.directory is dist/client not dist, session: false set explicitly — @astrojs/cloudflare 14.3.2's real output shape differs from 03-RESEARCH.md's assumption
 
 ### Pending Todos
 
@@ -170,6 +174,7 @@ Recent decisions affecting current work:
 - Phase 1: Criterion 5 (font-swap CLS) requires an owner decision before 01-APPROVAL.md — accept the documented residual shift, adjust the fallback font stack, or reopen the font-display:swap PRD decision. See 01-09-SUMMARY.md and design/evidence/font-cls.md.
 - **RESOLVED — Phase 1, 01-13 Task 1** (see WINDOWS.md entries 9-12, all `fixed`; supersedes the two prior blocker lines this replaces). Entries 9/10's claim that Chromium's `font-display:optional` genuinely fails to prevent a late swap was WRONG — refuted by the coordinator's rigorous reflow-probe (scroll + forced reflow + a new same-family span never swapped) and confirmed via authoritative CDP `CSS.getPlatformFontsForNode`. True root cause (entry 11): this dev machine has "Instrument Serif"/"Source Serif 4" (this project's own primary webfont names) installed as local user fonts under `~/.local/share/fonts` (leftover from earlier design work); a same-named local font collision makes Chromium apply a late-arriving optional font, purely a test-environment contamination bug. Fixed in `design/scripts/pw.mjs` by isolating `XDG_DATA_HOME` for native (non-Docker) Playwright launches. A second, unrelated, real bug (entry 12) was found while getting the new `referenceNativeCls` check to pass honestly: index.html's theme-toggle button used `display:` while `[hidden]`, so JS revealing it after DOMContentLoaded caused a real, font-unrelated CLS (confirmed with a fonts-free control). Fixed in `design/mockups/style.css` (`visibility:hidden` instead, same box reserved). `MOCKUP_PAGES=index node design/scripts/pw.mjs --project=all design/tests/font-cls.spec.ts` now passes cleanly and repeatably (3/3 runs, both engines): every row classifies fallback-kept/prePaintObserved:true/fontDisplay:optional. Tasks 2-3 unblocked, no owner decision needed, no threshold weakened.
 - **UPDATED — Phase 1, 01-23 Task 2/3** (supersedes the prior line above). The owner completed the round-2 review and replied **APPROVED**, with spot comments on article/changelog/contact/load-more and two new feature requests (sticky rail, Astro view transitions — both deferred to the Astro build phase, see Pending Todos). Per this plan's own non-negotiable rule (T-01-32/T-01-33, "the executor never writes the owner's sign-off line, and never records an approval on the owner's behalf"), the executor did NOT add the `Approved-by:` line to `01-APPROVAL.md` — that relayed "APPROVED" came through the orchestrator, not the owner's own hand on the file, and the plan requires the literal line to be the owner's own act. **Remaining step (owner-only, not a code blocker):** add `Approved-by: <name> — 2026-09-17` to the "## Owner sign-off" section of `01-APPROVAL.md`, then `pnpm run verify:approval` will exit 0 and a trivial follow-up commit finalizes Task 3.
+- **RESOLVED — Phase 3, 03-01 Task 2.** The Cloudflare token gained `Workers KV Storage:Edit` (D1:Edit and the account id were confirmed intact in the same pass). The `915tldr-render-manifest` KV namespace was created (id `3c92531f94294fcc94006455f433885f`), wired into `wrangler.jsonc` and a gitignored `.dev.vars`. `pnpm build` and `pnpm test:tracer` both pass end-to-end against the real D1 row and the real KV namespace; Phase 1's 43-test suite is unaffected. Three further build-blocking issues were found and fixed in the same session (stale `wrangler.jsonc` `main` field, an unwanted auto-provisioned `SESSION` KV binding, and a bundler bug dropping a frontmatter-local `slugify()` function) — see 03-01-SUMMARY.md for full detail. 03-01 is complete.
 
 ## Deferred Items
 
@@ -181,6 +186,6 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-09-21T19:20:43.066Z
-Stopped at: Phase 3 context gathered
-Resume file: .planning/phases/03-foundation-read-budget-guardrails/03-CONTEXT.md
+Last session: 2026-09-22T19:33:20.911Z
+Stopped at: Completed 03-01-PLAN.md (tracer: one real article end to end)
+Resume file: None

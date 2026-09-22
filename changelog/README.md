@@ -10,6 +10,7 @@ Entries are named `YYYY-MM-DD-HHMM_slug.md` and grouped by month, newest first.
 
 | Date | Entry | Keywords |
 |------|-------|----------|
+| 2026-09-22 | [Complete Plan 03-01: Tracer Summary and Requirement Tracking](2026-09-22-1333_complete-plan-03-01-tracer-summary.md) | `[DOCUMENTATION]` `[PLANNING]` `[TESTING]` |
 | 2026-09-22 | [Phase 3 Plan 1: One Real Article, End to End](2026-09-22-1329_phase-03-01-tracer-one-real-article.md) | `[FEATURE]` `[BACKEND]` `[API]` `[CONFIG]` `[DEPENDENCIES]` `[TESTING]` `[INFRA]` |
 | 2026-09-22 | [Phase 3 plan set: seven plans, five waves, tracer-first](2026-09-22-1144_phase-03-plan-set-read-budget-guardrails.md) | `[PLANNING]` `[INFRA]` `[TESTING]` `[SECURITY]` `[CONFIG]` |
 | 2026-09-21 | [CONT-06 Gap Closure (Plan 02-11)](2026-09-21-1615_cont06-gap-closure-plan-02-11.md) | `[DOCUMENTATION]` `[PLANNING]` `[BACKEND]` `[AI]` |
