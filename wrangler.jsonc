@@ -25,7 +25,6 @@
   // access happens once, in Node, at build time (src/lib/server/d1-client.ts), never inside the
   // deployed Worker. Absence here is what makes a runtime D1 read structurally impossible
   // (env.DB is undefined) rather than merely forbidden by convention (Pattern 2, D-05, T-03-01).
-  // <!-- planner-discipline-allow: d1_databases -->
   //
   // KV Namespaces — one dedicated namespace for the render manifest (D-03), NOT the Nuxt app's
   // existing `KV`/`CACHE` namespaces (915tldr.com2/wrangler.jsonc), per 03-RESEARCH.md Open
