@@ -5,15 +5,15 @@ milestone_name: milestone
 current_phase: 03
 current_phase_name: foundation-read-budget-guardrails
 status: executing
-stopped_at: "Completed 03-01-PLAN.md (tracer: one real article end to end)"
-last_updated: "2026-09-22T19:33:20.928Z"
+stopped_at: Completed 03-02-PLAN.md
+last_updated: "2026-09-22T19:52:06.895Z"
 last_activity: 2026-09-22
 last_activity_desc: Phase 03 execution started
 progress:
   total_phases: 3
   completed_phases: 2
   total_plans: 40
-  completed_plans: 34
+  completed_plans: 35
 ---
 
 # Project State
@@ -28,11 +28,11 @@ See: .planning/PROJECT.md (updated 2026-09-16)
 ## Current Position
 
 Phase: 03 (foundation-read-budget-guardrails) — EXECUTING
-Plan: 2 of 7
+Plan: 3 of 7
 Status: Ready to execute
 Last activity: 2026-09-22 — Phase 03 execution started
 
-Progress: [█████████░] 85%
+Progress: [█████████░] 88%
 
 ## Performance Metrics
 
@@ -82,6 +82,7 @@ Progress: [█████████░] 85%
 | Phase 01 P22 | 19min | 3 tasks | 8 files |
 | Phase 02 P04 | 131min | 3 tasks | 13 files |
 | Phase 03 P01 | ~10min (continuation) | 2 tasks | 19 files |
+| Phase 03 P02 | 16min | 3 tasks | 12 files |
 
 ## Accumulated Context
 
@@ -157,6 +158,10 @@ Recent decisions affecting current work:
 - [Phase ?]: wrangler pinned to 4.136.3 (current latest) instead of the plan's researched 4.136.1 — build-time-only CLI, no architectural risk, human-approved within Task 1's package-legitimacy gate
 - [Phase ?]: Dedicated KV namespace 915tldr-render-manifest created (id 3c92531f94294fcc94006455f433885f) rather than reusing the Nuxt pipeline app's existing KV/CACHE namespaces
 - [Phase ?]: wrangler.jsonc corrected against a real build: no main field, assets.directory is dist/client not dist, session: false set explicitly — @astrojs/cloudflare 14.3.2's real output shape differs from 03-RESEARCH.md's assumption
+- [Phase ?]: 03-02: Drove D1-import fixture suite by invoking assertNoD1Plugin().buildEnd() directly against a synthesized PluginContext stub built from fixtures' real imports, not a full astro build — kept suite inside the 90s ceiling (~80ms).
+- [Phase ?]: 03-02: Enhanced assert-no-d1.mjs's rejection message to report the full BFS chain (entry -> ... -> forbidden module), not just the two endpoints, so the island case can name the intermediate .vue file it crosses through.
+- [Phase ?]: 03-02: ARCH-06 (imageService) tested via node:vm evaluation of the real cloudflare(...) call argument, not astro.config.mjs's resolved export — @astrojs/cloudflare v14.3.2 closes over imageService internally and never re-exposes it.
+- [Phase ?]: 03-02: Removed a stray planner-discipline-allow marker that had leaked from 03-01-PLAN.md into the real wrangler.jsonc, the only literal occurrence of d1_databases in the file, which tripped the new T-03-01 guard.
 
 ### Pending Todos
 
@@ -186,6 +191,6 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-09-22T19:33:20.911Z
-Stopped at: Completed 03-01-PLAN.md (tracer: one real article end to end)
+Last session: 2026-09-22T19:52:06.879Z
+Stopped at: Completed 03-02-PLAN.md
 Resume file: None
