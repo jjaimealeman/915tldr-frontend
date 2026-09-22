@@ -5,15 +5,15 @@ milestone_name: milestone
 current_phase: 03
 current_phase_name: foundation-read-budget-guardrails
 status: executing
-stopped_at: Completed 03-03-PLAN.md
-last_updated: "2026-09-22T20:04:20.661Z"
+stopped_at: Completed 03-04-PLAN.md
+last_updated: "2026-09-22T20:19:14.479Z"
 last_activity: 2026-09-22
 last_activity_desc: Phase 03 execution started
 progress:
   total_phases: 3
   completed_phases: 2
   total_plans: 40
-  completed_plans: 36
+  completed_plans: 37
 ---
 
 # Project State
@@ -28,11 +28,11 @@ See: .planning/PROJECT.md (updated 2026-09-16)
 ## Current Position
 
 Phase: 03 (foundation-read-budget-guardrails) — EXECUTING
-Plan: 4 of 7
+Plan: 5 of 7
 Status: Ready to execute
 Last activity: 2026-09-22 — Phase 03 execution started
 
-Progress: [█████████░] 90%
+Progress: [█████████░] 93%
 
 ## Performance Metrics
 
@@ -84,6 +84,7 @@ Progress: [█████████░] 90%
 | Phase 03 P01 | ~10min (continuation) | 2 tasks | 19 files |
 | Phase 03 P02 | 16min | 3 tasks | 12 files |
 | Phase 03 P03 | ~50min | 3 tasks | 6 files |
+| Phase 03 P04 | ~35min | 2 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -165,6 +166,9 @@ Recent decisions affecting current work:
 - [Phase ?]: 03-02: Removed a stray planner-discipline-allow marker that had leaked from 03-01-PLAN.md into the real wrangler.jsonc, the only literal occurrence of d1_databases in the file, which tripped the new T-03-01 guard.
 - [Phase ?]: Deploy path resolved as local wrangler deploy (not git-connected Workers Builds CI), verified via Workers Builds API against this account's existing Workers (zero build history).
 - [Phase ?]: resolveBuildHash exported as a pure function of env for direct testability, per 03-03-PLAN.md Task 2's stated preference.
+- [Phase ?]: 03-04: Task 1 checkpoint resolved as Option C — translationGroupId + language replace spanishCounterpartId; the group id equals the article's own uuid today and is never null, reusing the existing duplicate_groups pattern already live in production D1.
+- [Phase ?]: 03-04: renderVersion renamed to schemaVersion; buildManifestEntry no longer accepts a version param at all — every entry gets the exported MANIFEST_SCHEMA_VERSION automatically, closing the drift that produced the 03-01 tracer's hand-written renderVersion: '0'.
+- [Phase ?]: 03-04: KV bulk-write 10,000-pair ceiling carried forward from 03-RESEARCH.md's already-fetched citation, not re-verified live — the cloudflare-docs MCP tool was unavailable in this execution's tool surface; flagged in docs/phase-03/render-manifest.md and SUMMARY coverage item D7 for confirmation before corpus-scale use.
 
 ### Pending Todos
 
@@ -194,6 +198,6 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-09-22T20:04:20.646Z
-Stopped at: Completed 03-03-PLAN.md
+Last session: 2026-09-22T20:19:14.461Z
+Stopped at: Completed 03-04-PLAN.md
 Resume file: None
