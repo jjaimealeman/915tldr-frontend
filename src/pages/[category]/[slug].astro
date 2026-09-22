@@ -1,0 +1,65 @@
+---
+// D-02 tracer: one real article, read from production D1 at build time, rendered through the
+// approved chrome, with its render-manifest entry written in the same build. Preserves the
+// nine-months-indexed URL shape `/[category]/[slug]-[uuid]` (`.claude/CLAUDE.md` compatibility
+// constraint) — the `[slug]` param itself carries the trailing uuid.
+//
+// No rail, no related-articles, no tag list here — those are expansion (Phase 4). This is the
+// one path the whole Phase 3 architecture is proven against (D-02).
+import Base from '../../layouts/Base.astro';
+import { fetchLatestArticle } from '../../lib/server/d1-client';
+import { buildManifestEntry, putManifestEntry } from '../../lib/kv-manifest';
+import { slugify } from '../../lib/slug';
+
+export async function getStaticPaths() {
+  const row = await fetchLatestArticle();
+  if (!row) {
+    throw new Error('[slug].astro: fetchLatestArticle() returned no row — cannot build the tracer page');
+  }
+
+  const buildHash = process.env.WORKERS_CI_COMMIT_SHA ?? 'local-dev';
+
+  await putManifestEntry(
+    await buildManifestEntry(row, { renderVersion: '0', buildHash })
+  );
+
+  return [
+    {
+      params: {
+        category: row.category,
+        slug: `${slugify(row.title)}-${row.id}`,
+      },
+      props: { row },
+    },
+  ];
+}
+
+const { row } = Astro.props;
+
+// row.published_at is epoch SECONDS (production schema, confirmed against a real row) — not an
+// ISO string, and not epoch milliseconds.
+const publishedDate = new Date(row.published_at * 1000);
+const publishedLabel = publishedDate.toLocaleString('en-US', {
+  month: 'short',
+  day: 'numeric',
+  hour: 'numeric',
+  minute: '2-digit',
+});
+---
+
+<Base page="article" title={`915 TLDR — ${row.title}`}>
+  <article data-uuid={row.id} data-category={row.category} data-reading-column>
+    <header data-block data-category={row.category}>
+      <p><a href={`/${row.category}`}>{row.category}</a></p>
+      <p data-byline>
+        <time datetime={publishedDate.toISOString()}>{publishedLabel}</time>
+      </p>
+    </header>
+
+    <h1>{row.title}</h1>
+
+    <div data-article-body>
+      <p>{row.summary}</p>
+    </div>
+  </article>
+</Base>
