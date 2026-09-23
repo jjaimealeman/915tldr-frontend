@@ -10,6 +10,7 @@ Entries are named `YYYY-MM-DD-HHMM_slug.md` and grouped by month, newest first.
 
 | Date | Entry | Keywords |
 |------|-------|----------|
+| 2026-09-23 | [Trailing-slash redirect deferral recorded as an explicit Phase 4 carry-over](2026-09-23-1830_trailing-slash-deferral-recorded-in-roadmap.md) | `[DOCUMENTATION]` `[SEO]` `[ARCHITECTURE]` |
 | 2026-09-23 | [Render-step location decided (D-01): Option A, ruled in by measured ingest volume](2026-09-23-1345_render-step-location-decided-option-a.md) | `[ARCHITECTURE]` `[DOCUMENTATION]` `[INFRA]` `[DEPLOYMENT]` |
 | 2026-09-23 | [03-06 Addendum: Bulk-fetch query shape solves the D1 rows-read budget, not the cron CPU ceiling](2026-09-23-0730_03-06-addendum-bulk-fetch-solves-d1-budget-not-cpu-ceiling.md) | `[BACKEND]` `[DATABASE]` `[PERFORMANCE]` `[TESTING]` `[DOCUMENTATION]` |
 | 2026-09-23 | [Cron CPU ceiling measured — STATE.md's 300s figure was wrong by 3x](2026-09-23-0058_cron-cpu-ceiling-measured.md) | `[BACKEND]` `[PERFORMANCE]` `[SECURITY]` `[DOCUMENTATION]` `[BUG_FIX]` |

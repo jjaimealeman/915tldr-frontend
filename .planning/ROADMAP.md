@@ -247,6 +247,16 @@ Plans:
   4. Every existing `/[category]/[slug]-[uuid]` URL still resolves with a correct canonical; `/rss.xml` and the per-bot `robots.txt` (AI-crawler and `Content-signal` rules intact) are preserved; the 404 suggestion endpoint still answers.
   5. `NewsArticle`, `BreadcrumbList`, `Organization` and `WebSite` structured data validate clean in the Rich Results Test on a real article (validated, not merely emitted); the Google News sitemap contains only the last 48 hours; every article carries an AI-generation disclosure at point of consumption and a prominent canonical link to the originating outlet.
 
+**Carried from Phase 3 (owner decision, 03-UAT.md item 1, 2026-09-23):** v2 currently serves
+`/path` → 307 → `/path/` (Astro's default directory-style output, no `trailingSlash` set) while
+v1 serves `/path` → 200 directly — measured live on both. Every v1-emitted indexed link is in the
+no-slash form, so under v2 every one of nine months of indexed URLs would take an extra redirect
+hop against a release-blocking 1.5s LCP budget, and criterion 4 above ("every existing
+`/[category]/[slug]-[uuid]` URL still resolves") is satisfied but not "unchanged". Likely fix:
+`trailingSlash: 'never'` with `build.format: 'file'` in `astro.config.mjs` — not applied in Phase
+3; this criterion and SEO-04/FIX-04/FIX-05 (already mapped to this phase in REQUIREMENTS.md) are
+where it must be resolved.
+
 **Plans**: TBD
 **UI hint**: yes
 
