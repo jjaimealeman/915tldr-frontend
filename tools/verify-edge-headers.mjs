@@ -95,10 +95,73 @@
 // Requires CLOUDFLARE_ACCOUNT_ID / CLOUDFLARE_API_TOKEN / RENDER_MANIFEST_KV_NAMESPACE_ID in
 // process.env (same OPS-11 convention as src/lib/server/d1-client.ts and src/lib/kv-manifest.ts)
 // — needed only for check 4's live discovery; checks 1-3 make no D1/KV calls.
+//
+// --- .dev.vars auto-load (2026-09-23, follow-up to the hardening above) ---
+// The first hardening pass fixed the false-negative discovery bug but left a second instance of
+// the same failure class: run from a fresh shell with none of the three vars above already
+// exported, check 4 failed with `RENDER_MANIFEST_KV_NAMESPACE_ID is not set in the environment` —
+// correct and clear (unlike the false noindex-violation report it replaced), but OPS-02's whole
+// point is "a command someone actually runs on every deploy," and a command that requires manual
+// `export` first is a command that gets skipped, arriving at the same "guard nobody trusts"
+// destination by a different road. `RENDER_MANIFEST_KV_NAMESPACE_ID` already lives in `.dev.vars`
+// (gitignored, present on disk per wrangler.jsonc's own comment) — `loadDevVars()` below reads it
+// directly so a fresh shell works with zero setup. An already-set `process.env` value always
+// wins and is never overwritten, so CI (or a developer who deliberately exports a different
+// value) can still override without touching this file. A missing or unreadable `.dev.vars` is
+// NOT an error here — `requireEnv()` inside d1-client.ts/kv-manifest.ts still throws its own
+// specific "X is not set" error the moment a genuinely-missing variable is actually used, which
+// is a clearer failure than anything a loader could raise pre-emptively.
 
+import { readFileSync, existsSync } from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { fetchArticleById } from '../src/lib/server/d1-client.ts';
 import { getManifestEntry, listManifestArticleIds } from '../src/lib/kv-manifest.ts';
 import { slugify } from '../src/lib/slug.ts';
+
+const PROJECT_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
+const DEV_VARS_PATH = path.join(PROJECT_ROOT, '.dev.vars');
+
+/**
+ * Loads `.dev.vars` (Wrangler's gitignored local-dev vars file) into `process.env` for any key
+ * not already set. Parses plain `KEY=value` lines — the same minimal shape `.dev.vars` already
+ * uses — skipping blank lines and `#` comments, and stripping one layer of matching single/double
+ * quotes around the value if present. Never throws: an absent or unreadable file is a silent
+ * no-op, deferring to `requireEnv()`'s own error at the point a variable is actually used.
+ */
+function loadDevVars() {
+  if (!existsSync(DEV_VARS_PATH)) return;
+
+  let contents;
+  try {
+    contents = readFileSync(DEV_VARS_PATH, 'utf8');
+  } catch {
+    return; // unreadable (permissions, race, etc.) — fall through to requireEnv()'s clear error
+  }
+
+  for (const line of contents.split('\n')) {
+    const trimmed = line.trim();
+    if (!trimmed || trimmed.startsWith('#')) continue;
+
+    const eq = trimmed.indexOf('=');
+    if (eq === -1) continue;
+
+    const key = trimmed.slice(0, eq).trim();
+    let value = trimmed.slice(eq + 1).trim();
+    if (
+      (value.startsWith('"') && value.endsWith('"')) ||
+      (value.startsWith("'") && value.endsWith("'"))
+    ) {
+      value = value.slice(1, -1);
+    }
+
+    if (key && !(key in process.env)) {
+      process.env[key] = value;
+    }
+  }
+}
+
+loadDevVars();
 
 const ROBOTS_META_RE = /<meta[^>]+name=["']robots["'][^>]*>/i;
 
