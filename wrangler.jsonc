@@ -10,6 +10,27 @@
   // task's own build, not in 03-RESEARCH.md.
   "compatibility_date": "2026-09-16",
   "compatibility_flags": ["nodejs_compat"],
+  // `workers_dev: false` set explicitly (deviation Rule 2 — missing critical, not in
+  // 03-RESEARCH.md or the plan's own action text). Omitting this key defaults to `true`,
+  // which hands the Worker a free public `915tldr-v2.<account>.workers.dev` hostname — a
+  // byte-identical, crawlable duplicate of dev.915tldr.com carrying the account owner's
+  // personal Cloudflare account name, and OUTSIDE the noindex Transform Rule's exact-hostname
+  // match (docs/phase-03/edge-config.md), since that rule only covers dev.915tldr.com and
+  // admin-dev.915tldr.com. Shipping this app with the default would create exactly the kind
+  // of unindexed-in-name-only duplicate host this plan exists to prevent.
+  "workers_dev": false,
+  // Custom Domain: this Worker owns dev.915tldr.com exclusively. Custom Domains take
+  // precedence over zone Worker Routes when both match the same hostname (confirmed against
+  // Cloudflare's own docs, "Custom Domains > Interaction with Routes"), which is what makes
+  // this deploy safe to run before the old 915tldr-dev Worker Route for the same hostname is
+  // removed (03-05 Task 1 step 5) — the old route becomes dead the instant this Custom Domain
+  // reattaches, not merely lower-priority.
+  "routes": [
+    {
+      "pattern": "dev.915tldr.com",
+      "custom_domain": true,
+    },
+  ],
   // Assets (prerendered static output from `astro build`). Directory is `dist/client`, NOT
   // `dist` — a finding from this task's own build, not in 03-RESEARCH.md: @astrojs/cloudflare
   // sets the adapter feature `preserveBuildClientDir` (and `preserveBuildServerDir`) so even a

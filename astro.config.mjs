@@ -22,13 +22,19 @@ import { assertNoD1Plugin } from './tools/assert-no-d1.mjs';
 export default defineConfig({
   output: 'static',
   site: 'https://dev.915tldr.com',
+  // This tracer uses no `server:defer` islands and no Astro Sessions API. `session` is
+  // Astro's OWN top-level config key (astro/dist/types/public/config.d.ts), not an adapter
+  // option — 03-01 originally set this INSIDE the `cloudflare({...})` call below, where the
+  // adapter's `...cloudflareOptions` spread silently absorbs and ignores it (the adapter reads
+  // `config.session`, i.e. this top-level key, never anything passed to its own factory). That
+  // placement was a no-op: the adapter still auto-provisioned an unrequested `SESSION` KV
+  // binding on every build, confirmed live by this plan's first real `wrangler deploy` (03-05
+  // Task 1) showing `env.SESSION` bound with no id. Fixed by moving the key to where Astro
+  // itself actually reads it (deviation Rule 1 — 03-01's original fix never worked).
+  session: false,
   adapter: cloudflare({
     imageService: { build: 'compile', runtime: 'passthrough' },
     prerenderEnvironment: 'node',
-    // This tracer uses no `server:defer` islands and no Astro Sessions API. Without this,
-    // the adapter auto-provisions a `SESSION` KV binding and worker bundle we never asked for
-    // and never use — noise discovered against a real build, not in 03-RESEARCH.md.
-    session: false,
   }),
   integrations: [vue()],
   vite: {
