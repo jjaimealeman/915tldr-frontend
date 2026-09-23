@@ -10,6 +10,7 @@ Entries are named `YYYY-MM-DD-HHMM_slug.md` and grouped by month, newest first.
 
 | Date | Entry | Keywords |
 |------|-------|----------|
+| 2026-09-22 | [D1 REST pagination measurement harness surfaces a 49M-row offset-pagination finding](2026-09-22-2258_d1-pagination-measurement-harness.md) | `[BACKEND]` `[DATABASE]` `[PERFORMANCE]` `[TESTING]` |
 | 2026-09-22 | [One command re-proves the edge noindex policy on every deploy](2026-09-22-2241_03-05-verify-edge-command-completes-plan.md) | `[TESTING]` `[SECURITY]` `[DEPLOYMENT]` `[BUG_FIX]` `[DOCUMENTATION]` |
 | 2026-09-22 | [915tldr-v2 deployed to dev.915tldr.com, production untouched](2026-09-22-2235_03-05-deploy-915tldr-v2-to-dev-hostname.md) | `[DEPLOYMENT]` `[INFRA]` `[BUG_FIX]` `[SECURITY]` `[CONFIG]` |
 | 2026-09-22 | [Edge noindex Transform Rule now covers dev and admin-dev](2026-09-22-2223_03-05-edge-noindex-rule-covers-dev-and-admin-dev.md) | `[INFRA]` `[SECURITY]` `[DEPLOYMENT]` `[DOCUMENTATION]` |
