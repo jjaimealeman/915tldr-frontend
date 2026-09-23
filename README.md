@@ -1,5 +1,10 @@
 # 915 TLDR — v2 Rebuild
 
+```
+915tldr.com    frontend — public site (Astro).      Reads D1 at build time.
+915tldr.com2   backend  — pipeline + admin (Nuxt).  Owns the 2-hourly ingest cron.
+```
+
 915 TLDR is a local news aggregator for El Paso. It pulls RSS from three local outlets,
 summarises each article with an LLM, tags and categorises it, detects cross-source duplicates,
 and publishes the result as a free, ad-free community news site.
@@ -13,6 +18,31 @@ LLM summarisation, tagging, dedup, and the Nuxt-based admin UI are a separate re
 repo reads the same production D1 database that pipeline writes to, but contains none of its
 ingestion or generation code. If you're looking for "how does an article get summarised," you
 want the other tree.
+
+## This is a split, not a replacement — both repos stay alive indefinitely
+
+`915tldr.com` (this repo) is the public site only. `915tldr.com2` owns the pipeline and admin,
+including the `"0 */2 * * *"` ingest cron (`server/api/cron`) and the admin UI (`server/api/admin`)
+— it is not being retired or folded into this rebuild. Evidence this is permanent, not a
+transitional state:
+
+- PROJECT.md: "v2 is a rebuild of the public site and its delivery architecture, **not** of the
+  pipeline behind it" and "Nuxt app retained for pipeline/admin."
+- ROADMAP Phase 6 ("Bilingual — Spanish summaries **at ingest**") is backend work, done in
+  `915tldr.com2`, not here.
+- ROADMAP Phase 12's own success criterion: "The Nuxt pipeline and admin serve from
+  **`admin.915tldr.com`**" — the roadmap's *final* phase describes the Nuxt app as live
+  production infrastructure, not something being sunset.
+
+**Which phases touch which repo:**
+
+| Repo | Role | Phases |
+|---|---|---|
+| `915tldr.com` (this repo) | Frontend — public site (Astro) | 1, 3, 4, 5, 7, 8, 9, 11 |
+| `915tldr.com2` | Backend — pipeline + admin (Nuxt), owns the 2-hourly ingest cron | 2, 6, 12 |
+
+`.planning/` lives in **this repo** (the frontend) and governs planning for both repos —
+`915tldr.com2` has no `.planning/` directory of its own.
 
 ## The read budget, in numbers
 
