@@ -181,6 +181,17 @@ The project-research pass read this directory and so found planning prose where 
 implementation — which is why the embedding model went unestablished until a direct check.
 Any phase touching the existing pipeline or admin operates on `915tldr.com2`.
 
+**This two-repo layout is a permanent split, not a transitional rebuild artifact** (recorded
+2026-09-23 after the owner lost real time to this exact confusion). `915tldr.com` is the frontend
+(Astro, public site, reads D1 at build time); `915tldr.com2` is the backend (Nuxt, pipeline +
+admin, owns the 2-hourly ingest cron) and is retained indefinitely per this document's own "Nuxt
+app retained for pipeline/admin" tech-stack constraint and ROADMAP Phase 12's criterion that the
+Nuxt app serves production traffic from `admin.915tldr.com`. Each repo's README carries the full
+role block and phase-ownership table; a Phase 12 todo
+(`.planning/todos/pending/2026-09-23-split-repos-into-plain-parent-directory.md`) tracks
+reorganizing both into a plain parent directory with clearer child-repo names once the admin
+split is real in production, not before.
+
 **Open questions that need a measurement or a codebase check, not a guess.** Research
 deliberately declined to assert answers on these:
 

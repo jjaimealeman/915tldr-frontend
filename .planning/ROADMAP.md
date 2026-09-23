@@ -382,6 +382,12 @@ where it must be resolved.
   3. Rollback to the existing v1 worker is exercised as a real route change and verified to serve correctly before cutover — not documented and assumed.
   4. `915tldr.com` serves from the Astro worker and D1 reads stay under 2,000,000/day for 7 consecutive days at 100% traffic (down from 784,000,000/day), with zero reads attributable to public requests.
 
+**Deliverable (owner decision, 2026-09-23):** reorganize `915tldr.com`/`915tldr.com2` into a
+plain parent directory (`915tldr.com/`, not a repo) holding two separate git repos
+(`915tldr-frontend/`, `915tldr-backend/`), mirroring the `LizMonroy_website/babs-admin` /
+`babs-boutique` precedent — see `.planning/todos/pending/2026-09-23-split-repos-into-plain-parent-directory.md`
+(`resolves_phase: 12`) for the full rationale.
+
 **Plans**: TBD
 
 ## Progress
