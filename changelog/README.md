@@ -10,6 +10,7 @@ Entries are named `YYYY-MM-DD-HHMM_slug.md` and grouped by month, newest first.
 
 | Date | Entry | Keywords |
 |------|-------|----------|
+| 2026-09-23 | [03-06 Addendum: Bulk-fetch query shape solves the D1 rows-read budget, not the cron CPU ceiling](2026-09-23-0730_03-06-addendum-bulk-fetch-solves-d1-budget-not-cpu-ceiling.md) | `[BACKEND]` `[DATABASE]` `[PERFORMANCE]` `[TESTING]` `[DOCUMENTATION]` |
 | 2026-09-23 | [Cron CPU ceiling measured — STATE.md's 300s figure was wrong by 3x](2026-09-23-0058_cron-cpu-ceiling-measured.md) | `[BACKEND]` `[PERFORMANCE]` `[SECURITY]` `[DOCUMENTATION]` `[BUG_FIX]` |
 | 2026-09-22 | [Per-page render cost measurement harness — manifest write, not render, dominates](2026-09-22-2306_render-cost-measurement-harness.md) | `[BACKEND]` `[PERFORMANCE]` `[TESTING]` `[BUG_FIX]` |
 | 2026-09-22 | [D1 REST pagination measurement harness surfaces a 49M-row offset-pagination finding](2026-09-22-2258_d1-pagination-measurement-harness.md) | `[BACKEND]` `[DATABASE]` `[PERFORMANCE]` `[TESTING]` |

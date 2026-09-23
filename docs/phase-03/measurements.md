@@ -46,6 +46,90 @@ p95) and rows-read (4.3x), refuting 03-RESEARCH.md's prediction of "no measurabl
 ~84 pages" — that prediction covered latency only and did not anticipate the rows-read gap,
 which turned out to be the more consequential number.
 
+## 1b. Bulk fetch + in-memory stitch — a query-shape hypothesis test (03-06-ADDENDUM)
+
+**Why this exists:** after 03-06 completed, the orchestrator checked the query planner directly
+against production D1 (`EXPLAIN QUERY PLAN` on the joined `ARTICLE_SELECT` shape) and found the
+plan is already optimal:
+
+```
+SEARCH a USING INDEX articles_uuid_unique (uuid>?)
+CORRELATED SCALAR SUBQUERY 1
+  SEARCH atg USING COVERING INDEX sqlite_autoindex_article_tags_1 (article_id=?)
+  SEARCH t USING INTEGER PRIMARY KEY (rowid=?)
+```
+
+No missing index. The 49.4M/11.5M rows-read costs in §1 above are not an indexing problem — they
+are a **query-shape** problem: `SELECT_COLUMNS` runs a correlated scalar subquery for tags once
+per article row (39,827+ times) plus a per-row category LEFT JOIN. This section tests the
+hypothesis that eliminating both fits the rows-read budget.
+
+**Method:** `tools/measure-d1-pagination.mjs --execute` (extended, same invocation as §1 — the
+bulk pass now runs alongside offset/keyset by default; `--skip-bulk` restores 03-06's original
+scope), run 2026-09-23 in the same session as this document's §1 re-measurement, against the same
+live production D1. Shape: paginate `articles` alone via keyset on `a.uuid` — **no LEFT JOIN, no
+correlated subquery**, filtered only on `a.status = 'processed'` (a native column; the category
+filter can't be pushed down without the join this shape exists to eliminate). Separately,
+bulk-fetch `article_tags JOIN tags` and `article_categories JOIN categories WHERE is_primary = 1`
+in their own keyset-paginated (on `rowid`) passes. Stitch all three into the same output record
+shape as §1's `ArticleRow` in memory in Node, then drop any article with no resolved primary
+category (mirroring §1's `c.slug IS NOT NULL` filter). Bulk pages are 5,000 rows (vs. §1's 500) —
+a one-time build-time bulk fetch has no reason to keep round-trip count small the way a
+per-request paginated API does; verified empirically that a 5,000-row `LIMIT` returns cleanly
+before choosing the value.
+
+**Reproduce:** `node tools/measure-d1-pagination.mjs --execute` (full report:
+`docs/phase-03/d1-pagination-report.md`, this section's numbers are its "Executed — bulk fetch"
+section)
+
+| Metric | Articles (native only) | `article_tags` JOIN `tags` | `article_categories` JOIN `categories` (is_primary=1) | **Total (bulk)** |
+|---|---|---|---|---|
+| Rows fetched | 39,871 | 189,654 | 39,882 | 39,867 stitched output records |
+| Rows read (`meta.rows_read`) | 497,936 | 379,308 | 79,764 | **957,008** |
+| Requests (round trips) | 8 | 38 | 8 | 54 |
+
+**The load-bearing finding: the bulk-fetch shape reads 957,008 rows total — 24.01 rows per
+stitched article returned, 0.083x (12x cheaper than) keyset's 11,466,920, and 51.7x cheaper than
+offset's 49,470,624. This is WITHIN the 5,000,000-row hard-fail budget (0.19x of it) for a single
+full-corpus pass**, and comfortably within the 2,000,000-row daily budget too. Removing the
+per-row correlated subquery and per-row LEFT JOIN — the two mechanisms §1 identified as the actual
+cost driver, not indexing — is sufficient to bring a full-corpus D1 pass under PROJECT.md's
+rows-read ceiling. This is a genuinely different result from §1's offset/keyset findings, not a
+restatement of them.
+
+**What this does NOT cover, stated plainly:**
+
+- **A small predicate mismatch, reported not hidden:** the articles-only pass filters on
+  `a.status = 'processed'` alone (39,871 rows) because the category-resolved filter requires the
+  join this shape avoids. 4 of those 39,871 have no resolved primary category and are dropped at
+  the in-memory stitch step, landing on the same 39,867-record output count as §1's re-measured
+  corpus this session. A real implementation would pay for reading those 4 extra rows every pass —
+  negligible at this corpus size, but not zero.
+- **Output equivalence, verified not assumed:** 20 evenly-spaced sample records from the 39,867
+  stitched output were re-fetched via the ORIGINAL joined query by uuid (20 extra requests, 294
+  rows read — excluded from the 957,008 total above as verification overhead, not production
+  cost) and compared field-by-field. Tags were compared as a **sorted set**, not an exact string —
+  the two shapes have no guaranteed matching concatenation order between a correlated subquery's
+  `GROUP_CONCAT` and this script's own rowid-ordered bulk join. **Result: all 20 matched
+  field-for-field.** This is a 20-record sample of 39,867, not an exhaustive check.
+- **Memory ceiling — a real, marginal finding, not a clean pass:** peak Node heap during the
+  in-memory stitch measured **128.4 MB**, sampled via `process.memoryUsage().heapUsed` at each
+  pipeline stage in this Node process. That is **over** the 128 MB Workers isolate memory limit,
+  by a small margin (0.3%). This is a Node-process proxy, not a measurement inside an actual
+  Worker isolate — a Worker's baseline heap overhead differs from a Node CLI script's, in either
+  direction, and this number was not re-measured inside a deployed Worker. **Stated plainly: this
+  shape's naive in-memory stitch, as implemented for this measurement, would not obviously fit
+  inside a Worker's memory limit today, and margin-of-error concerns run in the direction of
+  "might not fit" rather than "comfortably fits."** A production implementation could very
+  plausibly reduce this (e.g., building `Map`s keyed by article_id more compactly, releasing
+  intermediate row arrays before building the final stitched array, or running the bulk fetch and
+  stitch in Node at build time — which is where 03-06 §2 and this project's Sharp-image-service
+  decision already put comparable work — rather than inside the Workers runtime at all). Whether
+  this shape runs in a Node build step or inside a Worker is exactly the kind of architectural
+  question 03-07's checkpoint exists to make, not one this addendum resolves.
+- **This changes the D1-budget answer, not the CPU-ceiling answer on its own.** See the updated
+  §4 consistency check below for the render-time projection under this shape's assumptions.
+
 ## 2. Per-page render cost, against the real tracer slice
 
 **Method:** `tools/measure-render-cost.mjs --count 50`, run 2026-09-23 against the real tracer
@@ -232,6 +316,45 @@ D1 budget entirely, the CPU cost of rendering the corpus exceeds the cron ceilin
 **Two independent constraints, arrived at by different measurements, point the same direction:
 whatever Phase 4 builds, it must not attempt a full-corpus rebuild in a single cron invocation.**
 
+### §4b. Recomputed under §1b's bulk-fetch shape (PROJECTION, not a re-measurement — 03-06-ADDENDUM)
+
+§1b found the bulk-fetch shape amortizes D1 access into one upfront pass rather than one network
+round trip per rendered page. That changes this section's projection formula: the per-page
+D1-read component (p50 230.9ms / p95 335.0ms, §2's table) is no longer paid per page — it is
+replaced by the one-time bulk-fetch wall-clock measured in §1b (26.6s for all 3 passes + stitch).
+**This is a composed projection, not a new end-to-end measurement** — the tracer page itself was
+NOT rewired to render from a bulk-fetched in-memory dataset this session; that would be real
+Phase 4 loader work, out of scope for this addendum. It combines two measured inputs (§1b's
+bulk-fetch wall-clock, §2's already-measured render + manifest-write components) rather than
+introducing a new modeled constant.
+
+| Metric | Old projection (§4, per-page D1 read included) | New projection (§1b's bulk-fetch shape) |
+|---|---|---|
+| Per-page cost used | p50 = 573.3ms / p95 = 735.9ms (full 4-component total) | p50 = 342.4ms / p95 = 400.9ms (render + manifest build + manifest write only — D1-read component removed) |
+| One-time D1 cost | none modeled separately (paid per-page, embedded above) | 26.6s (§1b's measured bulk-fetch + stitch wall-clock, paid once) |
+| Projected full-corpus render time (39,867 articles) | p50 ≈ 6.34h / p95 ≈ 8.14h | **p50 ≈ 3.80h / p95 ≈ 4.45h** |
+| vs. 902,000ms (≈0.25h) cron CPU ceiling | 25.3x-32.5x OVER | **15.2x-17.8x OVER** |
+
+**Stated plainly: the bulk-fetch shape roughly HALVES the projected full-corpus render time (from
+6.3-8.1h to 3.8-4.5h) by removing the per-page D1 round trip, but it does NOT bring a full rebuild
+under the cron CPU ceiling.** 15-18x over is still an order of magnitude past the 902,000ms
+ceiling — this projection strengthens §4's original conclusion (no single cron invocation can
+render the full corpus) rather than overturning it. It also does not change §1b's own D1
+rows-read finding, which is the number that actually answers whether this shape fits
+PROJECT.md's read budget (it does, per §1b) — the render-time projection here is a separate
+question, about CPU time, not row reads.
+
+**Combining §1b and §4b:** the bulk-fetch query shape is a real improvement on the D1 rows-read
+axis (957,008 rows vs. 49.4M/11.5M — comfortably under the hard-fail budget, where offset/keyset
+were not) and a real but partial improvement on the render-time axis (3.8-4.5h vs. 6.3-8.1h — both
+still far over the cron ceiling). Neither number, alone or combined, changes 03-06's core
+conclusion: **Phase 4 must not attempt a full-corpus rebuild in a single cron invocation, however
+the D1 access is shaped.** What the bulk-fetch shape does establish is that the D1 rows-read
+constraint specifically — previously the more severe of the two blocking findings — is solvable
+by query shape alone, without indexing changes, leaving the CPU-ceiling constraint as the
+remaining blocker for a full rebuild's execution strategy (fan-out via Queues, a CI job outside
+the Workers CPU-limited runtime, or incremental-only rendering).
+
 **On STATE.md's original reasoning, corrected in full:** STATE.md estimated "~4ms/page" and a
 "300s ceiling" to conclude a full rebuild takes "~330s, over the 300s ceiling ... Queues fan-out
 may be required." The qualitative conclusion (fan-out or an alternative to a single cron
@@ -253,3 +376,11 @@ $0.021`. Combined with 6 total requests (`$0.30`/million, negligible), **total r
 this entire measurement task is approximately 2 cents — confirmed well under the $1 threshold**,
 consistent with the pre-deployment estimate. The probe Worker was deleted immediately after the
 last measurement was captured, confirmed absent from a full account Workers listing.
+
+**03-06-ADDENDUM cost (§1b/§4b, 2026-09-23):** read-only D1 REST API calls only — no Worker
+deployed, no writes to D1 or KV. This session's `--execute` run issued 80 (offset) + 80 (keyset) +
+54 (bulk fetch) + 20 (equivalence check) = 234 D1 REST API requests, all `SELECT`s, reading
+49,470,624 + 11,466,920 + 957,008 + 294 ≈ 61.9M rows total across the whole session. D1 Standard
+pricing includes 25 billion rows read/month free; even at Cloudflare's paid-tier overage rate
+(~$0.001/million rows read), 61.9M rows is a fraction of a cent. No spend beyond what D1's free
+tier already covers.

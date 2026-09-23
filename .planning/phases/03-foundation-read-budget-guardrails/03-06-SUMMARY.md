@@ -221,6 +221,33 @@ None. `CLOUDFLARE_API_TOKEN`/`CLOUDFLARE_ACCOUNT_ID` (already present per prior 
 - `tools/cpu-ceiling-probe/wrangler.limits-low.jsonc` is ready to deploy if 03-07 needs the untested low-`limits.cpu_ms` data point.
 - No blockers remain from this plan. STATE.md's blocker line is corrected, not just flagged.
 
+## Addendum (2026-09-23, post-completion, owner-authorized)
+
+After this plan completed, the orchestrator checked the query planner directly and found the
+plan already optimal (no missing index) — the 49.4M/11.5M rows-read costs above are a
+**query-shape** problem (a per-row correlated tags subquery + per-row category LEFT JOIN), not an
+indexing one. A narrow, scoped addendum measured a third pagination variant — bulk-fetch
+`articles` alone (no JOIN/subquery) + separate bulk passes over `article_tags`/`tags` and
+`article_categories`/`categories`, stitched in memory — to test whether eliminating the per-row
+mechanisms fits the rows-read budget.
+
+**Result:** yes, on the rows-read axis. `tools/measure-d1-pagination.mjs --execute` (extended,
+same tool) now also runs this bulk pass by default (`--skip-bulk` restores this plan's original
+offset/keyset-only scope). Measured: **957,008 total rows read** for the full corpus (24.01
+rows/article) — 0.19x the 5,000,000-row hard-fail budget, vs. offset's 49.5M (9.9x over) and
+keyset's 11.5M (2.3x over) this session. Output verified equivalent to the original joined query
+on a 20-record sample (field-for-field match). Peak Node heap during the in-memory stitch measured
+128.4 MB — marginally OVER the 128 MB Workers isolate memory limit (a Node-process proxy, not a
+Worker-verified figure). Recomputing §4's render-time projection under this shape's assumptions
+(D1-read cost amortized to one upfront pass) projects 3.8-4.5h for a full rebuild vs. the original
+6.3-8.1h — roughly halved, but still 15-18x over the 902,000ms cron CPU ceiling, so this does NOT
+change the plan's core conclusion that a full-corpus rebuild cannot run in a single cron
+invocation. Full detail: `docs/phase-03/measurements.md` §1b and §4b.
+
+This addendum did not re-litigate or change this plan's own three measurements (§1/§2/§3 above)
+or its `status: complete` — it added a fourth, narrower measurement answering a question this
+plan's own findings raised but did not itself answer.
+
 ---
 *Phase: 03-foundation-read-budget-guardrails*
 *Completed: 2026-09-23*
