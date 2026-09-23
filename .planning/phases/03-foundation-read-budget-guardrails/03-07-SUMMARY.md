@@ -144,3 +144,11 @@ None.
 ---
 *Phase: 03-foundation-read-budget-guardrails*
 *Completed: 2026-09-23*
+
+## Self-Check: PASSED
+
+Marker added by the execute-phase orchestrator, not the plan executor, which reported its
+self-check in its return but omitted the template line. Independently verified before recording:
+commit `7692ad2` present in `git log --oneline --all`; `docs/phase-03/render-step-location.md` and
+`.planning/STATE.md` both present on disk; STATE.md's D-01 blocker line reads `RESOLVED — Phase 3,
+03-07`. `pnpm test:unit` 87/87 and `pnpm test:build-gate` 4/4 confirmed green by the orchestrator.
