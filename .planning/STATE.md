@@ -4,16 +4,16 @@ milestone: v1.5
 milestone_name: milestone
 current_phase: 03
 current_phase_name: foundation-read-budget-guardrails
-status: executing
-stopped_at: Completed 03-06-PLAN.md
-last_updated: "2026-09-23T07:02:17.624Z"
+status: verifying
+stopped_at: Completed 03-07-PLAN.md — Phase 3 complete
+last_updated: "2026-09-23T13:42:31.963Z"
 last_activity: 2026-09-22
 last_activity_desc: Phase 03 execution started
 progress:
   total_phases: 3
-  completed_phases: 2
+  completed_phases: 3
   total_plans: 40
-  completed_plans: 39
+  completed_plans: 40
 ---
 
 # Project State
@@ -29,7 +29,7 @@ See: .planning/PROJECT.md (updated 2026-09-16)
 
 Phase: 03 (foundation-read-budget-guardrails) — EXECUTING
 Plan: 7 of 7
-Status: Ready to execute
+Status: Phase complete — ready for verification
 Last activity: 2026-09-22 — Phase 03 execution started
 
 Progress: [██████████] 98%
@@ -87,6 +87,7 @@ Progress: [██████████] 98%
 | Phase 03 P04 | ~35min | 2 tasks | 5 files |
 | Phase 03 P05 | ~65min | 3 tasks | 5 files |
 | Phase 03 P06 | 135min | 3 tasks | 17 files |
+| Phase 03 P07 | ~30min | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -178,6 +179,8 @@ Recent decisions affecting current work:
 - [Phase ?]: 03-06: STATE.md's 300s cron CPU ceiling and ~4ms/page render cost were both wrong (measured: ~900s ceiling, 573-736ms/page) — full-corpus rebuild takes 6.3-8.1hrs against the real ceiling, 25-33x over.
 - [Phase ?]: 03-06: naive D1 offset pagination reads 49.4M rows for one 39,827-row pass — 9.9x PROJECT.md's 5M hard-fail budget; keyset pagination is 4.3x cheaper (11.5M rows) but still over budget. Phase 4's loader must not page the full corpus this way.
 - [Phase ?]: 03-06: limits.cpu_ms (max configurable 300,000ms) has no effect on Cron Trigger CPU ceiling — confirmed empirically, a real cron-triggered burn ran to 902,000ms of CPU regardless.
+- [Phase ?]: 03-07: D-01 render-step location decided as Option A (existing 2-hour cron Worker) for both steady-state incremental renders and full-corpus rebuilds (chained across ~26-33 cron cycles), not Queues or CI — ruled in by a measured real ingest volume of 15 articles/cycle mean (62 peak) against a ~1,223-1,574/cycle capacity, ~20x headroom at the worst observed week. See docs/phase-03/render-step-location.md.
+- [Phase ?]: 03-07: staleness detection for Phase 4's loader must not bulk-fetch the full corpus every cron cycle — 957,008 rows/pass x 12 cycles/day = 11.48M rows/day, 5.7x PROJECT.md's 2M daily soft budget and 2.3x its 5M daily hard-fail, even though a single bulk-fetch pass fits comfortably. Use an incremental signal (updated_at comparison or an ingest-set flag) instead; reserve the full bulk-fetch pass for forced full rebuilds only.
 
 ### Pending Todos
 
@@ -187,7 +190,27 @@ Recent decisions affecting current work:
 ### Blockers/Concerns
 
 - **URGENT, Phase 3:** The OpenAI account sat at $0 returning HTTP 429 from 2026-09-04 to 2026-09-16. If `articles-semantic` is fed by OpenAI embeddings, ~1,200 articles may have no vector — silently degrading duplicate detection and semantic search. Verify before Phase 9 depends on it.
-- **CORRECTED — Phase 3, 03-06.** This line's own "300 s Worker CPU ceiling" and "~4 ms/page" figures were WRONG, measured and replaced (`docs/phase-03/measurements.md`, 2026-09-23). The real ceiling for this project's 2-hour-interval cron is **~900 s (15 min)**, confirmed both from Cloudflare's own docs and by an empirical burn test — 3x higher than assumed, not 300 s. The real per-page render cost is **573–736 ms (p50/p95)**, not ~4 ms — **~140-180x higher** than assumed. The two errors happened to point toward the same qualitative conclusion (fan-out/incremental needed) but for reasons two orders of magnitude off: at the real numbers, a full-corpus rebuild (39,827 rows today) takes **6.3-8.1 hours**, 25-33x OVER the real ~900 s ceiling — not the ~330 s vs. 300 s near-miss this line originally described. `tools/measure-d1-pagination.mjs` independently found a second, unrelated reason a full-corpus rebuild cannot run as a single pass: naive offset pagination alone reads 49.4M rows against PROJECT.md's 5M hard-fail budget. Render-step location (cron worker / separate worker via Queues / CI) remains a decision for 03-07 to make from these numbers — not yet decided by this correction.
+- **RESOLVED — Phase 3, 03-07.** Render-step location (D-01) is decided: the render step runs
+  inside the **existing 2-hour cron Worker (Option A)**, for both the steady-state incremental
+  render and the rare full-corpus rebuild (via the same incremental machinery, chained across
+  ~26-33 cron cycles with staleness forced, rather than a separate mechanism). Full reasoning,
+  figures, rejected alternatives and the reopening threshold: `docs/phase-03/render-step-location.md`.
+  This replaces this line's own prior "CORRECTED — Phase 3, 03-06" wording (that correction's
+  full text is preserved in `docs/phase-03/measurements.md` §3 and 03-06-SUMMARY.md, not lost):
+  the carried-forward **300-second Worker CPU
+  ceiling figure this line originally reasoned from was WRONG, and remains corrected, not
+  reopened** — the real ceiling for this project's 2-hour-interval cron is **~900 s (15 min)**,
+  confirmed both from Cloudflare's own docs and by an empirical burn test, 3x higher than the
+  300 s this project had been reasoning from. A new measurement closed the one gap 03-07's own
+  checkpoint flagged as unmeasured: real production ingest volume over the trailing 7 days is
+  **15 articles/cycle (mean), 62 at the busiest observed cycle** — against a measured
+  ~1,223-1,574 article-per-invocation capacity, roughly 20x headroom at the worst observed week.
+  A binding constraint on Phase 4 falls out of this decision: staleness detection must NOT
+  re-scan the full corpus every cron cycle (the bulk-fetch shape that fits the single-pass 5M-row
+  hard-fail budget at 957,008 rows would hit 11.48M rows/day at 12 cycles/day — 5.7x the daily
+  soft budget and 2.3x the daily hard-fail); use a cheap incremental signal instead. Full detail
+  in the decision document.
+
 - Astro build time and memory at 41k-82k pages via a D1-backed loader has no public benchmark. Phase 4 is closer to novel territory than general Astro scaling suggests.
 - One Phase 3 success criterion (the `articles-semantic` vector-gap check) has no dedicated REQ-ID; it is a measurement obligation feeding SRCH-02/SRCH-03 in Phase 9. Recorded deliberately rather than dropped.
 - Phase 1: WebKit (Playwright 26.6, Docker) never composites while a font resource is pending, regardless of font-display:swap — font-swap CLS measurement reports prePaintObserved:false honestly for this engine; needs a real-Safari spot-check before 01-APPROVAL.md sign-off (see 01-02-SUMMARY.md coverage D8).
@@ -208,6 +231,6 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-09-23T07:02:17.608Z
-Stopped at: Completed 03-06-PLAN.md
+Last session: 2026-09-23T13:42:31.947Z
+Stopped at: Completed 03-07-PLAN.md — Phase 3 complete
 Resume file: None
