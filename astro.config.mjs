@@ -24,13 +24,20 @@ export default defineConfig({
   site: 'https://dev.915tldr.com',
   // This tracer uses no `server:defer` islands and no Astro Sessions API. `session` is
   // Astro's OWN top-level config key (astro/dist/types/public/config.d.ts), not an adapter
-  // option — 03-01 originally set this INSIDE the `cloudflare({...})` call below, where the
-  // adapter's `...cloudflareOptions` spread silently absorbs and ignores it (the adapter reads
-  // `config.session`, i.e. this top-level key, never anything passed to its own factory). That
-  // placement was a no-op: the adapter still auto-provisioned an unrequested `SESSION` KV
+  // option — 03-01 originally set this inside the Cloudflare adapter factory call below, where
+  // the adapter's `...cloudflareOptions` spread silently absorbs and ignores it (the adapter
+  // reads `config.session`, i.e. this top-level key, never anything passed to its own factory).
+  // That placement was a no-op: the adapter still auto-provisioned an unrequested `SESSION` KV
   // binding on every build, confirmed live by this plan's first real `wrangler deploy` (03-05
   // Task 1) showing `env.SESSION` bound with no id. Fixed by moving the key to where Astro
   // itself actually reads it (deviation Rule 1 — 03-01's original fix never worked).
+  //
+  // NOTE for future editors: never write the adapter factory name immediately followed by an
+  // open parenthesis, with no space between them, inside a comment above the real adapter call.
+  // tests/unit/astro-config.test.mjs's ARCH-06 check locates the adapter's call arguments with
+  // a naive, non-comment-aware string search for that exact four-character-plus-paren sequence,
+  // and will match a comment mentioning it before the real call below — exactly what this
+  // comment block originally did (caught by that test's own regression during this task).
   session: false,
   adapter: cloudflare({
     imageService: { build: 'compile', runtime: 'passthrough' },
