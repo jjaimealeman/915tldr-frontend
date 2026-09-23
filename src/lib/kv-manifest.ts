@@ -208,6 +208,19 @@ function kvBulkUrl(): string {
   return `https://api.cloudflare.com/client/v4/accounts/${accountId}/storage/kv/namespaces/${namespaceId}/bulk`;
 }
 
+function kvKeysUrl(): string {
+  const accountId = requireEnv('CLOUDFLARE_ACCOUNT_ID');
+  const namespaceId = requireEnv('RENDER_MANIFEST_KV_NAMESPACE_ID');
+  return `https://api.cloudflare.com/client/v4/accounts/${accountId}/storage/kv/namespaces/${namespaceId}/keys`;
+}
+
+interface KvListKeysResponse {
+  result?: Array<{ name: string }>;
+  result_info?: { cursor?: string };
+  success: boolean;
+  errors?: Array<{ code: number; message: string }>;
+}
+
 function chunk<T>(items: T[], size: number): T[][] {
   const batches: T[][] = [];
   for (let i = 0; i < items.length; i += size) {
@@ -293,6 +306,53 @@ export async function putManifestEntriesBulk(
       throw new Error(`kv-manifest: KV bulk write failed: ${response.status} ${text}`);
     }
   }
+}
+
+/**
+ * Lists every written manifest article id (the `manifest:` key prefix stripped), paginating the
+ * KV List Keys REST endpoint via its `cursor` field until exhausted. Added for
+ * `tools/verify-edge-headers.mjs`'s live-discovery path (OPS-02 hardening, 03-UAT.md item 2):
+ * that tool needs to find which article the CURRENTLY DEPLOYED build rendered, and this manifest
+ * — keyed by article id, not by build — is the only build-time-written record of "which article
+ * did this deployed commit render". Never called from a public request path; this and every
+ * other function in this module run at build time or from standalone tooling only.
+ *
+ * Scales by listing + reading every key, which is appropriate while this Phase 3 manifest holds
+ * a handful of tracer-run entries. It will NOT scale once Phase 4 populates the full ~41,000
+ * article corpus — a future caller at that scale should look up by KV list `metadata` (settable
+ * per key, not currently written by `putManifestEntry`/`putManifestEntriesBulk`) instead of
+ * reading every value. Documented here rather than solved here: solving it now would mean
+ * redesigning the write path for a caller (a Phase-3 dev tool) that does not need it yet.
+ */
+export async function listManifestArticleIds(opts: { fetchImpl?: FetchImpl } = {}): Promise<string[]> {
+  const fetchImpl = opts.fetchImpl ?? fetch;
+  const token = requireEnv('CLOUDFLARE_API_TOKEN');
+  const prefix = 'manifest:';
+  const ids: string[] = [];
+  let cursor: string | undefined;
+
+  do {
+    const url = new URL(kvKeysUrl());
+    url.searchParams.set('prefix', prefix);
+    if (cursor) url.searchParams.set('cursor', cursor);
+
+    const response = await fetchImpl(url.toString(), {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+
+    if (!response.ok) {
+      const text = await response.text();
+      throw new Error(`kv-manifest: KV list-keys failed: ${response.status} ${text}`);
+    }
+
+    const body = (await response.json()) as KvListKeysResponse;
+    for (const key of body.result ?? []) {
+      ids.push(key.name.slice(prefix.length));
+    }
+    cursor = body.result_info?.cursor || undefined;
+  } while (cursor);
+
+  return ids;
 }
 
 /**

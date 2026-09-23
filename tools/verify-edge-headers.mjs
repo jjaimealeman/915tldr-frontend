@@ -32,12 +32,12 @@
 //      mis-scoped rule that noindexes production is the single worst outcome this plan can
 //      produce and would be invisible in every other check here.
 //
-//   4. No application-level robots meta tag on the dev host's real content — GET the one
-//      article page the current build actually emitted (found by walking dist/client/, same
-//      technique as tests/tracer/tracer.test.mjs) and assert the served HTML carries no
-//      `<meta name="robots">` tag. OPS-02 specifies the header must come from the edge, not
-//      from the app — this guards against a future app-level workaround masquerading as a
-//      passing edge check.
+//   4. No application-level robots meta tag on the dev host's real content — GET whichever
+//      article the LIVE deployment is currently serving (discovered via `discoverLiveArticlePath()`
+//      below — version.json + KV render manifest + D1, not a local build) and assert the served
+//      HTML carries no `<meta name="robots">` tag. OPS-02 specifies the header must come from the
+//      edge, not from the app — this guards against a future app-level workaround masquerading as
+//      a passing edge check.
 //
 // Exits non-zero if ANY check fails, listing every failure (not just the first). A network
 // error is a FAILURE, not a skip — this script never does `2>/dev/null || echo ok`.
@@ -49,11 +49,57 @@
 // would fail the unit suite on a plane, in CI with no network egress, or the instant someone
 // edits the zone config. It is a standing, separately-run deploy check — see
 // docs/phase-03/edge-config.md's "Re-checked on every deploy, not once at sign-off" section.
+//
+// --- OPS-02 hardening (2026-09-23, 03-UAT.md item 2) ---
+// Check 4 used to auto-discover its article URL by walking the LOCAL `dist/client/` build
+// output for the one HTML file the tracer emits. That build output drifts from what is actually
+// DEPLOYED: `[slug].astro`'s `getStaticPaths()` always fetches the newest article
+// (`fetchLatestArticle()`, `ORDER BY published_at DESC`), and D1 ingests ~15 new articles every
+// 2 hours — so a `pnpm build` run minutes after the last `wrangler deploy` already picks a
+// different "newest" article than the one that shipped. Confirmed live 2026-09-23: a local build
+// emitted `/crime/legal-team-prepares-for-action-...` while the deployed site was still serving
+// `/education/canutillo-isd-approves-reduced-tax-rate-...`. The check then requested a path that
+// exists locally but 404s on the live host, and reported a failure that was never real — the
+// edge rule (independently confirmed live via direct `curl`) was fine throughout.
+//
+// Fixed by discovering the article from the LIVE deployment instead of the local build.
+// `discoverLiveArticlePath()` below lists the render manifest's article ids (`src/lib/
+// kv-manifest.ts`, D-03/D-04), newest `renderedAt` first, resolves each candidate to a full D1
+// row via `fetchArticleById()` (the same D1 module the build itself uses), reconstructs the URL
+// `[slug].astro` would have built for it, and does a real live GET against `devHost` — returning
+// the first candidate that actually responds 200. A live 200 IS the proof; nothing is inferred.
+//
+// First attempt matched on `buildHash` (the manifest entry's recorded commit) against the
+// deployed commit reported by the live host's own `/version.json`, on the theory that a manifest
+// entry records "what this exact commit rendered". Measured against the real manifest during
+// this hardening and found unreliable: manifest keys are `manifest:<articleId>`, one per article,
+// and Phase 3 runs many local `astro build`s without a deploy after each one (measurement work,
+// tests). When two builds close in time both pick the SAME "latest" article (no newer one was
+// ingested between them), the second build's write overwrites the first's `buildHash` at the same
+// key — silently erasing the record of which commit actually rendered that entry. Of 62 real
+// manifest entries checked live, none carried the currently-deployed commit's `buildHash` for
+// this exact reason. The newest-first live-probe approach above doesn't depend on that history
+// surviving, because it never trusts a stored claim about what's live — it asks the live host.
+//
+// No local build required either way — the check now passes against whatever is actually
+// deployed, redeploy or not.
+//
+// This project shipped exactly this failure mode once already in a different form: Phase 2's
+// CONT-06 defect was 248 passing tests sitting next to 253 production rows violating the very
+// requirement those tests existed to enforce — a check that exists but has silently stopped
+// gating. A false-negative check that "cries wolf" arrives at the same destination by a
+// different road: a human starts ignoring `pnpm verify:edge` failures on principle, and the day
+// the noindex rule is genuinely removed, nobody notices. Fixing the false positive is not
+// cosmetic — it is what keeps this guard worth trusting.
+//
+// Requires CLOUDFLARE_ACCOUNT_ID / CLOUDFLARE_API_TOKEN / RENDER_MANIFEST_KV_NAMESPACE_ID in
+// process.env (same OPS-11 convention as src/lib/server/d1-client.ts and src/lib/kv-manifest.ts)
+// — needed only for check 4's live discovery; checks 1-3 make no D1/KV calls.
 
-import { readFileSync, readdirSync, statSync, existsSync } from 'node:fs';
-import path from 'node:path';
+import { fetchArticleById } from '../src/lib/server/d1-client.ts';
+import { getManifestEntry, listManifestArticleIds } from '../src/lib/kv-manifest.ts';
+import { slugify } from '../src/lib/slug.ts';
 
-const DIST_CLIENT = path.resolve('dist/client');
 const ROBOTS_META_RE = /<meta[^>]+name=["']robots["'][^>]*>/i;
 
 function parseArgs(argv) {
@@ -65,7 +111,8 @@ function parseArgs(argv) {
     // Deliberately not a real route on either app — guaranteed to miss the static-asset layer
     // and fall through to admin-dev's Nuxt SSR 404 handler.
     workerNotFoundPath: '/__verify-edge-headers-worker-check__',
-    articlePath: null, // auto-discovered from dist/client/ when not given
+    articlePath: null, // auto-discovered from the live deployment (KV manifest + D1) when not given
+    maxCandidates: DEFAULT_MAX_DISCOVERY_CANDIDATES,
     json: false,
   };
   for (let i = 0; i < argv.length; i++) {
@@ -76,6 +123,7 @@ function parseArgs(argv) {
     if (arg === '--dev-asset-path') { args.devAssetPath = argv[++i]; continue; }
     if (arg === '--worker-not-found-path') { args.workerNotFoundPath = argv[++i]; continue; }
     if (arg === '--article-path') { args.articlePath = argv[++i]; continue; }
+    if (arg === '--max-candidates') { args.maxCandidates = Number(argv[++i]); continue; }
     if (arg === '--json') { args.json = true; continue; }
     if (arg.startsWith('--dev-host=')) { args.devHost = arg.slice('--dev-host='.length); continue; }
     if (arg.startsWith('--admin-host=')) { args.adminHost = arg.slice('--admin-host='.length); continue; }
@@ -83,28 +131,82 @@ function parseArgs(argv) {
     if (arg.startsWith('--dev-asset-path=')) { args.devAssetPath = arg.slice('--dev-asset-path='.length); continue; }
     if (arg.startsWith('--worker-not-found-path=')) { args.workerNotFoundPath = arg.slice('--worker-not-found-path='.length); continue; }
     if (arg.startsWith('--article-path=')) { args.articlePath = arg.slice('--article-path='.length); continue; }
+    if (arg.startsWith('--max-candidates=')) { args.maxCandidates = Number(arg.slice('--max-candidates='.length)); continue; }
   }
   return args;
 }
 
-/** Same technique as tests/tracer/tracer.test.mjs: find the one built article index.html. */
-export function findArticlePath(distClientDir) {
-  if (!existsSync(distClientDir)) return null;
-  const stack = [distClientDir];
-  while (stack.length > 0) {
-    const dir = stack.pop();
-    for (const entry of readdirSync(dir)) {
-      const full = path.join(dir, entry);
-      const info = statSync(full);
-      if (info.isDirectory()) {
-        stack.push(full);
-      } else if (entry === 'index.html' && full !== path.join(distClientDir, 'index.html')) {
-        const rel = path.relative(distClientDir, path.dirname(full));
-        return '/' + rel.split(path.sep).join('/') + '/';
-      }
+/** Default cap on how many manifest candidates (newest-`renderedAt`-first) get live-probed
+ * before giving up — see the header comment's "OPS-02 hardening" section for why this is a
+ * live probe rather than a `buildHash` lookup. Overridable via `--max-candidates` for a stale
+ * manifest where the actually-deployed article isn't among the most recent few entries. */
+export const DEFAULT_MAX_DISCOVERY_CANDIDATES = 50;
+
+/**
+ * Discovers the article path actually served by the live `devHost` deployment — see the header
+ * comment's "OPS-02 hardening" section for the full rationale and the buildHash approach this
+ * replaced. Returns `{ path }` on success or `{ error }` with a human-readable reason on any
+ * failure (never throws) so the caller can report a normal failing check rather than crashing.
+ *
+ * Lists every render-manifest KV article id, sorts by `renderedAt` descending (most recently
+ * built first — the article the live deployment serves was necessarily built by SOME `astro
+ * build` run, and recent runs are the likeliest match), and for each candidate: resolves it to a
+ * full D1 row via `fetchArticleById()` (the same D1 module `[slug].astro` itself uses),
+ * reconstructs the URL `[slug].astro` would have built (`/${category}/${slugify(title)}-${id}/`),
+ * and issues a real GET against the live host. The first candidate that responds 200 IS the
+ * answer — a live response is verified fact, not an inference from stored metadata that could be
+ * stale or overwritten.
+ */
+export async function discoverLiveArticlePath(devHost, opts = {}) {
+  const maxCandidates = opts.maxCandidates ?? DEFAULT_MAX_DISCOVERY_CANDIDATES;
+
+  let articleIds;
+  try {
+    articleIds = await listManifestArticleIds();
+  } catch (err) {
+    return { error: `KV manifest list failed: ${err.message}` };
+  }
+  if (articleIds.length === 0) {
+    return { error: 'render manifest is empty — no article has ever been built' };
+  }
+
+  const entries = [];
+  for (const articleId of articleIds) {
+    let entry;
+    try {
+      entry = await getManifestEntry(articleId);
+    } catch (err) {
+      return { error: `KV manifest read for "${articleId}" failed: ${err.message}` };
+    }
+    if (entry) entries.push(entry);
+  }
+  entries.sort((a, b) => (a.renderedAt < b.renderedAt ? 1 : -1));
+
+  const candidates = entries.slice(0, maxCandidates);
+  for (const entry of candidates) {
+    let row;
+    try {
+      row = await fetchArticleById(entry.articleId);
+    } catch (err) {
+      return { error: `D1 lookup for article "${entry.articleId}" failed: ${err.message}` };
+    }
+    if (!row) continue; // manifest entry with no matching D1 row — try the next candidate, don't give up
+
+    const path = `/${row.category}/${slugify(row.title)}-${row.id}/`;
+    let res;
+    try {
+      res = await fetch(`https://${devHost}${path}`, { redirect: 'manual' });
+    } catch (err) {
+      return { error: `network error probing candidate "${path}": ${err.message}` };
+    }
+    if (res.status === 200) {
+      return { path };
     }
   }
-  return null;
+
+  return {
+    error: `no manifest candidate is actually live on https://${devHost} (probed ${candidates.length} of ${entries.length} manifest entries, newest first) — the manifest and the deployment have diverged; try --max-candidates with a higher value or --article-path with a known-good URL`,
+  };
 }
 
 async function fetchHeader(url, headerName) {
@@ -154,12 +256,20 @@ export async function runChecks(args) {
     }
   }
 
-  // 4. No application-level robots meta tag on the dev host's real content.
+  // 4. No application-level robots meta tag on the dev host's real content. Article path is
+  //    discovered from the LIVE deployment (version.json + KV manifest + D1), not a local build —
+  //    see discoverLiveArticlePath()'s doc comment and this file's header comment.
   {
-    const articlePath = args.articlePath || findArticlePath(DIST_CLIENT);
     const name = 'no app-level <meta name="robots"> on the dev host (header must come from the edge)';
+    let articlePath = args.articlePath;
+    let discoveryError = null;
     if (!articlePath) {
-      checks.push({ name, url: `https://${args.devHost}/`, expected: 'no <meta name="robots"> tag', observed: 'could not locate a built article page under dist/client/ — run `pnpm build` first', pass: false });
+      const discovered = await discoverLiveArticlePath(args.devHost, { maxCandidates: args.maxCandidates });
+      articlePath = discovered.path ?? null;
+      discoveryError = discovered.error ?? null;
+    }
+    if (!articlePath) {
+      checks.push({ name, url: `https://${args.devHost}/`, expected: 'no <meta name="robots"> tag', observed: `could not discover a live article path — ${discoveryError}`, pass: false });
     } else {
       const url = `https://${args.devHost}${articlePath}`;
       try {
@@ -199,8 +309,9 @@ async function main() {
   process.exitCode = ok ? 0 : 1;
 }
 
-// Only run as a CLI when invoked directly — a future test suite can import runChecks/findArticlePath
-// and drive them without spawning a process, matching tools/check-config-guards.mjs's pattern.
+// Only run as a CLI when invoked directly — a future test suite can import
+// runChecks/discoverLiveArticlePath and drive them without spawning a process, matching
+// tools/check-config-guards.mjs's pattern.
 if (import.meta.url === `file://${process.argv[1]}`) {
   main();
 }
