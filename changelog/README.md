@@ -10,6 +10,7 @@ Entries are named `YYYY-MM-DD-HHMM_slug.md` and grouped by month, newest first.
 
 | Date | Entry | Keywords |
 |------|-------|----------|
+| 2026-09-22 | [Edge noindex Transform Rule now covers dev and admin-dev](2026-09-22-2223_03-05-edge-noindex-rule-covers-dev-and-admin-dev.md) | `[INFRA]` `[SECURITY]` `[DEPLOYMENT]` `[DOCUMENTATION]` |
 | 2026-09-22 | [Plan 03-05 resumed on owner's hostname decision; halted again at the noindex rule (token scope)](2026-09-22-2035_03-05-admin-dev-bound-blocked-on-rules-scope.md) | `[DOCUMENTATION]` `[INFRA]` `[DEPLOYMENT]` `[SECURITY]` |
 | 2026-09-22 | [Plan 03-05 halted before any change: dev.915tldr.com already routes to v1](2026-09-22-1422_03-05-blocked-dev-hostname-already-taken.md) | `[DOCUMENTATION]` `[INFRA]` `[DEPLOYMENT]` `[CRITICAL]` |
 | 2026-09-22 | [Render manifest schema documented for Phase 4/5/6](2026-09-22-1420_03-04-render-manifest-schema-documented.md) | `[DOCUMENTATION]` `[BACKEND]` `[SECURITY]` |
