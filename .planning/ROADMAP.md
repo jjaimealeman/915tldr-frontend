@@ -209,7 +209,7 @@ Plans:
   4. `curl -I https://dev.915tldr.com` returns `X-Robots-Tag: noindex` from the edge (not an app meta tag); `/version.json` and the public footer both report the deployed short commit hash and build timestamp; the README states the read budget.
   5. Three numbers are recorded, not guessed: cron-worker CPU headroom, per-page render cost in ms, and D1 REST API pagination p50/p95 at 41,233 rows. The render-step location (cron worker / separate worker via Queues / CI) is decided from them and written down.
 
-**Plans**: 5/7 plans executed in 5 waves
+**Plans**: 6/7 plans executed in 5 waves
 
 Plans:
 **Wave 1**
@@ -228,7 +228,7 @@ Plans:
 
 **Wave 4** *(blocked on Wave 3 completion)*
 
-- [ ] 03-06-PLAN.md — The three D-01 measurements, including an empirical answer to the cron CPU ceiling question (wave 4)
+- [x] 03-06-PLAN.md — The three D-01 measurements, including an empirical answer to the cron CPU ceiling question (wave 4)
 
 **Wave 5** *(blocked on Wave 4 completion)*
 
@@ -386,7 +386,7 @@ Phase 3 and may run alongside Phases 5-7.
 |-------|----------------|--------|-----------|
 | 1. Design Sketch & Editorial Identity | 23/23 | Complete    | 2026-09-17 |
 | 2. Content Quality & Grounding | 11/10 | Complete    | 2026-09-21 |
-| 3. Foundation & Read-Budget Guardrails | 5/7 | In Progress|  |
+| 3. Foundation & Read-Budget Guardrails | 6/7 | In Progress|  |
 | 4. Static Generation, Templates & SEO | 0/TBD | Not started | - |
 | 5. Hybrid Archive & Zero-Reads Proof | 0/TBD | Not started | - |
 | 6. Bilingual | 0/TBD | Not started | - |

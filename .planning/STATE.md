@@ -5,15 +5,15 @@ milestone_name: milestone
 current_phase: 03
 current_phase_name: foundation-read-budget-guardrails
 status: executing
-stopped_at: Completed 03-05-PLAN.md
-last_updated: "2026-09-23T04:44:46.499Z"
+stopped_at: Completed 03-06-PLAN.md
+last_updated: "2026-09-23T07:02:17.624Z"
 last_activity: 2026-09-22
 last_activity_desc: Phase 03 execution started
 progress:
   total_phases: 3
   completed_phases: 2
   total_plans: 40
-  completed_plans: 38
+  completed_plans: 39
 ---
 
 # Project State
@@ -28,11 +28,11 @@ See: .planning/PROJECT.md (updated 2026-09-16)
 ## Current Position
 
 Phase: 03 (foundation-read-budget-guardrails) — EXECUTING
-Plan: 6 of 7
+Plan: 7 of 7
 Status: Ready to execute
 Last activity: 2026-09-22 — Phase 03 execution started
 
-Progress: [██████████] 95%
+Progress: [██████████] 98%
 
 ## Performance Metrics
 
@@ -86,6 +86,7 @@ Progress: [██████████] 95%
 | Phase 03 P03 | ~50min | 3 tasks | 6 files |
 | Phase 03 P04 | ~35min | 2 tasks | 5 files |
 | Phase 03 P05 | ~65min | 3 tasks | 5 files |
+| Phase 03 P06 | 135min | 3 tasks | 17 files |
 
 ## Accumulated Context
 
@@ -174,6 +175,9 @@ Recent decisions affecting current work:
 - [Phase ?]: 03-05: executed the noindex-rule task before the deploy task (mandatory ordering) so the rule was proven live on admin-dev.915tldr.com before any v2 code shipped — no unprotected crawlable window ever existed.
 - [Phase ?]: 03-05: session:false in astro.config.mjs was a no-op in 03-01's original location (inside the adapter call instead of Astro's top-level config key) — first real wrangler deploy exposed it; fixed by moving the key.
 - [Phase ?]: 03-05: a stale zone Worker Route for dev.915tldr.com out-prioritized the freshly-reassigned Custom Domain for 3+ minutes, contrary to Cloudflare's documented precedence; deleting the stale route (per the plan's own anticipated cleanup step) resolved it immediately.
+- [Phase ?]: 03-06: STATE.md's 300s cron CPU ceiling and ~4ms/page render cost were both wrong (measured: ~900s ceiling, 573-736ms/page) — full-corpus rebuild takes 6.3-8.1hrs against the real ceiling, 25-33x over.
+- [Phase ?]: 03-06: naive D1 offset pagination reads 49.4M rows for one 39,827-row pass — 9.9x PROJECT.md's 5M hard-fail budget; keyset pagination is 4.3x cheaper (11.5M rows) but still over budget. Phase 4's loader must not page the full corpus this way.
+- [Phase ?]: 03-06: limits.cpu_ms (max configurable 300,000ms) has no effect on Cron Trigger CPU ceiling — confirmed empirically, a real cron-triggered burn ran to 902,000ms of CPU regardless.
 
 ### Pending Todos
 
@@ -204,6 +208,6 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-09-23T04:44:46.483Z
-Stopped at: Completed 03-05-PLAN.md
+Last session: 2026-09-23T07:02:17.608Z
+Stopped at: Completed 03-06-PLAN.md
 Resume file: None
