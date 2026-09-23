@@ -7,12 +7,55 @@
 // No rail, no related-articles, no tag list here — those are expansion (Phase 4). This is the
 // one path the whole Phase 3 architecture is proven against (D-02).
 import Base from '../../layouts/Base.astro';
-import { fetchLatestArticle } from '../../lib/server/d1-client';
+import { fetchLatestArticle, fetchArticleById } from '../../lib/server/d1-client';
 import { buildManifestEntry, putManifestEntry } from '../../lib/kv-manifest';
 import { slugify } from '../../lib/slug';
 import { BUILD_HASH } from '../../lib/build-info';
+// 03-06 Task 2 (D-01 measurement #1 of 3, per-page render cost): harness-mode state, extracted
+// into its own module — see src/lib/render-cost-harness.ts's header comment for why a
+// frontmatter-local declaration here does not survive Astro's bundler. Absent in every normal
+// build; `getStaticPaths` and the component below run EXACTLY as before this task when
+// MEASURE_RENDER_COST is unset.
+import { HARNESS_MODE, harnessSamples, registerHarnessExit } from '../../lib/render-cost-harness';
 
 export async function getStaticPaths() {
+  if (HARNESS_MODE) {
+    registerHarnessExit();
+    const ids = JSON.parse(process.env.MEASURE_RENDER_COST_IDS || '[]');
+    const paths = [];
+    for (const id of ids) {
+      // D1 read, timed alone — the SAME per-article lookup shape the current architecture
+      // already performs once per page (fetchArticleById, one row by uuid), not a synthetic
+      // batch query. This is what "per-page D1 read cost" means under today's design.
+      const d1Start = performance.now();
+      const row = await fetchArticleById(id);
+      const d1ReadMs = performance.now() - d1Start;
+      if (!row) {
+        throw new Error(`[slug].astro harness mode: fetchArticleById(${id}) returned no row`);
+      }
+
+      // Manifest build (SHA-256 hash) and manifest write (network PUT to KV) timed separately —
+      // a hash-dominated cost and a network-dominated cost are different bottlenecks and 03-07
+      // needs to tell them apart.
+      const buildStart = performance.now();
+      const entry = await buildManifestEntry(row, { buildHash: BUILD_HASH });
+      const manifestBuildMs = performance.now() - buildStart;
+
+      const writeStart = performance.now();
+      await putManifestEntry(entry);
+      const manifestWriteMs = performance.now() - writeStart;
+
+      harnessSamples.push({ id: row.id, d1ReadMs, manifestBuildMs, manifestWriteMs, renderMs: null });
+
+      paths.push({
+        params: { category: row.category, slug: `${slugify(row.title)}-${row.id}` },
+        props: { row },
+      });
+    }
+    return paths;
+  }
+
+  // Normal tracer behaviour — unchanged from before this task.
   const row = await fetchLatestArticle();
   if (!row) {
     throw new Error('[slug].astro: fetchLatestArticle() returned no row — cannot build the tracer page');
@@ -36,6 +79,12 @@ export async function getStaticPaths() {
 }
 
 const { row } = Astro.props;
+// Render timing (harness mode only): started right after props are available, stopped at the
+// end of this frontmatter block — i.e. it covers this component's own synchronous computation
+// (date formatting below), NOT Astro's own template-to-HTML string compilation, which runs
+// after this script block and is not independently instrumentable from inside it. That
+// exclusion is stated explicitly in the report tools/measure-render-cost.mjs produces.
+const renderStart = HARNESS_MODE ? performance.now() : null;
 
 // row.published_at is epoch SECONDS (production schema, confirmed against a real row) — not an
 // ISO string, and not epoch milliseconds.
@@ -46,6 +95,12 @@ const publishedLabel = publishedDate.toLocaleString('en-US', {
   hour: 'numeric',
   minute: '2-digit',
 });
+
+if (HARNESS_MODE && renderStart !== null) {
+  const renderMs = performance.now() - renderStart;
+  const sample = harnessSamples.find((s) => s.id === row.id);
+  if (sample) sample.renderMs = renderMs;
+}
 ---
 
 <Base page="article" title={`915 TLDR — ${row.title}`}>
