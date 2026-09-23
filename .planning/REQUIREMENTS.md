@@ -172,7 +172,7 @@
 ### Operations
 
 - [ ] **OPS-01**: The public site serves from `915tldr.com` on the Astro worker
-- [ ] **OPS-02**: `dev.915tldr.com` returns `X-Robots-Tag: noindex` at the edge, verified by response header
+- [x] **OPS-02**: `dev.915tldr.com` returns `X-Robots-Tag: noindex` at the edge, verified by response header
 - [ ] **OPS-03**: The Nuxt pipeline and admin serve from `admin.915tldr.com` behind Cloudflare Access
 - [ ] **OPS-04**: Better Auth, its four tables, `/admin/login` and all session handling are removed
 - [x] **OPS-05**: The deployed short commit hash and build timestamp appear in the public footer
@@ -371,7 +371,7 @@ Deferred. Tracked, not in this roadmap.
 | IDNT-05 | Phase 10 | Pending |
 | IDNT-06 | Phase 10 | Pending |
 | OPS-01 | Phase 12 | Pending |
-| OPS-02 | Phase 3 | Pending |
+| OPS-02 | Phase 3 | Complete |
 | OPS-03 | Phase 12 | Pending |
 | OPS-04 | Phase 12 | Pending |
 | OPS-05 | Phase 3 | Complete |

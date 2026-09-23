@@ -5,15 +5,15 @@ milestone_name: milestone
 current_phase: 03
 current_phase_name: foundation-read-budget-guardrails
 status: executing
-stopped_at: "03-05 continuation halted: admin-dev.915tldr.com bound live (Custom Domain -> 915tldr-dev, verified), but Zone Transform Rules API scope missing on CLOUDFLARE_API_TOKEN -- blocked before creating the noindex rule (mandatory ordering Step 2)."
-last_updated: "2026-09-23T03:35:20.394Z"
+stopped_at: Completed 03-05-PLAN.md
+last_updated: "2026-09-23T04:44:46.499Z"
 last_activity: 2026-09-22
 last_activity_desc: Phase 03 execution started
 progress:
   total_phases: 3
   completed_phases: 2
   total_plans: 40
-  completed_plans: 37
+  completed_plans: 38
 ---
 
 # Project State
@@ -28,11 +28,11 @@ See: .planning/PROJECT.md (updated 2026-09-16)
 ## Current Position
 
 Phase: 03 (foundation-read-budget-guardrails) — EXECUTING
-Plan: 5 of 7
+Plan: 6 of 7
 Status: Ready to execute
 Last activity: 2026-09-22 — Phase 03 execution started
 
-Progress: [█████████░] 93%
+Progress: [██████████] 95%
 
 ## Performance Metrics
 
@@ -85,6 +85,7 @@ Progress: [█████████░] 93%
 | Phase 03 P02 | 16min | 3 tasks | 12 files |
 | Phase 03 P03 | ~50min | 3 tasks | 6 files |
 | Phase 03 P04 | ~35min | 2 tasks | 5 files |
+| Phase 03 P05 | ~65min | 3 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -169,6 +170,10 @@ Recent decisions affecting current work:
 - [Phase ?]: 03-04: Task 1 checkpoint resolved as Option C — translationGroupId + language replace spanishCounterpartId; the group id equals the article's own uuid today and is never null, reusing the existing duplicate_groups pattern already live in production D1.
 - [Phase ?]: 03-04: renderVersion renamed to schemaVersion; buildManifestEntry no longer accepts a version param at all — every entry gets the exported MANIFEST_SCHEMA_VERSION automatically, closing the drift that produced the 03-01 tracer's hand-written renderVersion: '0'.
 - [Phase ?]: 03-04: KV bulk-write 10,000-pair ceiling carried forward from 03-RESEARCH.md's already-fetched citation, not re-verified live — the cloudflare-docs MCP tool was unavailable in this execution's tool surface; flagged in docs/phase-03/render-manifest.md and SUMMARY coverage item D7 for confirmation before corpus-scale use.
+- [Phase ?]: 03-05: noindex Transform Rule extended to cover admin-dev.915tldr.com in addition to dev.915tldr.com (admin-dev didn't exist when the plan's Task 2 was scoped; leaving it out would ship a new crawlable admin surface).
+- [Phase ?]: 03-05: executed the noindex-rule task before the deploy task (mandatory ordering) so the rule was proven live on admin-dev.915tldr.com before any v2 code shipped — no unprotected crawlable window ever existed.
+- [Phase ?]: 03-05: session:false in astro.config.mjs was a no-op in 03-01's original location (inside the adapter call instead of Astro's top-level config key) — first real wrangler deploy exposed it; fixed by moving the key.
+- [Phase ?]: 03-05: a stale zone Worker Route for dev.915tldr.com out-prioritized the freshly-reassigned Custom Domain for 3+ minutes, contrary to Cloudflare's documented precedence; deleting the stale route (per the plan's own anticipated cleanup step) resolved it immediately.
 
 ### Pending Todos
 
@@ -187,8 +192,7 @@ Recent decisions affecting current work:
 - **RESOLVED — Phase 1, 01-13 Task 1** (see WINDOWS.md entries 9-12, all `fixed`; supersedes the two prior blocker lines this replaces). Entries 9/10's claim that Chromium's `font-display:optional` genuinely fails to prevent a late swap was WRONG — refuted by the coordinator's rigorous reflow-probe (scroll + forced reflow + a new same-family span never swapped) and confirmed via authoritative CDP `CSS.getPlatformFontsForNode`. True root cause (entry 11): this dev machine has "Instrument Serif"/"Source Serif 4" (this project's own primary webfont names) installed as local user fonts under `~/.local/share/fonts` (leftover from earlier design work); a same-named local font collision makes Chromium apply a late-arriving optional font, purely a test-environment contamination bug. Fixed in `design/scripts/pw.mjs` by isolating `XDG_DATA_HOME` for native (non-Docker) Playwright launches. A second, unrelated, real bug (entry 12) was found while getting the new `referenceNativeCls` check to pass honestly: index.html's theme-toggle button used `display:` while `[hidden]`, so JS revealing it after DOMContentLoaded caused a real, font-unrelated CLS (confirmed with a fonts-free control). Fixed in `design/mockups/style.css` (`visibility:hidden` instead, same box reserved). `MOCKUP_PAGES=index node design/scripts/pw.mjs --project=all design/tests/font-cls.spec.ts` now passes cleanly and repeatably (3/3 runs, both engines): every row classifies fallback-kept/prePaintObserved:true/fontDisplay:optional. Tasks 2-3 unblocked, no owner decision needed, no threshold weakened.
 - **UPDATED — Phase 1, 01-23 Task 2/3** (supersedes the prior line above). The owner completed the round-2 review and replied **APPROVED**, with spot comments on article/changelog/contact/load-more and two new feature requests (sticky rail, Astro view transitions — both deferred to the Astro build phase, see Pending Todos). Per this plan's own non-negotiable rule (T-01-32/T-01-33, "the executor never writes the owner's sign-off line, and never records an approval on the owner's behalf"), the executor did NOT add the `Approved-by:` line to `01-APPROVAL.md` — that relayed "APPROVED" came through the orchestrator, not the owner's own hand on the file, and the plan requires the literal line to be the owner's own act. **Remaining step (owner-only, not a code blocker):** add `Approved-by: <name> — 2026-09-17` to the "## Owner sign-off" section of `01-APPROVAL.md`, then `pnpm run verify:approval` will exit 0 and a trivial follow-up commit finalizes Task 3.
 - **RESOLVED — Phase 3, 03-01 Task 2.** The Cloudflare token gained `Workers KV Storage:Edit` (D1:Edit and the account id were confirmed intact in the same pass). The `915tldr-render-manifest` KV namespace was created (id `3c92531f94294fcc94006455f433885f`), wired into `wrangler.jsonc` and a gitignored `.dev.vars`. `pnpm build` and `pnpm test:tracer` both pass end-to-end against the real D1 row and the real KV namespace; Phase 1's 43-test suite is unaffected. Three further build-blocking issues were found and fixed in the same session (stale `wrangler.jsonc` `main` field, an unwanted auto-provisioned `SESSION` KV binding, and a bundler bug dropping a frontmatter-local `slugify()` function) — see 03-01-SUMMARY.md for full detail. 03-01 is complete.
-- 03-05: dev.915tldr.com is already bound (custom domain + zone route) to the existing 915tldr-dev Worker (v1 Nuxt). Plan 03-05 Task 1 requires deploying 915tldr-v2 to dev.915tldr.com, which would take over a route currently serving live v1 dev/preview traffic. Halted per plan's own existing_infrastructure_caution before any change was made. Needs a human hostname decision (e.g. a different dev host for v2, or explicit approval to move dev.915tldr.com to v2 with a plan for where v1's dev preview goes).
-- 03-05 continuation halted at mandatory-ordering Step 1.5 (before Step 2, the noindex Transform Rule): CLOUDFLARE_API_TOKEN lacks the Rulesets/Transform Rules scope needed for the http_response_headers_transform phase entrypoint on zone 915tldr.com. Confirmed via two independent calls (GET .../rulesets/phases/http_response_headers_transform/entrypoint and GET .../rulesets, both zone_id 70a6176e850ecde50ab6f41d56ffddb4) returning {code:10000,message:'Authentication error'}, while a control call (GET .../settings/always_use_https) with the SAME token succeeded -- so this is a scope gap, not a broken token. Step 1 of the mandatory ordering (bind admin-dev.915tldr.com -> 915tldr-dev via account-level Custom Domain, id fc443b5c9166df401f32c69cc856ccc57bcbf413) is DONE and verified live (200, x-powered-by: Nuxt). Do NOT redo Step 1. Do NOT proceed to Step 3 (deploying 915tldr-v2 to dev.915tldr.com) until the Transform Rule exists -- the plan is explicit that deploying v2 before the rule opens an unprotected crawlable window. Needed: add 'Zone > Transform Rules > Edit' (or equivalent Rulesets-API scope) to the token on the 915tldr.com zone, then resume 03-05 from Step 2.
+- **RESOLVED — Phase 3, 03-05 (both prior halts).** The owner granted the missing Rulesets/Transform Rules token scope. Resumed from mandatory-ordering Step 2 and completed the plan: the noindex Transform Rule now covers `dev.915tldr.com` AND `admin-dev.915tldr.com` (extended scope, Rule 2 deviation — admin-dev didn't exist when the plan's Task 2 was first scoped); `915tldr-v2` is deployed and live on `dev.915tldr.com` (Custom Domain reassigned from `915tldr-dev`, `workers_dev: false`, stale zone Worker Route deleted after it was found to be out-prioritizing the reassignment); `pnpm verify:edge` (`tools/verify-edge-headers.mjs`) re-proves the whole policy on every future deploy. Two real bugs found and fixed along the way: `session: false` was a no-op in the wrong astro.config.mjs location (03-01's claimed fix never worked), and a stale zone Worker Route silently out-prioritized a correctly-reassigned Custom Domain for 3+ minutes, contrary to Cloudflare's documented precedence. Production (`915tldr.com`/`www.915tldr.com`) and `admin-dev.915tldr.com` verified unaffected throughout. See 03-05-SUMMARY.md for full detail. 03-05 is complete.
 
 ## Deferred Items
 
@@ -200,6 +204,6 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-09-23T03:35:20.378Z
-Stopped at: 03-05 continuation halted: admin-dev.915tldr.com bound live (Custom Domain -> 915tldr-dev, verified), but Zone Transform Rules API scope missing on CLOUDFLARE_API_TOKEN -- blocked before creating the noindex rule (mandatory ordering Step 2).
-Resume file: .planning/phases/03-foundation-read-budget-guardrails/03-05-PLAN.md
+Last session: 2026-09-23T04:44:46.483Z
+Stopped at: Completed 03-05-PLAN.md
+Resume file: None
