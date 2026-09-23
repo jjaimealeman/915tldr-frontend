@@ -29,8 +29,15 @@ which is the phase's core value expressed as configuration.
 | `PATCH .../d1/database/{db}` (update settings) | OPT-OUT | Changing production database settings is outside a phase whose migration constraint is "zero-risk by construction". |
 | `DELETE .../d1/database/{db}` | OPT-OUT | Destructive against the production corpus. Never in scope. |
 | `POST .../d1/database/{db}/import` | OPT-OUT | This phase writes nothing to D1. |
-| `GET .../d1/database/{db}/export` | OPT-OUT | Evaluated in `.claude/CLAUDE.md` as a fallback loader strategy (export a SQLite snapshot, read it locally). Not adopted this phase: D-01 requires the REST pagination path be measured first, and adopting the fallback before measuring would discard the measurement's purpose. Phase 4 may revisit it with the numbers 03-06 produces. |
+| `GET .../d1/database/{db}/export` | OPT-OUT | Evaluated as a fallback loader strategy but not adopted this phase — see extended rationale below. |
 | Time Travel / bookmark endpoints | OPT-OUT | Point-in-time recovery is an operational concern with no phase-3 trigger; nothing here mutates D1. |
+
+### D1 REST API — extended rationale
+
+- **`GET .../d1/database/{db}/export`:** Evaluated in `.claude/CLAUDE.md` as a fallback loader
+  strategy (export a SQLite snapshot, read it locally). Not adopted this phase: D-01 requires the
+  REST pagination path be measured first, and adopting the fallback before measuring would
+  discard the measurement's purpose. Phase 4 may revisit it with the numbers 03-06 produces.
 
 ## Cloudflare Workers KV API
 
@@ -46,9 +53,22 @@ on the public request path and do not consume PROJECT.md's budget of at most 1 K
 | `GET .../values/{key}` (read one) | INTEGRATE | Staleness comparison against the stored content hash, and the tracer's read-back assertion. |
 | `GET .../metadata/{key}` | OPT-OUT | All eight fields live in the value. A split value/metadata shape would create two schemas for one entry and two places for a reader to look. |
 | `metadata` field on write | OPT-OUT | Same reason as above. |
-| `expiration` / `expiration_ttl` on write | OPT-OUT | **Deliberately never used.** A manifest entry that expires silently erases render state, which inverts the manifest's purpose. Asserted by a guard in 03-04's acceptance criteria, not just documented here. |
-| `GET .../keys` (list keys) | OPT-OUT | The render step derives its key set from the D1 row set it just read. Listing keys would create a second, divergeable source of truth for "what exists", and at 42k keys it is a paginated crawl to answer a question the caller already knows. |
-| `DELETE .../values/{key}` / `.../bulk/delete` | OPT-OUT | No article-deletion or manifest-eviction path exists in this phase — nothing is ever removed, only added or overwritten. Eviction belongs with Phase 4's incremental build (REND-02/REND-03), which owns the lifecycle. Recorded so Phase 4 starts from full coverage rather than from this omission. |
+| `expiration` / `expiration_ttl` on write | OPT-OUT | **Deliberately never used** — expiration would silently erase render state. See extended rationale below. |
+| `GET .../keys` (list keys) | OPT-OUT | The render step derives its key set from the D1 rows already read; listing keys would add a divergeable second source. See extended rationale below. |
+| `DELETE .../values/{key}` / `.../bulk/delete` | OPT-OUT | No deletion/eviction path exists this phase — only added or overwritten. Eviction belongs to Phase 4. See extended rationale below. |
+
+### Workers KV API — extended rationale
+
+- **`expiration` / `expiration_ttl` on write:** Deliberately never used. A manifest entry that
+  expires silently erases render state, which inverts the manifest's purpose. Asserted by a guard
+  in 03-04's acceptance criteria, not just documented here.
+- **`GET .../keys` (list keys):** The render step derives its key set from the D1 row set it just
+  read. Listing keys would create a second, divergeable source of truth for "what exists", and at
+  42k keys it is a paginated crawl to answer a question the caller already knows.
+- **`DELETE .../values/{key}` / `.../bulk/delete`:** No article-deletion or manifest-eviction path
+  exists in this phase — nothing is ever removed, only added or overwritten. Eviction belongs with
+  Phase 4's incremental build (REND-02/REND-03), which owns the lifecycle. Recorded so Phase 4
+  starts from full coverage rather than from this omission.
 
 ## Cloudflare Rulesets API (Transform Rules)
 
@@ -61,7 +81,14 @@ Serves OPS-02's `X-Robots-Tag: noindex` on the dev host at the edge (D-08).
 | `http_request_transform` phase (request header / URL rewrite) | OPT-OUT | This phase rewrites no requests. The `/[category]/[slug]-[uuid]` URL contract carries over unchanged by requirement, so a rewrite rule would be a second, competing routing authority. |
 | `http_request_firewall_custom` (WAF rules) | OPT-OUT | No access control is in scope for the dev host this phase (recorded as accepted threat T-03-14 with its rationale). Adding WAF policy here would be an undiscussed product decision. |
 | `http_ratelimit` | OPT-OUT | No rate-limiting requirement in this phase; the public path is static assets served by the CDN. |
-| Ruleset versioning / rollback endpoints | OPT-OUT | The rule's definition is recorded in `docs/phase-03/edge-config.md` and recreated from there, which is the recovery mechanism D-08's tradeoff calls for. Cloudflare-side version history is a second recovery path that would not be exercised or tested. |
+| Ruleset versioning / rollback endpoints | OPT-OUT | Recovery uses the rule definition recorded in `docs/phase-03/edge-config.md`, per D-08's tradeoff. See extended rationale below. |
+
+### Rulesets API — extended rationale
+
+- **Ruleset versioning / rollback endpoints:** The rule's definition is recorded in
+  `docs/phase-03/edge-config.md` and recreated from there, which is the recovery mechanism D-08's
+  tradeoff calls for. Cloudflare-side version history is a second recovery path that would not be
+  exercised or tested.
 
 ## Workers platform (wrangler CLI and deployment API)
 
@@ -74,13 +101,29 @@ Serves OPS-02's `X-Robots-Tag: noindex` on the dev host at the edge (D-08).
 | `wrangler delete` | INTEGRATE | Removes the CPU-ceiling probe Worker after 03-06's measurement. A leftover CPU-burning Worker on a cron schedule is a standing cost with no owner. |
 | Cron Triggers | INTEGRATE | Only for 03-06's throwaway measurement probe, at a 2-hour interval matching production's so it falls in the same CPU-ceiling row. |
 | Workers Observability / `wrangler tail` | INTEGRATE | Reads the existing production cron Worker's real CPU time per invocation, so headroom is measured rather than estimated. |
-| Workers Builds CI environment variables (`WORKERS_CI_COMMIT_SHA`, `WORKERS_CI_BRANCH`, `CI`, `WORKERS_CI`) | INTEGRATE | The build stamp's primary hash source (OPS-05/OPS-06), with a documented local-git fallback and a `hashSource` field recording which fired. |
-| `wrangler versions upload` / gradual deployments | OPT-OUT | PROJECT.md states rollback is a DNS/route change and v1 keeps serving throughout, so a gradual-rollout mechanism has nothing to roll back to within v2 this phase. Phase 12's cutover is where it becomes relevant. |
-| Queues | OPT-OUT | **For this phase only, and not as a rejection.** Queues is one of the three candidate render-step locations under D-01, and that decision is made in 03-07 from measured numbers. Implementing it before the measurement would pre-empt the decision D-01 deliberately deferred. |
+| Workers Builds CI environment variables | INTEGRATE | The build stamp's primary hash source (OPS-05/OPS-06). See extended rationale below for the variable list and a 03-03 finding. |
+| `wrangler versions upload` / gradual deployments | OPT-OUT | PROJECT.md's rollback is a DNS/route change with v1 still serving, so gradual rollout has nothing to roll back to this phase. See extended rationale below. |
+| Queues | OPT-OUT | **For this phase only, not a rejection** — Queues is a D-01 candidate render-step location, decided in 03-07 from measured numbers. See extended rationale below. |
 | Durable Objects | OPT-OUT | No coordination or shared mutable state requirement in this phase. |
 | R2 bucket bindings | OPT-OUT | The R2 archive tier is Phase 5 (REND-07 through REND-12). Binding it here would add a reachable storage surface with no consumer. |
 | Workers AI binding | OPT-OUT | Summarisation runs in the pipeline app (sibling repo, OpenAI), not in the public site. Out of scope by architecture, not by omission. |
 | Hyperdrive / Vectorize / Browser Rendering bindings | OPT-OUT | No requirement in this phase touches any of them; binding an unused service would widen the deployed Worker's reachable surface against the phase's own core value. |
+
+### Workers platform — extended rationale
+
+- **Workers Builds CI environment variables** (`WORKERS_CI_COMMIT_SHA`, `WORKERS_CI_BRANCH`, `CI`,
+  `WORKERS_CI`): the build stamp's primary hash source (OPS-05/OPS-06), with a documented
+  local-git fallback and a `hashSource` field recording which fired. **Accuracy note (03-03):**
+  this Cloudflare account has zero Workers Builds history and no git remote configured, so
+  `WORKERS_CI_COMMIT_SHA` never actually fires in practice today — the `hashSource` that actually
+  runs is `local-git`. The INTEGRATE decision and fallback still stand (Workers Builds could be
+  connected later), but the CI-var path is currently theoretical, not exercised.
+- **`wrangler versions upload` / gradual deployments:** PROJECT.md states rollback is a DNS/route
+  change and v1 keeps serving throughout, so a gradual-rollout mechanism has nothing to roll back
+  to within v2 this phase. Phase 12's cutover is where it becomes relevant.
+- **Queues:** For this phase only, and not as a rejection. Queues is one of the three candidate
+  render-step locations under D-01, and that decision is made in 03-07 from measured numbers.
+  Implementing it before the measurement would pre-empt the decision D-01 deliberately deferred.
 
 ---
 
