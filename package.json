@@ -35,6 +35,7 @@
     "measure:render": "node tools/measure-render-cost.mjs",
     "measure:cpu": "node tools/cpu-ceiling-probe/run.mjs",
     "test:unit": "pnpm run build && node --test \"design/tests/unit/**/*.test.mjs\" \"tests/unit/**/*.test.mjs\"",
+    "test:fast": "node --test \"design/tests/unit/**/*.test.mjs\" \"tests/unit/**/*.test.mjs\"",
     "test:build-gate": "node --test tests/ci-fixtures/assert-no-d1.test.mjs",
     "test:tracer": "node --test tests/tracer/tracer.test.mjs",
     "build": "pnpm run guard:config && astro build",

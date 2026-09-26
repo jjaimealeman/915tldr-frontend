@@ -25,17 +25,26 @@ const VERSION_JSON = path.join(DIST_CLIENT, 'version.json');
 const DIST_BUILT = existsSync(VERSION_JSON);
 const SKIP_REASON = 'dist/client/version.json not found — run `pnpm build` first (pnpm test:unit does this automatically)';
 
-/** Recursively finds every built page's `index.html` under `dist/client`, excluding the site
- * root's own `index.html` — same walk `tests/tracer/tracer.test.mjs` uses. */
+/** Finds every built article page under `dist/client`. Updated 04-01 (Rule 1 — this test's
+ * original walk looked for `index.html`, the `build.format: 'directory'` shape from before
+ * `astro.config.mjs` set `build.format: 'file'`; that shape no longer exists, so this test was
+ * failing with an out-of-bounds array read before this fix). Article pages now emit
+ * `<slug>-<uuid>.html` one directory below `dist/client` — same shape and same regex
+ * `tests/tracer/tracer.test.mjs` uses, which deliberately excludes non-article top-level output
+ * (`_astro/`, `fonts/`, `version.json`, `wrangler.json`, `_headers`). */
+const ARTICLE_FILE_RE =
+  /^(.+)-([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12})\.html$/;
+
 function findArticleHtmlFiles(dir) {
   const found = [];
   for (const entry of readdirSync(dir)) {
     const full = path.join(dir, entry);
-    const info = statSync(full);
-    if (info.isDirectory()) {
-      found.push(...findArticleHtmlFiles(full));
-    } else if (entry === 'index.html' && full !== path.join(DIST_CLIENT, 'index.html')) {
-      found.push(full);
+    if (!statSync(full).isDirectory()) continue;
+    for (const inner of readdirSync(full)) {
+      const innerFull = path.join(full, inner);
+      if (statSync(innerFull).isFile() && ARTICLE_FILE_RE.test(inner)) {
+        found.push(innerFull);
+      }
     }
   }
   return found;

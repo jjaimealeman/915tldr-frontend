@@ -196,6 +196,28 @@ page/island fixtures reaching `kv-manifest.ts`, both rejected) and a real `pnpm 
 temporary on-demand page importing this module directly (rejected, same as the fixture suite —
 see the T-03-02a security remediation's execution report for the captured failing build output).
 
+## v2 (Phase 4, D-08)
+
+**Bumped 2026-09-26, plan 04-01.** `MANIFEST_SCHEMA_VERSION` moved `'1'` -> `'2'`. Every entry now
+carries one new required field:
+
+| Field | Type | What produces it | What a reader may rely on |
+|---|---|---|---|
+| `slug` | `string` (matches `ARTICLE_SLUG_RE`, `^[a-z0-9-]{1,100}$`) | The stored `articles.slug` column, passed through `buildManifestEntry()` unchanged | D-07: never re-derived from the title. Combined with `articleId` (the uuid, already in every entry) and `category` (the category slug — see below), this is everything the Worker's non-canonical-URL 301 (D-08, plan 04-06) needs to reconstruct the full canonical path `/${category}/${slug}-${articleId}` from **one KV read and zero D1 reads**. `validateManifestEntry()` rejects a missing, empty, or `ARTICLE_SLUG_RE`-violating slug before any write reaches the network — same "name the offending field" discipline as every other required field. |
+
+**No separate `categorySlug` field was added.** The existing `category` field (documented above)
+already holds the category *slug*, not a display name — `d1-client.ts`'s query selects `c.slug AS
+category`, and that has been true since the v1 schema (03-04). D-08 asked for "slug and category
+slug" in the manifest; v2 satisfies that with the one new field plus the field that was already
+there, rather than introducing a second, redundant column that would only ever equal `category`'s
+own value.
+
+**Selectivity, per the "Versioning" rule above:** every entry written before this bump is at
+`schemaVersion: '1'` and is missing `slug` entirely — readers that need `slug` (the 04-06 Worker)
+must treat a `v1` entry as "needs re-render," not "has an empty slug." No corpus-wide invalidation
+was required or performed; v1-tracer-era entries simply age out as Phase 4's loader re-syncs its
+window.
+
 ## Related
 
 - Implementation: `src/lib/server/kv-manifest.ts`

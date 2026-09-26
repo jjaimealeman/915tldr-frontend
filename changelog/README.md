@@ -10,6 +10,7 @@ Entries are named `YYYY-MM-DD-HHMM_slug.md` and grouped by month, newest first.
 
 | Date | Entry | Keywords |
 |------|-------|----------|
+| 2026-09-26 | [Spike 1: a Loader throw does fail astro build; warm-window cost and trailing-slash recorded](2026-09-26-1735_04-01-spike1-loader-throw-confirmed-fails-build.md) | `[DOCUMENTATION]` `[BACKEND]` `[TESTING]` `[PERFORMANCE]` `[BUG_FIX]` |
 | 2026-09-26 | [Lock the tracer slice: d1-client stitch, loader window, manifest v2, entity-safe tracer](2026-09-26-1720_04-01-lock-slice-with-unit-and-tracer-tests.md) | `[TESTING]` `[BACKEND]` `[DATABASE]` `[BUG_FIX]` |
 | 2026-09-26 | [GREEN: implement html-text decodeEntities/textOf](2026-09-26-1708_04-01-html-text-green-implementation.md) | `[TESTING]` `[BUG_FIX]` |
 | 2026-09-26 | [RED: failing test for html-text decodeEntities/textOf](2026-09-26-1705_04-01-html-text-red-test.md) | `[TESTING]` `[BUG_FIX]` |
