@@ -4,8 +4,9 @@
 // tests/ci-fixtures/assert-no-d1.test.mjs) — no Jest, no Vitest.
 //
 // Two shapes of case here:
-//   1. `resolveBuildHash(env)` unit cases — call the exported pure function directly with a
-//      synthetic env object. No build required.
+//   1. `resolveBuildHash(env)` / `resolveCommitDate(env, run)` unit cases — call the exported pure
+//      functions directly with a synthetic env object (and, for `resolveCommitDate`, a stubbed
+//      `run` in place of `execSync` — 04-02). No build required.
 //   2. Cross-surface cases — read the REAL `dist/client/version.json` and a REAL built article
 //      `index.html`, not the source module twice. A test that re-read `src/lib/build-info.ts`
 //      for "both" surfaces would pass even if the footer rendered nothing at all; reading the
@@ -17,7 +18,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync, readdirSync, statSync, existsSync } from 'node:fs';
 import path from 'node:path';
-import { resolveBuildHash, BUILD_TIMESTAMP } from '../../src/lib/build-info.ts';
+import { resolveBuildHash, resolveCommitDate, BUILD_TIMESTAMP } from '../../src/lib/build-info.ts';
 
 const REPO_ROOT = path.resolve(import.meta.dirname, '../..');
 const DIST_CLIENT = path.join(REPO_ROOT, 'dist', 'client');
@@ -81,6 +82,64 @@ test('BUILD_TIMESTAMP is a valid, round-trippable ISO 8601 timestamp', () => {
   assert.equal(new Date(BUILD_TIMESTAMP).toISOString(), BUILD_TIMESTAMP);
 });
 
+// --- resolveCommitDate(env, run) unit cases (04-02 / OPS-06) -------------------------------
+
+test('resolveCommitDate: WORKERS_CI_COMMIT_SHA present shells out to `git show` for that sha', () => {
+  let capturedCommand;
+  const fakeRun = (cmd) => {
+    capturedCommand = cmd;
+    return '2026-09-16\n';
+  };
+  const result = resolveCommitDate({ WORKERS_CI_COMMIT_SHA: 'abcdef1234567890' }, fakeRun);
+  assert.equal(result, '2026-09-16');
+  assert.match(capturedCommand, /git show -s --format=%cs abcdef1234567890/);
+});
+
+test('resolveCommitDate: WORKERS_CI_COMMIT_SHA absent, CI present resolves to unknown (no git fallback)', () => {
+  const fakeRun = () => {
+    throw new Error('should never be called');
+  };
+  const result = resolveCommitDate({ CI: 'true' }, fakeRun);
+  assert.equal(result, 'unknown');
+});
+
+test('resolveCommitDate: WORKERS_CI_COMMIT_SHA absent, WORKERS_CI present also refuses the git fallback', () => {
+  const fakeRun = () => {
+    throw new Error('should never be called');
+  };
+  const result = resolveCommitDate({ WORKERS_CI: '1' }, fakeRun);
+  assert.equal(result, 'unknown');
+});
+
+test('resolveCommitDate: no CI markers, no sha — shells out to `git show` for HEAD', () => {
+  let capturedCommand;
+  const fakeRun = (cmd) => {
+    capturedCommand = cmd;
+    return '2026-09-26\n';
+  };
+  const result = resolveCommitDate({}, fakeRun);
+  assert.equal(result, '2026-09-26');
+  assert.match(capturedCommand, /git show -s --format=%cs HEAD/);
+});
+
+test('resolveCommitDate: garbage git output resolves to unknown, never a malformed date', () => {
+  const fakeRun = () => 'not-a-date\n';
+  assert.equal(resolveCommitDate({}, fakeRun), 'unknown');
+});
+
+test('resolveCommitDate: a WORKERS_CI_COMMIT_SHA that fails the hex-shape check resolves to unknown without shelling out', () => {
+  const fakeRun = () => {
+    throw new Error('should never be called');
+  };
+  const result = resolveCommitDate({ WORKERS_CI_COMMIT_SHA: '; rm -rf /' }, fakeRun);
+  assert.equal(result, 'unknown');
+});
+
+test('resolveCommitDate: a real git invocation against this repo returns a YYYY-MM-DD string', () => {
+  const result = resolveCommitDate({});
+  assert.match(result, /^\d{4}-\d{2}-\d{2}$/);
+});
+
 // --- Cross-surface cases — real emitted artifacts, not the source module twice ------------
 
 test(
@@ -114,6 +173,19 @@ test(
     assert.ok(
       html.includes(`· ${expectedDate}`),
       `footer should render the date "${expectedDate}" sliced from version.json's builtAt — a footer computing its own clock read would drift`
+    );
+  }
+);
+
+test(
+  'cross-surface: dist/client/version.json carries a committedAt field shaped YYYY-MM-DD',
+  { skip: !DIST_BUILT && SKIP_REASON },
+  () => {
+    const version = JSON.parse(readFileSync(VERSION_JSON, 'utf8'));
+    assert.match(
+      version.committedAt,
+      /^(\d{4}-\d{2}-\d{2}|unknown)$/,
+      'committedAt must be a YYYY-MM-DD date or the honest "unknown" fallback'
     );
   }
 );

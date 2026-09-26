@@ -10,6 +10,7 @@ Entries are named `YYYY-MM-DD-HHMM_slug.md` and grouped by month, newest first.
 
 | Date | Entry | Keywords |
 |------|-------|----------|
+| 2026-09-26 | [Base.astro's full chrome + head-metadata contract, ArticleCard, committedAt](2026-09-26-2355_04-02-base-chrome-articlecard-commit-date-stamp.md) | `[FEATURE]` `[FRONTEND]` `[SEO]` `[BACKEND]` |
 | 2026-09-26 | [GREEN: implement format.ts, structured-data.ts, categories.ts](2026-09-26-2340_04-02-format-structured-data-categories-green.md) | `[FEATURE]` `[FRONTEND]` `[SEO]` `[BUG_FIX]` |
 | 2026-09-26 | [Phase 4 Plan 2, Task 1 RED: failing tests for format.ts and structured-data.ts](2026-09-26-2321_04-02-format-structured-data-red-tests.md) | `[TESTING]` `[FRONTEND]` `[SEO]` |
 | 2026-09-26 | [Spike 1: a Loader throw does fail astro build; warm-window cost and trailing-slash recorded](2026-09-26-1735_04-01-spike1-loader-throw-confirmed-fails-build.md) | `[DOCUMENTATION]` `[BACKEND]` `[TESTING]` `[PERFORMANCE]` `[BUG_FIX]` |
