@@ -10,6 +10,7 @@ Entries are named `YYYY-MM-DD-HHMM_slug.md` and grouped by month, newest first.
 
 | Date | Entry | Keywords |
 |------|-------|----------|
+| 2026-09-26 | [Phase 4 Plan 02 complete: Base layout, ArticleCard, structured data, deterministic formatting](2026-09-26-2359_04-02-complete-base-chrome-plan.md) | `[DOCUMENTATION]` `[PLANNING]` `[SEO]` `[FRONTEND]` |
 | 2026-09-26 | [Base.astro's full chrome + head-metadata contract, ArticleCard, committedAt](2026-09-26-2355_04-02-base-chrome-articlecard-commit-date-stamp.md) | `[FEATURE]` `[FRONTEND]` `[SEO]` `[BACKEND]` |
 | 2026-09-26 | [GREEN: implement format.ts, structured-data.ts, categories.ts](2026-09-26-2340_04-02-format-structured-data-categories-green.md) | `[FEATURE]` `[FRONTEND]` `[SEO]` `[BUG_FIX]` |
 | 2026-09-26 | [Phase 4 Plan 2, Task 1 RED: failing tests for format.ts and structured-data.ts](2026-09-26-2321_04-02-format-structured-data-red-tests.md) | `[TESTING]` `[FRONTEND]` `[SEO]` |

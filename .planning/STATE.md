@@ -5,15 +5,15 @@ milestone_name: milestone
 current_phase: 04
 current_phase_name: Static Generation, Templates & SEO
 status: executing
-stopped_at: Completed 04-01-PLAN.md
-last_updated: "2026-09-26T23:17:52.735Z"
+stopped_at: Completed 04-02-PLAN.md
+last_updated: "2026-09-26T23:39:02.024Z"
 last_activity: 2026-09-26
 last_activity_desc: Phase 03 complete, transitioned to Phase 4
 progress:
   total_phases: 4
   completed_phases: 3
   total_plans: 52
-  completed_plans: 41
+  completed_plans: 42
 ---
 
 # Project State
@@ -28,11 +28,11 @@ See: .planning/PROJECT.md (updated 2026-09-16)
 ## Current Position
 
 Phase: 04 (Static Generation, Templates & SEO) — EXECUTING
-Plan: 2 of 12
+Plan: 3 of 12
 Status: Ready to execute
 Last activity: 2026-09-26 — Phase 04 execution started
 
-Progress: [████████░░] 79%
+Progress: [████████░░] 81%
 
 ## Performance Metrics
 
@@ -90,6 +90,7 @@ Progress: [████████░░] 79%
 | Phase 03 P06 | 135min | 3 tasks | 17 files |
 | Phase 03 P07 | ~30min | 2 tasks | 2 files |
 | Phase 04 P01 | ~25min | 3 tasks | 17 files |
+| Phase 04 P02 | ~15min | 2 tasks | 11 files |
 
 ## Accumulated Context
 
@@ -186,6 +187,10 @@ Recent decisions affecting current work:
 - [Phase ?]: 04-01: A Content Layer Loader throw does fail astro build (RESEARCH Open Question 1 CONFIRMED by spike) - REND-02/03's fail-loud guarantee can rest on it
 - [Phase ?]: 04-01: Trailing-slash redirect measured at 307, not 301 - Cloudflare's native html_handling never emits 301 in any mode; named deviation from CONTEXT.md's wording, flagged for end-of-phase owner review
 - [Phase ?]: 04-01: Manifest schema bumped to v2 - every entry now carries slug (D-08), enabling a future zero-D1-read non-canonical-URL Worker redirect (plan 04-06) from one KV read
+- [Phase ?]: 04-02: toSafeJsonLd escapes <, >, &, and the line/paragraph separator code points (built via String.fromCharCode, not a typed escape sequence) after JSON.stringify -- each JSON-LD node carries its own @context since Base.astro renders each as an independent <script> block
+- [Phase ?]: 04-02: home page's wordmark renders as a plain <h1> matching design/mockups/index.html verbatim; every other page gets <p data-wordmark><a href="/">915 TLDR</a></p>, per the plan's own interface note
+- [Phase ?]: 04-02: footer gains About/Privacy/Terms links beside the mockup's Changelog/Contact -- a named, plan-specified addition to the approved mockup footer (D-10's static pages need a way in)
+- [Phase ?]: 04-02: a single-backslash \u2028/\u2029-style escape sequence typed directly into this session's file-write tool call gets silently decoded into the real invisible Unicode character before it reaches disk -- worked around via String.fromCharCode(...) at runtime instead of typing the escape sequence into source text
 
 ### Pending Todos
 
@@ -236,6 +241,6 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-09-26T23:17:52.716Z
-Stopped at: Completed 04-01-PLAN.md
+Last session: 2026-09-26T23:39:02.005Z
+Stopped at: Completed 04-02-PLAN.md
 Resume file: None

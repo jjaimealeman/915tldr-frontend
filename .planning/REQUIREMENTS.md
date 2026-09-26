@@ -99,7 +99,7 @@
 ### SEO
 
 - [ ] **SEO-01**: Every article emits valid `NewsArticle` structured data, validated not merely emitted
-- [ ] **SEO-02**: `BreadcrumbList`, `Organization` and `WebSite` structured data are present and valid
+- [x] **SEO-02**: `BreadcrumbList`, `Organization` and `WebSite` structured data are present and valid
 - [ ] **SEO-03**: A Google News sitemap covers articles from the last 48 hours
 - [x] **SEO-04**: Every page has a canonical URL and existing `/[category]/[slug]-[uuid]` URLs still resolve
 - [ ] **SEO-05**: The existing per-bot `robots.txt` policy, including AI-crawler and `Content-signal` rules, is preserved
@@ -319,7 +319,7 @@ Deferred. Tracked, not in this roadmap.
 | PERF-09 | Phase 7 | Pending |
 | PERF-10 | Phase 7 | Pending |
 | SEO-01 | Phase 4 | Pending |
-| SEO-02 | Phase 4 | Pending |
+| SEO-02 | Phase 4 | Complete |
 | SEO-03 | Phase 4 | Pending |
 | SEO-04 | Phase 4 | Complete |
 | SEO-05 | Phase 4 | Pending |

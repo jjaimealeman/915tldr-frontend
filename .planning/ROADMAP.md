@@ -269,13 +269,13 @@ trailing slashes"): the RSS feed emits links WITH a trailing slash by default, *
 endpoint, or the feed's links will not match the page URLs. Verify by fetching `/rss.xml` and
 checking that item links have no trailing slash and each answers 200 directly.
 
-**Plans**: 1/12 plans executed in 6 waves
+**Plans**: 2/12 plans executed in 6 waves
 
 Plans:
 **Wave 1**
 
 - [x] 04-01-PLAN.md — Tracer: one real article D1 → Content Layer loader → stored-slug canonical page → KV manifest v2 → live on dev; Spike 1 (does a Loader throw fail the build?) (wave 1)
-- [ ] 04-02-PLAN.md — Approved chrome in Base, head-metadata contract, deterministic date formatting, safe JSON-LD, shared ArticleCard (wave 1)
+- [x] 04-02-PLAN.md — Approved chrome in Base, head-metadata contract, deterministic date formatting, safe JSON-LD, shared ArticleCard (wave 1)
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
@@ -447,7 +447,7 @@ Phase 3 and may run alongside Phases 5-7.
 | 1. Design Sketch & Editorial Identity | 23/23 | Complete    | 2026-09-17 |
 | 2. Content Quality & Grounding | 11/10 | Complete    | 2026-09-21 |
 | 3. Foundation & Read-Budget Guardrails | 7/7 | Complete    | 2026-09-26 |
-| 4. Static Generation, Templates & SEO | 1/12 | In Progress|  |
+| 4. Static Generation, Templates & SEO | 2/12 | In Progress|  |
 | 5. Hybrid Archive & Zero-Reads Proof | 0/TBD | Not started | - |
 | 6. Bilingual | 0/TBD | Not started | - |
 | 7. Imagery & Share Cards | 0/TBD | Not started | - |
