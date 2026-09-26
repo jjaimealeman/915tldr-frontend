@@ -10,6 +10,7 @@ Entries are named `YYYY-MM-DD-HHMM_slug.md` and grouped by month, newest first.
 
 | Date | Entry | Keywords |
 |------|-------|----------|
+| 2026-09-26 | [GREEN: implement html-text decodeEntities/textOf](2026-09-26-1708_04-01-html-text-green-implementation.md) | `[TESTING]` `[BUG_FIX]` |
 | 2026-09-26 | [RED: failing test for html-text decodeEntities/textOf](2026-09-26-1705_04-01-html-text-red-test.md) | `[TESTING]` `[BUG_FIX]` |
 | 2026-09-26 | [Content Layer loader, stored-slug canonical URLs, manifest v2](2026-09-26-1702_04-01-content-layer-loader-canonical-urls-manifest-v2.md) | `[BACKEND]` `[DATABASE]` `[FRONTEND]` `[ROUTING]` `[FEATURE]` |
 | 2026-09-26 | [Phase 4 context: Workers Builds, stored slugs, fail-loud rules](2026-09-26-1505_phase4-context.md) | `[PLANNING]` `[ARCHITECTURE]` `[SEO]` `[DEPLOYMENT]` |
