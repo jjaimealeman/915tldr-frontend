@@ -2,18 +2,18 @@
 gsd_state_version: 1.0
 milestone: v1.5
 milestone_name: milestone
-current_phase: 4
+current_phase: 04
 current_phase_name: Static Generation, Templates & SEO
 status: executing
-stopped_at: Phase 4 context gathered
-last_updated: "2026-09-26T22:49:55.412Z"
+stopped_at: Completed 04-01-PLAN.md
+last_updated: "2026-09-26T23:17:52.735Z"
 last_activity: 2026-09-26
 last_activity_desc: Phase 03 complete, transitioned to Phase 4
 progress:
   total_phases: 4
   completed_phases: 3
   total_plans: 52
-  completed_plans: 40
+  completed_plans: 41
 ---
 
 # Project State
@@ -23,16 +23,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-09-16)
 
 **Core value:** Zero D1 reads on the public request path — architecturally zero, enforced structurally at build time.
-**Current focus:** Phase 03 — foundation-read-budget-guardrails
+**Current focus:** Phase 04 — Static Generation, Templates & SEO
 
 ## Current Position
 
-Phase: 4 — Static Generation, Templates & SEO
-Plan: Not started
+Phase: 04 (Static Generation, Templates & SEO) — EXECUTING
+Plan: 2 of 12
 Status: Ready to execute
-Last activity: 2026-09-26 — Phase 03 complete, transitioned to Phase 4
+Last activity: 2026-09-26 — Phase 04 execution started
 
-Progress: [██████████] 98%
+Progress: [████████░░] 79%
 
 ## Performance Metrics
 
@@ -89,6 +89,7 @@ Progress: [██████████] 98%
 | Phase 03 P05 | ~65min | 3 tasks | 5 files |
 | Phase 03 P06 | 135min | 3 tasks | 17 files |
 | Phase 03 P07 | ~30min | 2 tasks | 2 files |
+| Phase 04 P01 | ~25min | 3 tasks | 17 files |
 
 ## Accumulated Context
 
@@ -182,6 +183,9 @@ Recent decisions affecting current work:
 - [Phase ?]: 03-06: limits.cpu_ms (max configurable 300,000ms) has no effect on Cron Trigger CPU ceiling — confirmed empirically, a real cron-triggered burn ran to 902,000ms of CPU regardless.
 - [Phase ?]: 03-07: D-01 render-step location decided as Option A (existing 2-hour cron Worker) for both steady-state incremental renders and full-corpus rebuilds (chained across ~26-33 cron cycles), not Queues or CI — ruled in by a measured real ingest volume of 15 articles/cycle mean (62 peak) against a ~1,223-1,574/cycle capacity, ~20x headroom at the worst observed week. See docs/phase-03/render-step-location.md.
 - [Phase ?]: 03-07: staleness detection for Phase 4's loader must not bulk-fetch the full corpus every cron cycle — 957,008 rows/pass x 12 cycles/day = 11.48M rows/day, 5.7x PROJECT.md's 2M daily soft budget and 2.3x its 5M daily hard-fail, even though a single bulk-fetch pass fits comfortably. Use an incremental signal (updated_at comparison or an ingest-set flag) instead; reserve the full bulk-fetch pass for forced full rebuilds only.
+- [Phase ?]: 04-01: A Content Layer Loader throw does fail astro build (RESEARCH Open Question 1 CONFIRMED by spike) - REND-02/03's fail-loud guarantee can rest on it
+- [Phase ?]: 04-01: Trailing-slash redirect measured at 307, not 301 - Cloudflare's native html_handling never emits 301 in any mode; named deviation from CONTEXT.md's wording, flagged for end-of-phase owner review
+- [Phase ?]: 04-01: Manifest schema bumped to v2 - every entry now carries slug (D-08), enabling a future zero-D1-read non-canonical-URL Worker redirect (plan 04-06) from one KV read
 
 ### Pending Todos
 
@@ -232,6 +236,6 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-09-26T21:39:22.246Z
-Stopped at: Phase 4 context gathered
-Resume file: .planning/phases/04-static-generation-templates-seo/04-CONTEXT.md
+Last session: 2026-09-26T23:17:52.716Z
+Stopped at: Completed 04-01-PLAN.md
+Resume file: None

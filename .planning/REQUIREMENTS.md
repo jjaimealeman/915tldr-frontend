@@ -18,8 +18,8 @@
 
 ### Content Loading & Render
 
-- [ ] **REND-01**: A hand-written `astro/loaders` Loader reads articles from the D1 REST API at build time
-- [ ] **REND-02**: The loader throws and fails the build when it returns zero or fewer rows than expected — an empty result never ships as a successful build
+- [x] **REND-01**: A hand-written `astro/loaders` Loader reads articles from the D1 REST API at build time
+- [x] **REND-02**: The loader throws and fails the build when it returns zero or fewer rows than expected — an empty result never ships as a successful build
 - [ ] **REND-03**: A regression test reproduces the `/changelog` empty-state failure and proves the loader rejects it
 - [ ] **REND-04**: Homepage, category pages, tag indexes and static pages regenerate on each cron cycle via a new Worker deployment
 - [ ] **REND-05**: Only new and changed articles re-render; unchanged articles are not recomputed
@@ -101,7 +101,7 @@
 - [ ] **SEO-01**: Every article emits valid `NewsArticle` structured data, validated not merely emitted
 - [ ] **SEO-02**: `BreadcrumbList`, `Organization` and `WebSite` structured data are present and valid
 - [ ] **SEO-03**: A Google News sitemap covers articles from the last 48 hours
-- [ ] **SEO-04**: Every page has a canonical URL and existing `/[category]/[slug]-[uuid]` URLs still resolve
+- [x] **SEO-04**: Every page has a canonical URL and existing `/[category]/[slug]-[uuid]` URLs still resolve
 - [ ] **SEO-05**: The existing per-bot `robots.txt` policy, including AI-crawler and `Content-signal` rules, is preserved
 - [ ] **SEO-06**: `/rss.xml` is preserved
 - [ ] **SEO-07**: Canonical links to the originating outlet are prominent on every article
@@ -256,8 +256,8 @@ Deferred. Tracked, not in this roadmap.
 | ARCH-06 | Phase 3 | Complete |
 | ARCH-07 | Phase 12 | Pending |
 | ARCH-08 | Phase 5 | Pending |
-| REND-01 | Phase 4 | Pending |
-| REND-02 | Phase 4 | Pending |
+| REND-01 | Phase 4 | Complete |
+| REND-02 | Phase 4 | Complete |
 | REND-03 | Phase 4 | Pending |
 | REND-04 | Phase 4 | Pending |
 | REND-05 | Phase 4 | Pending |
@@ -321,7 +321,7 @@ Deferred. Tracked, not in this roadmap.
 | SEO-01 | Phase 4 | Pending |
 | SEO-02 | Phase 4 | Pending |
 | SEO-03 | Phase 4 | Pending |
-| SEO-04 | Phase 4 | Pending |
+| SEO-04 | Phase 4 | Complete |
 | SEO-05 | Phase 4 | Pending |
 | SEO-06 | Phase 4 | Pending |
 | SEO-07 | Phase 4 | Pending |
