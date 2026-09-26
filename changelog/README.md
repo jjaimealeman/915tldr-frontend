@@ -10,6 +10,40 @@ Entries are named `YYYY-MM-DD-HHMM_slug.md` and grouped by month, newest first.
 
 | Date | Entry | Keywords |
 |------|-------|----------|
+| 2026-09-26 | [Phase 3 complete: Foundation & Read-Budget Guardrails](2026-09-26-1315_phase3-complete.md) | `[PLANNING]` `[DOCUMENTATION]` `[ARCHITECTURE]` |
+| 2026-09-26 | [Phase 3 security review: 26 of 26 threats closed](2026-09-26-1300_phase3-security-verified.md) | `[SECURITY]` `[DOCUMENTATION]` `[PLANNING]` |
+| 2026-09-26 | [Config guard now runs on `build` and `deploy`, not only `test:unit`](2026-09-26-1251_config-guard-runs-on-build-and-deploy.md) | `[SECURITY]` `[CONFIG]` `[TESTING]` `[DEPLOYMENT]` `[CRITICAL]` |
+| 2026-09-26 | [Close T-03-02a: widen the D1-import guard from one filename to the whole server directory](2026-09-26-1250_close-t-03-02a-kv-manifest-directory-guard.md) | `[SECURITY]` `[CRITICAL]` `[TESTING]` `[BACKEND]` `[DOCUMENTATION]` |
+| 2026-09-26 | [Phase 3 UAT complete: 2 of 2 passed](2026-09-26-1212_phase3-uat-complete.md) | `[TESTING]` `[PLANNING]` `[DOCUMENTATION]` |
+| 2026-09-26 | [Trailing slash: decided to drop it in Phase 4, RSS gotcha recorded](2026-09-26-1130_trailing-slash-dropped-rss-gotcha-recorded.md) | `[DOCUMENTATION]` `[SEO]` `[ARCHITECTURE]` `[PLANNING]` |
+| 2026-09-23 | [Fix Phase 3 COVERAGE.md to pass the api-coverage.verify-pre gate](2026-09-23-1422_phase3-coverage-md-length-gate.md) | `[DOCUMENTATION]` `[CONFIG]` `[BUG_FIX]` |
+| 2026-09-23 | [`pnpm verify:edge` loads `.dev.vars` itself — no more manual export required](2026-09-23-1930_verify-edge-loads-dev-vars-automatically.md) | `[TESTING]` `[BACKEND]` `[BUG_FIX]` `[DOCUMENTATION]` |
+| 2026-09-23 | [Phase 12 directory reorganization recorded (plain parent, two repos)](2026-09-23-1900_phase12-directory-reorg-recorded.md) | `[DOCUMENTATION]` `[PLANNING]` `[ARCHITECTURE]` |
+| 2026-09-23 | [Repo-role READMEs: frontend/backend split is permanent, not transitional](2026-09-23-1850_repo-role-readmes-frontend-backend-split.md) | `[DOCUMENTATION]` `[ARCHITECTURE]` |
+| 2026-09-23 | [`pnpm verify:edge` hardened: discover the live article, not the local build](2026-09-23-1840_harden-verify-edge-live-article-discovery.md) | `[TESTING]` `[BACKEND]` `[BUG_FIX]` `[DOCUMENTATION]` |
+| 2026-09-23 | [Trailing-slash redirect deferral recorded as an explicit Phase 4 carry-over](2026-09-23-1830_trailing-slash-deferral-recorded-in-roadmap.md) | `[DOCUMENTATION]` `[SEO]` `[ARCHITECTURE]` |
+| 2026-09-23 | [Phase 3 verification persisted: 5/5 must-haves, two items routed to the owner](2026-09-23-0759_03-persist-human-verification-items-as-uat.md) | `[DOCUMENTATION]` `[PLANNING]` `[TESTING]` |
+| 2026-09-23 | [Render-step location decided (D-01): Option A, ruled in by measured ingest volume](2026-09-23-1345_render-step-location-decided-option-a.md) | `[ARCHITECTURE]` `[DOCUMENTATION]` `[INFRA]` `[DEPLOYMENT]` |
+| 2026-09-23 | [03-06 Addendum: Bulk-fetch query shape solves the D1 rows-read budget, not the cron CPU ceiling](2026-09-23-0730_03-06-addendum-bulk-fetch-solves-d1-budget-not-cpu-ceiling.md) | `[BACKEND]` `[DATABASE]` `[PERFORMANCE]` `[TESTING]` `[DOCUMENTATION]` |
+| 2026-09-23 | [Cron CPU ceiling measured — STATE.md's 300s figure was wrong by 3x](2026-09-23-0058_cron-cpu-ceiling-measured.md) | `[BACKEND]` `[PERFORMANCE]` `[SECURITY]` `[DOCUMENTATION]` `[BUG_FIX]` |
+| 2026-09-22 | [Per-page render cost measurement harness — manifest write, not render, dominates](2026-09-22-2306_render-cost-measurement-harness.md) | `[BACKEND]` `[PERFORMANCE]` `[TESTING]` `[BUG_FIX]` |
+| 2026-09-22 | [D1 REST pagination measurement harness surfaces a 49M-row offset-pagination finding](2026-09-22-2258_d1-pagination-measurement-harness.md) | `[BACKEND]` `[DATABASE]` `[PERFORMANCE]` `[TESTING]` |
+| 2026-09-22 | [One command re-proves the edge noindex policy on every deploy](2026-09-22-2241_03-05-verify-edge-command-completes-plan.md) | `[TESTING]` `[SECURITY]` `[DEPLOYMENT]` `[BUG_FIX]` `[DOCUMENTATION]` |
+| 2026-09-22 | [915tldr-v2 deployed to dev.915tldr.com, production untouched](2026-09-22-2235_03-05-deploy-915tldr-v2-to-dev-hostname.md) | `[DEPLOYMENT]` `[INFRA]` `[BUG_FIX]` `[SECURITY]` `[CONFIG]` |
+| 2026-09-22 | [Edge noindex Transform Rule now covers dev and admin-dev](2026-09-22-2223_03-05-edge-noindex-rule-covers-dev-and-admin-dev.md) | `[INFRA]` `[SECURITY]` `[DEPLOYMENT]` `[DOCUMENTATION]` |
+| 2026-09-22 | [Plan 03-05 resumed on owner's hostname decision; halted again at the noindex rule (token scope)](2026-09-22-2035_03-05-admin-dev-bound-blocked-on-rules-scope.md) | `[DOCUMENTATION]` `[INFRA]` `[DEPLOYMENT]` `[SECURITY]` |
+| 2026-09-22 | [Plan 03-05 halted before any change: dev.915tldr.com already routes to v1](2026-09-22-1422_03-05-blocked-dev-hostname-already-taken.md) | `[DOCUMENTATION]` `[INFRA]` `[DEPLOYMENT]` `[CRITICAL]` |
+| 2026-09-22 | [Render manifest schema documented for Phase 4/5/6](2026-09-22-1420_03-04-render-manifest-schema-documented.md) | `[DOCUMENTATION]` `[BACKEND]` `[SECURITY]` |
+| 2026-09-22 | [Translation identity, validation, versioning and bulk writes for the render manifest](2026-09-22-1415_03-04-translation-identity-validated-bulk-manifest-writer.md) | `[BACKEND]` `[TESTING]` `[SECURITY]` `[CONFIG]` |
+| 2026-09-22 | [README states the read budget in numbers (OPS-08)](2026-09-22-1403_03-03-readme-read-budget.md) | `[DOCUMENTATION]` `[CONFIG]` |
+| 2026-09-22 | [Permanent test proves /version.json and the footer cannot disagree](2026-09-22-1401_03-03-cross-surface-build-stamp-test.md) | `[TESTING]` `[SECURITY]` `[BACKEND]` |
+| 2026-09-22 | [One build-info module drives /version.json and the footer stamp](2026-09-22-1358_03-03-build-info-module.md) | `[BACKEND]` `[CONFIG]` `[SECURITY]` |
+| 2026-09-22 | [Wire the D1-import and config gates into the normal test command](2026-09-22-1352_phase-03-02-wire-gates-into-test-unit.md) | `[CONFIG]` `[TESTING]` `[DEPENDENCIES]` |
+| 2026-09-22 | [Config guard closes the gap the D1-import module-graph walk cannot see](2026-09-22-1348_phase-03-02-config-guard.md) | `[SECURITY]` `[CONFIG]` `[TESTING]` `[BACKEND]` |
+| 2026-09-22 | [Permanent negative fixtures prove the D1-import assertion actually rejects](2026-09-22-1342_phase-03-02-d1-negative-fixtures.md) | `[TESTING]` `[SECURITY]` `[BACKEND]` `[CRITICAL]` |
+| 2026-09-22 | [Complete Plan 03-01: Tracer Summary and Requirement Tracking](2026-09-22-1333_complete-plan-03-01-tracer-summary.md) | `[DOCUMENTATION]` `[PLANNING]` `[TESTING]` |
+| 2026-09-22 | [Phase 3 Plan 1: One Real Article, End to End](2026-09-22-1329_phase-03-01-tracer-one-real-article.md) | `[FEATURE]` `[BACKEND]` `[API]` `[CONFIG]` `[DEPENDENCIES]` `[TESTING]` `[INFRA]` |
+| 2026-09-22 | [Phase 3 plan set: seven plans, five waves, tracer-first](2026-09-22-1144_phase-03-plan-set-read-budget-guardrails.md) | `[PLANNING]` `[INFRA]` `[TESTING]` `[SECURITY]` `[CONFIG]` |
 | 2026-09-21 | [CONT-06 Gap Closure (Plan 02-11)](2026-09-21-1615_cont06-gap-closure-plan-02-11.md) | `[DOCUMENTATION]` `[PLANNING]` `[BACKEND]` `[AI]` |
 | 2026-09-21 | [CONT-07 Editorial Read Closes Plan 02-10](2026-09-21-0910_cont07-editorial-read-closes-plan-10.md) | `[DOCUMENTATION]` `[PLANNING]` `[AI]` |
 | 2026-09-21 | [Complete Plan 02-10: Attribution-Wrapper Judge Fix, September Backfill Finished](2026-09-21-0212_complete-02-10-attribution-fix-and-backfill-completion.md) | `[DOCUMENTATION]` `[BACKEND]` `[AI]` |

@@ -1,0 +1,9 @@
+---
+// D-06 / T-03-02a fixture: an `.astro` island wrapper (the shape a real `src/islands/**`
+// component takes) that renders a Vue component reaching the KV module — proves the checker's
+// walk crosses the `.astro` -> `.vue` boundary into `src/lib/server/kv-manifest.ts`, not only
+// `d1-client.ts`. Never a real island; never reachable from `pnpm build` (this file lives
+// outside `src/islands/**`).
+import IslandWithKvImport from './island-with-kv-import.vue';
+---
+<IslandWithKvImport server:defer />

@@ -1,0 +1,18 @@
+{
+  // 03-06 Task 3, Open Question 1 (bidirectional check): identical to wrangler.jsonc except for
+  // an explicit `limits.cpu_ms` set WELL BELOW the documented 15-minute cron ceiling. If the
+  // real termination point moves down to ~this value instead of staying at ~900,000ms, that is
+  // clean, low-ambiguity evidence that `limits.cpu_ms` DOES interact with cron invocations (at
+  // least to cap them below the platform default) — cheaper and faster to observe than waiting
+  // to see whether a HIGH limit raises the ceiling.
+  "name": "915tldr-cpu-probe",
+  "main": "index.mjs",
+  "compatibility_date": "2026-09-01",
+  "triggers": {
+    "crons": ["30 */2 * * *"]
+  },
+  "workers_dev": true,
+  "limits": {
+    "cpu_ms": 5000
+  }
+}

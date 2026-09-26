@@ -8,11 +8,11 @@
 ### Architecture & Read Budget
 
 - [ ] **ARCH-01**: A public page request completes with zero D1 row reads, verified against Cloudflare D1 analytics
-- [ ] **ARCH-02**: The build fails if any public route, island component, middleware, or endpoint can reach the D1 binding
-- [ ] **ARCH-03**: The D1-import assertion scans island component files and `/_server-islands/*` paths, not only `.astro` pages
-- [ ] **ARCH-04**: Bindings are accessed via `import { env } from 'cloudflare:workers'`; no use of the removed `Astro.locals.runtime.env`
-- [ ] **ARCH-05**: Astro config uses `output: 'static'` with per-route `export const prerender = false`; `'hybrid'` appears nowhere
-- [ ] **ARCH-06**: `imageService` is set explicitly to `{ build: 'compile', runtime: 'passthrough' }` rather than inheriting the `cloudflare-binding` default
+- [x] **ARCH-02**: The build fails if any public route, island component, middleware, or endpoint can reach the D1 binding
+- [x] **ARCH-03**: The D1-import assertion scans island component files and `/_server-islands/*` paths, not only `.astro` pages
+- [x] **ARCH-04**: Bindings are accessed via `import { env } from 'cloudflare:workers'`; no use of the removed `Astro.locals.runtime.env`
+- [x] **ARCH-05**: Astro config uses `output: 'static'` with per-route `export const prerender = false`; `'hybrid'` appears nowhere
+- [x] **ARCH-06**: `imageService` is set explicitly to `{ build: 'compile', runtime: 'passthrough' }` rather than inheriting the `cloudflare-binding` default
 - [ ] **ARCH-07**: Total D1 reads per day stay under 2,000,000 for 7 consecutive days
 - [ ] **ARCH-08**: A public request performs at most 1 KV read and under 5ms Worker CPU
 
@@ -23,7 +23,7 @@
 - [ ] **REND-03**: A regression test reproduces the `/changelog` empty-state failure and proves the loader rejects it
 - [ ] **REND-04**: Homepage, category pages, tag indexes and static pages regenerate on each cron cycle via a new Worker deployment
 - [ ] **REND-05**: Only new and changed articles re-render; unchanged articles are not recomputed
-- [ ] **REND-06**: A render manifest in KV records what has been rendered and at which version
+- [x] **REND-06**: A render manifest in KV records what has been rendered and at which version
 - [ ] **REND-07**: Articles outside the hot window are rendered once to R2 and served from there
 - [ ] **REND-08**: A request for an archived article falls through the static-asset layer to the Worker and is served from R2
 - [ ] **REND-09**: Tag pages default to the archive tier; only top-N tags by article count are promoted to hot static
@@ -172,13 +172,13 @@
 ### Operations
 
 - [ ] **OPS-01**: The public site serves from `915tldr.com` on the Astro worker
-- [ ] **OPS-02**: `dev.915tldr.com` returns `X-Robots-Tag: noindex` at the edge, verified by response header
+- [x] **OPS-02**: `dev.915tldr.com` returns `X-Robots-Tag: noindex` at the edge, verified by response header
 - [ ] **OPS-03**: The Nuxt pipeline and admin serve from `admin.915tldr.com` behind Cloudflare Access
 - [ ] **OPS-04**: Better Auth, its four tables, `/admin/login` and all session handling are removed
-- [ ] **OPS-05**: The deployed short commit hash and build timestamp appear in the public footer
-- [ ] **OPS-06**: `/version.json` exposes the build hash for scripted checks
+- [x] **OPS-05**: The deployed short commit hash and build timestamp appear in the public footer
+- [x] **OPS-06**: `/version.json` exposes the build hash for scripted checks
 - [ ] **OPS-07**: A daily routine reports D1 reads, spend, OpenAI balance, static-asset file count and Core Web Vitals against budget
-- [ ] **OPS-08**: The read budget is stated in the README
+- [x] **OPS-08**: The read budget is stated in the README
 - [ ] **OPS-09**: Rollback to the existing worker is a route change and is verified before cutover
 - [ ] **OPS-10**: The cron run triggers the public site's incremental build
 - [x] **OPS-11**: No operation costing more than $1 runs without prior approval and an estimate
@@ -249,11 +249,11 @@ Deferred. Tracked, not in this roadmap.
 | Requirement | Phase | Status |
 |-------------|-------|--------|
 | ARCH-01 | Phase 5 | Pending |
-| ARCH-02 | Phase 3 | Pending |
-| ARCH-03 | Phase 3 | Pending |
-| ARCH-04 | Phase 3 | Pending |
-| ARCH-05 | Phase 3 | Pending |
-| ARCH-06 | Phase 3 | Pending |
+| ARCH-02 | Phase 3 | Complete |
+| ARCH-03 | Phase 3 | Complete |
+| ARCH-04 | Phase 3 | Complete |
+| ARCH-05 | Phase 3 | Complete |
+| ARCH-06 | Phase 3 | Complete |
 | ARCH-07 | Phase 12 | Pending |
 | ARCH-08 | Phase 5 | Pending |
 | REND-01 | Phase 4 | Pending |
@@ -261,7 +261,7 @@ Deferred. Tracked, not in this roadmap.
 | REND-03 | Phase 4 | Pending |
 | REND-04 | Phase 4 | Pending |
 | REND-05 | Phase 4 | Pending |
-| REND-06 | Phase 3 | Pending |
+| REND-06 | Phase 3 | Complete |
 | REND-07 | Phase 5 | Pending |
 | REND-08 | Phase 5 | Pending |
 | REND-09 | Phase 5 | Pending |
@@ -371,13 +371,13 @@ Deferred. Tracked, not in this roadmap.
 | IDNT-05 | Phase 10 | Pending |
 | IDNT-06 | Phase 10 | Pending |
 | OPS-01 | Phase 12 | Pending |
-| OPS-02 | Phase 3 | Pending |
+| OPS-02 | Phase 3 | Complete |
 | OPS-03 | Phase 12 | Pending |
 | OPS-04 | Phase 12 | Pending |
-| OPS-05 | Phase 3 | Pending |
-| OPS-06 | Phase 3 | Pending |
+| OPS-05 | Phase 3 | Complete |
+| OPS-06 | Phase 3 | Complete |
 | OPS-07 | Phase 12 | Pending |
-| OPS-08 | Phase 3 | Pending |
+| OPS-08 | Phase 3 | Complete |
 | OPS-09 | Phase 12 | Pending |
 | OPS-10 | Phase 4 | Pending |
 | OPS-11 | Phase 2 | Complete |

@@ -26,7 +26,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 
 - [x] **Phase 1: Design Sketch & Editorial Identity** - Approved static HTML/CSS mockups that pass contrast and keyboard review before any Astro work (completed 2026-09-17)
 - [x] **Phase 2: Content Quality & Grounding** - Fix extraction, prompt and grounding so no fabricated summary is ever written in a second language (completed 2026-09-21)
-- [ ] **Phase 3: Foundation & Read-Budget Guardrails** - Astro scaffold, the CI D1-import assertion, the render manifest, and the measurements that decide the render step
+- [x] **Phase 3: Foundation & Read-Budget Guardrails** - Astro scaffold, the CI D1-import assertion, the render manifest, and the measurements that decide the render step (completed 2026-09-26)
 - [ ] **Phase 4: Static Generation, Templates & SEO** - A fail-loud D1 loader and every public page type generated at build time
 - [ ] **Phase 5: Hybrid Archive & Zero-Reads Proof** - R2 archive tier, tag tiering, and the measured proof of zero D1 reads on the public path
 - [ ] **Phase 6: Bilingual** - Spanish summaries at ingest, `/es` routing, hreflang pairs and per-language feeds
@@ -209,7 +209,30 @@ Plans:
   4. `curl -I https://dev.915tldr.com` returns `X-Robots-Tag: noindex` from the edge (not an app meta tag); `/version.json` and the public footer both report the deployed short commit hash and build timestamp; the README states the read budget.
   5. Three numbers are recorded, not guessed: cron-worker CPU headroom, per-page render cost in ms, and D1 REST API pagination p50/p95 at 41,233 rows. The render-step location (cron worker / separate worker via Queues / CI) is decided from them and written down.
 
-**Plans**: TBD
+**Plans**: 7/7 plans executed in 5 waves
+
+Plans:
+**Wave 1**
+
+- [x] 03-01-PLAN.md — Package-legitimacy gate, then the end-to-end tracer: one live D1 row rendered to a real URL with a KV manifest entry, assertion live in the build (wave 1)
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
+- [x] 03-02-PLAN.md — Permanent negative fixtures proving the assertion fires on a page and an island, plus the comment-stripped config guard (wave 2)
+- [x] 03-03-PLAN.md — Build stamp: `/version.json` and the footer from one module with recorded provenance, plus the README read budget (wave 2)
+- [x] 03-04-PLAN.md — Manifest schema hardened and documented; one-way decision on how the Spanish counterpart identity is populated (wave 2)
+
+**Wave 3** *(blocked on Wave 2 completion)*
+
+- [x] 03-05-PLAN.md — Deploy to dev.915tldr.com and serve the edge noindex Transform Rule, verified by live response header (wave 3)
+
+**Wave 4** *(blocked on Wave 3 completion)*
+
+- [x] 03-06-PLAN.md — The three D-01 measurements, including an empirical answer to the cron CPU ceiling question (wave 4)
+
+**Wave 5** *(blocked on Wave 4 completion)*
+
+- [x] 03-07-PLAN.md — Render-step location decided from the measured numbers and written down (wave 5)
 
 ### Phase 4: Static Generation, Templates & SEO
 
@@ -223,6 +246,28 @@ Plans:
   3. A cron cycle triggers an incremental build that re-renders only new and changed articles and ships a new Worker deployment; unchanged articles are byte-identical to the previous version.
   4. Every existing `/[category]/[slug]-[uuid]` URL still resolves with a correct canonical; `/rss.xml` and the per-bot `robots.txt` (AI-crawler and `Content-signal` rules intact) are preserved; the 404 suggestion endpoint still answers.
   5. `NewsArticle`, `BreadcrumbList`, `Organization` and `WebSite` structured data validate clean in the Rich Results Test on a real article (validated, not merely emitted); the Google News sitemap contains only the last 48 hours; every article carries an AI-generation disclosure at point of consumption and a prominent canonical link to the originating outlet.
+
+**Carried from Phase 3 (owner decision, 03-UAT.md item 1, 2026-09-23):** v2 currently serves
+`/path` → 307 → `/path/` (Astro's default directory-style output, no `trailingSlash` set) while
+v1 serves `/path` → 200 directly — measured live on both. Every v1-emitted indexed link is in the
+no-slash form, so under v2 every one of nine months of indexed URLs would take an extra redirect
+hop against a release-blocking 1.5s LCP budget, and criterion 4 above ("every existing
+`/[category]/[slug]-[uuid]` URL still resolves") is satisfied but not "unchanged". This
+criterion and SEO-04/FIX-04/FIX-05 (already mapped to this phase in REQUIREMENTS.md) are where it
+must be resolved.
+
+**Decided (owner, 2026-09-26): drop the trailing slash.** Set `trailingSlash: 'never'` with
+`build.format: 'file'` in `astro.config.mjs`, so v2 matches v1's URL shape exactly and indexed
+URLs answer 200 with no redirect. The usual risk of this setting — relative links such as
+`href="story"` resolving differently — does not apply: every internal link in `src/` is absolute
+(`/`, `/changelog`, `/contact`, `` `/${row.category}` ``, `/fonts/…`), checked 2026-09-26. Keep new
+links absolute.
+
+**RSS gotcha — must be handled in the same change.** Per the Astro docs (RSS recipe, "Removing
+trailing slashes"): the RSS feed emits links WITH a trailing slash by default, *regardless of the
+`trailingSlash` config*. Pass `trailingSlash: false` to the `rss()` helper in the `/rss.xml`
+endpoint, or the feed's links will not match the page URLs. Verify by fetching `/rss.xml` and
+checking that item links have no trailing slash and each answers 200 directly.
 
 **Plans**: TBD
 **UI hint**: yes
@@ -349,6 +394,12 @@ Plans:
   3. Rollback to the existing v1 worker is exercised as a real route change and verified to serve correctly before cutover — not documented and assumed.
   4. `915tldr.com` serves from the Astro worker and D1 reads stay under 2,000,000/day for 7 consecutive days at 100% traffic (down from 784,000,000/day), with zero reads attributable to public requests.
 
+**Deliverable (owner decision, 2026-09-23):** reorganize `915tldr.com`/`915tldr.com2` into a
+plain parent directory (`915tldr.com/`, not a repo) holding two separate git repos
+(`915tldr-frontend/`, `915tldr-backend/`), mirroring the `LizMonroy_website/babs-admin` /
+`babs-boutique` precedent — see `.planning/todos/pending/2026-09-23-split-repos-into-plain-parent-directory.md`
+(`resolves_phase: 12`) for the full rationale.
+
 **Plans**: TBD
 
 ## Progress
@@ -363,7 +414,7 @@ Phase 3 and may run alongside Phases 5-7.
 |-------|----------------|--------|-----------|
 | 1. Design Sketch & Editorial Identity | 23/23 | Complete    | 2026-09-17 |
 | 2. Content Quality & Grounding | 11/10 | Complete    | 2026-09-21 |
-| 3. Foundation & Read-Budget Guardrails | 0/TBD | Not started | - |
+| 3. Foundation & Read-Budget Guardrails | 7/7 | Complete    | 2026-09-26 |
 | 4. Static Generation, Templates & SEO | 0/TBD | Not started | - |
 | 5. Hybrid Archive & Zero-Reads Proof | 0/TBD | Not started | - |
 | 6. Bilingual | 0/TBD | Not started | - |

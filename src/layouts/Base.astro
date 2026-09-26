@@ -1,0 +1,63 @@
+---
+// D-07: reproduces the approved page chrome from design/mockups/article.html verbatim — the
+// two font preloads, the global stylesheet import, `<body data-page>`, the masthead `<header>`,
+// a `<main id="main" tabindex="-1">` slot, and the `<footer>`. OPS-05: the build-stamp line now
+// renders from src/lib/build-info.ts's constants — the same module src/pages/version.json.ts
+// reads for OPS-06 — rather than the literal placeholder text this file carried until 03-03.
+// The date is sliced out of BUILD_TIMESTAMP, not constructed from a second independently-read
+// clock here: a second clock read is a second source of truth and the two would drift.
+import '../styles/global.css';
+import { BUILD_HASH, BUILD_TIMESTAMP } from '../lib/build-info';
+
+interface Props {
+  page: string;
+  title: string;
+}
+
+const { page, title } = Astro.props;
+const buildDate = BUILD_TIMESTAMP.slice(0, 10);
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{title}</title>
+    <link
+      rel="preload"
+      as="font"
+      type="font/woff2"
+      href="/fonts/InstrumentSerif-Regular.woff2"
+      crossorigin
+    />
+    <link
+      rel="preload"
+      as="font"
+      type="font/woff2"
+      href="/fonts/SourceSerif4-Roman.woff2"
+      crossorigin
+    />
+  </head>
+  <body data-page={page}>
+    <a data-skip-link href="#main">Skip to content</a>
+
+    <header>
+      <p data-wordmark><a href="/">915 TLDR</a></p>
+      <p data-tagline>El Paso news, in brief</p>
+    </header>
+
+    <main id="main" tabindex="-1">
+      <slot />
+    </main>
+
+    <footer>
+      <p><a href="/changelog">Changelog</a> · <a href="/contact">Contact</a></p>
+      <p data-attribution>
+        Summaries of reporting by KTSM, KVIA and other El Paso outlets — always credited, always
+        linked
+      </p>
+      <p data-build>build {BUILD_HASH} · {buildDate}</p>
+    </footer>
+  </body>
+</html>

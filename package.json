@@ -7,11 +7,12 @@
     "node": ">=24"
   },
   "devDependencies": {
-    "@playwright/test": "1.63.0",
-    "subset-font": "2.7.0",
     "@capsizecss/core": "4.1.3",
     "@capsizecss/metrics": "4.2.0",
-    "culori": "4.0.2"
+    "@playwright/test": "1.63.0",
+    "culori": "4.0.2",
+    "subset-font": "2.7.0",
+    "wrangler": "4.136.3"
   },
   "scripts": {
     "probe:webkit": "node design/scripts/probe-webkit.mjs",
@@ -28,6 +29,23 @@
     "palette:sample": "node design/scripts/sample-hues.mjs",
     "palette:build": "node design/scripts/build-palette.mjs",
     "palette:swatches": "node design/scripts/render-swatches.mjs",
-    "test:unit": "node --test \"design/tests/unit/**/*.test.mjs\""
+    "guard:config": "node tools/check-config-guards.mjs",
+    "verify:edge": "node tools/verify-edge-headers.mjs",
+    "measure:d1": "node tools/measure-d1-pagination.mjs",
+    "measure:render": "node tools/measure-render-cost.mjs",
+    "measure:cpu": "node tools/cpu-ceiling-probe/run.mjs",
+    "test:unit": "pnpm run build && node --test \"design/tests/unit/**/*.test.mjs\" \"tests/unit/**/*.test.mjs\"",
+    "test:build-gate": "node --test tests/ci-fixtures/assert-no-d1.test.mjs",
+    "test:tracer": "node --test tests/tracer/tracer.test.mjs",
+    "build": "pnpm run guard:config && astro build",
+    "dev": "astro dev",
+    "preview": "astro preview",
+    "deploy": "pnpm run guard:config && wrangler deploy"
+  },
+  "dependencies": {
+    "@astrojs/cloudflare": "14.3.2",
+    "@astrojs/vue": "7.0.3",
+    "astro": "7.3.3",
+    "vue": "3.5.43"
   }
 }

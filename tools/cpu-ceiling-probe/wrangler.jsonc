@@ -1,0 +1,19 @@
+{
+  // 03-06 Task 3: throwaway Worker whose only job is to be terminated by the platform so the
+  // termination point can be observed. Distinct name from `915tldr` and `915tldr-v2` — cannot
+  // collide with either. No bindings (T-03-16: nothing for a leftover deploy to touch).
+  "name": "915tldr-cpu-probe",
+  "main": "index.mjs",
+  "compatibility_date": "2026-09-01",
+  // Matches production's real interval (915tldr.com2/wrangler.jsonc: "0 */2 * * *") so this
+  // probe falls in the SAME Cron Trigger CPU-ceiling row (>= 1 hour interval) that the real
+  // render-step decision depends on — testing at a shorter interval would test the wrong row.
+  "triggers": {
+    "crons": ["0 */2 * * *"]
+  },
+  // workers_dev enabled ONLY so this throwaway probe is directly curl-able for the fetch()
+  // convenience handler during development — deleted at the end of this task regardless.
+  "workers_dev": true
+  // `limits.cpu_ms` intentionally ABSENT in this baseline config — see
+  // wrangler.limits-high.jsonc for the second config used to answer Open Question 1.
+}

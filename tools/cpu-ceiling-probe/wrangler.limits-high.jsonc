@@ -1,0 +1,32 @@
+{
+  // 03-06 Task 3, Open Question 1: identical to wrangler.jsonc EXCEPT for the explicit
+  // `limits.cpu_ms` block. Deployed AFTER the baseline (no `limits` key) scheduled-handler
+  // measurement is captured, to answer whether `limits.cpu_ms` raises, lowers, or does not
+  // affect the interval-based Cron Trigger CPU ceiling. Set well above the documented 15-minute
+  // (900,000ms) cron ceiling for a >=1-hour-interval trigger — if the real termination point
+  // moves past 900,000ms CPU, the knob raises the ceiling; if it stays at ~900,000ms despite
+  // this config asking for 3,000,000ms, the interval-based ceiling is a hard cap independent of
+  // this setting.
+  "name": "915tldr-cpu-probe",
+  "main": "index.mjs",
+  "compatibility_date": "2026-09-01",
+  "triggers": {
+    "crons": ["50 */2 * * *"]
+  },
+  "workers_dev": true,
+  // FINDING (2026-09-23, from `wrangler deploy` itself, not a guess): the ORIGINAL value here
+  // was 3,000,000ms. `wrangler deploy` rejected it outright at deploy-validation time with
+  // "Cannot set CPU time limit higher than 300 seconds (300000 ms) [code: 10206]" — the
+  // Cloudflare API enforces a hard 300,000ms ceiling on `limits.cpu_ms` regardless of what the
+  // deployer requests. That is itself a direct, partial answer to Open Question 1: `cpu_ms`
+  // CANNOT be configured to raise a cron invocation's ceiling past the documented 900,000ms
+  // (15-minute) row for a >=1-hour-interval trigger — the knob's own maximum (300,000ms) sits
+  // BELOW that row and matches the separate "CPU time per HTTP request" maximum instead. Set to
+  // the maximum the platform will accept (300,000ms) to test whether a cron invocation configured
+  // at that ceiling still runs to the full 900,000ms cron-specific ceiling (cpu_ms has no
+  // effect on cron invocations) or gets cut off at 300,000ms instead (cpu_ms caps cron
+  // invocations too, just not above its own 300s maximum).
+  "limits": {
+    "cpu_ms": 300000
+  }
+}

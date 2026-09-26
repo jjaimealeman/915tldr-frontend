@@ -2,18 +2,18 @@
 gsd_state_version: 1.0
 milestone: v1.5
 milestone_name: milestone
-current_phase: 3
-current_phase_name: Foundation & Read-Budget Guardrails
+current_phase: 4
+current_phase_name: Static Generation, Templates & SEO
 status: planning
-stopped_at: Completed 02-04-PLAN.md
-last_updated: "2026-09-21T16:14:31.899Z"
-last_activity: 2026-09-21
-last_activity_desc: Phase 02 complete, transitioned to Phase 3
+stopped_at: Completed 03-07-PLAN.md — Phase 3 complete
+last_updated: "2026-09-26T18:54:01.740Z"
+last_activity: 2026-09-26
+last_activity_desc: Phase 03 complete, transitioned to Phase 4
 progress:
-  total_phases: 2
-  completed_phases: 2
-  total_plans: 33
-  completed_plans: 33
+  total_phases: 3
+  completed_phases: 3
+  total_plans: 40
+  completed_plans: 40
 ---
 
 # Project State
@@ -23,22 +23,22 @@ progress:
 See: .planning/PROJECT.md (updated 2026-09-16)
 
 **Core value:** Zero D1 reads on the public request path — architecturally zero, enforced structurally at build time.
-**Current focus:** Phase 02 — content-quality-grounding
+**Current focus:** Phase 03 — foundation-read-budget-guardrails
 
 ## Current Position
 
-Phase: 3 — Foundation & Read-Budget Guardrails
+Phase: 4 — Static Generation, Templates & SEO
 Plan: Not started
 Status: Ready to plan
-Last activity: 2026-09-21 — Phase 02 complete, transitioned to Phase 3
+Last activity: 2026-09-26 — Phase 03 complete, transitioned to Phase 4
 
-Progress: [████████░░] 82%
+Progress: [██████████] 98%
 
 ## Performance Metrics
 
 **Velocity:**
 
-- Total plans completed: 34
+- Total plans completed: 41
 - Average duration: —
 - Total execution time: —
 
@@ -48,6 +48,7 @@ Progress: [████████░░] 82%
 |-------|-------|-------|----------|
 | 01 | 23 | - | - |
 | 02 | 11 | - | - |
+| 03 | 7 | - | - |
 
 **Recent Trend:**
 
@@ -81,6 +82,13 @@ Progress: [████████░░] 82%
 | Phase 01 P21 | 35min | 3 tasks | 20 files |
 | Phase 01 P22 | 19min | 3 tasks | 8 files |
 | Phase 02 P04 | 131min | 3 tasks | 13 files |
+| Phase 03 P01 | ~10min (continuation) | 2 tasks | 19 files |
+| Phase 03 P02 | 16min | 3 tasks | 12 files |
+| Phase 03 P03 | ~50min | 3 tasks | 6 files |
+| Phase 03 P04 | ~35min | 2 tasks | 5 files |
+| Phase 03 P05 | ~65min | 3 tasks | 5 files |
+| Phase 03 P06 | 135min | 3 tasks | 17 files |
+| Phase 03 P07 | ~30min | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -153,6 +161,27 @@ Recent decisions affecting current work:
 - [Phase ?]: 02-04: D-03/D-CAUTION-2 CONFIRMED — linkedom/worker + Readability runs inside a real Workers runtime, proven via a live wrangler dev tracer run (no HTMLRewriter fallback needed)
 - [Phase ?]: 02-04: requirements-completed deliberately omits CONT-01 — its success criterion is a corpus-level statistic (near-zero truncation-marker rate at ingest), proven only for n=1 by this tracer; left pending for plan 02-05+'s at-scale validation
 - [Phase ?]: 02-04: grounding gate (checkGrounding) proven live — correctly held a real article after catching two genuine unsupported claims, and published a clean one; gpt-5.6-luna needed max_completion_tokens (not max_tokens) and no custom temperature, discovered only by running the live endpoint
+- [Phase ?]: wrangler pinned to 4.136.3 (current latest) instead of the plan's researched 4.136.1 — build-time-only CLI, no architectural risk, human-approved within Task 1's package-legitimacy gate
+- [Phase ?]: Dedicated KV namespace 915tldr-render-manifest created (id 3c92531f94294fcc94006455f433885f) rather than reusing the Nuxt pipeline app's existing KV/CACHE namespaces
+- [Phase ?]: wrangler.jsonc corrected against a real build: no main field, assets.directory is dist/client not dist, session: false set explicitly — @astrojs/cloudflare 14.3.2's real output shape differs from 03-RESEARCH.md's assumption
+- [Phase ?]: 03-02: Drove D1-import fixture suite by invoking assertNoD1Plugin().buildEnd() directly against a synthesized PluginContext stub built from fixtures' real imports, not a full astro build — kept suite inside the 90s ceiling (~80ms).
+- [Phase ?]: 03-02: Enhanced assert-no-d1.mjs's rejection message to report the full BFS chain (entry -> ... -> forbidden module), not just the two endpoints, so the island case can name the intermediate .vue file it crosses through.
+- [Phase ?]: 03-02: ARCH-06 (imageService) tested via node:vm evaluation of the real cloudflare(...) call argument, not astro.config.mjs's resolved export — @astrojs/cloudflare v14.3.2 closes over imageService internally and never re-exposes it.
+- [Phase ?]: 03-02: Removed a stray planner-discipline-allow marker that had leaked from 03-01-PLAN.md into the real wrangler.jsonc, the only literal occurrence of d1_databases in the file, which tripped the new T-03-01 guard.
+- [Phase ?]: Deploy path resolved as local wrangler deploy (not git-connected Workers Builds CI), verified via Workers Builds API against this account's existing Workers (zero build history).
+- [Phase ?]: resolveBuildHash exported as a pure function of env for direct testability, per 03-03-PLAN.md Task 2's stated preference.
+- [Phase ?]: 03-04: Task 1 checkpoint resolved as Option C — translationGroupId + language replace spanishCounterpartId; the group id equals the article's own uuid today and is never null, reusing the existing duplicate_groups pattern already live in production D1.
+- [Phase ?]: 03-04: renderVersion renamed to schemaVersion; buildManifestEntry no longer accepts a version param at all — every entry gets the exported MANIFEST_SCHEMA_VERSION automatically, closing the drift that produced the 03-01 tracer's hand-written renderVersion: '0'.
+- [Phase ?]: 03-04: KV bulk-write 10,000-pair ceiling carried forward from 03-RESEARCH.md's already-fetched citation, not re-verified live — the cloudflare-docs MCP tool was unavailable in this execution's tool surface; flagged in docs/phase-03/render-manifest.md and SUMMARY coverage item D7 for confirmation before corpus-scale use.
+- [Phase ?]: 03-05: noindex Transform Rule extended to cover admin-dev.915tldr.com in addition to dev.915tldr.com (admin-dev didn't exist when the plan's Task 2 was scoped; leaving it out would ship a new crawlable admin surface).
+- [Phase ?]: 03-05: executed the noindex-rule task before the deploy task (mandatory ordering) so the rule was proven live on admin-dev.915tldr.com before any v2 code shipped — no unprotected crawlable window ever existed.
+- [Phase ?]: 03-05: session:false in astro.config.mjs was a no-op in 03-01's original location (inside the adapter call instead of Astro's top-level config key) — first real wrangler deploy exposed it; fixed by moving the key.
+- [Phase ?]: 03-05: a stale zone Worker Route for dev.915tldr.com out-prioritized the freshly-reassigned Custom Domain for 3+ minutes, contrary to Cloudflare's documented precedence; deleting the stale route (per the plan's own anticipated cleanup step) resolved it immediately.
+- [Phase ?]: 03-06: STATE.md's 300s cron CPU ceiling and ~4ms/page render cost were both wrong (measured: ~900s ceiling, 573-736ms/page) — full-corpus rebuild takes 6.3-8.1hrs against the real ceiling, 25-33x over.
+- [Phase ?]: 03-06: naive D1 offset pagination reads 49.4M rows for one 39,827-row pass — 9.9x PROJECT.md's 5M hard-fail budget; keyset pagination is 4.3x cheaper (11.5M rows) but still over budget. Phase 4's loader must not page the full corpus this way.
+- [Phase ?]: 03-06: limits.cpu_ms (max configurable 300,000ms) has no effect on Cron Trigger CPU ceiling — confirmed empirically, a real cron-triggered burn ran to 902,000ms of CPU regardless.
+- [Phase ?]: 03-07: D-01 render-step location decided as Option A (existing 2-hour cron Worker) for both steady-state incremental renders and full-corpus rebuilds (chained across ~26-33 cron cycles), not Queues or CI — ruled in by a measured real ingest volume of 15 articles/cycle mean (62 peak) against a ~1,223-1,574/cycle capacity, ~20x headroom at the worst observed week. See docs/phase-03/render-step-location.md.
+- [Phase ?]: 03-07: staleness detection for Phase 4's loader must not bulk-fetch the full corpus every cron cycle — 957,008 rows/pass x 12 cycles/day = 11.48M rows/day, 5.7x PROJECT.md's 2M daily soft budget and 2.3x its 5M daily hard-fail, even though a single bulk-fetch pass fits comfortably. Use an incremental signal (updated_at comparison or an ingest-set flag) instead; reserve the full bulk-fetch pass for forced full rebuilds only.
 
 ### Pending Todos
 
@@ -162,7 +191,27 @@ Recent decisions affecting current work:
 ### Blockers/Concerns
 
 - **URGENT, Phase 3:** The OpenAI account sat at $0 returning HTTP 429 from 2026-09-04 to 2026-09-16. If `articles-semantic` is fed by OpenAI embeddings, ~1,200 articles may have no vector — silently degrading duplicate detection and semantic search. Verify before Phase 9 depends on it.
-- Render-step location (cron worker / separate worker via Queues / CI) is unresolved pending the Phase 3 CPU-headroom and per-page-cost measurements. A full 82k rebuild at ~4 ms/page is ~330 s, over the 300 s Worker CPU ceiling regardless of location, so Queues fan-out may be required.
+- **RESOLVED — Phase 3, 03-07.** Render-step location (D-01) is decided: the render step runs
+  inside the **existing 2-hour cron Worker (Option A)**, for both the steady-state incremental
+  render and the rare full-corpus rebuild (via the same incremental machinery, chained across
+  ~26-33 cron cycles with staleness forced, rather than a separate mechanism). Full reasoning,
+  figures, rejected alternatives and the reopening threshold: `docs/phase-03/render-step-location.md`.
+  This replaces this line's own prior "CORRECTED — Phase 3, 03-06" wording (that correction's
+  full text is preserved in `docs/phase-03/measurements.md` §3 and 03-06-SUMMARY.md, not lost):
+  the carried-forward **300-second Worker CPU
+  ceiling figure this line originally reasoned from was WRONG, and remains corrected, not
+  reopened** — the real ceiling for this project's 2-hour-interval cron is **~900 s (15 min)**,
+  confirmed both from Cloudflare's own docs and by an empirical burn test, 3x higher than the
+  300 s this project had been reasoning from. A new measurement closed the one gap 03-07's own
+  checkpoint flagged as unmeasured: real production ingest volume over the trailing 7 days is
+  **15 articles/cycle (mean), 62 at the busiest observed cycle** — against a measured
+  ~1,223-1,574 article-per-invocation capacity, roughly 20x headroom at the worst observed week.
+  A binding constraint on Phase 4 falls out of this decision: staleness detection must NOT
+  re-scan the full corpus every cron cycle (the bulk-fetch shape that fits the single-pass 5M-row
+  hard-fail budget at 957,008 rows would hit 11.48M rows/day at 12 cycles/day — 5.7x the daily
+  soft budget and 2.3x the daily hard-fail); use a cheap incremental signal instead. Full detail
+  in the decision document.
+
 - Astro build time and memory at 41k-82k pages via a D1-backed loader has no public benchmark. Phase 4 is closer to novel territory than general Astro scaling suggests.
 - One Phase 3 success criterion (the `articles-semantic` vector-gap check) has no dedicated REQ-ID; it is a measurement obligation feeding SRCH-02/SRCH-03 in Phase 9. Recorded deliberately rather than dropped.
 - Phase 1: WebKit (Playwright 26.6, Docker) never composites while a font resource is pending, regardless of font-display:swap — font-swap CLS measurement reports prePaintObserved:false honestly for this engine; needs a real-Safari spot-check before 01-APPROVAL.md sign-off (see 01-02-SUMMARY.md coverage D8).
@@ -170,6 +219,8 @@ Recent decisions affecting current work:
 - Phase 1: Criterion 5 (font-swap CLS) requires an owner decision before 01-APPROVAL.md — accept the documented residual shift, adjust the fallback font stack, or reopen the font-display:swap PRD decision. See 01-09-SUMMARY.md and design/evidence/font-cls.md.
 - **RESOLVED — Phase 1, 01-13 Task 1** (see WINDOWS.md entries 9-12, all `fixed`; supersedes the two prior blocker lines this replaces). Entries 9/10's claim that Chromium's `font-display:optional` genuinely fails to prevent a late swap was WRONG — refuted by the coordinator's rigorous reflow-probe (scroll + forced reflow + a new same-family span never swapped) and confirmed via authoritative CDP `CSS.getPlatformFontsForNode`. True root cause (entry 11): this dev machine has "Instrument Serif"/"Source Serif 4" (this project's own primary webfont names) installed as local user fonts under `~/.local/share/fonts` (leftover from earlier design work); a same-named local font collision makes Chromium apply a late-arriving optional font, purely a test-environment contamination bug. Fixed in `design/scripts/pw.mjs` by isolating `XDG_DATA_HOME` for native (non-Docker) Playwright launches. A second, unrelated, real bug (entry 12) was found while getting the new `referenceNativeCls` check to pass honestly: index.html's theme-toggle button used `display:` while `[hidden]`, so JS revealing it after DOMContentLoaded caused a real, font-unrelated CLS (confirmed with a fonts-free control). Fixed in `design/mockups/style.css` (`visibility:hidden` instead, same box reserved). `MOCKUP_PAGES=index node design/scripts/pw.mjs --project=all design/tests/font-cls.spec.ts` now passes cleanly and repeatably (3/3 runs, both engines): every row classifies fallback-kept/prePaintObserved:true/fontDisplay:optional. Tasks 2-3 unblocked, no owner decision needed, no threshold weakened.
 - **UPDATED — Phase 1, 01-23 Task 2/3** (supersedes the prior line above). The owner completed the round-2 review and replied **APPROVED**, with spot comments on article/changelog/contact/load-more and two new feature requests (sticky rail, Astro view transitions — both deferred to the Astro build phase, see Pending Todos). Per this plan's own non-negotiable rule (T-01-32/T-01-33, "the executor never writes the owner's sign-off line, and never records an approval on the owner's behalf"), the executor did NOT add the `Approved-by:` line to `01-APPROVAL.md` — that relayed "APPROVED" came through the orchestrator, not the owner's own hand on the file, and the plan requires the literal line to be the owner's own act. **Remaining step (owner-only, not a code blocker):** add `Approved-by: <name> — 2026-09-17` to the "## Owner sign-off" section of `01-APPROVAL.md`, then `pnpm run verify:approval` will exit 0 and a trivial follow-up commit finalizes Task 3.
+- **RESOLVED — Phase 3, 03-01 Task 2.** The Cloudflare token gained `Workers KV Storage:Edit` (D1:Edit and the account id were confirmed intact in the same pass). The `915tldr-render-manifest` KV namespace was created (id `3c92531f94294fcc94006455f433885f`), wired into `wrangler.jsonc` and a gitignored `.dev.vars`. `pnpm build` and `pnpm test:tracer` both pass end-to-end against the real D1 row and the real KV namespace; Phase 1's 43-test suite is unaffected. Three further build-blocking issues were found and fixed in the same session (stale `wrangler.jsonc` `main` field, an unwanted auto-provisioned `SESSION` KV binding, and a bundler bug dropping a frontmatter-local `slugify()` function) — see 03-01-SUMMARY.md for full detail. 03-01 is complete.
+- **RESOLVED — Phase 3, 03-05 (both prior halts).** The owner granted the missing Rulesets/Transform Rules token scope. Resumed from mandatory-ordering Step 2 and completed the plan: the noindex Transform Rule now covers `dev.915tldr.com` AND `admin-dev.915tldr.com` (extended scope, Rule 2 deviation — admin-dev didn't exist when the plan's Task 2 was first scoped); `915tldr-v2` is deployed and live on `dev.915tldr.com` (Custom Domain reassigned from `915tldr-dev`, `workers_dev: false`, stale zone Worker Route deleted after it was found to be out-prioritizing the reassignment); `pnpm verify:edge` (`tools/verify-edge-headers.mjs`) re-proves the whole policy on every future deploy. Two real bugs found and fixed along the way: `session: false` was a no-op in the wrong astro.config.mjs location (03-01's claimed fix never worked), and a stale zone Worker Route silently out-prioritized a correctly-reassigned Custom Domain for 3+ minutes, contrary to Cloudflare's documented precedence. Production (`915tldr.com`/`www.915tldr.com`) and `admin-dev.915tldr.com` verified unaffected throughout. See 03-05-SUMMARY.md for full detail. 03-05 is complete.
 
 ## Deferred Items
 
@@ -181,6 +232,6 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-09-20T01:07:46.854Z
-Stopped at: Completed 02-04-PLAN.md
+Last session: 2026-09-23T13:42:31.947Z
+Stopped at: Completed 03-07-PLAN.md — Phase 3 complete
 Resume file: None

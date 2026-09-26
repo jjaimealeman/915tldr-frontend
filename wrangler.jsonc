@@ -1,0 +1,66 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "915tldr-v2",
+  // No `main` field: this tracer's output is fully static (no `server:defer` islands yet), and
+  // Astro's own docs (withastro/docs, "Configure wrangler.jsonc for static sites") show the
+  // static-site shape with no `main` entry at all. The old Astro <6 convention of pointing
+  // `main` at `dist/_worker.js/index.js` no longer applies as of Astro 6 / @astrojs/cloudflare
+  // v13 — the unified entrypoint is `@astrojs/cloudflare/entrypoints/server`, and that is only
+  // needed for on-demand/SSR routes, which this tracer does not have. A finding from this
+  // task's own build, not in 03-RESEARCH.md.
+  "compatibility_date": "2026-09-16",
+  "compatibility_flags": ["nodejs_compat"],
+  // `workers_dev: false` set explicitly (deviation Rule 2 — missing critical, not in
+  // 03-RESEARCH.md or the plan's own action text). Omitting this key defaults to `true`,
+  // which hands the Worker a free public `915tldr-v2.<account>.workers.dev` hostname — a
+  // byte-identical, crawlable duplicate of dev.915tldr.com carrying the account owner's
+  // personal Cloudflare account name, and OUTSIDE the noindex Transform Rule's exact-hostname
+  // match (docs/phase-03/edge-config.md), since that rule only covers dev.915tldr.com and
+  // admin-dev.915tldr.com. Shipping this app with the default would create exactly the kind
+  // of unindexed-in-name-only duplicate host this plan exists to prevent.
+  "workers_dev": false,
+  // Custom Domain: this Worker owns dev.915tldr.com exclusively. Custom Domains take
+  // precedence over zone Worker Routes when both match the same hostname (confirmed against
+  // Cloudflare's own docs, "Custom Domains > Interaction with Routes"), which is what makes
+  // this deploy safe to run before the old 915tldr-dev Worker Route for the same hostname is
+  // removed (03-05 Task 1 step 5) — the old route becomes dead the instant this Custom Domain
+  // reattaches, not merely lower-priority.
+  "routes": [
+    {
+      "pattern": "dev.915tldr.com",
+      "custom_domain": true,
+    },
+  ],
+  // Assets (prerendered static output from `astro build`). Directory is `dist/client`, NOT
+  // `dist` — a finding from this task's own build, not in 03-RESEARCH.md: @astrojs/cloudflare
+  // sets the adapter feature `preserveBuildClientDir` (and `preserveBuildServerDir`) so even a
+  // fully static build (no server:defer islands) splits output into `dist/client/` (the actual
+  // web root) and `dist/server/` (prerender-time chunks), rather than writing site files
+  // directly into `dist/`. The adapter's own auto-generated `dist/client/wrangler.json` confirms
+  // this shape (its `assets.directory` is `"."`, i.e. relative to `dist/client` itself).
+  "assets": {
+    "directory": "dist/client",
+    "binding": "ASSETS",
+  },
+  // D1 Database — DELIBERATELY ABSENT. Not an empty block, not commented out: this app's D1
+  // access happens once, in Node, at build time (src/lib/server/d1-client.ts), never inside the
+  // deployed Worker. Absence here is what makes a runtime D1 read structurally impossible
+  // (env.DB is undefined) rather than merely forbidden by convention (Pattern 2, D-05, T-03-01).
+  //
+  // KV Namespaces — one dedicated namespace for the render manifest (D-03), NOT the Nuxt app's
+  // existing `KV`/`CACHE` namespaces (915tldr.com2/wrangler.jsonc), per 03-RESEARCH.md Open
+  // Question 2: two apps writing one keyspace for the whole Phase 3-12 coexistence window would
+  // be ambiguous about ownership. Namespace `915tldr-render-manifest` (created via `wrangler kv
+  // namespace create`, account 5b8888b49c34148054bdec527c05dc27). The build also reads this same
+  // id as `RENDER_MANIFEST_KV_NAMESPACE_ID` from process.env (src/lib/kv-manifest.ts) — set in
+  // `.dev.vars` locally (gitignored) and in CI secrets for deploy.
+  "kv_namespaces": [
+    {
+      "binding": "RENDER_MANIFEST",
+      "id": "3c92531f94294fcc94006455f433885f",
+    },
+  ],
+  "observability": {
+    "enabled": true,
+  },
+}
