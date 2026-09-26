@@ -26,7 +26,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 
 - [x] **Phase 1: Design Sketch & Editorial Identity** - Approved static HTML/CSS mockups that pass contrast and keyboard review before any Astro work (completed 2026-09-17)
 - [x] **Phase 2: Content Quality & Grounding** - Fix extraction, prompt and grounding so no fabricated summary is ever written in a second language (completed 2026-09-21)
-- [ ] **Phase 3: Foundation & Read-Budget Guardrails** - Astro scaffold, the CI D1-import assertion, the render manifest, and the measurements that decide the render step
+- [x] **Phase 3: Foundation & Read-Budget Guardrails** - Astro scaffold, the CI D1-import assertion, the render manifest, and the measurements that decide the render step (completed 2026-09-26)
 - [ ] **Phase 4: Static Generation, Templates & SEO** - A fail-loud D1 loader and every public page type generated at build time
 - [ ] **Phase 5: Hybrid Archive & Zero-Reads Proof** - R2 archive tier, tag tiering, and the measured proof of zero D1 reads on the public path
 - [ ] **Phase 6: Bilingual** - Spanish summaries at ingest, `/es` routing, hreflang pairs and per-language feeds
@@ -414,7 +414,7 @@ Phase 3 and may run alongside Phases 5-7.
 |-------|----------------|--------|-----------|
 | 1. Design Sketch & Editorial Identity | 23/23 | Complete    | 2026-09-17 |
 | 2. Content Quality & Grounding | 11/10 | Complete    | 2026-09-21 |
-| 3. Foundation & Read-Budget Guardrails | 7/7 | In Progress|  |
+| 3. Foundation & Read-Budget Guardrails | 7/7 | Complete    | 2026-09-26 |
 | 4. Static Generation, Templates & SEO | 0/TBD | Not started | - |
 | 5. Hybrid Archive & Zero-Reads Proof | 0/TBD | Not started | - |
 | 6. Bilingual | 0/TBD | Not started | - |

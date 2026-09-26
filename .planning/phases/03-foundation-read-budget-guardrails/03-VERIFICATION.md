@@ -1,14 +1,16 @@
 ---
 phase: 03-foundation-read-budget-guardrails
 verified: 2026-09-23T13:56:38Z
-status: human_needed
+status: passed
 score: 5/5 must-haves verified
 behavior_unverified: 0
 overrides_applied: 0
 human_verification:
+
   - test: "Decide whether trailing-slash behaviour (v2 serves `/path` -> 307 -> `/path/`, v1 serves `/path` -> 200 directly) is acceptable to leave deferred to Phase 4, given PROJECT.md's 'nine months of indexed URLs must keep resolving... unchanged' constraint."
     expected: "An explicit owner decision, recorded in STATE.md or ROADMAP Phase 4 context, that this is intentionally Phase 4's problem (SEO-04/FIX-04/FIX-05 are already mapped to Phase 4, not Phase 3, per REQUIREMENTS.md), not a silently-carried gap."
     why_human: "This is a judgment call about scope boundary and URL-compatibility risk tolerance that the verifier cannot make unilaterally — it was raised as an open question in the verification brief itself."
+
   - test: "Decide whether `pnpm verify:edge`'s 4th check (no app-level robots meta tag) needs hardening before Phase 4, since it currently fails on a fresh clone/build cycle for a reason unrelated to OPS-02 itself (see Gaps Summary)."
     expected: "Either the script is hardened to discover the article path from the live deployed site (or `/version.json`) instead of the local `dist/client/` build output, or the owner accepts the current fragility as a known limitation to work around manually (always deploy immediately before running `pnpm verify:edge`)."
     why_human: "This is a tooling-trust decision (is a 'cry wolf' false-negative acceptable in a guard this project explicitly built to avoid guards that silently misbehave), not a code-correctness question — the underlying OPS-02 requirement (edge noindex header) is independently confirmed working via direct curl."
@@ -122,6 +124,7 @@ No `TODO`/`FIXME`/`XXX`/`TBD`/`HACK`/`PLACEHOLDER` markers found in any phase-mo
 **One real, independently-discovered tooling gap (WARNING, not a BLOCKER):** `pnpm verify:edge` — the standing, re-runnable check 03-05 built specifically so "OPS-02 can be checked on every deploy rather than once at sign-off" — currently fails 1 of its 4 checks when run against the repository's present state. The failing check ("no app-level `<meta name="robots">` on the dev host") auto-discovers an article URL by walking the **local** `dist/client/` build output rather than querying the live deployed site, and then asserts that URL returns `status 200` on `dev.915tldr.com`. Because (a) `fetchLatestArticle()` always fetches whatever is currently the newest row in production D1, which changes as the pipeline ingests new articles every ~2 hours, and (b) nothing has run `wrangler deploy` since 03-05's original deploy (03-06's and my own `pnpm build`/`pnpm test:unit` runs since then only rebuilt `dist/client/` locally), the locally-discovered article path no longer matches what is actually live on `dev.915tldr.com`, and the check 404s. This is a real, reproducible defect in the script's robustness — not a violation of OPS-02 itself, which I confirmed independently and directly: `curl -I https://dev.915tldr.com/` returns `x-robots-tag: noindex` right now, and `915tldr.com`/`www.915tldr.com` correctly do not. But a verification script that gives a false "FAILED" reading after routine, expected local development activity (a build without an immediately-following deploy) risks training whoever runs it to distrust or ignore its output — the same class of erosion-of-guard-trust this whole phase exists to prevent, just manifesting as a false negative rather than Phase 2's false positive. Recommend hardening the script (e.g., discover the article path from the live site's own manifest/version endpoint, or document explicitly that check 4 is only meaningful immediately post-deploy) before relying on it as a routine regression gate in Phase 4+.
 
 **Known items acknowledged, not re-litigated as new findings (per the verification brief):**
+
 - Trailing-slash URL behavior — routed to human verification above with my own judgment that it is correctly Phase 4's scope, not a Phase 3 gap.
 - No `tsconfig.json` / no `@types/node` — confirmed still true (`npx tsc --noEmit -p .` errors with "cannot find tsconfig.json"). None of Phase 3's 10 requirement IDs concern type-checking, and every `.ts` file in scope builds and every test passes; this is real but pre-existing tooling debt, not a Phase 3 must-have failure. Flagged as acceptable debt, owner's call on when to address it.
 - KV bulk-write batching investigation — correctly flagged as unscoped Phase 4 work, not silently dropped (`docs/phase-03/render-step-location.md` §3 names it explicitly).
@@ -129,6 +132,7 @@ No `TODO`/`FIXME`/`XXX`/`TBD`/`HACK`/`PLACEHOLDER` markers found in any phase-mo
 - Bulk-fetch in-memory stitch peak heap (128.4MB vs. 128MB Workers isolate limit) — correctly disclosed as a Node-process proxy measurement, not a Worker-verified figure, and does not change the phase's own conclusions since it was an addendum exploring a Phase-4-relevant hypothesis, not a Phase 3 deliverable.
 
 **Cleanup needed** (verifier test artifacts, sandbox-blocked from self-deleting; content already neutered to harmless placeholders, safe to leave briefly but should be removed before the next commit):
+
 ```
 rm -rf /home/jaime/www/_github/915tldr.com/src/pages/verifiertemp
 rm -rf /home/jaime/www/_github/915tldr.com/src/pages/__verifier_temp__

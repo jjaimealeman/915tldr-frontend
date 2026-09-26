@@ -46,7 +46,8 @@ structurally at build time. Everything else in this rebuild is negotiable; this 
 
 **Architecture**
 - [ ] Public site is Astro 7 on Workers Static Assets, hybrid static
-- [ ] Zero D1 reads on the public request path, enforced by a build-time CI assertion
+- [x] Zero D1 reads on the public request path, enforced by a build-time assertion — ✓ Phase 3
+      (runs inside `pnpm build`/`deploy`; there is no CI yet, so "CI assertion" means the build itself)
 - [ ] Hot content (homepage, categories, tags, recent articles) regenerated at cron
 - [ ] Archive rendered once to R2 at ingest, never recomputed
 - [ ] KV holds only small hot values (render manifest, precomputed counts)
@@ -96,8 +97,8 @@ structurally at build time. Everything else in this rebuild is negotiable; this 
 **Product**
 - [ ] Subscribe capture — email, categories, entity follows, language, unsubscribe token
 - [ ] About page with a named human and plain-English disclosure of how the AI works
-- [ ] Deployed commit hash in the footer and at `/version.json`
-- [ ] `dev.915tldr.com` returns `X-Robots-Tag: noindex` at the edge
+- [x] Deployed commit hash in the footer and at `/version.json` — ✓ Phase 3
+- [x] `dev.915tldr.com` returns `X-Robots-Tag: noindex` at the edge — ✓ Phase 3 (also covers `admin-dev.915tldr.com`)
 - [ ] Admin behind Cloudflare Access at `admin.915tldr.com`
 
 ### Out of Scope
@@ -268,15 +269,15 @@ distinguished from re-processing with a model.
 | Category heroes need retry handling | A `gpt-image-2.5-sunburst` call returned HTTP 400 and succeeded on retry with identical parameters — transient. The `jja-imagen` script exits on any HTTP error with no backoff, so one hiccup kills a batch mid-run. Generating 8 heroes in a single pass needs a retry wrapper or a resumable loop. | — Pending |
 | Reference-image prompting form | Verified working 2026-09-16: assigning explicit roles in caps — "Use the FIRST image as the subject and the SECOND image only as the style and lighting reference" — produced clean subject/style separation and honoured negative constraints. A single fixed style reference passed to every call holds a set together better than re-describing the style in words. Masks, `--transparent` and single-image `--edit` also verified. | ✓ Good |
 | Tier 3 cost measured, not estimated | GPT Image 2.5's token consumption is unpublished and the GPT Image 2 calculator explicitly does not apply. **Partially settled 2026-09-16:** OpenAI bills image output per *token*, so the flat $0.02/$0.04/$0.08 table was only ever correct at one resolution. A measured low-quality 1024×1024 `gpt-image-2` generation billed **$0.0060**, not the $0.020 estimated — the old table ran **3.3× high**. Edits cost more than generations ($0.0142 measured) because image-input tokens count. Phase 1 still measures `gpt-image-2.5-flare` specifically; no side-by-side against `gpt-image-2` exists yet. | ⚠️ Revisit |
-| Astro bindings via `cloudflare:workers` | `Astro.locals.runtime.env` was **removed** in `@astrojs/cloudflare` v13 / Astro 6. Current pattern is `import { env } from 'cloudflare:workers'`. The commonly-cited pattern is stale. | — Pending |
-| `output: 'static'`, not `'hybrid'` | `output: 'hybrid'` was merged into `'static'` in Astro v5 — the keyword is removed, not deprecated. Per-route opt-out is `export const prerender = false`. The *architecture* is still hybrid; the config keyword is gone. | — Pending |
-| `imageService` set explicitly | `@astrojs/cloudflare` has defaulted `imageService` to `cloudflare-binding` since v14.2.0 — the opposite of the build-time-Sharp assumption. Must be set explicitly to `{ build: 'compile', runtime: 'passthrough' }` or images break on deploy, which is precisely the failure the PRD warns about. | — Pending |
+| Astro bindings via `cloudflare:workers` | `Astro.locals.runtime.env` was **removed** in `@astrojs/cloudflare` v13 / Astro 6. Current pattern is `import { env } from 'cloudflare:workers'`. The commonly-cited pattern is stale. | ✓ Good — implemented and guarded in Phase 3 |
+| `output: 'static'`, not `'hybrid'` | `output: 'hybrid'` was merged into `'static'` in Astro v5 — the keyword is removed, not deprecated. Per-route opt-out is `export const prerender = false`. The *architecture* is still hybrid; the config keyword is gone. | ✓ Good — implemented and guarded in Phase 3 |
+| `imageService` set explicitly | `@astrojs/cloudflare` has defaulted `imageService` to `cloudflare-binding` since v14.2.0 — the opposite of the build-time-Sharp assumption. Must be set explicitly to `{ build: 'compile', runtime: 'passthrough' }` or images break on deploy, which is precisely the failure the PRD warns about. | ✓ Good — implemented and guarded in Phase 3 |
 | Hand-written D1 loader, not FlareCMS | The PRD cites the "FlareCMS `flareLoader` pattern" for D1 → content collections. **FlareCMS is an unfinished project and cannot be used** (owner's call, 2026-09-16); `@flare-cms/astro` is not published to npm. Replaced by a hand-written `Loader` from `astro/loaders` calling the D1 REST API. Side benefit: the fail-loud assertion below lives in our own code. No `drizzle-orm` runtime driver exists for D1-HTTP, so Drizzle does not help here. | — Pending |
 | Static assets are immutable per deployment | Workers Static Assets are **not writable at request time** — they are a per-version deployment artifact. "Hot content regenerated every cron" therefore means shipping a new Worker deployment via Wrangler/CI every two hours, not writing files from a Worker. R2 *is* a live read/write store from inside a Worker. This asymmetry shapes phases 3 and 4. | — Pending |
 | Grounding check, not just a length check | The PRD's rule ("flag any summary longer than its source") would **not** have caught the actual production fabrication — the invented advisory was plausible, well-formed and length-compliant. A grounding/entailment check is required and must ship in the **same phase** as the prompt rewrite, because the costed re-processing dry run depends on it. Length checking stays; it is necessary, not sufficient. | — Pending |
 | Loader must fail loud | PRD §15 claims static generation "removes outright" the `/changelog` empty-state bug. It **relocates** it: a content layer loader that returns zero or partial rows without throwing is not an error to Astro's Content Loader API, so an empty page builds, deploys and caches exactly like a correct one — worse, baked into an artifact rather than a 1h cache. Explicit assertion in the loader plus a direct regression test. | — Pending |
 | Fixing padding must not mean quoting more | §8.3 offers "present the source excerpt with attribution" for thin sources. Verbatim-heavy excerpting is a live legal risk for aggregators (*AP v. Meltwater*, *Dow Jones v. Briefing.com*, hot-news misappropriation). The safe posture is prominent attribution **plus genuinely transformative summarisation** — not longer quotes. | — Pending |
-| CI assertion covers islands too | Server islands always trigger a real Worker request via `/_server-islands/*`, even on fully static pages. Five silent D1-reintroduction vectors were identified: search endpoint, islands, sitemap, middleware, and admin-pattern copy-paste. The assertion scans island component files, not just `.astro` pages. | — Pending |
+| CI assertion covers islands too | Server islands always trigger a real Worker request via `/_server-islands/*`, even on fully static pages. Five silent D1-reintroduction vectors were identified: search endpoint, islands, sitemap, middleware, and admin-pattern copy-paste. The assertion scans island component files, not just `.astro` pages. | ✓ Good — implemented and guarded in Phase 3 |
 | Per-article AI disclosure, not just About | EU AI Act Article 50 has been in force since Aug 2026 and is becoming the de facto disclosure norm even for US-only sites. Disclosure belongs at point of consumption on each article, not only centralised on the About page. Low marginal cost — the article template is already being touched. | — Pending |
 | Share cards stay deterministic composition | GPT Image 2.5 can render text well now, but the original premise is unchanged: $0 per article vs ~$300 for 37,180, and composition cannot misspell *Ysleta* or a council member's name. A garbled headline in a share card is the exact credibility damage the content-quality work exists to undo. | — Pending |
 | Category heroes share identity via reference images | Multi-reference editing with assigned roles (style / subject / background) is the direct answer to eight heroes needing to read as one visual system rather than eight unrelated generations. | — Pending |
@@ -285,9 +286,13 @@ distinguished from re-processing with a model.
 | Entity following over category subscription | 46,090 entities are already extracted and surface nowhere. *"Email me when 915 TLDR covers UTEP"* is uniquely enabled by the existing pipeline and needs no accounts. Category subscription is the commodity version. | — Pending |
 | Archive depth derived from traffic | The PRD's 2,000 figure is the only number in the document not grounded in a measurement. Phase 4 measures what is actually requested, then picks the cut. | — Pending |
 | Search implementation left open | FTS5 lives in D1, so keeping it means the search endpoint is a public request that reads D1 — the zero-reads guarantee would need an explicit carve-out. Vectorize avoids that and handles cross-language matching, but is unproven at this corpus size. Phase research measures both. | — Pending |
-| Render step location left open | Depends on cron-worker CPU headroom, which nobody has measured. Phase research decides. | — Pending |
+| Render step location left open | Depends on cron-worker CPU headroom, which nobody has measured. Phase research decides. | ✓ Decided Phase 3: the existing 2-hour cron Worker (Option A). Measured ingest is 15 articles/cycle (62 peak) against ~1,223 capacity. A full rebuild spans ~33 cycles. See `docs/phase-03/render-step-location.md`. |
 | No programmatic advertising, ever | Incompatible with Lighthouse 100 and LCP < 1.5s. Monetisation is the site-as-portfolio plus direct local sponsorship (one static image, one link, no script). | — Pending |
 | Model/tool choice is decided by looking | Image quality gated on looking at 10 images; summariser gated on reading ~30 summaries of short-source articles. No public benchmark measures "does it pad a 90-word source", so a leaderboard cannot settle it. | — Pending |
+| Render manifest identity: translation group | Phase 6 has not decided whether Spanish is extra columns or a separate row, so the manifest carries `translationGroupId` (the English uuid) plus `language`. It is never null and never points at a row that doesn't exist. Same shape as the existing `duplicate_groups` table. | ✓ Good — Phase 3 (03-04) |
+| Staleness detection must not rescan the corpus | The bulk-fetch query reads 957,008 rows per pass, which is fine once. At 12 cron runs a day that is 11.5M rows, 2.3× the daily hard fail. Phase 4 must use an incremental signal such as `updated_at > last_render`. | — Pending (binding on Phase 4) |
+| Hostnames: v2 owns `dev.`, Nuxt moves to `admin-dev.` | `dev.` is the dev-tier convention and v2 is the site. The Nuxt app is kept for pipeline and admin only, so it moves off the bare hostnames now; `admin.915tldr.com` follows at Phase 12. | ✓ Good — Phase 3 (03-05) |
+| Drop the trailing slash | v2 answered `/path` with a 307 to `/path/`; v1 answers 200 directly. Nine months of indexed URLs are in the no-slash form. Use `trailingSlash: 'never'` + `build.format: 'file'`, and pass `trailingSlash: false` to `rss()`. | — Pending (Phase 4) |
 
 ## Evolution
 
@@ -308,4 +313,4 @@ This document evolves at phase transitions and milestone boundaries.
 5. Update Context with current state
 
 ---
-*Last updated: 2026-09-16 after initialization and project research*
+*Last updated: 2026-09-26 after Phase 3*
