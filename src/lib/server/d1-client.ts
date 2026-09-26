@@ -33,7 +33,7 @@ export interface ArticleRow {
 }
 
 interface D1QueryResponse<T> {
-  result?: Array<{ success: boolean; results: T[] }>;
+  result?: Array<{ success: boolean; results: T[]; meta?: { rows_read?: number } }>;
   success: boolean;
   errors?: Array<{ code: number; message: string }>;
 }
@@ -46,17 +46,30 @@ function requireEnv(name: string): string {
   return value;
 }
 
+export interface D1QueryWithMetaResult<T> {
+  results: T[];
+  rowsRead: number;
+}
+
 /**
- * Runs one parameterised SQL statement against production D1 over the Cloudflare REST API.
- * Throws on a non-2xx response or a `success: false` body rather than returning an empty
- * array — a silent empty read here is precisely the `/changelog` empty-state defect (REND-02/03)
- * and must not be born again in this module.
+ * Runs one parameterised SQL statement against production D1 over the Cloudflare REST API and
+ * returns the D1-reported `meta.rows_read` alongside the results — the budget signal PROJECT.md's
+ * daily read-budget lines depend on. Throws on a non-2xx response, a `success: false` body, or a
+ * response missing `meta.rows_read` (a read this module cannot account for is treated the same as
+ * a failed read) rather than returning an empty array — a silent empty/unaccounted read here is
+ * precisely the `/changelog` empty-state defect (REND-02/03) and must not be born again in this
+ * module. `opts.fetchImpl` exists only so tests can inject a stubbed transport.
  */
-export async function queryD1<T = unknown>(sql: string, params: unknown[] = []): Promise<T[]> {
+export async function queryD1WithMeta<T = unknown>(
+  sql: string,
+  params: unknown[] = [],
+  opts: { fetchImpl?: typeof fetch } = {}
+): Promise<D1QueryWithMetaResult<T>> {
+  const fetchImpl = opts.fetchImpl ?? fetch;
   const accountId = requireEnv('CLOUDFLARE_ACCOUNT_ID');
   const token = requireEnv('CLOUDFLARE_API_TOKEN');
 
-  const response = await fetch(
+  const response = await fetchImpl(
     `https://api.cloudflare.com/client/v4/accounts/${accountId}/d1/database/${D1_DATABASE_ID}/query`,
     {
       method: 'POST',
@@ -80,7 +93,43 @@ export async function queryD1<T = unknown>(sql: string, params: unknown[] = []):
     throw new Error(`d1-client: D1 query failed: ${message}`);
   }
 
-  return body.result[0].results ?? [];
+  const rowsRead = body.result[0].meta?.rows_read;
+  if (typeof rowsRead !== 'number') {
+    throw new Error(
+      'd1-client: D1 query response is missing meta.rows_read — cannot account for the read budget'
+    );
+  }
+
+  return { results: body.result[0].results ?? [], rowsRead };
+}
+
+/**
+ * Delegates to `queryD1WithMeta`, discarding `rowsRead` — kept for call sites that only need the
+ * rows themselves. Identical throw behaviour (non-2xx, `success: false`, or missing
+ * `meta.rows_read` all throw; never a silent empty array).
+ */
+export async function queryD1<T = unknown>(
+  sql: string,
+  params: unknown[] = [],
+  opts: { fetchImpl?: typeof fetch } = {}
+): Promise<T[]> {
+  const { results } = await queryD1WithMeta<T>(sql, params, opts);
+  return results;
+}
+
+/** D1's documented maximum bound parameters per statement — verified empirically 2026-09-15
+ * (100 succeeds, 101 fails with `SQLITE_ERROR`; `.claude/CLAUDE.md`). Every IN-list statement in
+ * this module binds at most this many parameters per request. */
+export const D1_MAX_BOUND_PARAMS = 100;
+
+/** Splits `ids` into chunks of at most `size` (default `D1_MAX_BOUND_PARAMS`) items each, for
+ * building `IN (...)` statements that never exceed D1's bound-parameter ceiling. */
+export function chunkIds<T>(ids: T[], size: number = D1_MAX_BOUND_PARAMS): T[][] {
+  const chunks: T[][] = [];
+  for (let i = 0; i < ids.length; i += size) {
+    chunks.push(ids.slice(i, i + size));
+  }
+  return chunks;
 }
 
 // `a.id` (INTEGER) drives the joins; `a.uuid` is exposed as `id` in the result set (see
@@ -126,4 +175,212 @@ export async function fetchLatestArticle(): Promise<ArticleRow | null> {
 export async function fetchArticleById(uuid: string): Promise<ArticleRow | null> {
   const rows = await queryD1<ArticleRow>(`${ARTICLE_SELECT} WHERE a.uuid = ? LIMIT 1`, [uuid]);
   return rows[0] ?? null;
+}
+
+// ---------------------------------------------------------------------------
+// REND-01: the Content Layer loader's window fetch. Planner findings (04-01-PLAN.md
+// <planner_findings>): the ARTICLE_SELECT shape above measured 11,466,920 rows read for one
+// full-corpus pass (keyset) — 2.3x the daily hard-fail — because of its correlated tags subquery
+// and per-row category LEFT JOIN. The bulk-fetch + in-memory-stitch shape below measured 957,008
+// rows for the whole corpus (docs/phase-03/d1-pagination-report.md); this function is that same
+// shape, scoped to a `published_at` window instead of the whole corpus. `article_categories` and
+// `article_tags` have composite primary keys led by `article_id`, so the IN-list lookups below
+// are indexed.
+// ---------------------------------------------------------------------------
+
+interface WindowArticleRow {
+  id: number;
+  uuid: string;
+  title: string;
+  slug: string;
+  summary: string;
+  key_points: string | null;
+  url: string;
+  published_at: number;
+  source_id: number;
+  status: string;
+  is_duplicate: number;
+}
+
+interface CategoryJoinRow {
+  article_id: number;
+  slug: string;
+  name: string;
+}
+
+interface TagJoinRow {
+  article_id: number;
+  slug: string;
+  name: string;
+}
+
+interface SourceRow {
+  id: number;
+  slug: string;
+  name: string;
+  website_url: string;
+}
+
+export interface PublicArticle {
+  uuid: string;
+  title: string;
+  slug: string;
+  summary: string;
+  keyPoints: string[] | null;
+  url: string;
+  publishedAt: number;
+  category: { slug: string; name: string };
+  tags: Array<{ slug: string; name: string }>;
+  source: { slug: string; name: string; websiteUrl: string };
+}
+
+export type NonPublicReason = 'not-processed' | 'duplicate' | 'no-primary-category';
+
+export interface NonPublicArticle {
+  uuid: string;
+  reason: NonPublicReason;
+}
+
+export interface FetchPublicArticlesWindowResult {
+  publicArticles: PublicArticle[];
+  nonPublic: NonPublicArticle[];
+  rowsRead: number;
+}
+
+/**
+ * v1's public listing filter (`915tldr.com2/server/api/articles/index.get.ts`):
+ * `status = 'processed' AND is_duplicate = 0`, plus a resolved primary category (this loader's
+ * own requirement — a public article with no category cannot build a canonical URL). Fetches all
+ * article-shaped columns for rows published since `sinceEpoch` (epoch seconds), then bulk-fetches
+ * primary categories and tags for those rows' internal ids (chunked at `D1_MAX_BOUND_PARAMS`) and
+ * all sources, stitching everything in memory — the same shape
+ * docs/phase-03/d1-pagination-report.md measured at 957,008 rows for a full-corpus pass, here
+ * scoped to a window. `opts.fetchImpl` is threaded through every call for test injection.
+ */
+export async function fetchPublicArticlesWindow(
+  sinceEpoch: number,
+  opts: { fetchImpl?: typeof fetch } = {}
+): Promise<FetchPublicArticlesWindowResult> {
+  let rowsRead = 0;
+
+  const { results: articleRows, rowsRead: articlesRowsRead } = await queryD1WithMeta<WindowArticleRow>(
+    `SELECT id, uuid, title, slug, summary, key_points, url, published_at, source_id, status, is_duplicate
+     FROM articles
+     WHERE published_at >= ?`,
+    [sinceEpoch],
+    opts
+  );
+  rowsRead += articlesRowsRead;
+
+  const internalIds = articleRows.map((row) => row.id);
+
+  const categoryByArticleId = new Map<number, { slug: string; name: string }>();
+  for (const idChunk of chunkIds(internalIds)) {
+    if (idChunk.length === 0) continue;
+    const placeholders = idChunk.map(() => '?').join(',');
+    const { results, rowsRead: chunkRowsRead } = await queryD1WithMeta<CategoryJoinRow>(
+      `SELECT ac.article_id AS article_id, c.slug AS slug, c.name AS name
+       FROM article_categories ac
+       JOIN categories c ON c.id = ac.category_id
+       WHERE ac.is_primary = 1 AND ac.article_id IN (${placeholders})`,
+      idChunk,
+      opts
+    );
+    rowsRead += chunkRowsRead;
+    for (const row of results) {
+      categoryByArticleId.set(row.article_id, { slug: row.slug, name: row.name });
+    }
+  }
+
+  const tagsByArticleId = new Map<number, Array<{ slug: string; name: string }>>();
+  for (const idChunk of chunkIds(internalIds)) {
+    if (idChunk.length === 0) continue;
+    const placeholders = idChunk.map(() => '?').join(',');
+    const { results, rowsRead: chunkRowsRead } = await queryD1WithMeta<TagJoinRow>(
+      `SELECT atg.article_id AS article_id, t.slug AS slug, t.name AS name
+       FROM article_tags atg
+       JOIN tags t ON t.id = atg.tag_id
+       WHERE atg.article_id IN (${placeholders})`,
+      idChunk,
+      opts
+    );
+    rowsRead += chunkRowsRead;
+    for (const row of results) {
+      const list = tagsByArticleId.get(row.article_id) ?? [];
+      list.push({ slug: row.slug, name: row.name });
+      tagsByArticleId.set(row.article_id, list);
+    }
+  }
+
+  const { results: sourceRows, rowsRead: sourcesRowsRead } = await queryD1WithMeta<SourceRow>(
+    `SELECT id, slug, name, website_url FROM sources`,
+    [],
+    opts
+  );
+  rowsRead += sourcesRowsRead;
+  const sourceById = new Map<number, { slug: string; name: string; websiteUrl: string }>();
+  for (const row of sourceRows) {
+    sourceById.set(row.id, { slug: row.slug, name: row.name, websiteUrl: row.website_url });
+  }
+
+  const publicArticles: PublicArticle[] = [];
+  const nonPublic: NonPublicArticle[] = [];
+
+  for (const row of articleRows) {
+    if (row.status !== 'processed') {
+      nonPublic.push({ uuid: row.uuid, reason: 'not-processed' });
+      continue;
+    }
+    if (row.is_duplicate) {
+      nonPublic.push({ uuid: row.uuid, reason: 'duplicate' });
+      continue;
+    }
+    const category = categoryByArticleId.get(row.id);
+    if (!category) {
+      nonPublic.push({ uuid: row.uuid, reason: 'no-primary-category' });
+      continue;
+    }
+
+    let keyPoints: string[] | null = null;
+    if (row.key_points !== null && row.key_points !== undefined) {
+      let parsed: unknown;
+      try {
+        parsed = JSON.parse(row.key_points);
+      } catch {
+        throw new Error(
+          `d1-client: article ${row.uuid} has key_points that is not valid JSON: ${JSON.stringify(row.key_points)}`
+        );
+      }
+      if (!Array.isArray(parsed) || !parsed.every((item) => typeof item === 'string')) {
+        throw new Error(`d1-client: article ${row.uuid} has key_points that is not a JSON array of strings`);
+      }
+      keyPoints = parsed;
+    }
+
+    const source = sourceById.get(row.source_id);
+    if (!source) {
+      throw new Error(
+        `d1-client: article ${row.uuid} references source_id ${row.source_id} with no matching sources row`
+      );
+    }
+
+    const tags = (tagsByArticleId.get(row.id) ?? [])
+      .slice()
+      .sort((a, b) => a.slug.localeCompare(b.slug));
+
+    publicArticles.push({
+      uuid: row.uuid,
+      title: row.title,
+      slug: row.slug,
+      summary: row.summary,
+      keyPoints,
+      url: row.url,
+      publishedAt: row.published_at,
+      category,
+      tags,
+      source,
+    });
+  }
+
+  return { publicArticles, nonPublic, rowsRead };
 }

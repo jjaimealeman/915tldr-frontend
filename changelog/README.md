@@ -10,6 +10,7 @@ Entries are named `YYYY-MM-DD-HHMM_slug.md` and grouped by month, newest first.
 
 | Date | Entry | Keywords |
 |------|-------|----------|
+| 2026-09-26 | [Content Layer loader, stored-slug canonical URLs, manifest v2](2026-09-26-1702_04-01-content-layer-loader-canonical-urls-manifest-v2.md) | `[BACKEND]` `[DATABASE]` `[FRONTEND]` `[ROUTING]` `[FEATURE]` |
 | 2026-09-26 | [Phase 4 context: Workers Builds, stored slugs, fail-loud rules](2026-09-26-1505_phase4-context.md) | `[PLANNING]` `[ARCHITECTURE]` `[SEO]` `[DEPLOYMENT]` |
 | 2026-09-26 | [Todo filed: tracer test fails on apostrophes in titles](2026-09-26-1420_todo-tracer-html-entity-title.md) | `[TESTING]` `[PLANNING]` |
 | 2026-09-26 | [Phase 3 complete: Foundation & Read-Budget Guardrails](2026-09-26-1315_phase3-complete.md) | `[PLANNING]` `[DOCUMENTATION]` `[ARCHITECTURE]` |

@@ -1,121 +1,53 @@
 ---
-// D-02 tracer: one real article, read from production D1 at build time, rendered through the
-// approved chrome, with its render-manifest entry written in the same build. Preserves the
-// nine-months-indexed URL shape `/[category]/[slug]-[uuid]` (`.claude/CLAUDE.md` compatibility
-// constraint) — the `[slug]` param itself carries the trailing uuid.
+// D-02/REND-01 (04-01): the tracer slice now runs through the real Content Layer collection —
+// `getCollection('articles')` reads from the loader's synced store, not a direct
+// `fetchLatestArticle`/`fetchArticleById` call. Manifest writes moved into the loader itself
+// (`src/content/loaders/articles-loader.ts`) — this page no longer builds or writes a manifest
+// entry. Preserves the nine-months-indexed URL shape `/[category]/[slug]-[uuid]`
+// (`.claude/CLAUDE.md` compatibility constraint) via the stored `articles.slug` column (D-07),
+// never a title-derived slug.
 //
-// No rail, no related-articles, no tag list here — those are expansion (Phase 4). This is the
-// one path the whole Phase 3 architecture is proven against (D-02).
+// No rail, no related-articles, no tag list, no AI-disclosure/attribution markup here yet — those
+// are expansion (04-04 ports the full approved template). This is the one path the whole Phase 4
+// architecture is proven against.
+import { getCollection } from 'astro:content';
 import Base from '../../layouts/Base.astro';
-import { fetchLatestArticle, fetchArticleById } from '../../lib/server/d1-client';
-import { buildManifestEntry, putManifestEntry } from '../../lib/server/kv-manifest';
-import { slugify } from '../../lib/slug';
-import { BUILD_HASH } from '../../lib/build-info';
-// 03-06 Task 2 (D-01 measurement #1 of 3, per-page render cost): harness-mode state, extracted
-// into its own module — see src/lib/render-cost-harness.ts's header comment for why a
-// frontmatter-local declaration here does not survive Astro's bundler. Absent in every normal
-// build; `getStaticPaths` and the component below run EXACTLY as before this task when
-// MEASURE_RENDER_COST is unset.
-import { HARNESS_MODE, harnessSamples, registerHarnessExit } from '../../lib/render-cost-harness';
+import { articleParams } from '../../lib/article-url';
 
 export async function getStaticPaths() {
-  if (HARNESS_MODE) {
-    registerHarnessExit();
-    const ids = JSON.parse(process.env.MEASURE_RENDER_COST_IDS || '[]');
-    const paths = [];
-    for (const id of ids) {
-      // D1 read, timed alone — the SAME per-article lookup shape the current architecture
-      // already performs once per page (fetchArticleById, one row by uuid), not a synthetic
-      // batch query. This is what "per-page D1 read cost" means under today's design.
-      const d1Start = performance.now();
-      const row = await fetchArticleById(id);
-      const d1ReadMs = performance.now() - d1Start;
-      if (!row) {
-        throw new Error(`[slug].astro harness mode: fetchArticleById(${id}) returned no row`);
-      }
-
-      // Manifest build (SHA-256 hash) and manifest write (network PUT to KV) timed separately —
-      // a hash-dominated cost and a network-dominated cost are different bottlenecks and 03-07
-      // needs to tell them apart.
-      const buildStart = performance.now();
-      const entry = await buildManifestEntry(row, { buildHash: BUILD_HASH });
-      const manifestBuildMs = performance.now() - buildStart;
-
-      const writeStart = performance.now();
-      await putManifestEntry(entry);
-      const manifestWriteMs = performance.now() - writeStart;
-
-      harnessSamples.push({ id: row.id, d1ReadMs, manifestBuildMs, manifestWriteMs, renderMs: null });
-
-      paths.push({
-        params: { category: row.category, slug: `${slugify(row.title)}-${row.id}` },
-        props: { row },
-      });
-    }
-    return paths;
-  }
-
-  // Normal tracer behaviour — unchanged from before this task.
-  const row = await fetchLatestArticle();
-  if (!row) {
-    throw new Error('[slug].astro: fetchLatestArticle() returned no row — cannot build the tracer page');
-  }
-
-  // BUILD_HASH is the one source of truth for the deployed build's identity (03-03, OPS-05/
-  // OPS-06) — this page no longer resolves its own commit hash from `process.env` directly.
-  await putManifestEntry(
-    await buildManifestEntry(row, { buildHash: BUILD_HASH })
-  );
-
-  return [
-    {
-      params: {
-        category: row.category,
-        slug: `${slugify(row.title)}-${row.id}`,
-      },
-      props: { row },
-    },
-  ];
+  const entries = await getCollection('articles');
+  return entries.map((entry) => ({
+    params: articleParams(entry.data.category.slug, entry.data.slug, entry.id),
+    props: { article: entry.data },
+  }));
 }
 
-const { row } = Astro.props;
-// Render timing (harness mode only): started right after props are available, stopped at the
-// end of this frontmatter block — i.e. it covers this component's own synchronous computation
-// (date formatting below), NOT Astro's own template-to-HTML string compilation, which runs
-// after this script block and is not independently instrumentable from inside it. That
-// exclusion is stated explicitly in the report tools/measure-render-cost.mjs produces.
-const renderStart = HARNESS_MODE ? performance.now() : null;
+const { article } = Astro.props;
 
-// row.published_at is epoch SECONDS (production schema, confirmed against a real row) — not an
-// ISO string, and not epoch milliseconds.
-const publishedDate = new Date(row.published_at * 1000);
+// article.publishedAt is epoch SECONDS (production schema) — not an ISO string, and not epoch
+// milliseconds.
+const publishedDate = new Date(article.publishedAt * 1000);
 const publishedLabel = publishedDate.toLocaleString('en-US', {
   month: 'short',
   day: 'numeric',
   hour: 'numeric',
   minute: '2-digit',
 });
-
-if (HARNESS_MODE && renderStart !== null) {
-  const renderMs = performance.now() - renderStart;
-  const sample = harnessSamples.find((s) => s.id === row.id);
-  if (sample) sample.renderMs = renderMs;
-}
 ---
 
-<Base page="article" title={`915 TLDR — ${row.title}`}>
-  <article data-uuid={row.id} data-category={row.category} data-reading-column>
-    <header data-block data-category={row.category}>
-      <p><a href={`/${row.category}`}>{row.category}</a></p>
+<Base page="article" title={`915 TLDR — ${article.title}`}>
+  <article data-uuid={article.uuid} data-category={article.category.slug} data-reading-column>
+    <header data-block data-category={article.category.slug}>
+      <p><a href={`/${article.category.slug}`}>{article.category.name}</a></p>
       <p data-byline>
         <time datetime={publishedDate.toISOString()}>{publishedLabel}</time>
       </p>
     </header>
 
-    <h1>{row.title}</h1>
+    <h1>{article.title}</h1>
 
     <div data-article-body>
-      <p>{row.summary}</p>
+      <p>{article.summary}</p>
     </div>
   </article>
 </Base>

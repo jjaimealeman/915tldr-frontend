@@ -21,7 +21,22 @@ import { assertNoD1Plugin } from './tools/assert-no-d1.mjs';
 
 export default defineConfig({
   output: 'static',
-  site: 'https://dev.915tldr.com',
+  // Canonicals, RSS and sitemaps must name the PRODUCTION origin, not this build's own deploy
+  // target — dev.915tldr.com stays noindexed by the edge Transform Rule (docs/phase-03/
+  // edge-config.md) regardless of what `site` says here, so a staging build canonicalising to
+  // production is correct, not a bug (owner decision 2026-09-26, ROADMAP Phase 4).
+  site: 'https://915tldr.com',
+  // Owner decision 2026-09-26 (ROADMAP Phase 4): drop the trailing slash. v1 answers `/path`
+  // directly with 200; nine months of indexed URLs are in the no-slash form. The `build.format`
+  // key just below (routes emit `path.html`, not `path/index.html`) is required alongside this
+  // key for Cloudflare's native `auto-trailing-slash` asset handling to produce exactly
+  // `/path` -> 200, `/path/` -> a redirect to `/path`, with zero Worker invocation.
+  // `@astrojs/rss`'s `rss()` helper needs its OWN no-trailing-slash option passed at the call
+  // site — this project-level key does not propagate into that package's item links.
+  trailingSlash: 'never',
+  build: {
+    format: 'file',
+  },
   // This tracer uses no `server:defer` islands and no Astro Sessions API. `session` is
   // Astro's OWN top-level config key (astro/dist/types/public/config.d.ts), not an adapter
   // option — 03-01 originally set this inside the Cloudflare adapter factory call below, where

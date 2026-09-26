@@ -21,12 +21,18 @@
 //     entry now records it automatically rather than trusting each call site to pass it.
 //   - `putManifestEntriesBulk` batches at the KV bulk-write REST endpoint's documented ceiling
 //     (10,000 pairs / call) instead of one HTTP round trip per article (T-03-11).
+//
+// 04-01 hardening (D-08): bumped to schema v2 — every entry now carries `slug` (the stored
+// `articles.slug`, D-07), so the Worker's non-canonical-URL 301 (04-06) can rebuild the full
+// canonical path from one KV read with zero D1 reads. `category` already holds the category
+// slug (`d1-client.ts` selects `c.slug AS category`) — no separate `categorySlug` field.
+import { ARTICLE_SLUG_RE } from '../article-url.ts';
 
 /** Bumped when the shape of `ManifestEntry` or what a renderer does with it changes. Entries at
  * an older version can be identified and re-rendered selectively instead of invalidating the
  * whole corpus — that selectivity is the entire reason this is a version field and not a boolean.
  * See docs/phase-03/render-manifest.md § "Versioning". */
-export const MANIFEST_SCHEMA_VERSION = '1';
+export const MANIFEST_SCHEMA_VERSION = '2';
 
 /** Cloudflare KV bulk-write REST endpoint ceiling: up to 10,000 key/value pairs per call, under
  * 100MB per request. [CITED in 03-RESEARCH.md § "Don't Hand-Roll" and § "KV Bulk Write for
@@ -70,6 +76,12 @@ export interface ManifestEntry {
   buildHash: string;
   category: string;
   publishedAt: number;
+  /** The stored `articles.slug` column (D-07) — never re-derived from the title. Combined with
+   * `articleId` (the uuid) and `category` (the category slug), this is everything the Worker's
+   * non-canonical-URL 301 (D-08, 04-06) needs to rebuild `/${category}/${slug}-${articleId}`
+   * from one KV read and zero D1 reads. Validated against `ARTICLE_SLUG_RE` — never empty, never
+   * outside `^[a-z0-9-]{1,100}$`. */
+  slug: string;
 }
 
 export interface SourceArticleRow {
@@ -77,6 +89,8 @@ export interface SourceArticleRow {
   title: string;
   summary: string;
   category: string;
+  /** The stored `articles.slug` column (D-07) — see `ManifestEntry.slug`. */
+  slug: string;
   published_at: number; // epoch seconds — matches ArticleRow in d1-client.ts
   /** GROUP_CONCAT over a correlated subquery returns SQL NULL, not `''`, when an article has no
    * tags — `d1-client.ts`'s `ArticleRow.tags` is typed `string` but the real runtime value can be
@@ -144,6 +158,7 @@ export async function buildManifestEntry(
     buildHash: opts.buildHash,
     category: row.category,
     publishedAt: row.published_at,
+    slug: row.slug,
   };
 }
 
@@ -168,6 +183,7 @@ export function validateManifestEntry(entry: ManifestEntry): void {
     'renderedAt',
     'buildHash',
     'category',
+    'slug',
   ];
 
   for (const field of requiredNonEmptyStrings) {
@@ -180,6 +196,12 @@ export function validateManifestEntry(entry: ManifestEntry): void {
   if (entry.language !== 'en' && entry.language !== 'es') {
     throw new Error(
       `kv-manifest: manifest entry field "language" must be "en" or "es", got ${JSON.stringify(entry.language)}`
+    );
+  }
+
+  if (!ARTICLE_SLUG_RE.test(entry.slug)) {
+    throw new Error(
+      `kv-manifest: manifest entry field "slug" must match ${ARTICLE_SLUG_RE}, got ${JSON.stringify(entry.slug)}`
     );
   }
 
@@ -196,21 +218,34 @@ export function validateManifestEntry(entry: ManifestEntry): void {
   }
 }
 
+/** The `915tldr-render-manifest` namespace id — already committed in `wrangler.jsonc`'s
+ * `kv_namespaces` block, not a secret (same disclosure level as `d1-client.ts`'s
+ * `D1_DATABASE_ID`). `renderManifestNamespaceId()` below prefers an explicit
+ * `RENDER_MANIFEST_KV_NAMESPACE_ID` env var when set (04-01 finding: builds in isolated git
+ * worktrees and on Workers Builds do not have the gitignored `.dev.vars`, and the shell does not
+ * export this variable today) but never throws for its absence — this constant is always a valid
+ * fallback. */
+export const RENDER_MANIFEST_NAMESPACE_ID = '3c92531f94294fcc94006455f433885f';
+
+function renderManifestNamespaceId(): string {
+  return process.env.RENDER_MANIFEST_KV_NAMESPACE_ID ?? RENDER_MANIFEST_NAMESPACE_ID;
+}
+
 function kvValueUrl(key: string): string {
   const accountId = requireEnv('CLOUDFLARE_ACCOUNT_ID');
-  const namespaceId = requireEnv('RENDER_MANIFEST_KV_NAMESPACE_ID');
+  const namespaceId = renderManifestNamespaceId();
   return `https://api.cloudflare.com/client/v4/accounts/${accountId}/storage/kv/namespaces/${namespaceId}/values/${encodeURIComponent(key)}`;
 }
 
 function kvBulkUrl(): string {
   const accountId = requireEnv('CLOUDFLARE_ACCOUNT_ID');
-  const namespaceId = requireEnv('RENDER_MANIFEST_KV_NAMESPACE_ID');
+  const namespaceId = renderManifestNamespaceId();
   return `https://api.cloudflare.com/client/v4/accounts/${accountId}/storage/kv/namespaces/${namespaceId}/bulk`;
 }
 
 function kvKeysUrl(): string {
   const accountId = requireEnv('CLOUDFLARE_ACCOUNT_ID');
-  const namespaceId = requireEnv('RENDER_MANIFEST_KV_NAMESPACE_ID');
+  const namespaceId = renderManifestNamespaceId();
   return `https://api.cloudflare.com/client/v4/accounts/${accountId}/storage/kv/namespaces/${namespaceId}/keys`;
 }
 
