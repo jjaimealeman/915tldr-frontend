@@ -36,8 +36,11 @@ function tempDirWithFile(filename, content) {
 }
 
 /** Spawns the real CLI. Any arg omitted falls back to a path that does not exist, so only the
- * dimension under test (src / config / wrangler) is exercised in a given case. */
-function runGuard({ srcDir, configFile, wranglerFile }) {
+ * dimension under test (src / config / wrangler / generatedWrangler) is exercised in a given
+ * case — the generated-wrangler dimension defaults to absent-by-construction (T-03-02a task 2),
+ * so existing callers of this helper stay isolated from whatever `dist/client/wrangler.json`
+ * happens to exist on disk from a real `pnpm build` in this same checkout. */
+function runGuard({ srcDir, configFile, wranglerFile, generatedWranglerFile }) {
   const nonExistent = path.join(mkdtempSync(path.join(tmpdir(), 'config-guard-absent-')), 'none');
   const result = spawnSync(
     process.execPath,
@@ -50,6 +53,8 @@ function runGuard({ srcDir, configFile, wranglerFile }) {
       configFile ?? `${nonExistent}.mjs`,
       '--wrangler',
       wranglerFile ?? `${nonExistent}.jsonc`,
+      '--generated-wrangler',
+      generatedWranglerFile ?? `${nonExistent}.json`,
     ],
     { encoding: 'utf8' }
   );
@@ -157,6 +162,48 @@ test('a Worker database binding in wrangler.jsonc fails the guard even when comm
   const result = runGuard({ wranglerFile: filePath });
   assert.equal(result.status, 1);
   assert.ok(result.violations.some((v) => v.rule === 'T-03-01'), JSON.stringify(result.violations));
+});
+
+// --- T-03-02a task 2: the GENERATED wrangler.json (what `wrangler deploy` actually reads) ---
+
+test('a non-empty d1_databases array in the generated wrangler.json fails the guard live', () => {
+  const { filePath } = tempDirWithFile(
+    'wrangler.json',
+    JSON.stringify({ d1_databases: [{ binding: 'DB', database_id: 'x' }] })
+  );
+  const result = runGuard({ generatedWranglerFile: filePath });
+  assert.equal(result.status, 1);
+  assert.ok(
+    result.violations.some((v) => v.rule === 'T-03-01-GEN'),
+    JSON.stringify(result.violations)
+  );
+});
+
+test('an empty d1_databases array in the generated wrangler.json passes (the normalized "absent" shape)', () => {
+  const { filePath } = tempDirWithFile('wrangler.json', JSON.stringify({ d1_databases: [] }));
+  const result = runGuard({ generatedWranglerFile: filePath });
+  assert.equal(result.status, 0, JSON.stringify(result.violations));
+});
+
+test('a generated wrangler.json with no d1_databases key at all passes', () => {
+  const { filePath } = tempDirWithFile('wrangler.json', JSON.stringify({ name: '915tldr-v2' }));
+  const result = runGuard({ generatedWranglerFile: filePath });
+  assert.equal(result.status, 0, JSON.stringify(result.violations));
+});
+
+test('an absent generated wrangler.json (no build has run yet) passes — supplementary, not required', () => {
+  const result = runGuard({});
+  assert.equal(result.status, 0, JSON.stringify(result.violations));
+});
+
+test('the real repository state, generated file included, passes the guard (T-03-02a task 2)', () => {
+  const result = runGuard({
+    srcDir: path.join(REPO_ROOT, 'src'),
+    configFile: REAL_CONFIG_PATH,
+    wranglerFile: path.join(REPO_ROOT, 'wrangler.jsonc'),
+    generatedWranglerFile: path.join(REPO_ROOT, 'dist/client/wrangler.json'),
+  });
+  assert.equal(result.status, 0, JSON.stringify(result.violations));
 });
 
 // --- ARCH-06 (imageService), driven by evaluating the real cloudflare(...) call argument ---

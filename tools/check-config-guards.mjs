@@ -22,6 +22,16 @@
 // check is the ONE deliberate exception: it does NOT strip comments, because a commented-out
 // `d1_databases` block is one uncomment away from a live D1 path, and the point of T-03-01 is
 // that no such block should exist in the file text at all, not even inert.
+//
+// T-03-02a security remediation, task 2: this guard was previously wired into `test:unit` only —
+// neither `build` (`astro build`) nor `deploy` (`wrangler deploy`) ran it, so a `d1_databases`
+// block added to `wrangler.jsonc` would have deployed successfully as long as nobody happened to
+// run `test:unit` first. Both scripts now run `guard:config` first (see package.json). This file
+// also gained `scanGeneratedWranglerJson`: the auditor noted that `wrangler deploy` actually reads
+// the ADAPTER-GENERATED `dist/client/wrangler.json` (normalizes every key, including
+// `d1_databases: []` when the source omits it entirely), not the hand-written `wrangler.jsonc` —
+// a belt-and-suspenders check of whatever generated file exists from the last build, in addition
+// to (never instead of) the authoritative source-file scan above.
 
 import fs from 'node:fs';
 import path from 'node:path';
@@ -32,16 +42,27 @@ const REMOVED_OUTPUT_KEYWORD_RE = /output\s*:\s*['"]hybrid['"]/;
 const D1_BINDING_KEY = 'd1_databases';
 
 function parseArgs(argv) {
-  const args = { src: 'src', config: 'astro.config.mjs', wrangler: 'wrangler.jsonc', json: false };
+  const args = {
+    src: 'src',
+    config: 'astro.config.mjs',
+    wrangler: 'wrangler.jsonc',
+    generatedWrangler: 'dist/client/wrangler.json',
+    json: false,
+  };
   for (let i = 0; i < argv.length; i++) {
     const arg = argv[i];
     if (arg === '--src') { args.src = argv[++i]; continue; }
     if (arg === '--config') { args.config = argv[++i]; continue; }
     if (arg === '--wrangler') { args.wrangler = argv[++i]; continue; }
+    if (arg === '--generated-wrangler') { args.generatedWrangler = argv[++i]; continue; }
     if (arg === '--json') { args.json = true; continue; }
     if (arg.startsWith('--src=')) { args.src = arg.slice('--src='.length); continue; }
     if (arg.startsWith('--config=')) { args.config = arg.slice('--config='.length); continue; }
     if (arg.startsWith('--wrangler=')) { args.wrangler = arg.slice('--wrangler='.length); continue; }
+    if (arg.startsWith('--generated-wrangler=')) {
+      args.generatedWrangler = arg.slice('--generated-wrangler='.length);
+      continue;
+    }
   }
   return args;
 }
@@ -124,7 +145,41 @@ export function scanWranglerForD1Binding(absPath) {
   return violations;
 }
 
-export function collectViolations({ src, config, wrangler }) {
+/**
+ * T-03-01 / T-03-02a task 2: cheap JSON-level check of the adapter-GENERATED
+ * `dist/client/wrangler.json` — the file `wrangler deploy` actually reads, not the hand-written
+ * `wrangler.jsonc` the check above scans. The generator normalizes every wrangler key, so an
+ * absent `d1_databases` in the source becomes an explicit `d1_databases: []` here; this only
+ * flags a NON-EMPTY array, since an empty array is the normalized "absent" shape, not a
+ * violation. Optional by construction: absent entirely (no build has run yet in this
+ * invocation) is not a violation — the source-file scan above is the authoritative,
+ * always-available gate; this is a supplementary check of the last build's actual output,
+ * never a replacement for it.
+ */
+export function scanGeneratedWranglerForD1Binding(absPath) {
+  if (!fs.existsSync(absPath)) return [];
+  let parsed;
+  try {
+    parsed = JSON.parse(fs.readFileSync(absPath, 'utf8'));
+  } catch {
+    // Not valid JSON (e.g. mid-write, or an unrelated file at this path) — nothing to assert.
+    return [];
+  }
+  const bindings = parsed?.[D1_BINDING_KEY];
+  if (Array.isArray(bindings) && bindings.length > 0) {
+    return [
+      {
+        file: absPath,
+        line: 1,
+        rule: 'T-03-01-GEN',
+        message: `Worker database binding "${D1_BINDING_KEY}" is non-empty in the generated wrangler config that \`wrangler deploy\` actually reads`,
+      },
+    ];
+  }
+  return [];
+}
+
+export function collectViolations({ src, config, wrangler, generatedWrangler }) {
   const violations = [];
   const filesToScan = walkSourceFiles(src);
   if (fs.existsSync(config)) filesToScan.push(config);
@@ -132,6 +187,9 @@ export function collectViolations({ src, config, wrangler }) {
     violations.push(...scanSourceFile(file));
   }
   violations.push(...scanWranglerForD1Binding(wrangler));
+  if (generatedWrangler) {
+    violations.push(...scanGeneratedWranglerForD1Binding(generatedWrangler));
+  }
   return violations;
 }
 
