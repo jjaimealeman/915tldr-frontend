@@ -25,14 +25,18 @@ test('toSafeJsonLd: a headline containing a literal </script><script> cannot clo
   assert.deepEqual(JSON.parse(safe), input);
 });
 
-test('toSafeJsonLd: escapes <, >, &, U+2028 and U+2029', () => {
-  const input = { text: '<a>&  ' };
+test('toSafeJsonLd: escapes <, >, &, the line separator and the paragraph separator', () => {
+  // Built via String.fromCharCode rather than a typed escape sequence in this file's own source
+  // text — see src/lib/structured-data.ts's identical convention and its comment explaining why.
+  const lineSeparator = String.fromCharCode(0x2028);
+  const paragraphSeparator = String.fromCharCode(0x2029);
+  const input = { text: `<a>&${lineSeparator}${paragraphSeparator}` };
   const safe = toSafeJsonLd(input);
   assert.ok(!safe.includes('<'));
   assert.ok(!safe.includes('>'));
   assert.ok(!safe.includes('&'));
-  assert.ok(!safe.includes(' '));
-  assert.ok(!safe.includes(' '));
+  assert.ok(!safe.includes(lineSeparator));
+  assert.ok(!safe.includes(paragraphSeparator));
   assert.deepEqual(JSON.parse(safe), input);
 });
 

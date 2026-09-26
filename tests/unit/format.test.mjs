@@ -17,9 +17,9 @@ const REPO_ROOT = path.resolve(import.meta.dirname, '../..');
 const FORMAT_MODULE = path.join(REPO_ROOT, 'src/lib/format.ts');
 
 // Epoch seconds fixtures (all from the plan's own behavior spec).
-const SEPT_16_2026_1906_UTC = 1789592808; // 2026-09-16T19:06:48Z
+const SEPT_16_2026_1906_UTC = 1789585608; // 2026-09-16T19:06:48Z
 const DEC_15_2025_2000_UTC = 1765828800; // 2025-12-15T20:00:00Z
-const SEPT_16_2026_1800_UTC = 1789588800; // 2026-09-16T18:00:00Z
+const SEPT_16_2026_1800_UTC = 1789581600; // 2026-09-16T18:00:00Z
 
 test('TIME_ZONE is America/Denver', () => {
   assert.equal(TIME_ZONE, 'America/Denver');
