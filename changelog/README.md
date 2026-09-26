@@ -10,6 +10,7 @@ Entries are named `YYYY-MM-DD-HHMM_slug.md` and grouped by month, newest first.
 
 | Date | Entry | Keywords |
 |------|-------|----------|
+| 2026-09-26 | [Phase 3 security review: 26 of 26 threats closed](2026-09-26-1300_phase3-security-verified.md) | `[SECURITY]` `[DOCUMENTATION]` `[PLANNING]` |
 | 2026-09-26 | [Config guard now runs on `build` and `deploy`, not only `test:unit`](2026-09-26-1251_config-guard-runs-on-build-and-deploy.md) | `[SECURITY]` `[CONFIG]` `[TESTING]` `[DEPLOYMENT]` `[CRITICAL]` |
 | 2026-09-26 | [Close T-03-02a: widen the D1-import guard from one filename to the whole server directory](2026-09-26-1250_close-t-03-02a-kv-manifest-directory-guard.md) | `[SECURITY]` `[CRITICAL]` `[TESTING]` `[BACKEND]` `[DOCUMENTATION]` |
 | 2026-09-26 | [Phase 3 UAT complete: 2 of 2 passed](2026-09-26-1212_phase3-uat-complete.md) | `[TESTING]` `[PLANNING]` `[DOCUMENTATION]` |
