@@ -269,7 +269,39 @@ trailing slashes"): the RSS feed emits links WITH a trailing slash by default, *
 endpoint, or the feed's links will not match the page URLs. Verify by fetching `/rss.xml` and
 checking that item links have no trailing slash and each answers 200 directly.
 
-**Plans**: TBD
+**Plans**: 12 plans in 6 waves
+
+Plans:
+**Wave 1**
+
+- [ ] 04-01-PLAN.md — Tracer: one real article D1 → Content Layer loader → stored-slug canonical page → KV manifest v2 → live on dev; Spike 1 (does a Loader throw fail the build?) (wave 1)
+- [ ] 04-02-PLAN.md — Approved chrome in Base, head-metadata contract, deterministic date formatting, safe JSON-LD, shared ArticleCard (wave 1)
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
+- [ ] 04-03-PLAN.md — Full loader: dry run, cold/warm/sweep modes, rows-read budgets, never-shrink check vs KV last-good, first measured full-corpus build (wave 2)
+- [ ] 04-04-PLAN.md — Article template: AI disclosure, attribution, tags, rail (owner decision on byte-identity), NewsArticle/BreadcrumbList, canonical (wave 2)
+- [ ] 04-05-PLAN.md — Listing pages: home, 8 category indexes (FIX-04), tag pages + /tags, source pages (wave 2)
+- [ ] 04-06-PLAN.md — First Worker: non-canonical 301 via one KV read, navigation-safe routing, 404 page with build-time suggestions, legacy redirects (wave 2)
+- [ ] 04-07-PLAN.md — SEO surfaces: package-legitimacy checkpoint, robots.txt, /rss.xml (no trailing slash), news sitemap (48 h), general sitemap (wave 2)
+
+**Wave 3** *(blocked on Wave 2 completion)*
+
+- [ ] 04-08-PLAN.md — /changelog dual-source loader with fail-loud rules and the REND-03 real-build regression; contact/about/privacy/terms (wave 3)
+- [ ] 04-09-PLAN.md — CI wrapper (never deploys a failed build, ntfy on failure), Workers Builds setup doc, local incremental-build spike (wave 3)
+
+**Wave 4** *(blocked on Wave 3 completion)*
+
+- [ ] 04-10-PLAN.md — Owner connects 915tldr-frontend to Workers Builds; hook-triggered cold/warm builds, page reuse and failure drill measured (wave 4)
+
+**Wave 5** *(blocked on Wave 4 completion)*
+
+- [ ] 04-11-PLAN.md — Owner decides the full-rebuild mechanism (one-way); apply it, byte-identity regression, D-05 doc amendment, backend Deploy Hook trigger (wave 5)
+
+**Wave 6** *(blocked on Wave 5 completion)*
+
+- [ ] 04-12-PLAN.md — Deploy and verify every URL/SEO contract live, in a real browser; validation map; owner human-checks (wave 6)
+
 **UI hint**: yes
 
 ### Phase 5: Hybrid Archive & Zero-Reads Proof
@@ -415,7 +447,7 @@ Phase 3 and may run alongside Phases 5-7.
 | 1. Design Sketch & Editorial Identity | 23/23 | Complete    | 2026-09-17 |
 | 2. Content Quality & Grounding | 11/10 | Complete    | 2026-09-21 |
 | 3. Foundation & Read-Budget Guardrails | 7/7 | Complete    | 2026-09-26 |
-| 4. Static Generation, Templates & SEO | 0/TBD | Not started | - |
+| 4. Static Generation, Templates & SEO | 0/12 | Planned | - |
 | 5. Hybrid Archive & Zero-Reads Proof | 0/TBD | Not started | - |
 | 6. Bilingual | 0/TBD | Not started | - |
 | 7. Imagery & Share Cards | 0/TBD | Not started | - |
