@@ -10,6 +10,7 @@ Entries are named `YYYY-MM-DD-HHMM_slug.md` and grouped by month, newest first.
 
 | Date | Entry | Keywords |
 |------|-------|----------|
+| 2026-09-26 | [Trailing slash: decided to drop it in Phase 4, RSS gotcha recorded](2026-09-26-1130_trailing-slash-dropped-rss-gotcha-recorded.md) | `[DOCUMENTATION]` `[SEO]` `[ARCHITECTURE]` `[PLANNING]` |
 | 2026-09-23 | [Fix Phase 3 COVERAGE.md to pass the api-coverage.verify-pre gate](2026-09-23-1422_phase3-coverage-md-length-gate.md) | `[DOCUMENTATION]` `[CONFIG]` `[BUG_FIX]` |
 | 2026-09-23 | [`pnpm verify:edge` loads `.dev.vars` itself — no more manual export required](2026-09-23-1930_verify-edge-loads-dev-vars-automatically.md) | `[TESTING]` `[BACKEND]` `[BUG_FIX]` `[DOCUMENTATION]` |
 | 2026-09-23 | [Phase 12 directory reorganization recorded (plain parent, two repos)](2026-09-23-1900_phase12-directory-reorg-recorded.md) | `[DOCUMENTATION]` `[PLANNING]` `[ARCHITECTURE]` |

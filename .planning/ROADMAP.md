@@ -252,10 +252,22 @@ Plans:
 v1 serves `/path` → 200 directly — measured live on both. Every v1-emitted indexed link is in the
 no-slash form, so under v2 every one of nine months of indexed URLs would take an extra redirect
 hop against a release-blocking 1.5s LCP budget, and criterion 4 above ("every existing
-`/[category]/[slug]-[uuid]` URL still resolves") is satisfied but not "unchanged". Likely fix:
-`trailingSlash: 'never'` with `build.format: 'file'` in `astro.config.mjs` — not applied in Phase
-3; this criterion and SEO-04/FIX-04/FIX-05 (already mapped to this phase in REQUIREMENTS.md) are
-where it must be resolved.
+`/[category]/[slug]-[uuid]` URL still resolves") is satisfied but not "unchanged". This
+criterion and SEO-04/FIX-04/FIX-05 (already mapped to this phase in REQUIREMENTS.md) are where it
+must be resolved.
+
+**Decided (owner, 2026-09-26): drop the trailing slash.** Set `trailingSlash: 'never'` with
+`build.format: 'file'` in `astro.config.mjs`, so v2 matches v1's URL shape exactly and indexed
+URLs answer 200 with no redirect. The usual risk of this setting — relative links such as
+`href="story"` resolving differently — does not apply: every internal link in `src/` is absolute
+(`/`, `/changelog`, `/contact`, `` `/${row.category}` ``, `/fonts/…`), checked 2026-09-26. Keep new
+links absolute.
+
+**RSS gotcha — must be handled in the same change.** Per the Astro docs (RSS recipe, "Removing
+trailing slashes"): the RSS feed emits links WITH a trailing slash by default, *regardless of the
+`trailingSlash` config*. Pass `trailingSlash: false` to the `rss()` helper in the `/rss.xml`
+endpoint, or the feed's links will not match the page URLs. Verify by fetching `/rss.xml` and
+checking that item links have no trailing slash and each answers 200 directly.
 
 **Plans**: TBD
 **UI hint**: yes
