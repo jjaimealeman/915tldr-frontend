@@ -1,20 +1,14 @@
 ---
-status: testing
+status: complete
 phase: 03-foundation-read-budget-guardrails
 source: [03-VERIFICATION.md]
 started: 2026-09-23T14:00:00Z
-updated: 2026-09-23T14:00:00Z
+updated: 2026-09-26T18:11:00Z
 ---
 
 ## Current Test
 
-number: 1
-name: Trailing-slash deferral to Phase 4 — scope decision
-expected: |
-  An explicit owner decision, recorded in STATE.md or ROADMAP Phase 4 context, that this is
-  intentionally Phase 4's problem (SEO-04/FIX-04/FIX-05 are already mapped to Phase 4, not
-  Phase 3, per REQUIREMENTS.md), not a silently-carried gap.
-awaiting: user response
+[testing complete]
 
 ## Tests
 
@@ -34,7 +28,7 @@ v2 (Astro, dev)    /path   307 →    /path/  200
 
 expected: An explicit owner decision that this is Phase 4's scope, recorded rather than carried silently.
 why_human: Judgment call about scope boundary and URL-compatibility risk tolerance.
-result: [pending]
+result: pass — owner decided 2026-09-26 to drop the trailing slash in Phase 4 (trailingSlash:'never' + build.format:'file'); RSS gotcha added to ROADMAP Phase 4 (commit e8843aa)
 
 ### 2. `pnpm verify:edge` false negative — tooling-trust decision
 
@@ -50,14 +44,14 @@ a false negative in the tool, not a requirement violation.
 
 expected: Either harden the script to discover the article path from the live site (or `/version.json`), or accept the fragility as a known limitation and always deploy immediately before running it.
 why_human: Tooling-trust decision — is a "cry wolf" false negative acceptable in a guard this project explicitly built to avoid guards that silently misbehave?
-result: [pending]
+result: pass — confirmed by owner 2026-09-26. Re-run live that day from a fresh shell with nothing exported: 4/4 checks passed; inverted against production (--dev-host=915tldr.com --admin-host=915tldr.com) it exited 1 as it should (commits ba7f529, a8cb5f7)
 
 ## Summary
 
 total: 2
-passed: 0
+passed: 2
 issues: 0
-pending: 2
+pending: 0
 skipped: 0
 blocked: 0
 
