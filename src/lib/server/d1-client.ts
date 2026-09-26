@@ -248,76 +248,35 @@ export interface FetchPublicArticlesWindowResult {
 }
 
 /**
- * v1's public listing filter (`915tldr.com2/server/api/articles/index.get.ts`):
- * `status = 'processed' AND is_duplicate = 0`, plus a resolved primary category (this loader's
- * own requirement — a public article with no category cannot build a canonical URL). Fetches all
- * article-shaped columns for rows published since `sinceEpoch` (epoch seconds), then bulk-fetches
- * primary categories and tags for those rows' internal ids (chunked at `D1_MAX_BOUND_PARAMS`) and
- * all sources, stitching everything in memory — the same shape
- * docs/phase-03/d1-pagination-report.md measured at 957,008 rows for a full-corpus pass, here
- * scoped to a window. `opts.fetchImpl` is threaded through every call for test injection.
+ * The stitching rules shared by every bulk-fetch/keyset/chunked-IN fetcher below: given raw
+ * article rows plus their primary-category rows, tag rows and the (small, unpaginated) sources
+ * table, classifies each article row as public or non-public and builds the denormalised
+ * `PublicArticle` shape. Extracted from `fetchPublicArticlesWindow` (04-01) so the cold-path
+ * fetchers (`fetchAllArticlesStitched`, `fetchArticlesStitchedByIds`) apply the EXACT same rules
+ * as the steady-state window fetch — a fetcher-specific reimplementation here is exactly the kind
+ * of drift that would let a cold build and a warm build silently disagree about what counts as
+ * public. `tagRows` accepts any row shape carrying at least `article_id`/`slug`/`name` — the
+ * cold-path tags query additionally selects `tag_id` (for keyset pagination) but that extra field
+ * is irrelevant to stitching.
  */
-export async function fetchPublicArticlesWindow(
-  sinceEpoch: number,
-  opts: { fetchImpl?: typeof fetch } = {}
-): Promise<FetchPublicArticlesWindowResult> {
-  let rowsRead = 0;
-
-  const { results: articleRows, rowsRead: articlesRowsRead } = await queryD1WithMeta<WindowArticleRow>(
-    `SELECT id, uuid, title, slug, summary, key_points, url, published_at, source_id, status, is_duplicate
-     FROM articles
-     WHERE published_at >= ?`,
-    [sinceEpoch],
-    opts
-  );
-  rowsRead += articlesRowsRead;
-
-  const internalIds = articleRows.map((row) => row.id);
-
+export function stitchArticles(
+  articleRows: WindowArticleRow[],
+  categoryRows: CategoryJoinRow[],
+  tagRows: Array<{ article_id: number; slug: string; name: string }>,
+  sourceRows: SourceRow[]
+): { publicArticles: PublicArticle[]; nonPublic: NonPublicArticle[] } {
   const categoryByArticleId = new Map<number, { slug: string; name: string }>();
-  for (const idChunk of chunkIds(internalIds)) {
-    if (idChunk.length === 0) continue;
-    const placeholders = idChunk.map(() => '?').join(',');
-    const { results, rowsRead: chunkRowsRead } = await queryD1WithMeta<CategoryJoinRow>(
-      `SELECT ac.article_id AS article_id, c.slug AS slug, c.name AS name
-       FROM article_categories ac
-       JOIN categories c ON c.id = ac.category_id
-       WHERE ac.is_primary = 1 AND ac.article_id IN (${placeholders})`,
-      idChunk,
-      opts
-    );
-    rowsRead += chunkRowsRead;
-    for (const row of results) {
-      categoryByArticleId.set(row.article_id, { slug: row.slug, name: row.name });
-    }
+  for (const row of categoryRows) {
+    categoryByArticleId.set(row.article_id, { slug: row.slug, name: row.name });
   }
 
   const tagsByArticleId = new Map<number, Array<{ slug: string; name: string }>>();
-  for (const idChunk of chunkIds(internalIds)) {
-    if (idChunk.length === 0) continue;
-    const placeholders = idChunk.map(() => '?').join(',');
-    const { results, rowsRead: chunkRowsRead } = await queryD1WithMeta<TagJoinRow>(
-      `SELECT atg.article_id AS article_id, t.slug AS slug, t.name AS name
-       FROM article_tags atg
-       JOIN tags t ON t.id = atg.tag_id
-       WHERE atg.article_id IN (${placeholders})`,
-      idChunk,
-      opts
-    );
-    rowsRead += chunkRowsRead;
-    for (const row of results) {
-      const list = tagsByArticleId.get(row.article_id) ?? [];
-      list.push({ slug: row.slug, name: row.name });
-      tagsByArticleId.set(row.article_id, list);
-    }
+  for (const row of tagRows) {
+    const list = tagsByArticleId.get(row.article_id) ?? [];
+    list.push({ slug: row.slug, name: row.name });
+    tagsByArticleId.set(row.article_id, list);
   }
 
-  const { results: sourceRows, rowsRead: sourcesRowsRead } = await queryD1WithMeta<SourceRow>(
-    `SELECT id, slug, name, website_url FROM sources`,
-    [],
-    opts
-  );
-  rowsRead += sourcesRowsRead;
   const sourceById = new Map<number, { slug: string; name: string; websiteUrl: string }>();
   for (const row of sourceRows) {
     sourceById.set(row.id, { slug: row.slug, name: row.name, websiteUrl: row.website_url });
@@ -382,5 +341,288 @@ export async function fetchPublicArticlesWindow(
     });
   }
 
+  return { publicArticles, nonPublic };
+}
+
+/**
+ * v1's public listing filter (`915tldr.com2/server/api/articles/index.get.ts`):
+ * `status = 'processed' AND is_duplicate = 0`, plus a resolved primary category (this loader's
+ * own requirement — a public article with no category cannot build a canonical URL). Fetches all
+ * article-shaped columns for rows published since `sinceEpoch` (epoch seconds), then bulk-fetches
+ * primary categories and tags for those rows' internal ids (chunked at `D1_MAX_BOUND_PARAMS`) and
+ * all sources, stitching everything in memory via `stitchArticles` — the same shape
+ * docs/phase-03/d1-pagination-report.md measured at 957,008 rows for a full-corpus pass, here
+ * scoped to a window. `opts.fetchImpl` is threaded through every call for test injection.
+ */
+export async function fetchPublicArticlesWindow(
+  sinceEpoch: number,
+  opts: { fetchImpl?: typeof fetch } = {}
+): Promise<FetchPublicArticlesWindowResult> {
+  let rowsRead = 0;
+
+  const { results: articleRows, rowsRead: articlesRowsRead } = await queryD1WithMeta<WindowArticleRow>(
+    `SELECT id, uuid, title, slug, summary, key_points, url, published_at, source_id, status, is_duplicate
+     FROM articles
+     WHERE published_at >= ?`,
+    [sinceEpoch],
+    opts
+  );
+  rowsRead += articlesRowsRead;
+
+  const internalIds = articleRows.map((row) => row.id);
+
+  const categoryRows: CategoryJoinRow[] = [];
+  for (const idChunk of chunkIds(internalIds)) {
+    if (idChunk.length === 0) continue;
+    const placeholders = idChunk.map(() => '?').join(',');
+    const { results, rowsRead: chunkRowsRead } = await queryD1WithMeta<CategoryJoinRow>(
+      `SELECT ac.article_id AS article_id, c.slug AS slug, c.name AS name
+       FROM article_categories ac
+       JOIN categories c ON c.id = ac.category_id
+       WHERE ac.is_primary = 1 AND ac.article_id IN (${placeholders})`,
+      idChunk,
+      opts
+    );
+    rowsRead += chunkRowsRead;
+    categoryRows.push(...results);
+  }
+
+  const tagRows: TagJoinRow[] = [];
+  for (const idChunk of chunkIds(internalIds)) {
+    if (idChunk.length === 0) continue;
+    const placeholders = idChunk.map(() => '?').join(',');
+    const { results, rowsRead: chunkRowsRead } = await queryD1WithMeta<TagJoinRow>(
+      `SELECT atg.article_id AS article_id, t.slug AS slug, t.name AS name
+       FROM article_tags atg
+       JOIN tags t ON t.id = atg.tag_id
+       WHERE atg.article_id IN (${placeholders})`,
+      idChunk,
+      opts
+    );
+    rowsRead += chunkRowsRead;
+    tagRows.push(...results);
+  }
+
+  const { results: sourceRows, rowsRead: sourcesRowsRead } = await queryD1WithMeta<SourceRow>(
+    `SELECT id, slug, name, website_url FROM sources`,
+    [],
+    opts
+  );
+  rowsRead += sourcesRowsRead;
+
+  const { publicArticles, nonPublic } = stitchArticles(articleRows, categoryRows, tagRows, sourceRows);
   return { publicArticles, nonPublic, rowsRead };
+}
+
+// ---------------------------------------------------------------------------
+// REND-01/02 (04-03): the cold-path fetchers. `fetchAllArticlesStitched` is the full-corpus bulk
+// pass used on an empty store, a state-version bump, the 7-day cold resync, or ARTICLES_FORCE_COLD
+// — it deliberately fetches EVERY article regardless of status (not just the window's
+// `published_at`-filtered set), because a cold pass is also this loader's self-healing mechanism:
+// a non-public row is only observed as an "explained removal" (D-14) if the cold pass actually
+// reads it, classifies it non-public, and reports why. `fetchArticlesStitchedByIds` is the sweep
+// path's re-fetch for a small, explicit id list (`fetchChangedSince`'s output). Both reuse
+// `stitchArticles` — see its own doc comment for why that matters.
+// ---------------------------------------------------------------------------
+
+export interface FetchAllArticlesStitchedResult extends FetchPublicArticlesWindowResult {
+  requestCount: number;
+}
+
+/**
+ * Full-corpus bulk fetch, keyset-paginated at LIMIT 5000 per page (Phase 3's measured bulk-fetch
+ * page size, docs/phase-03/d1-pagination-report.md) across all three tables independently:
+ * `articles` keyed by `id`, primary `article_categories` keyed by `article_id`, and `article_tags`
+ * keyed by the composite `(article_id, tag_id)` (a single integer cursor would skip or repeat rows
+ * once an article has more than one tag). Every page request binds only its own cursor value(s) —
+ * at most 2 params — never anywhere near `D1_MAX_BOUND_PARAMS`. `sources` is fetched once,
+ * unpaginated (a handful of rows). `opts.fetchImpl` is threaded through every call for test
+ * injection.
+ */
+export async function fetchAllArticlesStitched(
+  opts: { fetchImpl?: typeof fetch } = {}
+): Promise<FetchAllArticlesStitchedResult> {
+  let rowsRead = 0;
+  let requestCount = 0;
+
+  const articleRows: WindowArticleRow[] = [];
+  let articleCursor = 0;
+  for (;;) {
+    const { results, rowsRead: pageRowsRead } = await queryD1WithMeta<WindowArticleRow>(
+      `SELECT id, uuid, title, slug, summary, key_points, url, published_at, source_id, status, is_duplicate
+       FROM articles
+       WHERE id > ?
+       ORDER BY id
+       LIMIT 5000`,
+      [articleCursor],
+      opts
+    );
+    rowsRead += pageRowsRead;
+    requestCount += 1;
+    articleRows.push(...results);
+    if (results.length === 0) break;
+    articleCursor = results[results.length - 1].id;
+    if (results.length < 5000) break;
+  }
+
+  const categoryRows: CategoryJoinRow[] = [];
+  let categoryCursor = 0;
+  for (;;) {
+    const { results, rowsRead: pageRowsRead } = await queryD1WithMeta<CategoryJoinRow>(
+      `SELECT ac.article_id AS article_id, c.slug AS slug, c.name AS name
+       FROM article_categories ac
+       JOIN categories c ON c.id = ac.category_id
+       WHERE ac.is_primary = 1 AND ac.article_id > ?
+       ORDER BY ac.article_id
+       LIMIT 5000`,
+      [categoryCursor],
+      opts
+    );
+    rowsRead += pageRowsRead;
+    requestCount += 1;
+    categoryRows.push(...results);
+    if (results.length === 0) break;
+    categoryCursor = results[results.length - 1].article_id;
+    if (results.length < 5000) break;
+  }
+
+  const tagRows: Array<TagJoinRow & { tag_id: number }> = [];
+  let tagArticleCursor = 0;
+  let tagIdCursor = 0;
+  for (;;) {
+    const { results, rowsRead: pageRowsRead } = await queryD1WithMeta<TagJoinRow & { tag_id: number }>(
+      `SELECT atg.article_id AS article_id, atg.tag_id AS tag_id, t.slug AS slug, t.name AS name
+       FROM article_tags atg
+       JOIN tags t ON t.id = atg.tag_id
+       WHERE (atg.article_id, atg.tag_id) > (?, ?)
+       ORDER BY atg.article_id, atg.tag_id
+       LIMIT 5000`,
+      [tagArticleCursor, tagIdCursor],
+      opts
+    );
+    rowsRead += pageRowsRead;
+    requestCount += 1;
+    tagRows.push(...results);
+    if (results.length === 0) break;
+    const last = results[results.length - 1];
+    tagArticleCursor = last.article_id;
+    tagIdCursor = last.tag_id;
+    if (results.length < 5000) break;
+  }
+
+  const { results: sourceRows, rowsRead: sourcesRowsRead } = await queryD1WithMeta<SourceRow>(
+    `SELECT id, slug, name, website_url FROM sources`,
+    [],
+    opts
+  );
+  rowsRead += sourcesRowsRead;
+  requestCount += 1;
+
+  const { publicArticles, nonPublic } = stitchArticles(articleRows, categoryRows, tagRows, sourceRows);
+  return { publicArticles, nonPublic, rowsRead, requestCount };
+}
+
+export interface FetchArticlesStitchedByIdsResult extends FetchPublicArticlesWindowResult {
+  requestCount: number;
+}
+
+/**
+ * Re-fetches a small, explicit set of internal article ids (the sweep path's
+ * `fetchChangedSince` output) across all three tables, each chunked at `D1_MAX_BOUND_PARAMS` — the
+ * same chunking discipline `fetchPublicArticlesWindow` already uses for categories/tags, extended
+ * here to the `articles` table itself since this fetcher's input is an id list rather than a
+ * `published_at` range. `sources` is fetched once, unpaginated, exactly as the other two fetchers
+ * do — the table is small and reading it once per call is cheap relative to the per-mode budgets.
+ */
+export async function fetchArticlesStitchedByIds(
+  internalIds: number[],
+  opts: { fetchImpl?: typeof fetch } = {}
+): Promise<FetchArticlesStitchedByIdsResult> {
+  let rowsRead = 0;
+  let requestCount = 0;
+
+  const articleRows: WindowArticleRow[] = [];
+  for (const idChunk of chunkIds(internalIds)) {
+    if (idChunk.length === 0) continue;
+    const placeholders = idChunk.map(() => '?').join(',');
+    const { results, rowsRead: chunkRowsRead } = await queryD1WithMeta<WindowArticleRow>(
+      `SELECT id, uuid, title, slug, summary, key_points, url, published_at, source_id, status, is_duplicate
+       FROM articles
+       WHERE id IN (${placeholders})`,
+      idChunk,
+      opts
+    );
+    rowsRead += chunkRowsRead;
+    requestCount += 1;
+    articleRows.push(...results);
+  }
+
+  const categoryRows: CategoryJoinRow[] = [];
+  for (const idChunk of chunkIds(internalIds)) {
+    if (idChunk.length === 0) continue;
+    const placeholders = idChunk.map(() => '?').join(',');
+    const { results, rowsRead: chunkRowsRead } = await queryD1WithMeta<CategoryJoinRow>(
+      `SELECT ac.article_id AS article_id, c.slug AS slug, c.name AS name
+       FROM article_categories ac
+       JOIN categories c ON c.id = ac.category_id
+       WHERE ac.is_primary = 1 AND ac.article_id IN (${placeholders})`,
+      idChunk,
+      opts
+    );
+    rowsRead += chunkRowsRead;
+    requestCount += 1;
+    categoryRows.push(...results);
+  }
+
+  const tagRows: TagJoinRow[] = [];
+  for (const idChunk of chunkIds(internalIds)) {
+    if (idChunk.length === 0) continue;
+    const placeholders = idChunk.map(() => '?').join(',');
+    const { results, rowsRead: chunkRowsRead } = await queryD1WithMeta<TagJoinRow>(
+      `SELECT atg.article_id AS article_id, t.slug AS slug, t.name AS name
+       FROM article_tags atg
+       JOIN tags t ON t.id = atg.tag_id
+       WHERE atg.article_id IN (${placeholders})`,
+      idChunk,
+      opts
+    );
+    rowsRead += chunkRowsRead;
+    requestCount += 1;
+    tagRows.push(...results);
+  }
+
+  const { results: sourceRows, rowsRead: sourcesRowsRead } = await queryD1WithMeta<SourceRow>(
+    `SELECT id, slug, name, website_url FROM sources`,
+    [],
+    opts
+  );
+  rowsRead += sourcesRowsRead;
+  requestCount += 1;
+
+  const { publicArticles, nonPublic } = stitchArticles(articleRows, categoryRows, tagRows, sourceRows);
+  return { publicArticles, nonPublic, rowsRead, requestCount };
+}
+
+export interface FetchChangedSinceResult {
+  /** Internal `articles.id` values (not uuids) — the shape `fetchArticlesStitchedByIds` expects. */
+  ids: number[];
+  rowsRead: number;
+}
+
+/**
+ * The daily sweep signal (planner_findings §2): one statement, `updated_at > ? OR processed_at >
+ * ?` — an unindexed full-table scan (~43k rows), acceptable once a day but not once per cron cycle
+ * (D-06 binding constraint). Returns internal ids only; the caller re-fetches full rows via
+ * `fetchArticlesStitchedByIds`.
+ */
+export async function fetchChangedSince(
+  sinceEpoch: number,
+  opts: { fetchImpl?: typeof fetch } = {}
+): Promise<FetchChangedSinceResult> {
+  const { results, rowsRead } = await queryD1WithMeta<{ id: number }>(
+    `SELECT id FROM articles WHERE updated_at > ? OR processed_at > ?`,
+    [sinceEpoch, sinceEpoch],
+    opts
+  );
+  return { ids: results.map((row) => row.id), rowsRead };
 }
