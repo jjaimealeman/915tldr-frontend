@@ -6,8 +6,21 @@
 // where Rollup's own plugin-development docs guarantee those fields no longer change after
 // `buildEnd` (rollupjs.org/plugin-development/) — from every public entrypoint (pages, islands,
 // middleware) and fails the build (`this.error()`) if any entrypoint's transitive module graph
-// reaches `src/lib/server/d1-client.ts`, the single module permitted to read D1 (Pattern 2,
-// 03-RESEARCH.md).
+// reaches ANY module under `src/lib/server/` — the directory reserved for build-time-only,
+// credential-holding code (D1 access via `d1-client.ts`, render-manifest KV access via
+// `kv-manifest.ts`, and anything added there later) (Pattern 2, 03-RESEARCH.md).
+//
+// T-03-02a correction (security remediation, post-03-07): this guard originally forbade exactly
+// one FILE by exact suffix match (`src/lib/server/d1-client.ts`), not the directory. An external
+// security audit found that `src/lib/kv-manifest.ts` sat OUTSIDE `src/lib/server/` at the time,
+// read `CLOUDFLARE_API_TOKEN` directly (four call sites), and was accepted by this guard when
+// imported from a synthetic on-demand page/island fixture — the guard's own control case (an
+// entrypoint importing `d1-client.ts`) was correctly rejected, proving the gap was the forbidden
+// set's scope, not a broken walk. No production exposure existed at audit time (no real
+// on-demand route or island imported it yet), but it would have opened silently with Phase 4's
+// server islands. Fixed by (1) moving `kv-manifest.ts` to `src/lib/server/kv-manifest.ts` and
+// (2) widening the forbidden target from one filename to the whole directory, so any future
+// module placed there inherits the same structural protection without a guard edit.
 //
 // This is the structural enforcement behind PROJECT.md's "zero D1 reads on the public request
 // path": a grep/AST scan of file trees cannot catch a *transitive* import through an
@@ -18,12 +31,20 @@
 // A matcher that matches zero entrypoints must fail loudly (`this.error`), never pass silently.
 // That is the exact Phase 2 CONT-06 failure mode this project already shipped once: 248 tests
 // passed while 253 production rows violated the requirement, because a check existed but had
-// silently stopped gating. D-06's permanent CI fixtures (03-02) exist to keep this guard honest
-// on every commit, not just once.
+// silently stopped gating. D-06's permanent CI fixtures (03-02, extended by T-03-02a) exist to
+// keep this guard honest on every commit, not just once.
+//
+// KNOWN LIMITATION (flagged by the same audit, not fixed here — recorded for Phase 4): the
+// page-exemption check (`isPrerenderExempt` below) fails OPEN — a `.astro` page is treated as
+// prerendered (and therefore exempt) unless it contains the literal text
+// `export const prerender = false`. A page that sets `prerender = false` through any other
+// mechanism (a spread config object, a re-exported constant, a future Astro API) would be
+// silently exempted rather than checked. Phase 4, which introduces real on-demand pages, should
+// re-examine this before relying on it further.
 
 import fs from 'node:fs';
 
-const FORBIDDEN_TARGET_SUFFIX = 'src/lib/server/d1-client.ts';
+const FORBIDDEN_TARGET_DIR = 'src/lib/server/';
 
 // ARCH-03: island component files are in scope, not only `.astro` pages — islands compile from
 // ordinary `.vue`/`.astro` wrapper files into server-rendered endpoints, so a page-only scan
@@ -103,11 +124,16 @@ export function isEntrypoint(normalizedId) {
   return !isPrerenderExempt(normalizedId);
 }
 
+// T-03-02a: forbids the whole directory, not one filename — mirrors `isCandidate`'s own
+// path-matching shape (`/${dir}` mid-path OR a leading match) so a module reached via an
+// absolute Rollup module id or a project-relative one is caught identically.
 export function isForbidden(normalizedId) {
-  return normalizedId.endsWith(FORBIDDEN_TARGET_SUFFIX);
+  return (
+    normalizedId.includes(`/${FORBIDDEN_TARGET_DIR}`) || normalizedId.startsWith(FORBIDDEN_TARGET_DIR)
+  );
 }
 
-export const FORBIDDEN_TARGET = FORBIDDEN_TARGET_SUFFIX;
+export const FORBIDDEN_TARGET = FORBIDDEN_TARGET_DIR;
 export const ENTRYPOINTS = { ENTRYPOINT_DIR_PREFIXES, ENTRYPOINT_EXACT_FILES };
 
 // A2 finding (proven against a real Astro 7.3.3 + @astrojs/cloudflare build, 03-01 tracer
@@ -189,8 +215,10 @@ export function assertNoD1Plugin() {
             }
             this.error(
               `[assert-no-d1] D1-import assertion violated: public entrypoint "${entry}" ` +
-                `reaches ${FORBIDDEN_TARGET_SUFFIX} via ${chain.join(' -> ')}. Public ` +
-                'entrypoints must never reach the D1 chokepoint module (ARCH-02 / ARCH-03 / D-05).'
+                `reaches ${chain[chain.length - 1]} — forbidden: any module under ` +
+                `${FORBIDDEN_TARGET_DIR} — via ${chain.join(' -> ')}. Public entrypoints must ` +
+                'never reach a module under the D1/KV chokepoint directory ' +
+                '(ARCH-02 / ARCH-03 / D-05 / T-03-02a).'
             );
             return;
           }

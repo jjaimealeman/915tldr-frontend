@@ -40,6 +40,12 @@ const FIXTURE_ID_MAP = {
   'island-with-d1-import.vue': 'src/islands/island-with-d1-import.vue',
   'helper-reaching-d1.ts': 'src/lib/helper-reaching-d1.ts',
   'harmless-helper.ts': 'src/lib/harmless-helper.ts',
+  // T-03-02a fixtures (Cases 5-6): prove the guard rejects a transitive reach into
+  // `src/lib/server/kv-manifest.ts`, not only `d1-client.ts`.
+  'page-with-kv-import.astro': 'src/pages/page-with-kv-import.astro',
+  'island-wrapper-kv.astro': 'src/islands/island-wrapper-kv.astro',
+  'island-with-kv-import.vue': 'src/islands/island-with-kv-import.vue',
+  'helper-reaching-kv.ts': 'src/lib/helper-reaching-kv.ts',
 };
 
 function idFor(absPath) {
@@ -169,6 +175,43 @@ test('Case 2 (ARCH-03): an island-shaped fixture that reaches d1-client.ts trans
   );
   assert.match(combined, /island-wrapper\.astro/, 'message must name the violating entrypoint');
   assert.match(combined, /d1-client\.ts/, 'message must name the forbidden module reached');
+  assert.match(
+    logs.join('\n'),
+    /entrypoints found: [1-9]/,
+    'non-vacuity: this fixture tree must match at least one entrypoint, not zero'
+  );
+});
+
+test('Case 5 (T-03-02a): a page-shaped fixture that reaches kv-manifest.ts transitively through a helper is rejected', () => {
+  // This is the exact shape the T-03-02a security audit found ACCEPTED before the fix — the
+  // guard forbade only `src/lib/server/d1-client.ts` by exact filename, and `kv-manifest.ts`
+  // lived outside `src/lib/server/` entirely at the time. Both conditions are now different
+  // (the file moved under `src/lib/server/`, and the guard forbids the whole directory), and
+  // this case proves it: it MUST be rejected, or this suite would repeat the exact silent-pass
+  // failure mode D-06 exists to catch.
+  const { threw, messages, logs } = runScenario(['page-with-kv-import.astro']);
+  assert.equal(threw, true, 'checker must reject a transitive KV-module page violation');
+  const combined = messages.join('\n');
+  assert.match(combined, /page-with-kv-import\.astro/, 'message must name the violating entrypoint');
+  assert.match(combined, /kv-manifest\.ts/, 'message must name the forbidden module reached');
+  assert.match(
+    logs.join('\n'),
+    /entrypoints found: [1-9]/,
+    'non-vacuity: this fixture tree must match at least one entrypoint, not zero'
+  );
+});
+
+test('Case 6 (T-03-02a): an island-shaped fixture that reaches kv-manifest.ts transitively through a .vue component is rejected', () => {
+  const { threw, messages, logs } = runScenario(['island-wrapper-kv.astro']);
+  assert.equal(threw, true, 'checker must reject a transitive KV-module island violation');
+  const combined = messages.join('\n');
+  assert.match(
+    combined,
+    /island-with-kv-import\.vue/,
+    'message must name the intermediate .vue file the violation crosses into, not only the wrapper and the target'
+  );
+  assert.match(combined, /island-wrapper-kv\.astro/, 'message must name the violating entrypoint');
+  assert.match(combined, /kv-manifest\.ts/, 'message must name the forbidden module reached');
   assert.match(
     logs.join('\n'),
     /entrypoints found: [1-9]/,

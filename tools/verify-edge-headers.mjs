@@ -63,7 +63,7 @@
 // edge rule (independently confirmed live via direct `curl`) was fine throughout.
 //
 // Fixed by discovering the article from the LIVE deployment instead of the local build.
-// `discoverLiveArticlePath()` below lists the render manifest's article ids (`src/lib/
+// `discoverLiveArticlePath()` below lists the render manifest's article ids (`src/lib/server/
 // kv-manifest.ts`, D-03/D-04), newest `renderedAt` first, resolves each candidate to a full D1
 // row via `fetchArticleById()` (the same D1 module the build itself uses), reconstructs the URL
 // `[slug].astro` would have built for it, and does a real live GET against `devHost` — returning
@@ -93,7 +93,7 @@
 // cosmetic — it is what keeps this guard worth trusting.
 //
 // Requires CLOUDFLARE_ACCOUNT_ID / CLOUDFLARE_API_TOKEN / RENDER_MANIFEST_KV_NAMESPACE_ID in
-// process.env (same OPS-11 convention as src/lib/server/d1-client.ts and src/lib/kv-manifest.ts)
+// process.env (same OPS-11 convention as src/lib/server/d1-client.ts and src/lib/server/kv-manifest.ts)
 // — needed only for check 4's live discovery; checks 1-3 make no D1/KV calls.
 //
 // --- .dev.vars auto-load (2026-09-23, follow-up to the hardening above) ---
@@ -108,7 +108,8 @@
 // directly so a fresh shell works with zero setup. An already-set `process.env` value always
 // wins and is never overwritten, so CI (or a developer who deliberately exports a different
 // value) can still override without touching this file. A missing or unreadable `.dev.vars` is
-// NOT an error here — `requireEnv()` inside d1-client.ts/kv-manifest.ts still throws its own
+// NOT an error here — `requireEnv()` inside d1-client.ts/kv-manifest.ts (both now under
+// src/lib/server/) still throws its own
 // specific "X is not set" error the moment a genuinely-missing variable is actually used, which
 // is a clearer failure than anything a loader could raise pre-emptively.
 
@@ -116,7 +117,7 @@ import { readFileSync, existsSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { fetchArticleById } from '../src/lib/server/d1-client.ts';
-import { getManifestEntry, listManifestArticleIds } from '../src/lib/kv-manifest.ts';
+import { getManifestEntry, listManifestArticleIds } from '../src/lib/server/kv-manifest.ts';
 import { slugify } from '../src/lib/slug.ts';
 
 const PROJECT_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');

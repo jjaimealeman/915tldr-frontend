@@ -9,7 +9,7 @@ import assert from 'node:assert/strict';
 import { readdirSync, readFileSync, statSync } from 'node:fs';
 import path from 'node:path';
 import { fetchLatestArticle } from '../../src/lib/server/d1-client.ts';
-import { getManifestEntry } from '../../src/lib/kv-manifest.ts';
+import { getManifestEntry } from '../../src/lib/server/kv-manifest.ts';
 
 const DIST = path.resolve(import.meta.dirname, '../../dist');
 

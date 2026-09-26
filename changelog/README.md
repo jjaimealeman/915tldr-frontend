@@ -10,6 +10,7 @@ Entries are named `YYYY-MM-DD-HHMM_slug.md` and grouped by month, newest first.
 
 | Date | Entry | Keywords |
 |------|-------|----------|
+| 2026-09-26 | [Close T-03-02a: widen the D1-import guard from one filename to the whole server directory](2026-09-26-1250_close-t-03-02a-kv-manifest-directory-guard.md) | `[SECURITY]` `[CRITICAL]` `[TESTING]` `[BACKEND]` `[DOCUMENTATION]` |
 | 2026-09-26 | [Phase 3 UAT complete: 2 of 2 passed](2026-09-26-1212_phase3-uat-complete.md) | `[TESTING]` `[PLANNING]` `[DOCUMENTATION]` |
 | 2026-09-26 | [Trailing slash: decided to drop it in Phase 4, RSS gotcha recorded](2026-09-26-1130_trailing-slash-dropped-rss-gotcha-recorded.md) | `[DOCUMENTATION]` `[SEO]` `[ARCHITECTURE]` `[PLANNING]` |
 | 2026-09-23 | [Fix Phase 3 COVERAGE.md to pass the api-coverage.verify-pre gate](2026-09-23-1422_phase3-coverage-md-length-gate.md) | `[DOCUMENTATION]` `[CONFIG]` `[BUG_FIX]` |

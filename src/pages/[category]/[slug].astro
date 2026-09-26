@@ -8,7 +8,7 @@
 // one path the whole Phase 3 architecture is proven against (D-02).
 import Base from '../../layouts/Base.astro';
 import { fetchLatestArticle, fetchArticleById } from '../../lib/server/d1-client';
-import { buildManifestEntry, putManifestEntry } from '../../lib/kv-manifest';
+import { buildManifestEntry, putManifestEntry } from '../../lib/server/kv-manifest';
 import { slugify } from '../../lib/slug';
 import { BUILD_HASH } from '../../lib/build-info';
 // 03-06 Task 2 (D-01 measurement #1 of 3, per-page render cost): harness-mode state, extracted

@@ -1,6 +1,6 @@
 # The Render Manifest
 
-**Source of truth:** `src/lib/kv-manifest.ts`. This document describes what is implemented there,
+**Source of truth:** `src/lib/server/kv-manifest.ts`. This document describes what is implemented there,
 not what was planned — if the two ever disagree, the code is right and this file is stale and
 needs a follow-up edit.
 
@@ -92,7 +92,7 @@ English-only article until Phase 6 arrives — an acceptable, documented redunda
 
 ## Versioning
 
-`MANIFEST_SCHEMA_VERSION` (currently `'1'`) is an exported constant in `src/lib/kv-manifest.ts`.
+`MANIFEST_SCHEMA_VERSION` (currently `'1'`) is an exported constant in `src/lib/server/kv-manifest.ts`.
 Every entry records it as `schemaVersion` — automatically, via `buildManifestEntry()`; no call
 site passes a version literal (the 03-01 tracer's hand-written `renderVersion: '0'` was exactly
 the kind of drift this constant exists to prevent).
@@ -174,9 +174,31 @@ path. This means manifest KV traffic does **not** count against PROJECT.md's pub
 of at most one KV read per request — someone will ask this, so it is stated here plainly rather
 than left implied.
 
+## Guard enforcement (T-03-02a correction)
+
+**This section corrects an assumption 03-01-SUMMARY.md left implicit.** That summary describes
+`src/lib/server/d1-client.ts` as "the single D1 chokepoint module" and states the D1-import
+assertion (`tools/assert-no-d1.mjs`) protects it structurally. That was true for D1 access, but
+this module — which reads `CLOUDFLARE_API_TOKEN` directly (four call sites, for the KV REST
+API, not D1) — originally lived at `src/lib/kv-manifest.ts`, OUTSIDE the directory the guard
+actually walked toward. A security audit ran the real guard against synthetic on-demand
+page/island fixtures importing this module and found them **accepted**, while the guard's own
+control case (an entrypoint importing `d1-client.ts`) was correctly rejected — proving the gap
+was the forbidden set's scope, not a broken module-graph walk. No production exposure existed at
+audit time (Phase 3 has no real on-demand route or island yet), but it would have opened silently
+the moment Phase 4 introduces one.
+
+**Fix:** this module moved to `src/lib/server/kv-manifest.ts`, and `tools/assert-no-d1.mjs` now
+forbids the whole `src/lib/server/` directory rather than one filename — so this module, and any
+future credential-holding module placed there, gets the same structural protection without a
+guard edit. Verified two ways: `tests/ci-fixtures/assert-no-d1.test.mjs` Cases 5-6 (synthetic
+page/island fixtures reaching `kv-manifest.ts`, both rejected) and a real `pnpm build` against a
+temporary on-demand page importing this module directly (rejected, same as the fixture suite —
+see the T-03-02a security remediation's execution report for the captured failing build output).
+
 ## Related
 
-- Implementation: `src/lib/kv-manifest.ts`
-- Tests: `tests/unit/manifest-schema.test.mjs` (schema/validation/hash/bulk-batching), `tests/tracer/tracer.test.mjs` (end-to-end against the real D1 row and real KV namespace)
+- Implementation: `src/lib/server/kv-manifest.ts`
+- Tests: `tests/unit/manifest-schema.test.mjs` (schema/validation/hash/bulk-batching), `tests/tracer/tracer.test.mjs` (end-to-end against the real D1 row and real KV namespace), `tests/ci-fixtures/assert-no-d1.test.mjs` Cases 5-6 (T-03-02a guard coverage)
 - Build-stamp source (`BUILD_HASH`): `src/lib/build-info.ts` (03-03)
 - Decision record: `.planning/phases/03-foundation-read-budget-guardrails/03-04-PLAN.md` Task 1 (checkpoint), `.planning/phases/03-foundation-read-budget-guardrails/03-04-SUMMARY.md`

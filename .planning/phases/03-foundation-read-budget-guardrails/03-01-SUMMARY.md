@@ -257,3 +257,19 @@ None further. The `CLOUDFLARE_API_TOKEN` / `CLOUDFLARE_ACCOUNT_ID` env vars and 
 ## Self-Check: PASSED
 
 All 11 created/modified files listed above verified present on disk. Task 2's commit hash `81a9723` verified present in `git log --oneline --all`. No missing items.
+
+## Correction Note (T-03-02a security remediation, appended, not rewriting the above)
+
+This summary's `patterns-established` and `provides` sections describe `src/lib/server/d1-client.ts`
+as "the single D1 chokepoint module" protected by `tools/assert-no-d1.mjs`. That claim was true for
+D1 access specifically, but this plan also created `src/lib/kv-manifest.ts` (KV render-manifest
+access) OUTSIDE `src/lib/server/`, reading `CLOUDFLARE_API_TOKEN` directly at four call sites with
+no structural guard coverage — the module-graph guard above forbade only the exact filename
+`src/lib/server/d1-client.ts`, not a directory, so this sibling credential-holding module was never
+in its forbidden set. A later security audit ran the real guard against synthetic on-demand
+page/island fixtures importing `kv-manifest.ts` and found them accepted (control case correctly
+rejected, proving the gap was scope, not a broken walk). No production exposure existed at the time
+this plan was completed — Phase 3 had no real on-demand route or island yet — but it would have
+opened silently with Phase 4's server islands. Fixed in the T-03-02a remediation: `kv-manifest.ts`
+moved to `src/lib/server/kv-manifest.ts`, and the guard now forbids the whole `src/lib/server/`
+directory. Full detail: `docs/phase-03/render-manifest.md`'s "Guard enforcement" section.

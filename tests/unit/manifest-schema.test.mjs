@@ -1,6 +1,8 @@
 #!/usr/bin/env node
 // 03-04 Task 2: schema completeness, hash stability, writer-rejection, and bulk-batching
-// assertions for src/lib/kv-manifest.ts. Follows the `node:test` structure of
+// assertions for src/lib/server/kv-manifest.ts (moved here in the T-03-02a security
+// remediation — see docs/phase-03/render-manifest.md's "Guard enforcement" section). Follows
+// the `node:test` structure of
 // design/tests/unit/summary-markdown.test.mjs — plain `test()` blocks, no spawning.
 //
 // Every real network call is replaced with a stubbed `fetchImpl` passed via each function's
@@ -20,7 +22,7 @@ import {
   putManifestEntry,
   putManifestEntriesBulk,
   getManifestEntry,
-} from '../../src/lib/kv-manifest.ts';
+} from '../../src/lib/server/kv-manifest.ts';
 
 // ---------------------------------------------------------------------------
 // Hermetic env — dummy values, restored after this file's tests run.
