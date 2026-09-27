@@ -79,10 +79,24 @@ export const SWEEP_OVERLAP_SECONDS = 7_200;
 /** Every 7 days (or sooner, per the other cold triggers): the full bulk-fetch self-healing pass. */
 export const COLD_RESYNC_INTERVAL_SECONDS = 604_800;
 
-/** Provisional — Task 3 (04-03-PLAN.md) replaces these with measured values from a real cold/warm
- * build, each backed by a comment citing the measurement. */
+// 04-03 Task 3: measured against the real production corpus (~43,071 articles) on 2026-09-26,
+// docs/phase-04/build-measurements.md. Each budget below is the next round number at or above 2x
+// the measured rowsRead for that mode — the same "fail before it becomes a query-plan regression"
+// margin discipline as the other two budgets, not a number picked to just clear the bar.
+
+/** Measured: a plain warm build (no sweep due) read 5,928 rows (324-article 3-day window,
+ * 40,049-article corpus) — 25,000 is 4.2x that, comfortably above the 2x floor (11,856). */
 export const WARM_ROWS_READ_BUDGET = 25_000;
+
+/** Measured: the first warm+sweep build (daily catch-up) read 49,178 rows — 100,000 is 2.03x
+ * that, just above the 2x floor (98,356); a query-plan regression on the unindexed
+ * `updated_at OR processed_at` sweep scan would trip this well before the daily hard-fail. */
 export const SWEEP_ROWS_READ_BUDGET = 100_000;
+
+/** Measured: a genuine cold pass (`ARTICLES_FORCE_COLD=1`) over the full corpus read 506,806
+ * rows — well under Phase 3's 957,008-row bulk-fetch baseline (docs/phase-03/d1-pagination-report.md)
+ * because this fetcher's keyset pagination has no per-row correlated subquery or LEFT JOIN to pay
+ * for; 1,500,000 is 2.96x the measured figure, above the 2x floor (1,013,612). */
 export const COLD_ROWS_READ_BUDGET = 1_500_000;
 
 export const articleSchema = z.object({
@@ -346,9 +360,11 @@ export function articlesLoader(deps: ArticlesLoaderDeps = {}): Loader {
       meta.set('stateVersion', LOADER_STATE_VERSION);
       if (mode === 'cold') {
         meta.set('lastCold', String(nowEpoch));
-        // A cold pass subsumes what a sweep would catch — avoid an immediate warm+sweep on the
-        // very next build.
-        meta.set('lastSweep', String(nowEpoch));
+        // Deliberately does NOT also set lastSweep here — a cold pass is not a sweep run, and the
+        // very next build (whenever it happens) is expected to run warm+sweep once, per the mode
+        // matrix (bullet 1: warm+sweep fires whenever lastSweep is absent or stale). Verified in
+        // Task 3: the build immediately following a cold build logs mode=warm+sweep, and the one
+        // after that logs mode=warm (docs/phase-04/build-measurements.md).
       }
       if (since !== null) {
         meta.set('lastSync', String(since));
