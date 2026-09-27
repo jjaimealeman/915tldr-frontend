@@ -5,15 +5,15 @@ milestone_name: milestone
 current_phase: 04
 current_phase_name: Static Generation, Templates & SEO
 status: executing
-stopped_at: Completed 04-02-PLAN.md
-last_updated: "2026-09-26T23:39:02.024Z"
+stopped_at: Completed 04-03-PLAN.md
+last_updated: "2026-09-27T00:25:43.659Z"
 last_activity: 2026-09-26
 last_activity_desc: Phase 03 complete, transitioned to Phase 4
 progress:
   total_phases: 4
   completed_phases: 3
   total_plans: 52
-  completed_plans: 42
+  completed_plans: 43
 ---
 
 # Project State
@@ -28,11 +28,11 @@ See: .planning/PROJECT.md (updated 2026-09-16)
 ## Current Position
 
 Phase: 04 (Static Generation, Templates & SEO) — EXECUTING
-Plan: 3 of 12
+Plan: 4 of 12
 Status: Ready to execute
 Last activity: 2026-09-26 — Phase 04 execution started
 
-Progress: [████████░░] 81%
+Progress: [████████░░] 83%
 
 ## Performance Metrics
 
@@ -91,6 +91,7 @@ Progress: [████████░░] 81%
 | Phase 03 P07 | ~30min | 2 tasks | 2 files |
 | Phase 04 P01 | ~25min | 3 tasks | 17 files |
 | Phase 04 P02 | ~15min | 2 tasks | 11 files |
+| Phase 04 P03 | 43min | 3 tasks | 15 files |
 
 ## Accumulated Context
 
@@ -191,6 +192,10 @@ Recent decisions affecting current work:
 - [Phase ?]: 04-02: home page's wordmark renders as a plain <h1> matching design/mockups/index.html verbatim; every other page gets <p data-wordmark><a href="/">915 TLDR</a></p>, per the plan's own interface note
 - [Phase ?]: 04-02: footer gains About/Privacy/Terms links beside the mockup's Changelog/Contact -- a named, plan-specified addition to the approved mockup footer (D-10's static pages need a way in)
 - [Phase ?]: 04-02: a single-backslash \u2028/\u2029-style escape sequence typed directly into this session's file-write tool call gets silently decoded into the real invisible Unicode character before it reaches disk -- worked around via String.fromCharCode(...) at runtime instead of typing the escape sequence into source text
+- [Phase ?]: 04-03: evaluateShrink's explained set is every observed nonPublic uuid from the current fetch, not pre-filtered against previous.ids — the function's own intersection logic makes pre-filtering redundant
+- [Phase ?]: 04-03: Rule 1 fix — a NULL/empty summary (140 of ~40,183 production articles) is classified nonPublic with reason missing-summary, matching the existing no-primary-category pattern, rather than crashing the whole cold build on a Zod schema violation
+- [Phase ?]: 04-03: Rule 1 fix — cold mode no longer sets meta.lastSweep; the original draft did, which silently skipped warm+sweep mode on every real deployment's first post-cold build (found by the plan's own verification sequence not matching its expected output)
+- [Phase ?]: 04-03: peak RSS measured via /proc/<pid>/status VmHWM polling since /usr/bin/time -v is not installed on this machine; equivalent figure, no new system package installed
 
 ### Pending Todos
 
@@ -241,6 +246,6 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-09-26T23:39:02.005Z
-Stopped at: Completed 04-02-PLAN.md
+Last session: 2026-09-27T00:25:43.642Z
+Stopped at: Completed 04-03-PLAN.md
 Resume file: None

@@ -22,7 +22,7 @@
 - [x] **REND-02**: The loader throws and fails the build when it returns zero or fewer rows than expected — an empty result never ships as a successful build
 - [ ] **REND-03**: A regression test reproduces the `/changelog` empty-state failure and proves the loader rejects it
 - [ ] **REND-04**: Homepage, category pages, tag indexes and static pages regenerate on each cron cycle via a new Worker deployment
-- [ ] **REND-05**: Only new and changed articles re-render; unchanged articles are not recomputed
+- [x] **REND-05**: Only new and changed articles re-render; unchanged articles are not recomputed
 - [x] **REND-06**: A render manifest in KV records what has been rendered and at which version
 - [ ] **REND-07**: Articles outside the hot window are rendered once to R2 and served from there
 - [ ] **REND-08**: A request for an archived article falls through the static-asset layer to the Worker and is served from R2
@@ -260,7 +260,7 @@ Deferred. Tracked, not in this roadmap.
 | REND-02 | Phase 4 | Complete |
 | REND-03 | Phase 4 | Pending |
 | REND-04 | Phase 4 | Pending |
-| REND-05 | Phase 4 | Pending |
+| REND-05 | Phase 4 | Complete |
 | REND-06 | Phase 3 | Complete |
 | REND-07 | Phase 5 | Pending |
 | REND-08 | Phase 5 | Pending |
