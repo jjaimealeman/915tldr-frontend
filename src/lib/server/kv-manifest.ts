@@ -344,6 +344,50 @@ export async function putManifestEntriesBulk(
 }
 
 /**
+ * Deletes many manifest entries via the KV REST bulk-delete endpoint, batching at
+ * `KV_BULK_WRITE_MAX_PAIRS` keys per request (same ceiling as the bulk-write endpoint — confirmed
+ * directly against Cloudflare's API reference,
+ * developers.cloudflare.com/api/resources/kv/subresources/namespaces/subresources/keys/methods/bulk_delete/,
+ * fetched live 2026-09-26: `POST .../storage/kv/namespaces/{namespace_id}/bulk/delete`, body is a
+ * bare JSON array of key name strings — up to 10,000 per call, "deletes up to 10,000 key-value
+ * pairs"). 04-03 Task 2 (REND-01/02): the loader calls this for every uuid that leaves the public
+ * set, so a removed article's manifest entry never outlives its own removal from the content
+ * store. Empty input issues zero requests and does not throw — the normal steady state when
+ * nothing was removed this build. Non-2xx throws with the response status and body only, never
+ * the API token (OPS-11, T-04-12).
+ */
+export async function deleteManifestEntries(
+  articleIds: string[],
+  opts: { fetchImpl?: FetchImpl } = {}
+): Promise<void> {
+  if (articleIds.length === 0) return;
+
+  const fetchImpl = opts.fetchImpl ?? fetch;
+  const token = requireEnv('CLOUDFLARE_API_TOKEN');
+  const accountId = requireEnv('CLOUDFLARE_ACCOUNT_ID');
+  const namespaceId = renderManifestNamespaceId();
+  const url = `https://api.cloudflare.com/client/v4/accounts/${accountId}/storage/kv/namespaces/${namespaceId}/bulk/delete`;
+
+  const keys = articleIds.map((id) => manifestKey(id));
+
+  for (const batch of chunk(keys, KV_BULK_WRITE_MAX_PAIRS)) {
+    const response = await fetchImpl(url, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(batch),
+    });
+
+    if (!response.ok) {
+      const text = await response.text();
+      throw new Error(`kv-manifest: KV bulk delete failed: ${response.status} ${text}`);
+    }
+  }
+}
+
+/**
  * Lists every written manifest article id (the `manifest:` key prefix stripped), paginating the
  * KV List Keys REST endpoint via its `cursor` field until exhausted. Added for
  * `tools/verify-edge-headers.mjs`'s live-discovery path (OPS-02 hardening, 03-UAT.md item 2):

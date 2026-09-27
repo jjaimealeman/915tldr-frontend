@@ -88,6 +88,28 @@ test('stitchArticles: a processed non-duplicate row with a resolved category is 
   assert.deepEqual(publicArticles[0].category, { slug: 'weather', name: 'Weather' });
 });
 
+test('stitchArticles: a NULL summary is nonPublic with reason missing-summary (Rule 1/2 fix — real production data)', () => {
+  const { publicArticles, nonPublic } = stitchArticles(
+    [articleRow({ summary: null })],
+    [{ article_id: 1, slug: 'weather', name: 'Weather' }],
+    [],
+    [SOURCE_ROW]
+  );
+  assert.equal(publicArticles.length, 0);
+  assert.deepEqual(nonPublic, [{ uuid: articleRow().uuid, reason: 'missing-summary' }]);
+});
+
+test('stitchArticles: an empty-string summary is also nonPublic with reason missing-summary', () => {
+  const { publicArticles, nonPublic } = stitchArticles(
+    [articleRow({ summary: '   ' })],
+    [{ article_id: 1, slug: 'weather', name: 'Weather' }],
+    [],
+    [SOURCE_ROW]
+  );
+  assert.equal(publicArticles.length, 0);
+  assert.deepEqual(nonPublic, [{ uuid: articleRow().uuid, reason: 'missing-summary' }]);
+});
+
 test('stitchArticles: non-processed row is nonPublic (explained removal candidate)', () => {
   const { publicArticles, nonPublic } = stitchArticles(
     [articleRow({ status: 'pending' })],

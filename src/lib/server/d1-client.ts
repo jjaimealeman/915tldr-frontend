@@ -234,7 +234,7 @@ export interface PublicArticle {
   source: { slug: string; name: string; websiteUrl: string };
 }
 
-export type NonPublicReason = 'not-processed' | 'duplicate' | 'no-primary-category';
+export type NonPublicReason = 'not-processed' | 'duplicate' | 'no-primary-category' | 'missing-summary';
 
 export interface NonPublicArticle {
   uuid: string;
@@ -297,6 +297,19 @@ export function stitchArticles(
     const category = categoryByArticleId.get(row.id);
     if (!category) {
       nonPublic.push({ uuid: row.uuid, reason: 'no-primary-category' });
+      continue;
+    }
+
+    // Rule 1/2 fix (04-03 Task 2): discovered via a real cold-path build against the full
+    // production corpus — 140 of ~40,183 public-status rows have a NULL or empty `summary`
+    // (legacy content-pipeline gap, not something this loader can fix). The 04-01/04-02
+    // window-scoped fetch never reached these older rows, so this was invisible until the
+    // full-corpus fetcher (fetchAllArticlesStitched, this same stitchArticles function) did.
+    // Treated exactly like `no-primary-category` — an explained non-public exclusion, not a
+    // build-crashing schema violation, so 140 known-bad legacy rows don't block the entire
+    // corpus from building.
+    if (!row.summary || row.summary.trim().length === 0) {
+      nonPublic.push({ uuid: row.uuid, reason: 'missing-summary' });
       continue;
     }
 

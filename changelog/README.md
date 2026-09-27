@@ -10,6 +10,7 @@ Entries are named `YYYY-MM-DD-HHMM_slug.md` and grouped by month, newest first.
 
 | Date | Entry | Keywords |
 |------|-------|----------|
+| 2026-09-26 | [Loader modes (cold/warm/warm+sweep), budgets, shrink check, manifest deletes](2026-09-26-1807_04-03-loader-modes-budgets-shrink-manifest-deletes.md) | `[BACKEND]` `[DATABASE]` `[FEATURE]` `[TESTING]` `[BUG_FIX]` |
 | 2026-09-26 | [Dry run, last-good build state, and cold/sweep D1 fetchers](2026-09-26-1749_04-03-dry-run-last-good-state-cold-fetchers.md) | `[BACKEND]` `[DATABASE]` `[FEATURE]` `[TESTING]` |
 | 2026-09-26 | [Phase 4 Plan 02 complete: Base layout, ArticleCard, structured data, deterministic formatting](2026-09-26-2359_04-02-complete-base-chrome-plan.md) | `[DOCUMENTATION]` `[PLANNING]` `[SEO]` `[FRONTEND]` |
 | 2026-09-26 | [Base.astro's full chrome + head-metadata contract, ArticleCard, committedAt](2026-09-26-2355_04-02-base-chrome-articlecard-commit-date-stamp.md) | `[FEATURE]` `[FRONTEND]` `[SEO]` `[BACKEND]` |
