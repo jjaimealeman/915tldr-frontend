@@ -5,15 +5,15 @@ milestone_name: milestone
 current_phase: 04
 current_phase_name: Static Generation, Templates & SEO
 status: executing
-stopped_at: Completed 04-07-PLAN.md
-last_updated: "2026-09-27T15:56:51.147Z"
+stopped_at: Completed 04-08-PLAN.md
+last_updated: "2026-09-27T17:29:54.221Z"
 last_activity: 2026-09-26
 last_activity_desc: Phase 03 complete, transitioned to Phase 4
 progress:
   total_phases: 4
   completed_phases: 3
   total_plans: 52
-  completed_plans: 47
+  completed_plans: 48
 ---
 
 # Project State
@@ -28,11 +28,11 @@ See: .planning/PROJECT.md (updated 2026-09-16)
 ## Current Position
 
 Phase: 04 (Static Generation, Templates & SEO) — EXECUTING
-Plan: 8 of 12
+Plan: 9 of 12
 Status: Ready to execute
 Last activity: 2026-09-26 — Phase 04 execution started
 
-Progress: [█████████░] 90%
+Progress: [█████████░] 92%
 
 ## Performance Metrics
 
@@ -96,6 +96,7 @@ Progress: [█████████░] 90%
 | Phase 04 P05 | ~16min | 3 tasks | 9 files |
 | Phase 04 P06 | 30min | 3 tasks | 14 files |
 | Phase 04 P07 | 21min | 3 tasks | 10 files |
+| Phase 04 P08 | ~90min | 3 tasks | 12 files |
 
 ## Accumulated Context
 
@@ -210,6 +211,9 @@ Recent decisions affecting current work:
 - [Phase ?]: 04-06: test:build-gate wired into the build script — the live Rollup-based D1-import guard cannot see src/worker.ts during a real astro build (its devOnly environment is never built at all), so the fixture suite's real-graph case is the only current-content check for this file.
 - [Phase ?]: 04-07: Owner decision -- public/robots.txt ships v1's INTENDED per-bot AI-crawler-blocking policy (server/routes/robots.txt.ts's rendered body), not the live trivial file production actually serves -- v1's static public/robots.txt shadows its own server route, so that policy has never actually been served. Deliberate production policy change on next deploy.
 - [Phase ?]: 04-07: astro.config.mjs's sitemap() filter excludes any URL with a dotted final path segment (rss.xml, news-sitemap.xml, version.json, 404-index.json) rather than a hand-maintained list, confirmed against the package's own astro:build:done hook source.
+- [Phase ?]: 04-08: Owner-adjusted CHANGELOG_MIN_EXPECTED to 15 (not the planned 18) after confirming v1's live changelog.json genuinely serves fewer entries today (3 entries committed to v1's repo 2026-09-21 were never deployed, last deploy 2026-09-19T17:13Z) -- the never-shrink baseline ratchets this back up to 18 automatically once v1 deploys.
+- [Phase ?]: 04-08: v1's /contact page never publishes a contact address anywhere in its rendered markup (confirmed by reading server/api/contact.post.ts) -- no address was fabricated for the new contact.astro; the mockup's own jjaimealeman.com/915website.com links already provide a way to reach the owner.
+- [Phase ?]: 04-08: [data-contact-column] reused as the narrow reading column for about/privacy/terms (not [data-reading-column], which is paired with the rail layout) -- confirmed against design/mockups/style.css before reuse.
 
 ### Pending Todos
 
@@ -261,6 +265,6 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-09-27T15:56:45.277Z
-Stopped at: Completed 04-07-PLAN.md
+Last session: 2026-09-27T17:29:54.203Z
+Stopped at: Completed 04-08-PLAN.md
 Resume file: None
