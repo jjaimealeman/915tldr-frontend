@@ -5,15 +5,15 @@ milestone_name: milestone
 current_phase: 04
 current_phase_name: Static Generation, Templates & SEO
 status: executing
-stopped_at: Completed 04-08-PLAN.md
-last_updated: "2026-09-27T17:29:54.221Z"
+stopped_at: Completed 04-09-PLAN.md
+last_updated: "2026-09-27T18:34:55.425Z"
 last_activity: 2026-09-26
 last_activity_desc: Phase 03 complete, transitioned to Phase 4
 progress:
   total_phases: 4
   completed_phases: 3
   total_plans: 52
-  completed_plans: 48
+  completed_plans: 49
 ---
 
 # Project State
@@ -28,11 +28,11 @@ See: .planning/PROJECT.md (updated 2026-09-16)
 ## Current Position
 
 Phase: 04 (Static Generation, Templates & SEO) — EXECUTING
-Plan: 9 of 12
+Plan: 10 of 12
 Status: Ready to execute
 Last activity: 2026-09-26 — Phase 04 execution started
 
-Progress: [█████████░] 92%
+Progress: [█████████░] 94%
 
 ## Performance Metrics
 
@@ -97,6 +97,7 @@ Progress: [█████████░] 92%
 | Phase 04 P06 | 30min | 3 tasks | 14 files |
 | Phase 04 P07 | 21min | 3 tasks | 10 files |
 | Phase 04 P08 | ~90min | 3 tasks | 12 files |
+| Phase 04 P09 | ~3h10min | 3 tasks | 10 files |
 
 ## Accumulated Context
 
@@ -214,6 +215,9 @@ Recent decisions affecting current work:
 - [Phase ?]: 04-08: Owner-adjusted CHANGELOG_MIN_EXPECTED to 15 (not the planned 18) after confirming v1's live changelog.json genuinely serves fewer entries today (3 entries committed to v1's repo 2026-09-21 were never deployed, last deploy 2026-09-19T17:13Z) -- the never-shrink baseline ratchets this back up to 18 automatically once v1 deploys.
 - [Phase ?]: 04-08: v1's /contact page never publishes a contact address anywhere in its rendered markup (confirmed by reading server/api/contact.post.ts) -- no address was fabricated for the new contact.astro; the mockup's own jjaimealeman.com/915website.com links already provide a way to reach the owner.
 - [Phase ?]: 04-08: [data-contact-column] reused as the narrow reading column for about/privacy/terms (not [data-reading-column], which is paired with the rail layout) -- confirmed against design/mockups/style.css before reuse.
+- [Phase ?]: 04-09: incremental-build spike verdict is REUSE_WARM_ONLY (withastro/astro#18055 reproduced locally) — reuse works in a warm checkout but reused zero pages in a fresh-clone CI simulation; byte-identity confirmed once a restored page's disclosed stale build-stamp is accounted for
+- [Phase ?]: 04-09: ASTRO_INCREMENTAL_BUILD scoped to feature/phase-04 non-production branch only, per docs/phase-04/workers-builds-setup.md — production stays off until 04-11's decision
+- [Phase ?]: 04-09: toggling ASTRO_INCREMENTAL_BUILD forces the D1 loader cold on the next build (store.keys().length===0) — a real, measured Astro/Vite config-change cache-invalidation behavior, flagged for awareness not fixed
 
 ### Pending Todos
 
@@ -265,6 +269,6 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-09-27T17:29:54.203Z
-Stopped at: Completed 04-08-PLAN.md
+Last session: 2026-09-27T18:34:55.408Z
+Stopped at: Completed 04-09-PLAN.md
 Resume file: None
