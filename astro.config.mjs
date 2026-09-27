@@ -83,4 +83,17 @@ export default defineConfig({
   vite: {
     plugins: [assertNoD1Plugin()],
   },
+  // 04-09 (D-06 / RESEARCH Open Question 2): the experimental incremental-build flag seam.
+  // DEFAULT OFF (`ASTRO_INCREMENTAL_BUILD` unset) until 04-11 applies the owner's decision —
+  // this task only proves the flag can be switched on for measurement, it does not decide
+  // whether production should run with it. When enabled, Astro reuses a previous build's
+  // rendered output for any getStaticPaths() page whose `cacheKey` (see
+  // src/pages/[category]/[slug].astro and src/pages/tag/[slug].astro) is unchanged since the
+  // last build, restoring it from `cacheDir` (`node_modules/.astro` by default — the SAME
+  // directory Workers Builds' own build caching auto-detects and caches for Astro projects,
+  // D-06) instead of re-rendering it. [CITED: Context7 /withastro/docs,
+  // reference/experimental-flags/incremental-build.mdx, queried 2026-09-27.]
+  experimental: {
+    incrementalBuild: process.env.ASTRO_INCREMENTAL_BUILD === '1',
+  },
 });

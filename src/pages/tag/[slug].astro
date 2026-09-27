@@ -18,6 +18,10 @@ import { breadcrumbNode } from '../../lib/structured-data';
 export async function getStaticPaths() {
   const entries = await getCollection('articles');
   const allArticles = entries.map((entry) => entry.data);
+  // 04-09 (D-06): per-article content-layer digest, keyed by uuid — groupByTag operates on the
+  // plain ArticleData shape (no digest field of its own), so this page's cacheKey is built by
+  // looking each listed article's digest back up here, not from entry.data itself.
+  const digestByUuid = new Map(entries.map((entry) => [entry.data.uuid, entry.digest]));
   const grouped = groupByTag(allArticles);
 
   // Build-time log line (plan's own acceptance criterion): records the authoritative tag-page
@@ -33,13 +37,19 @@ export async function getStaticPaths() {
     if (!TAG_SLUG_RE.test(slug)) {
       throw new Error(`tag/[slug]: invalid tag slug "${slug}" — must match ${TAG_SLUG_RE}`);
     }
+    const pageArticles = entry.articles.slice(0, TAG_PAGE_COUNT);
     return {
       params: { slug },
       props: {
         slug,
         name: entry.name,
-        articles: entry.articles.slice(0, TAG_PAGE_COUNT),
+        articles: pageArticles,
       },
+      // 04-09 (D-06): the listed entries' own digests, joined — changes whenever any article
+      // that would render on this page changes, or the listed set/order itself changes (a newly
+      // tagged or re-ranked article shifts the join). Only meaningful once
+      // experimental.incrementalBuild is on; harmless when the flag is off.
+      cacheKey: pageArticles.map((article) => digestByUuid.get(article.uuid) ?? '').join('|'),
     };
   });
 }

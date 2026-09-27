@@ -18,7 +18,7 @@ import { getCollection } from 'astro:content';
 import Base from '../../layouts/Base.astro';
 import ArticleCard from '../../components/ArticleCard.astro';
 import { articlePath, articleParams } from '../../lib/article-url';
-import { computeRails, type RailResult } from '../../lib/rail';
+import { computeRails, railFingerprint, type RailResult } from '../../lib/rail';
 import { splitStandfirst, summaryBodyHtml } from '../../lib/summary';
 import { formatBylineTime, isoWithOffset } from '../../lib/format';
 import { newsArticleNode, breadcrumbNode, SITE_ORIGIN } from '../../lib/structured-data';
@@ -29,10 +29,19 @@ export async function getStaticPaths() {
   const entries = await getCollection('articles');
   const allArticles = entries.map((entry) => entry.data);
   const rails = computeRails(allArticles);
-  return entries.map((entry) => ({
-    params: articleParams(entry.data.category.slug, entry.data.slug, entry.id),
-    props: { article: entry.data, rail: rails.get(entry.data.uuid) ?? EMPTY_RAIL },
-  }));
+  return entries.map((entry) => {
+    const rail = rails.get(entry.data.uuid) ?? EMPTY_RAIL;
+    return {
+      params: articleParams(entry.data.category.slug, entry.data.slug, entry.id),
+      props: { article: entry.data, rail },
+      // 04-09 (D-06): the page's full render inputs — its own content-layer digest AND its
+      // rail neighbours (a neighbour's title/slug/category changing re-renders THIS page even
+      // though this article's own digest didn't change; railFingerprint's own doc comment
+      // covers exactly this). Only meaningful once experimental.incrementalBuild is on
+      // (astro.config.mjs); harmless when the flag is off.
+      cacheKey: `${entry.digest}|${railFingerprint(rail)}`,
+    };
+  });
 }
 
 const { article, rail } = Astro.props;
