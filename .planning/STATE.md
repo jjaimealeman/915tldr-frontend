@@ -5,15 +5,15 @@ milestone_name: milestone
 current_phase: 04
 current_phase_name: Static Generation, Templates & SEO
 status: executing
-stopped_at: Completed 04-05-PLAN.md
-last_updated: "2026-09-27T15:00:02.191Z"
+stopped_at: Completed 04-06-PLAN.md
+last_updated: "2026-09-27T15:33:34.796Z"
 last_activity: 2026-09-26
 last_activity_desc: Phase 03 complete, transitioned to Phase 4
 progress:
   total_phases: 4
   completed_phases: 3
   total_plans: 52
-  completed_plans: 45
+  completed_plans: 46
 ---
 
 # Project State
@@ -28,11 +28,11 @@ See: .planning/PROJECT.md (updated 2026-09-16)
 ## Current Position
 
 Phase: 04 (Static Generation, Templates & SEO) — EXECUTING
-Plan: 6 of 12
+Plan: 7 of 12
 Status: Ready to execute
 Last activity: 2026-09-26 — Phase 04 execution started
 
-Progress: [█████████░] 87%
+Progress: [█████████░] 88%
 
 ## Performance Metrics
 
@@ -94,6 +94,7 @@ Progress: [█████████░] 87%
 | Phase 04 P03 | 43min | 3 tasks | 15 files |
 | Phase 04 P04 | ~35min (continuation) | 3 tasks | 8 files |
 | Phase 04 P05 | ~16min | 3 tasks | 9 files |
+| Phase 04 P06 | 30min | 3 tasks | 14 files |
 
 ## Accumulated Context
 
@@ -204,6 +205,8 @@ Recent decisions affecting current work:
 - [Phase ?]: 04-05: Category masthead omits the mockup's decorative subtitle - no data source exists for it (categories.ts is slug+name only); flagged for owner review if wanted later
 - [Phase ?]: 04-05: Found and fixed a real bundler bug (same class as 03-01's slugify()) - a frontmatter-local TAG_SLUG_RE const referenced only from getStaticPaths() was silently dropped by Astro 7.3.3's bundler; moved into src/lib/article-url.ts
 - [Phase ?]: 04-05: HOME_FEED_COUNT=7 cited directly from design/mockups/index.html's no-JS feed state (1 lead + 6 grid cards)
+- [Phase ?]: 04-06: wrangler deploy MUST pin --config wrangler.jsonc — @astrojs/cloudflare 14.3.2 marks the entry-Worker environment devOnly (dropping a custom main) whenever the Astro app has zero on-demand routes, independent of main's value; found via the plan's own instructed inspection of the generated deploy config, not assumed.
+- [Phase ?]: 04-06: test:build-gate wired into the build script — the live Rollup-based D1-import guard cannot see src/worker.ts during a real astro build (its devOnly environment is never built at all), so the fixture suite's real-graph case is the only current-content check for this file.
 
 ### Pending Todos
 
@@ -254,6 +257,6 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-09-27T15:00:02.174Z
-Stopped at: Completed 04-05-PLAN.md
+Last session: 2026-09-27T15:33:34.778Z
+Stopped at: Completed 04-06-PLAN.md
 Resume file: None

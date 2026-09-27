@@ -105,7 +105,7 @@
 - [ ] **SEO-05**: The existing per-bot `robots.txt` policy, including AI-crawler and `Content-signal` rules, is preserved
 - [ ] **SEO-06**: `/rss.xml` is preserved
 - [x] **SEO-07**: Canonical links to the originating outlet are prominent on every article
-- [ ] **SEO-08**: The 404 suggestion endpoint carries over
+- [x] **SEO-08**: The 404 suggestion endpoint carries over
 - [ ] **SEO-09**: Lighthouse SEO scores 100 across the representative page set
 
 ### Social Sharing
@@ -325,7 +325,7 @@ Deferred. Tracked, not in this roadmap.
 | SEO-05 | Phase 4 | Pending |
 | SEO-06 | Phase 4 | Pending |
 | SEO-07 | Phase 4 | Complete |
-| SEO-08 | Phase 4 | Pending |
+| SEO-08 | Phase 4 | Complete |
 | SEO-09 | Phase 11 | Pending |
 | SOC-01 | Phase 7 | Pending |
 | SOC-02 | Phase 7 | Pending |
