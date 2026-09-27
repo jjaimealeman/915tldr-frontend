@@ -3,9 +3,15 @@
 // against Context7 `/withastro/docs` errors/legacy-content-config-error during 04-01 planning).
 import { defineCollection } from 'astro:content';
 import { articlesLoader } from './content/loaders/articles-loader';
+import { changelogLoader } from './content/loaders/changelog-loader';
 
 const articles = defineCollection({
   loader: articlesLoader(),
 });
 
-export const collections = { articles };
+// D-13 / FIX-05: dual-source (v1 changelog.json + D1 public_changelogs) changelog collection.
+const changelog = defineCollection({
+  loader: changelogLoader(),
+});
+
+export const collections = { articles, changelog };

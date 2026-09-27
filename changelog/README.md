@@ -10,6 +10,7 @@ Entries are named `YYYY-MM-DD-HHMM_slug.md` and grouped by month, newest first.
 
 | Date | Entry | Keywords |
 |------|-------|----------|
+| 2026-09-27 | [GREEN: implement the D-13 dual-source changelog loader (04-08 Task 1)](2026-09-27-1122_04-08-changelog-loader-green.md) | `[FEATURE]` `[BACKEND]` `[DATABASE]` `[BUG_FIX]` |
 | 2026-09-27 | [Failing tests for the D-13 dual-source changelog loader and REND-03 replay (04-08 Task 1, RED)](2026-09-27-1121_04-08-changelog-loader-failing-tests.md) | `[TESTING]` `[BACKEND]` `[DATABASE]` |
 | 2026-09-27 | [Phase 4 Plan 07 complete: robots.txt, RSS, and sitemaps as static build artifacts](2026-09-27-0957_04-07-complete-seo-surfaces-plan.md) | `[DOCUMENTATION]` `[PLANNING]` `[SEO]` `[SECURITY]` |
 | 2026-09-27 | [GREEN: Google News sitemap implemented; @astrojs/sitemap integration added (04-07 Task 3, plan complete)](2026-09-27-0953_04-07-news-sitemap-green-and-sitemap-integration.md) | `[FEATURE]` `[SEO]` `[BACKEND]` `[CONFIG]` `[TESTING]` |
