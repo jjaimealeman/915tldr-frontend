@@ -10,6 +10,7 @@ Entries are named `YYYY-MM-DD-HHMM_slug.md` and grouped by month, newest first.
 
 | Date | Entry | Keywords |
 |------|-------|----------|
+| 2026-09-27 | [/about, /privacy and /terms ported with v1's current text (04-08 Task 3, plan complete)](2026-09-27-1127_04-08-about-privacy-terms-pages.md) | `[FEATURE]` `[FRONTEND]` `[SEO]` `[TESTING]` `[DOCUMENTATION]` |
 | 2026-09-27 | [/changelog and /contact pages ported from the approved mockups (04-08 Task 2)](2026-09-27-1123_04-08-changelog-contact-pages.md) | `[FEATURE]` `[FRONTEND]` `[SEO]` `[TESTING]` |
 | 2026-09-27 | [GREEN: implement the D-13 dual-source changelog loader (04-08 Task 1)](2026-09-27-1122_04-08-changelog-loader-green.md) | `[FEATURE]` `[BACKEND]` `[DATABASE]` `[BUG_FIX]` |
 | 2026-09-27 | [Failing tests for the D-13 dual-source changelog loader and REND-03 replay (04-08 Task 1, RED)](2026-09-27-1121_04-08-changelog-loader-failing-tests.md) | `[TESTING]` `[BACKEND]` `[DATABASE]` |

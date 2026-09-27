@@ -1,12 +1,12 @@
-// 04-08 Task 2: proves /changelog and /contact against REAL built pages under `dist/client`, not
-// the source templates — follows tests/unit/listing-pages.test.mjs / tests/unit/chrome.test.mjs's
-// `node:test` + `assert/strict` + regex-over-real-HTML convention (this project's established
-// style for asserting on rendered output rather than a full DOM parse). Skips cleanly (never
-// fails) when `dist/client` hasn't been built yet, matching every other dist-output test in this
-// project. Extended in Task 3 to cover /about, /privacy and /terms.
+// 04-08: proves the five static pages this plan adds (changelog, contact — Task 2; about, privacy,
+// terms — Task 3) against REAL built pages under `dist/client`, not the source templates — follows
+// tests/unit/listing-pages.test.mjs / tests/unit/chrome.test.mjs's `node:test` + `assert/strict` +
+// regex-over-real-HTML convention (this project's established style for asserting on rendered
+// output rather than a full DOM parse). Skips cleanly (never fails) when `dist/client` hasn't been
+// built yet, matching every other dist-output test in this project.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { readFileSync, existsSync } from 'node:fs';
+import { readFileSync, readdirSync, existsSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { textOf } from '../helpers/html-text.mjs';
@@ -42,6 +42,16 @@ function epochToDateString(epochSeconds) {
   }).formatToParts(new Date(epochSeconds * 1000));
   const get = (type) => parts.find((p) => p.type === type)?.value ?? '';
   return `${get('year')}-${get('month')}-${get('day')}`;
+}
+
+function readdirRecursiveHtml(dir) {
+  const found = [];
+  for (const entry of readdirSync(dir, { withFileTypes: true })) {
+    const full = path.join(dir, entry.name);
+    if (entry.isDirectory()) found.push(...readdirRecursiveHtml(full));
+    else if (entry.isFile() && entry.name.endsWith('.html')) found.push(full);
+  }
+  return found;
 }
 
 // ---------------------------------------------------------------------------
@@ -128,5 +138,60 @@ test(
     const html = readDist('contact.html');
     const pageText = textOf(html);
     assert.match(pageText, /isn't accepting messages/i);
+  }
+);
+
+// ---------------------------------------------------------------------------
+// /about, /privacy, /terms (Task 3)
+// ---------------------------------------------------------------------------
+
+const STATIC_LEGAL_PAGES = [
+  {
+    file: 'about.html',
+    canonical: 'https://915tldr.com/about',
+    firstTwoHeadings: ['About 915 TLDR', 'What does "TLDR" mean?'],
+  },
+  {
+    file: 'privacy.html',
+    canonical: 'https://915tldr.com/privacy',
+    firstTwoHeadings: ['Privacy Policy', 'Our Promise'],
+  },
+  {
+    file: 'terms.html',
+    canonical: 'https://915tldr.com/terms',
+    firstTwoHeadings: ['Terms of Service', 'The Agreement'],
+  },
+];
+
+for (const page of STATIC_LEGAL_PAGES) {
+  test(
+    `static-pages: ${page.file} exists with canonical ${page.canonical} and carries v1's first two headings verbatim`,
+    { skip: !DIST_BUILT && SKIP_REASON },
+    () => {
+      assert.ok(distFileExists(page.file), `expected dist/client/${page.file} to exist`);
+      const html = readDist(page.file);
+      assert.equal(extractCanonical(html), page.canonical);
+
+      const headings = [...html.matchAll(/<h[12]>([^<]*)<\/h[12]>/g)].map((m) => textOf(m[1]));
+      assert.ok(headings.length >= 2, `expected at least 2 headings on ${page.file}`);
+      assert.equal(headings[0], page.firstTwoHeadings[0]);
+      assert.equal(headings[1], page.firstTwoHeadings[1]);
+    }
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Route-collision sanity: none of these 5 files exist twice at conflicting paths
+// ---------------------------------------------------------------------------
+
+test(
+  'static-pages: each of the 5 static routes emits exactly one dist/client file',
+  { skip: !DIST_BUILT && SKIP_REASON },
+  () => {
+    const allHtml = readdirRecursiveHtml(DIST_CLIENT).map((f) => path.relative(DIST_CLIENT, f));
+    for (const name of ['changelog.html', 'contact.html', 'about.html', 'privacy.html', 'terms.html']) {
+      const matches = allHtml.filter((f) => f === name);
+      assert.equal(matches.length, 1, `expected exactly one ${name}, found ${matches.length}`);
+    }
   }
 );

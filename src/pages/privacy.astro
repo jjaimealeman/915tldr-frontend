@@ -1,0 +1,65 @@
+---
+// D-10 (04-08 Task 3): /privacy — v1's current text (915tldr.com2/app/pages/privacy.vue) carried
+// over verbatim, converted from Vue/Tailwind template markup to plain semantic HTML inside the
+// same narrow reading column as about.astro/contact.astro. No wording changed. Decorative-only
+// markup (background noise texture, divider icons, drop-cap letter spans) is dropped — the
+// drop-cap's own letter is reunited with the rest of its sentence. "Last Updated · December 2025"
+// is v1's own static text, not a computed value, so it is copied as-is rather than recomputed.
+import Base from '../layouts/Base.astro';
+---
+
+<Base
+  page="privacy"
+  title="Privacy Policy - 915 TLDR"
+  description="Privacy policy for 915 TLDR news aggregator. How we handle your data and protect your privacy."
+  canonicalPath="/privacy"
+>
+  <div data-contact-column>
+    <p data-eyebrow>Last Updated · December 2025</p>
+    <h1>Privacy Policy</h1>
+    <p data-lede>
+      Your privacy matters. Here's exactly how we handle (and don't handle) your data.
+    </p>
+
+    <h2>Our Promise</h2>
+    <p>
+      915 TLDR is built with privacy as a core principle, not an afterthought. We believe you
+      should be able to read local news without being tracked, profiled, or targeted. That's why
+      we've designed this site to collect the absolute minimum data possible.
+    </p>
+    <p>
+      We use self-hosted analytics that don't track individuals. We don't sell data because we
+      don't collect data worth selling. It's that simple.
+    </p>
+
+    <h2>What We Don't Collect</h2>
+    <p>Privacy by design means saying no to unnecessary data</p>
+    <dl>
+      <dt>No Personal Data</dt>
+      <dd>We don't collect names, emails, or any personally identifiable information.</dd>
+      <dt>No Location Tracking</dt>
+      <dd>Your location is your business. We never track where you are.</dd>
+      <dt>Minimal Cookies</dt>
+      <dd>Only essential cookies for site functionality—theme preference and session.</dd>
+      <dt>No Ads or Trackers</dt>
+      <dd>Zero third-party advertising or social media tracking scripts.</dd>
+    </dl>
+
+    <h2>Third Parties</h2>
+    <h3>Cloudflare</h3>
+    <p>
+      We use Cloudflare for hosting and basic analytics. Their privacy policy applies to their
+      services. Cloudflare's analytics are privacy-focused and don't use cookies.
+    </p>
+
+    <h2>Content</h2>
+    <p>
+      All news content is sourced from third-party publishers. We link to original articles and do
+      not claim ownership of the content. Each article clearly displays its source.
+    </p>
+
+    <h2>Questions About Privacy?</h2>
+    <p>We're happy to explain anything in more detail. Reach out anytime.</p>
+    <p><a href="/contact">Contact Us</a></p>
+  </div>
+</Base>

@@ -1,0 +1,86 @@
+---
+// D-10 (04-08 Task 3): /about — v1's current text (915tldr.com2/app/pages/about.vue) carried over
+// verbatim, converted from Vue/Tailwind template markup to plain semantic HTML inside the same
+// narrow reading column contact.html's mockup already established (`[data-contact-column]` is a
+// standalone narrow-column style, not paired to the rail layout — confirmed against
+// design/mockups/style.css before reuse). No wording changed (Phase 10 rewrites About —
+// IDNT-01/02); decorative-only markup (background noise texture, divider icons, drop-cap letter
+// spans) is dropped since it carries no visible text, but every heading, paragraph and list item
+// is preserved, including the drop-cap's own letter reunited with the rest of its sentence.
+//
+// One internal link omitted, not reworded: v1's "Our Sources" paragraph ends with a
+// "View our sources →" link to `/sources`. No such route exists in this build (only per-source
+// pages at `/source/<slug>` — 04-05) — linking to it would ship a dead internal link. The
+// surrounding sentence's own wording is unchanged; only the dead CTA phrase itself is omitted.
+// See 04-08-SUMMARY.md.
+import Base from '../layouts/Base.astro';
+---
+
+<Base
+  page="about"
+  title="About 915 TLDR"
+  description="Learn about 915 TLDR, the AI-powered news aggregator for El Paso, Texas. How we work and our mission to simplify local news."
+  canonicalPath="/about"
+>
+  <div data-contact-column>
+    <p data-eyebrow>Est. 2025 · El Paso, Texas</p>
+    <h1>About 915 TLDR</h1>
+    <p data-lede>
+      Your AI-powered window into El Paso news—aggregated, summarized, and organized for the way
+      you read today.
+    </p>
+
+    <h2>What does "TLDR" mean?</h2>
+    <p>
+      <strong>TLDR</strong> stands for <strong>"Too Long; Didn't Read"</strong>—internet shorthand
+      for a quick summary. When something is too long to read in full, you ask for the TLDR: just
+      the essential points.
+    </p>
+    <p>
+      That's exactly what we do with El Paso news. We read it all so you don't have to, then give
+      you the TLDR.
+    </p>
+
+    <h2>Our Mission</h2>
+    <p>
+      We believe staying informed about your community shouldn't feel like a chore. 915 TLDR
+      automatically collects news from El Paso's most trusted local sources, uses AI to extract
+      key insights, and presents everything in a clean, scannable format.
+    </p>
+    <p>
+      No more hopping between websites. No more clickbait headlines. Just the news that matters to
+      El Paso, delivered the way modern readers want it—fast, clear, and comprehensive.
+    </p>
+
+    <h2>How It Works</h2>
+    <p>Smart features that make local news accessible</p>
+    <dl>
+      <dt>AI Summaries</dt>
+      <dd>Get the key points from every story without reading the full article.</dd>
+      <dt>Multi-Source Coverage</dt>
+      <dd>See how different outlets cover the same story, all in one place.</dd>
+      <dt>Categorized Content</dt>
+      <dd>Browse by topic—politics, crime, sports, business, and more.</dd>
+      <dt>Full-Text Search</dt>
+      <dd>Find any article on any topic with powerful search.</dd>
+      <dt>Mobile Friendly</dt>
+      <dd>Read comfortably on any device, anywhere.</dd>
+      <dt>Always Updated</dt>
+      <dd>Fresh news automatically collected every few hours.</dd>
+    </dl>
+
+    <h2>Our Sources</h2>
+    <p>
+      We aggregate content from El Paso's most trusted local news organizations. Every story links
+      back to its original source—we're here to help you discover news, not replace the
+      journalists who report it.
+    </p>
+
+    <h2>Questions or Feedback?</h2>
+    <p>
+      We'd love to hear from you. Whether you have suggestions for new sources, found a bug, or
+      just want to say hello—reach out.
+    </p>
+    <p><a href="/contact">Get in Touch</a></p>
+  </div>
+</Base>
