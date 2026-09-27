@@ -1,0 +1,38 @@
+[
+  {
+    "id": 5,
+    "date": 1766356161,
+    "title": "RSS Feed Aggregation",
+    "items": "[\"Now aggregating news from El Paso Matters, KTSM, and El Paso News\", \"Articles automatically fetched every 2 hours\", \"AI-powered summaries and categorization\"]"
+  },
+  {
+    "id": 6,
+    "date": 1766356161,
+    "title": "Category Navigation",
+    "items": "[\"Browse news by category - 8 categories for easy navigation\", \"Crime, Politics, Sports, Business, Education, Community, Health, Weather\", \"Filter articles by what interests you\"]"
+  },
+  {
+    "id": 7,
+    "date": 1766356161,
+    "title": "Now Live!",
+    "items": "[\"915tldr.com is now live!\", \"AI-powered local news for El Paso\", \"Get the TLDR on what matters in your community\"]"
+  },
+  {
+    "id": 4,
+    "date": 1766188800,
+    "title": "Now Live at 915tldr.com",
+    "items": "[\"Custom domain configured and live\", \"SSL certificate active\", \"Contact form for feedback and inquiries\"]"
+  },
+  {
+    "id": 3,
+    "date": 1766102400,
+    "title": "Browse by Category",
+    "items": "[\"8 categories for easy navigation: Crime, Politics, Sports, Business, Community, Health, Education, Weather\", \"Category-specific pages with filtered articles\", \"Tag-based article discovery\"]"
+  },
+  {
+    "id": 2,
+    "date": 1766016000,
+    "title": "News Aggregation Live",
+    "items": "[\"Now aggregating news from El Paso Matters, KTSM, and El Paso News\", \"Automated fetching every 2 hours\", \"AI-powered TLDR summaries for every article\"]"
+  }
+]
