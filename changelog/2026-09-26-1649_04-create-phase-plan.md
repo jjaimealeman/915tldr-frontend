@@ -1,49 +1,45 @@
-# 2026-09-26 - docs(04): create phase plan
+# 2026-09-26 - Phase 4 plan: 12 plans in 6 waves, from tracer to live dev deploy
 
-**Keywords:** [docs] [auto-generated]
+**Keywords:** [PLANNING] [ARCHITECTURE] [SEO] [DEPLOYMENT]
+**Session:** Afternoon
 **Commit:** find with `git log --diff-filter=A -1 --format=%H -- changelog/2026-09-26-1649_04-create-phase-plan.md`
 
 ## What Changed
 
- .planning/ROADMAP.md                               |  36 ++-
- .planning/STATE.md                                 |   8 +-
- .../04-01-PLAN.md                                  | 295 +++++++++++++++++++++
- .../04-02-PLAN.md                                  | 233 ++++++++++++++++
- .../04-03-PLAN.md                                  | 282 ++++++++++++++++++++
- .../04-04-PLAN.md                                  | 246 +++++++++++++++++
- .../04-05-PLAN.md                                  | 220 +++++++++++++++
- .../04-06-PLAN.md                                  | 257 ++++++++++++++++++
- .../04-07-PLAN.md                                  | 212 +++++++++++++++
- .../04-08-PLAN.md                                  | 232 ++++++++++++++++
- .../04-09-PLAN.md                                  | 223 ++++++++++++++++
- .../04-10-PLAN.md                                  | 178 +++++++++++++
- .../04-11-PLAN.md                                  | 215 +++++++++++++++
- .../04-12-PLAN.md                                  | 192 ++++++++++++++
- .../04-PATTERNS.md                                 | 254 ++++++++++++++++++
- .../04-static-generation-templates-seo/COVERAGE.md |  61 +++++
- 16 files changed, 3138 insertions(+), 6 deletions(-)
+- Files: `.planning/phases/04-static-generation-templates-seo/04-01-PLAN.md` through `04-12-PLAN.md`
+  - Wave 1: 04-01 is a one-article tracer (D1 → Content Layer Loader → stored-slug URL → KV manifest v2 → dev deploy), plus the Loader-throw spike. 04-02 builds the shared chrome and head-metadata contract.
+  - Wave 2: full loader with cold, warm and sweep modes and rows-read budgets (04-03); article template (04-04); listing pages (04-05); the first Worker for legacy-URL redirects, plus the 404 page (04-06); robots.txt, RSS and sitemaps (04-07).
+  - Wave 3: the `/changelog` fix and static pages (04-08); the Workers Builds CI wrapper and incremental-build spike (04-09).
+  - Waves 4–6: owner connects Workers Builds and measures it on the real platform (04-10); owner makes the full-rebuild decision and the v1 cron gets its deploy hook (04-11); deploy and live verification on dev.915tldr.com (04-12).
+- File: `04-PATTERNS.md`: maps each new file to its closest existing analogue in the repo.
+- File: `COVERAGE.md`: requirement-to-plan coverage for all 18 Phase 4 requirement IDs.
+- Files: `.planning/ROADMAP.md`, `.planning/STATE.md`: Phase 4 plan list and position.
 
-## Files
+## Why
 
-- `.planning/ROADMAP.md`
-- `.planning/STATE.md`
-- `.planning/phases/04-static-generation-templates-seo/04-01-PLAN.md`
-- `.planning/phases/04-static-generation-templates-seo/04-02-PLAN.md`
-- `.planning/phases/04-static-generation-templates-seo/04-03-PLAN.md`
-- `.planning/phases/04-static-generation-templates-seo/04-04-PLAN.md`
-- `.planning/phases/04-static-generation-templates-seo/04-05-PLAN.md`
-- `.planning/phases/04-static-generation-templates-seo/04-06-PLAN.md`
-- `.planning/phases/04-static-generation-templates-seo/04-07-PLAN.md`
-- `.planning/phases/04-static-generation-templates-seo/04-08-PLAN.md`
-- `.planning/phases/04-static-generation-templates-seo/04-09-PLAN.md`
-- `.planning/phases/04-static-generation-templates-seo/04-10-PLAN.md`
-- `.planning/phases/04-static-generation-templates-seo/04-11-PLAN.md`
-- `.planning/phases/04-static-generation-templates-seo/04-12-PLAN.md`
-- `.planning/phases/04-static-generation-templates-seo/04-PATTERNS.md`
-- `.planning/phases/04-static-generation-templates-seo/COVERAGE.md`
+Ordered so the riskiest assumptions are proven first on one thin path (04-01) before ten more plans build on them. Owner decisions that can't be undone, like the public repo name and the full-rebuild strategy, are placed as checkpoints right before the work that depends on them.
+
+## Issues Encountered
+
+None during planning. Execution later found that several plan premises didn't match production: v1's live robots.txt, and the live changelog count, because v1 hadn't been redeployed. Each was put to the owner as a decision.
+
+## Dependencies
+
+No dependencies added
+
+## Testing Notes
+
+- What was tested: the plan checker verified the plans against the phase goal and requirement IDs.
+- What wasn't tested: plans are specifications. Their own verification runs during execution.
+
+## Next Steps
+
+- [x] `/gsd-execute-phase 4` (waves 1–3 complete 2026-09-27)
+- [ ] Owner: push `915tldr-frontend` and connect Workers Builds (04-10)
 
 ---
 
 **Branch:** feature/phase-04
-**Impact:** HIGH
-**Source:** gsd-changelog-hook (auto-generated)
+**Issue:** N/A
+**Impact:** High. Defines the whole v2 public-site build.
+**Note:** Replaces an auto-generated placeholder (2026-09-27).

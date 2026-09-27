@@ -37,7 +37,7 @@ formatting/schema/nav-list foundation every Phase 4 page template builds on, sta
 Two real bugs found and fixed before landing, both caught by re-running the test suite rather than
 assumed fixed:
 
-1. **Escape-sequence corruption on write.** A single-backslash ` `/` `-style escape
+1. **Escape-sequence corruption on write.** A single-backslash `U+2028`/`U+2029`-style escape
    sequence typed directly into this session's file-write tool call gets silently decoded into the
    actual (invisible) Unicode character before it reaches disk — confirmed by `grep -P
    '[\x{2028}\x{2029}]'` finding the real characters embedded in the written file, which broke a
