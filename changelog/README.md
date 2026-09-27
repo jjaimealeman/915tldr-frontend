@@ -10,6 +10,7 @@ Entries are named `YYYY-MM-DD-HHMM_slug.md` and grouped by month, newest first.
 
 | Date | Entry | Keywords |
 |------|-------|----------|
+| 2026-09-27 | [Phase 4 Plan 04 Task 3: full article template — disclosure, attribution, tags, rail, canonical & structured data](2026-09-27-0043_04-04-full-article-template.md) | `[FEATURE]` `[FRONTEND]` `[SEO]` `[SECURITY]` `[TESTING]` `[BUG_FIX]` |
 | 2026-09-27 | [GREEN: implement standfirst split, summary body and rail selection](2026-09-27-0038_04-04-summary-rail-green.md) | `[FEATURE]` `[FRONTEND]` `[SEO]` `[BUG_FIX]` |
 | 2026-09-27 | [Failing tests for standfirst split, summary body and rail selection (RED)](2026-09-27-0031_04-04-summary-rail-red-tests.md) | `[TEST]` `[ASTRO]` `[SEO]` |
 | 2026-09-26 | [Phase 4 Plan 03 complete: D1 loader cold/warm/sweep sync, budgets & manifest deletes](2026-09-26-1825_04-03-complete-loader-plan.md) | `[DOCUMENTATION]` `[PLANNING]` `[BACKEND]` `[DATABASE]` |

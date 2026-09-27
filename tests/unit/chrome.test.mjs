@@ -82,8 +82,13 @@ test(
     const scripts = [...html.matchAll(/<script type="application\/ld\+json"[^>]*>([\s\S]*?)<\/script>/g)].map(
       (m) => m[1]
     );
-    const organizationBlocks = scripts.filter((s) => s.includes('"@type":"Organization"'));
-    const websiteBlocks = scripts.filter((s) => s.includes('"@type":"WebSite"'));
+    // 04-04: parse and check each script's own TOP-LEVEL @type — a plain substring match on
+    // '"@type":"Organization"' also matches a NewsArticle node's nested `isBasedOn.publisher`
+    // (itself typed Organization, naming the original outlet), which is a real, distinct JSON-LD
+    // node one level down, not a second site-wide Organization block.
+    const nodes = scripts.map((s) => JSON.parse(s));
+    const organizationBlocks = nodes.filter((n) => n['@type'] === 'Organization');
+    const websiteBlocks = nodes.filter((n) => n['@type'] === 'WebSite');
     assert.equal(organizationBlocks.length, 1, 'expected exactly one Organization JSON-LD block');
     assert.equal(websiteBlocks.length, 1, 'expected exactly one WebSite JSON-LD block');
   }

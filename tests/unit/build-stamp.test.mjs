@@ -162,17 +162,28 @@ test(
 );
 
 test(
-  'cross-surface: the footer date matches the same build timestamp dist/client/version.json reports',
+  // 04-04: article pages pass `stamp="commit"` to Base.astro (not the default `"build"`) so an
+  // unchanged article's footer stamp doesn't drift on every rebuild (criterion 3) — the footer
+  // date must equal version.json's `committedAt`, never `builtAt`.
+  'cross-surface: an article page carries data-stamp="commit" and its footer date matches version.json\'s committedAt',
   { skip: !DIST_BUILT && SKIP_REASON },
   () => {
     const version = JSON.parse(readFileSync(VERSION_JSON, 'utf8'));
-    assert.match(version.builtAt, /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/);
-    const expectedDate = version.builtAt.slice(0, 10);
+    assert.match(
+      version.committedAt,
+      /^(\d{4}-\d{2}-\d{2}|unknown)$/,
+      'committedAt must be a YYYY-MM-DD date or the honest "unknown" fallback'
+    );
     const articleFiles = findArticleHtmlFiles(DIST_CLIENT);
     const html = readFileSync(articleFiles[0], 'utf8');
+    assert.match(
+      html,
+      /<p data-build data-stamp="commit">/,
+      'article pages should render data-stamp="commit", not the default "build"'
+    );
     assert.ok(
-      html.includes(`· ${expectedDate}`),
-      `footer should render the date "${expectedDate}" sliced from version.json's builtAt — a footer computing its own clock read would drift`
+      html.includes(`· ${version.committedAt}`),
+      `footer should render the date "${version.committedAt}" from version.json's committedAt — a footer computing its own clock read (or falling back to builtAt) would drift on every unchanged rebuild`
     );
   }
 );

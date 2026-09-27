@@ -1,53 +1,160 @@
 ---
-// D-02/REND-01 (04-01): the tracer slice now runs through the real Content Layer collection —
-// `getCollection('articles')` reads from the loader's synced store, not a direct
-// `fetchLatestArticle`/`fetchArticleById` call. Manifest writes moved into the loader itself
-// (`src/content/loaders/articles-loader.ts`) — this page no longer builds or writes a manifest
-// entry. Preserves the nine-months-indexed URL shape `/[category]/[slug]-[uuid]`
-// (`.claude/CLAUDE.md` compatibility constraint) via the stored `articles.slug` column (D-07),
-// never a title-derived slug.
+// D-02/REND-01 (04-01) / IDNT-03/04, SEO-01/02/04, SEO-07 (04-04): the full approved article
+// template — byline, standfirst, summary body, AI disclosure, outlet attribution, tags, the
+// article-relative rail (owner decision 2026-09-26, checkpoint Task 1, option-a) and NewsArticle +
+// BreadcrumbList structured data. `getCollection('articles')` reads from the loader's synced
+// store; manifest writes live in the loader itself (`src/content/loaders/articles-loader.ts`).
+// Preserves the nine-months-indexed URL shape `/[category]/[slug]-[uuid]` (`.claude/CLAUDE.md`
+// compatibility constraint) via the stored `articles.slug` column (D-07), never a title-derived
+// slug.
 //
-// No rail, no related-articles, no tag list, no AI-disclosure/attribution markup here yet — those
-// are expansion (04-04 ports the full approved template). This is the one path the whole Phase 4
-// architecture is proven against.
+// Deterministic rendering (criterion 3 — byte-identical unchanged articles): every date is
+// computed from the article's own `publishedAt` via `src/lib/format.ts` (never a host-zone clock
+// read or convenience formatter), the footer build stamp uses Base's commit-date mode (not its
+// default build-timestamp mode, which would drift on every rebuild), and the rail
+// (`src/lib/rail.ts`) is derived entirely from each article's own position in the collection —
+// never "now" or a build clock.
 import { getCollection } from 'astro:content';
 import Base from '../../layouts/Base.astro';
-import { articleParams } from '../../lib/article-url';
+import ArticleCard from '../../components/ArticleCard.astro';
+import { articlePath, articleParams } from '../../lib/article-url';
+import { computeRails, type RailResult } from '../../lib/rail';
+import { splitStandfirst, summaryBodyHtml } from '../../lib/summary';
+import { formatBylineTime, isoWithOffset } from '../../lib/format';
+import { newsArticleNode, breadcrumbNode, SITE_ORIGIN } from '../../lib/structured-data';
+
+const EMPTY_RAIL: RailResult = { more: [], second: [], secondHeading: 'Earlier' };
 
 export async function getStaticPaths() {
   const entries = await getCollection('articles');
+  const allArticles = entries.map((entry) => entry.data);
+  const rails = computeRails(allArticles);
   return entries.map((entry) => ({
     params: articleParams(entry.data.category.slug, entry.data.slug, entry.id),
-    props: { article: entry.data },
+    props: { article: entry.data, rail: rails.get(entry.data.uuid) ?? EMPTY_RAIL },
   }));
 }
 
-const { article } = Astro.props;
+const { article, rail } = Astro.props;
 
-// article.publishedAt is epoch SECONDS (production schema) — not an ISO string, and not epoch
-// milliseconds.
-const publishedDate = new Date(article.publishedAt * 1000);
-const publishedLabel = publishedDate.toLocaleString('en-US', {
-  month: 'short',
-  day: 'numeric',
-  hour: 'numeric',
-  minute: '2-digit',
+const { standfirst } = splitStandfirst(article.summary);
+const bodyHtml = summaryBodyHtml(article.summary, article.keyPoints);
+const canonicalPath = articlePath(article.category.slug, article.slug, article.uuid);
+const origin = Astro.site?.origin ?? SITE_ORIGIN;
+const bylineDatetime = isoWithOffset(article.publishedAt);
+const bylineText = formatBylineTime(article.publishedAt);
+
+const newsArticle = newsArticleNode({
+  origin,
+  canonicalPath,
+  headline: article.title,
+  description: standfirst,
+  datePublishedIso: bylineDatetime,
+  section: article.category.name,
+  tags: article.tags.map((tag) => tag.name),
+  sourceName: article.source.name,
+  sourceUrl: article.url,
 });
+
+const breadcrumb = breadcrumbNode(
+  [
+    { name: 'Home', path: '/' },
+    { name: article.category.name, path: `/${article.category.slug}` },
+    { name: article.title, path: canonicalPath },
+  ],
+  origin
+);
+
+const hasMore = rail.more.length > 0;
+const hasSecond = rail.second.length > 0;
+const hasRail = hasMore || hasSecond;
 ---
 
-<Base page="article" title={`915 TLDR — ${article.title}`}>
+<Base
+  page="article"
+  title={`${article.title} — 915 TLDR`}
+  description={standfirst}
+  canonicalPath={canonicalPath}
+  jsonLd={[newsArticle, breadcrumb]}
+  activeCategory={article.category.slug}
+  datelineEpoch={article.publishedAt}
+  stamp="commit"
+  layout="with-rail"
+>
   <article data-uuid={article.uuid} data-category={article.category.slug} data-reading-column>
     <header data-block data-category={article.category.slug}>
       <p><a href={`/${article.category.slug}`}>{article.category.name}</a></p>
-      <p data-byline>
-        <time datetime={publishedDate.toISOString()}>{publishedLabel}</time>
-      </p>
+      <p data-byline><span data-source>{article.source.name}</span> · <time datetime={bylineDatetime}>{bylineText}</time></p>
     </header>
 
     <h1>{article.title}</h1>
 
-    <div data-article-body>
-      <p>{article.summary}</p>
-    </div>
+    <p data-standfirst>{standfirst}</p>
+
+    <div data-article-body set:html={bodyHtml} />
+
+    <p data-ai-disclosure>This summary was written by AI from reporting by {article.source.name}. <a href={article.url} rel="noopener external" target="_blank">It may leave out detail — read the original story.<svg data-new-tab-icon aria-hidden="true" focusable="false" width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.1" stroke-linecap="round" stroke-linejoin="round"><path d="M5 1H1v10h10V7"></path><path d="M7 1h4v4"></path><path d="M11 1 5 7"></path></svg><span data-new-tab-cue data-visually-hidden> (opens in a new tab)</span></a></p>
+
+    <p data-attribution>Original reporting: <a href={article.url} rel="noopener external" target="_blank">{article.source.name}<svg data-new-tab-icon aria-hidden="true" focusable="false" width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.1" stroke-linecap="round" stroke-linejoin="round"><path d="M5 1H1v10h10V7"></path><path d="M7 1h4v4"></path><path d="M11 1 5 7"></path></svg><span data-new-tab-cue data-visually-hidden> (opens in a new tab)</span></a></p>
+
+    {
+      article.tags.length > 0 && (
+        <section data-tags aria-labelledby="tags-heading">
+          <h2 id="tags-heading">Tags</h2>
+          {article.tags.map((tag) => (
+            <a href={`/tag/${tag.slug}`}>{tag.name}</a>
+          ))}
+        </section>
+      )
+    }
   </article>
+
+  {
+    hasRail && (
+      <aside data-rail aria-label="More stories">
+        {hasMore && (
+          <>
+            <h2 id="rail-more-heading" data-grid-heading>
+              More in {article.category.name}
+            </h2>
+            <section data-grid aria-labelledby="rail-more-heading">
+              {rail.more.map((neighbor) => (
+                <ArticleCard
+                  uuid={neighbor.uuid}
+                  title={neighbor.title}
+                  href={articlePath(neighbor.category.slug, neighbor.slug, neighbor.uuid)}
+                  categorySlug={neighbor.category.slug}
+                  categoryName={neighbor.category.name}
+                  sourceName={neighbor.source.name}
+                  publishedAt={neighbor.publishedAt}
+                  variant="compact"
+                />
+              ))}
+            </section>
+          </>
+        )}
+        {hasSecond && (
+          <>
+            <h2 id="rail-second-heading" data-grid-heading>
+              {rail.secondHeading}
+            </h2>
+            <section data-grid aria-labelledby="rail-second-heading">
+              {rail.second.map((neighbor) => (
+                <ArticleCard
+                  uuid={neighbor.uuid}
+                  title={neighbor.title}
+                  href={articlePath(neighbor.category.slug, neighbor.slug, neighbor.uuid)}
+                  categorySlug={neighbor.category.slug}
+                  categoryName={neighbor.category.name}
+                  sourceName={neighbor.source.name}
+                  publishedAt={neighbor.publishedAt}
+                  variant="compact"
+                />
+              ))}
+            </section>
+          </>
+        )}
+      </aside>
+    )
+  }
 </Base>
