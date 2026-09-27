@@ -158,3 +158,157 @@ numbers at or above 2x every measured figure above (2x cold = 1,013,612 ≤ 1,50
 warm+sweep = 98,356 ≤ 100,000; 2x warm = 11,856 ≤ 25,000) — no numeric change was needed, only
 replacing the "provisional" comment with one citing this session's real measurements next to each
 constant (see the source file).
+
+## Local incremental-build spike (04-09 Task 3)
+
+**Verdict: `REUSE_WARM_ONLY`.** `experimental.incrementalBuild` reuses unchanged pages reliably
+in a warm, same-checkout build — but in a fresh clone with only `node_modules/.astro` restored
+(the exact shape of a Workers Builds container: build caching restores that one directory, not a
+whole prior `node_modules`), it reused **zero** pages and re-rendered the full corpus. This
+reproduces `withastro/astro#18055` exactly as 04-RESEARCH.md's Common Pitfall #1 warned, against
+this project's own real D1-backed loader and real production data — not assumed, measured.
+
+All five builds ran against real production D1/KV (`CLOUDFLARE_ACCOUNT_ID`/`CLOUDFLARE_API_TOKEN`
+already in the shell environment), on 2026-09-27, same machine, same git commit (`89730f0`)
+throughout. Wall time and peak RSS for A1/A2/B2 were measured by polling
+`/proc/<astro-pid>/status`'s `VmHWM` every 1s (04-03's own method — `/usr/bin/time -v` is still
+not installed on this machine). B1/B3/B4/CI1 were run under a plain `timeout`, without the RSS
+sampler — their wall time below is Astro's own self-reported total (`X page(s) built in Y`),
+which is honest but excludes the `guard:config`/`test:build-gate` steps that run before
+`astro build` itself starts; peak RSS for those four is not measured and is left blank rather
+than estimated.
+
+| Build | Flag | D1 loader mode | rowsRead | Wall time | Peak RSS | Pages built | Pages restored |
+|---|---|---|---|---|---|---|---|
+| A1 | off | cold | 507,677 | 237s (outer) | 2,877,072 KB (≈2.81 GB) | 59,907 | n/a (flag off) |
+| A2 | off | warm+sweep | 48,922 | 134s (outer) | 2,797,264 KB (≈2.73 GB) | 59,907 | n/a (flag off) |
+| B1 | on (first, after a flag off→on toggle) | cold | 507,677 | 2m 4s (Astro-reported) | not measured | 59,907 | 59,888 / 59,907 |
+| B2 | on (second, no toggle) | cold\* | 507,804 | 2m 16s (Astro-reported) | 2,888,628 KB (≈2.82 GB) | 59,918 | 59,850 / 59,918 |
+| CI1 (fresh clone) | on (no toggle vs. its restored cache) | warm | 5,715 | 2m 11s (Astro-reported) | not measured | 59,918 | **0 / 59,918** |
+
+\* B2's D1 loader also logged `mode=cold` — see "A real, measured side-finding" below; this
+reflects the `astro.config.mjs` change itself resetting the content-layer store, not a data
+problem, and is unrelated to the incremental-build page-restore numbers in the last two columns.
+
+Two additional flag-on builds (B3, B4) were run in the SAME checkout, back-to-back with **no**
+config toggle between them, specifically to get one clean, steady-state (non-toggle) number
+before the fresh-clone test: B3 (`mode=cold`, 507,804 rows, `59918 page(s) built in 2m 19s`,
+following C1 below) then B4 immediately after (`mode=warm+sweep`, 49,043 rows,
+**`59918 page(s) built in 35.97s`**, 59,899/59,918 pages restored) — the fastest of every build in
+this spike, and the number that matters for "what does steady-state 2-hourly Workers Builds look
+like if the D1 loader AND the flag both stay warm." C1 (an extra flag-OFF build, `mode=cold`,
+507,804 rows, `59918 page(s) built in 2m 4s`) sits between B2 and B3 and exists only because a
+config toggle (on→off) was needed to test the toggle's own effect on the D1 loader a second time
+in the opposite direction — its own build was not otherwise part of the five-build table above.
+
+### Diffs (via `tools/compare-builds.mjs`)
+
+- **A1 vs A2 (flag off, no data change expected):** `identical=59923 changed=1 added=0 removed=0`;
+  **articles: identical=40118, changed=0.** The one non-article file that changed is
+  `version.json` — expected and explained: `src/lib/build-info.ts`'s `BUILD_TIMESTAMP` is
+  `new Date().toISOString()` captured fresh at every build, by design (OPS-05/06). **Zero
+  unexplained changed article files.**
+- **B1 vs B2 (flag on, no toggle, real production drift of +10 articles between them):**
+  `identical=59871 changed=53 added=11 removed=0`; **articles: identical=40118, changed=0.** The
+  53 changed + 11 added files are the home feed, the 8 category listing pages, `tags.astro`,
+  `rss.xml`, `sitemap-index.xml`, `news-sitemap.xml`, `404-index.json`, `version.json`, and a
+  handful of `tag/*.html` pages picking up the 10 newly-ingested articles — fully explained by
+  real production ingestion during the ~15 minutes this spike ran (public count rose from 40,118
+  to 40,128 mid-sequence; the ingest cron runs every 2 hours and does not pause for a local
+  build). **Zero unexplained changed article files.**
+- **B4 vs CI1 (flag on, same commit, warm checkout vs. fresh clone):** overall
+  `identical=83 changed=59852`; **articles: identical=10, changed=40118** — this large number is
+  explained in full below (build-provenance stamp, not content), not left as a mystery.
+
+### A real, measured side-finding: the footer's build stamp on a RESTORED page is not "now"
+
+Investigating why the article-level sha256 diffs above (and an earlier A2-vs-B1 diff, not shown
+in the table since it mixed a real +10-article production change with the effect below) looked
+like "every article changed" even when `evaluateShrink`/the loader's own digest tracking showed
+no article content had changed, a byte-for-byte diff of one specific article
+(`business/2026-toyota-tacoma-...html`) between two builds found exactly one line differing:
+
+```
+< <p data-build data-stamp="commit">build 89730f0 · 2026-09-27</p>   (a build that actually re-rendered this page)
+> <p data-build data-stamp="commit">build 5b0db41 · 2026-09-27</p>   (a build that RESTORED this page, unchanged)
+```
+
+**This is not a bug — it is the correct, unavoidable consequence of page restoration.** A
+restored page is copied byte-for-byte from whenever it was **last actually rendered**, including
+whatever `BUILD_HASH` (`src/lib/build-info.ts`, `local-git` fallback: `git rev-parse --short=7
+HEAD` at that earlier build's own run) was baked into it then — not the current build's commit.
+`5b0db41` was two commits behind the actual current HEAD (`89730f0`) at the time these builds
+ran; the article showing it had simply not been re-rendered since that earlier commit. Confirmed
+directly: stripping the `data-build` line and re-diffing the same two files
+(`diff flagoff.stripped.html flagon.stripped.html`) showed **zero** remaining differences — every
+other byte (content, rail, structured data, canonical) was identical.
+
+**Consequence for 04-11's decision, if `experimental.incrementalBuild` is ever turned on in
+production:** an article's visible `data-build` footer stamp would report whichever commit last
+caused THAT SPECIFIC article to actually re-render — not necessarily the commit currently live —
+for as long as the page keeps getting restored unchanged. Whether that is acceptable (arguably
+more honest: "this content was last verified/rendered at commit X") or undesirable (the owner may
+expect the footer to always reflect the current deploy) is a real, disclosed product question for
+04-11, not something this measurement task decides. It does **not** affect correctness of the
+article's own content, rail, or structured data, which are proven byte-identical above once this
+one expected field is set aside.
+
+**Why this does not implicate the D1-loader's own cold/warm state:** the loader logging
+`mode=cold` on B1/B2/B3/C1 is a separate, also-real observation — every one of those four builds
+followed an `astro.config.mjs` change (the `ASTRO_INCREMENTAL_BUILD` env var toggling), and each
+one found `store.keys().length === 0` (an empty content-layer store) at the start of `load()`,
+triggering `articlesLoader`'s own `storeEmpty` cold-trigger (`src/content/loaders/
+articles-loader.ts`). B4, run immediately after B3 with **no** toggle, correctly logged
+`mode=warm+sweep` — confirming the reset is tied to the config change, not to the
+`incrementalBuild` feature itself being "on." **Practical implication:** if the owner ever A/B
+tests this flag by toggling it on a non-production branch (exactly what `docs/phase-04/
+workers-builds-setup.md` step 3 sets up), the FIRST build after each toggle pays a full cold
+D1 resync (~508k rows, well inside `COLD_ROWS_READ_BUDGET`, but a real one-time cost) — flagged
+for awareness, not a defect to fix in this plan.
+
+### Fresh-clone CI simulation (step 3)
+
+`git clone --local` this repo at `89730f0` into the session scratchpad, `pnpm install
+--frozen-lockfile` there (fresh `node_modules`, 9.5s), then copied ONLY this checkout's
+`node_modules/.astro` (955 MB) into the clone — the exact directory Workers Builds' own build
+caching restores (D-06) — before running `ASTRO_INCREMENTAL_BUILD=1 pnpm run build` inside the
+clone.
+
+**Result: the D1 content layer survived the copy correctly (`mode=warm`, `rowsRead=5,715` — D-06
+re-confirmed for the third time this phase), but Astro's own page-restore mechanism found `0` of
+59,918 pages reusable** — every page was rendered fresh (`2m 11s`, matching the full-render cost
+of a cold/toggle build, not the `35.97s` steady-state warm-checkout number). Byte-identity was
+independently confirmed for the correctness of that full re-render: the same sample article
+(`business/2026-toyota-tacoma-...html`), diffed between the warm-checkout build (B4) and the
+fresh-clone build (CI1) with the `data-build` line stripped, was **byte-identical** — the fresh
+clone rendered the exact same correct output, it just could not reuse any of it.
+
+**This directly confirms 04-RESEARCH.md's flagged risk (Open Question 2, Common Pitfall #1,
+`withastro/astro#18055`) at real scale, against this project's own loader and real production
+data — not a synthetic reproduction.** A genuine Workers Builds container is a fresh checkout on
+every build; this local simulation is the closest approximation available without spending a
+real Workers Builds run, and it reproduces zero reuse exactly as the cited upstream issue
+describes.
+
+**One local mitigating data point, not a recommendation:** even the slowest build measured in
+this entire spike (A1, a genuinely cold D1 fetch **and** a full page render with the flag off)
+completed in under 4 minutes wall time — comfortably inside Workers Builds' 20-minute hard
+ceiling (`docs/phase-03/render-step-location.md`'s Pitfall 4 concern). This local machine's CPU
+and disk I/O may not match a Workers Builds container's, so this is not a substitute for a real
+Workers Builds timing run (04-10), but it means the WORST case observed here — full cold fetch +
+full render, no reuse of any kind — is not obviously incompatible with the 20-minute ceiling
+either, softening (not eliminating) the urgency RESEARCH originally flagged for Pitfall 4.
+
+### Summary for 04-11
+
+- `experimental.incrementalBuild` works exactly as documented in a warm, same-checkout dev loop.
+- It provides **no measured benefit** in the one environment that actually matters for D-05
+  (Workers Builds, fresh container per build, cache-restore of `node_modules/.astro` only) — local
+  evidence says assume `REUSE_WARM_ONLY` (effectively `NO_REUSE` in production) until a real
+  Workers Builds run (04-10) proves otherwise.
+- Byte-identity holds in every configuration tested once the expected, disclosed
+  build-provenance-stamp difference is accounted for — turning the flag on does not corrupt or
+  change article content, rail, or structured data.
+- The flag's default stays OFF (`astro.config.mjs`, unchanged by this task) pending 04-11's
+  decision, which should treat this section's `REUSE_WARM_ONLY` verdict as the working assumption
+  for Workers Builds, not the warm-checkout numbers.

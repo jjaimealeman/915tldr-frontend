@@ -10,6 +10,7 @@ Entries are named `YYYY-MM-DD-HHMM_slug.md` and grouped by month, newest first.
 
 | Date | Entry | Keywords |
 |------|-------|----------|
+| 2026-09-27 | [Local incremental-build spike: REUSE_WARM_ONLY, reproducing #18055 (04-09 Task 3, plan complete)](2026-09-27-1236_04-09-incremental-build-spike-reuse-warm-only.md) | `[FEATURE]` `[TESTING]` `[DOCUMENTATION]` `[PERFORMANCE]` |
 | 2026-09-27 | [Owner setup document, incremental-build flag seam, and per-page cacheKeys (04-09 Task 2)](2026-09-27-1146_04-09-workers-builds-setup-and-cachekeys.md) | `[DOCUMENTATION]` `[CONFIG]` `[FEATURE]` `[SEO]` |
 | 2026-09-27 | [GREEN: implement the Workers Builds CI wrapper (04-09 Task 1)](2026-09-27-1140_04-09-ci-build-wrapper-green.md) | `[FEATURE]` `[BACKEND]` `[CI_CD]` `[SECURITY]` |
 | 2026-09-27 | [Failing tests for the Workers Builds CI wrapper (04-09 Task 1, RED)](2026-09-27-1136_04-09-ci-build-wrapper-red-tests.md) | `[TESTING]` `[BACKEND]` `[CI_CD]` `[SECURITY]` |
