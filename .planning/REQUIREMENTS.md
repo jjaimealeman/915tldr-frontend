@@ -21,7 +21,7 @@
 - [x] **REND-01**: A hand-written `astro/loaders` Loader reads articles from the D1 REST API at build time
 - [x] **REND-02**: The loader throws and fails the build when it returns zero or fewer rows than expected — an empty result never ships as a successful build
 - [ ] **REND-03**: A regression test reproduces the `/changelog` empty-state failure and proves the loader rejects it
-- [ ] **REND-04**: Homepage, category pages, tag indexes and static pages regenerate on each cron cycle via a new Worker deployment
+- [x] **REND-04**: Homepage, category pages, tag indexes and static pages regenerate on each cron cycle via a new Worker deployment
 - [x] **REND-05**: Only new and changed articles re-render; unchanged articles are not recomputed
 - [x] **REND-06**: A render manifest in KV records what has been rendered and at which version
 - [ ] **REND-07**: Articles outside the hot window are rendered once to R2 and served from there
@@ -188,7 +188,7 @@
 - [x] **FIX-01**: `reprocess-all.post.ts` no longer binds an unbounded ID list across `inArray` calls; D1's 100-parameter ceiling is respected
 - [x] **FIX-02**: `pnpm deploy` and `pnpm deploy:dev` resolve `wrangler` as a real dependency
 - [x] **FIX-03**: The Prettier error at `app/pages/privacy.vue:164` is resolved
-- [ ] **FIX-04**: Category index routes resolve (`/crime` as well as `/crime/**`)
+- [x] **FIX-04**: Category index routes resolve (`/crime` as well as `/crime/**`)
 - [ ] **FIX-05**: `/changelog` renders its content reliably
 
 ## v2 Requirements
@@ -259,7 +259,7 @@ Deferred. Tracked, not in this roadmap.
 | REND-01 | Phase 4 | Complete |
 | REND-02 | Phase 4 | Complete |
 | REND-03 | Phase 4 | Pending |
-| REND-04 | Phase 4 | Pending |
+| REND-04 | Phase 4 | Complete |
 | REND-05 | Phase 4 | Complete |
 | REND-06 | Phase 3 | Complete |
 | REND-07 | Phase 5 | Pending |
@@ -384,7 +384,7 @@ Deferred. Tracked, not in this roadmap.
 | FIX-01 | Phase 2 | Complete |
 | FIX-02 | Phase 2 | Complete |
 | FIX-03 | Phase 2 | Complete |
-| FIX-04 | Phase 4 | Pending |
+| FIX-04 | Phase 4 | Complete |
 | FIX-05 | Phase 4 | Pending |
 
 **Coverage:**

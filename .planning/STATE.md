@@ -5,15 +5,15 @@ milestone_name: milestone
 current_phase: 04
 current_phase_name: Static Generation, Templates & SEO
 status: executing
-stopped_at: Completed 04-04-PLAN.md
-last_updated: "2026-09-27T14:42:26.213Z"
+stopped_at: Completed 04-05-PLAN.md
+last_updated: "2026-09-27T15:00:02.191Z"
 last_activity: 2026-09-26
 last_activity_desc: Phase 03 complete, transitioned to Phase 4
 progress:
   total_phases: 4
   completed_phases: 3
   total_plans: 52
-  completed_plans: 44
+  completed_plans: 45
 ---
 
 # Project State
@@ -28,11 +28,11 @@ See: .planning/PROJECT.md (updated 2026-09-16)
 ## Current Position
 
 Phase: 04 (Static Generation, Templates & SEO) — EXECUTING
-Plan: 5 of 12
+Plan: 6 of 12
 Status: Ready to execute
 Last activity: 2026-09-26 — Phase 04 execution started
 
-Progress: [█████████░] 85%
+Progress: [█████████░] 87%
 
 ## Performance Metrics
 
@@ -93,6 +93,7 @@ Progress: [█████████░] 85%
 | Phase 04 P02 | ~15min | 2 tasks | 11 files |
 | Phase 04 P03 | 43min | 3 tasks | 15 files |
 | Phase 04 P04 | ~35min (continuation) | 3 tasks | 8 files |
+| Phase 04 P05 | ~16min | 3 tasks | 9 files |
 
 ## Accumulated Context
 
@@ -200,6 +201,9 @@ Recent decisions affecting current work:
 - [Phase ?]: 04-04: Owner selected option-a (article-relative rail) for Task 1's checkpoint — More in <Category> + Earlier neighbours computed from the article's own position, not a build clock, to satisfy criterion 3
 - [Phase ?]: 04-04: chrome.test.mjs's Organization/WebSite JSON-LD count assertion fixed (Rule 1) — a substring match was also matching NewsArticle.isBasedOn.publisher's nested Organization node; now parses top-level @type
 - [Phase ?]: 04-04: criterion 3 (byte-identical unchanged articles) empirically confirmed across the full 40,108-article corpus via two consecutive real builds, not sampled
+- [Phase ?]: 04-05: Category masthead omits the mockup's decorative subtitle - no data source exists for it (categories.ts is slug+name only); flagged for owner review if wanted later
+- [Phase ?]: 04-05: Found and fixed a real bundler bug (same class as 03-01's slugify()) - a frontmatter-local TAG_SLUG_RE const referenced only from getStaticPaths() was silently dropped by Astro 7.3.3's bundler; moved into src/lib/article-url.ts
+- [Phase ?]: 04-05: HOME_FEED_COUNT=7 cited directly from design/mockups/index.html's no-JS feed state (1 lead + 6 grid cards)
 
 ### Pending Todos
 
@@ -250,6 +254,6 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-09-27T14:42:26.196Z
-Stopped at: Completed 04-04-PLAN.md
+Last session: 2026-09-27T15:00:02.174Z
+Stopped at: Completed 04-05-PLAN.md
 Resume file: None

@@ -269,7 +269,7 @@ trailing slashes"): the RSS feed emits links WITH a trailing slash by default, *
 endpoint, or the feed's links will not match the page URLs. Verify by fetching `/rss.xml` and
 checking that item links have no trailing slash and each answers 200 directly.
 
-**Plans**: 4/12 plans executed in 6 waves
+**Plans**: 5/12 plans executed in 6 waves
 
 Plans:
 **Wave 1**
@@ -281,7 +281,7 @@ Plans:
 
 - [x] 04-03-PLAN.md — Full loader: dry run, cold/warm/sweep modes, rows-read budgets, never-shrink check vs KV last-good, first measured full-corpus build (wave 2)
 - [x] 04-04-PLAN.md — Article template: AI disclosure, attribution, tags, rail (owner decision on byte-identity), NewsArticle/BreadcrumbList, canonical (wave 2)
-- [ ] 04-05-PLAN.md — Listing pages: home, 8 category indexes (FIX-04), tag pages + /tags, source pages (wave 2)
+- [x] 04-05-PLAN.md — Listing pages: home, 8 category indexes (FIX-04), tag pages + /tags, source pages (wave 2)
 - [ ] 04-06-PLAN.md — First Worker: non-canonical 301 via one KV read, navigation-safe routing, 404 page with build-time suggestions, legacy redirects (wave 2)
 - [ ] 04-07-PLAN.md — SEO surfaces: package-legitimacy checkpoint, robots.txt, /rss.xml (no trailing slash), news sitemap (48 h), general sitemap (wave 2)
 
@@ -447,7 +447,7 @@ Phase 3 and may run alongside Phases 5-7.
 | 1. Design Sketch & Editorial Identity | 23/23 | Complete    | 2026-09-17 |
 | 2. Content Quality & Grounding | 11/10 | Complete    | 2026-09-21 |
 | 3. Foundation & Read-Budget Guardrails | 7/7 | Complete    | 2026-09-26 |
-| 4. Static Generation, Templates & SEO | 4/12 | In Progress|  |
+| 4. Static Generation, Templates & SEO | 5/12 | In Progress|  |
 | 5. Hybrid Archive & Zero-Reads Proof | 0/TBD | Not started | - |
 | 6. Bilingual | 0/TBD | Not started | - |
 | 7. Imagery & Share Cards | 0/TBD | Not started | - |

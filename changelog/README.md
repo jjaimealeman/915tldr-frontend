@@ -10,6 +10,7 @@ Entries are named `YYYY-MM-DD-HHMM_slug.md` and grouped by month, newest first.
 
 | Date | Entry | Keywords |
 |------|-------|----------|
+| 2026-09-27 | [Phase 4 Plan 05 complete: home, category, tag, tags and source listing pages](2026-09-27-0932_04-05-complete-listing-pages-plan.md) | `[DOCUMENTATION]` `[SEO]` `[FRONTEND]` `[TESTING]` |
 | 2026-09-27 | [Tag pages, /tags index and per-source pages (04-05 Task 3, plan complete)](2026-09-27-0925_04-05-tag-source-pages.md) | `[FEATURE]` `[FRONTEND]` `[SEO]` `[ROUTING]` `[TESTING]` `[BUG_FIX]` |
 | 2026-09-27 | [Homepage and the 8 category indexes, coexisting with /crime/** (04-05 Task 2)](2026-09-27-0913_04-05-home-and-category-pages.md) | `[FEATURE]` `[FRONTEND]` `[SEO]` `[ROUTING]` `[TESTING]` |
 | 2026-09-27 | [GREEN: implement the listing selection module (04-05 Task 1)](2026-09-27-0900_04-05-listing-module-green.md) | `[FEATURE]` `[FRONTEND]` `[BUG_FIX]` |
