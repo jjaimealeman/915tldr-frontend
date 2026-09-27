@@ -1,0 +1,148 @@
+---
+// D-10 (04-08 Task 2): /contact — ported verbatim from design/mockups/contact.html
+// (01-APPROVAL.md), which already carries this project's real bio copy (not v1's Nuxt
+// contact.vue's generic template copy — v1's actual /contact page never publishes a contact
+// address anywhere in its markup; it's a UCard-based form whose `to:` recipient
+// (`me@915website.com`) only ever appears inside the server-side handler, never rendered to a
+// visitor, per 915tldr.com2/server/api/contact.post.ts — confirmed by reading that file directly
+// this session, not assumed). The mockup's own links to jjaimealeman.com and 915website.com
+// already give a reader a way to reach the owner, so no address was fabricated or added here —
+// see 04-08-SUMMARY.md.
+//
+// The mockup's dev-only "This is a design mockup. The form below does not send anything." notice
+// is replaced with an honest, permanent statement: every field lives inside a real
+// `<fieldset disabled>` (disables every descendant control at once, including the submit button —
+// no separate per-field `disabled` attribute needed) until Phase 10 wires real submission
+// (SUB/trust requirements).
+import { getCollection } from 'astro:content';
+import Base from '../layouts/Base.astro';
+import ArticleCard from '../components/ArticleCard.astro';
+import { articlePath } from '../lib/article-url';
+import { sortNewestFirst } from '../lib/listing';
+
+/** Matches changelog.astro's rail count — 04-08-PLAN.md Task 2 names 6 for changelog and asks
+ * contact to carry the same "Latest Stories" grid; no separate count is specified for contact, so
+ * the same constant is reused for consistency across both static pages this task adds. */
+const RAIL_COUNT = 6;
+
+const articleEntries = await getCollection('articles');
+const allArticles = articleEntries.map((entry) => entry.data);
+const railArticles = sortNewestFirst(allArticles).slice(0, RAIL_COUNT);
+---
+
+<Base
+  page="contact"
+  title="915 TLDR — Contact"
+  description="Get in touch with 915 TLDR — feedback, corrections, or just say hello."
+  canonicalPath="/contact"
+>
+  <div data-contact-column>
+    <h1>Contact</h1>
+
+    <p data-contact-intro>
+      I'm Jaime Aleman, a web developer here in El Paso, and I built 915 TLDR myself. Every
+      summary on this site is written by AI from reporting by KTSM, KVIA and other local outlets —
+      I did not report any of it, and I say so plainly on every story. What I do is pull the day's
+      local news into one place, tag and de-duplicate it, and publish it free and without ads, in
+      the open, with every change documented on the changelog.
+    </p>
+
+    <p data-contact-links>
+      You can also find me directly at{' '}
+      <a href="https://jjaimealeman.com" rel="noopener" target="_blank">
+        jjaimealeman.com
+        <svg
+          data-new-tab-icon
+          aria-hidden="true"
+          focusable="false"
+          width="12"
+          height="12"
+          viewBox="0 0 12 12"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.1"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <path d="M5 1H1v10h10V7" />
+          <path d="M7 1h4v4" />
+          <path d="M11 1 5 7" />
+        </svg>
+        <span data-new-tab-cue data-visually-hidden>
+          {' '}(opens in a new tab)
+        </span>
+      </a>{' '}
+      and{' '}
+      <a href="https://915website.com" rel="noopener" target="_blank">
+        915website.com
+        <svg
+          data-new-tab-icon
+          aria-hidden="true"
+          focusable="false"
+          width="12"
+          height="12"
+          viewBox="0 0 12 12"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.1"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <path d="M5 1H1v10h10V7" />
+          <path d="M7 1h4v4" />
+          <path d="M11 1 5 7" />
+        </svg>
+        <span data-new-tab-cue data-visually-hidden>
+          {' '}(opens in a new tab)
+        </span>
+      </a>, where I build sites like this one for other El Paso businesses.
+    </p>
+
+    <form data-contact-form method="post" aria-describedby="form-note">
+      <p id="form-note" data-form-note>
+        This form isn't accepting messages on this build yet — submission is wired in a later
+        phase. In the meantime, reach out via the links above.
+      </p>
+
+      <fieldset disabled>
+        <div data-field>
+          <label for="contact-name">Name (required)</label>
+          <input id="contact-name" name="name" type="text" autocomplete="name" required aria-describedby="name-error" />
+          <p data-field-error hidden id="name-error" />
+        </div>
+
+        <div data-field>
+          <label for="contact-email">Email (required)</label>
+          <input id="contact-email" name="email" type="email" autocomplete="email" required aria-describedby="email-error" />
+          <p data-field-error hidden id="email-error" />
+        </div>
+
+        <div data-field>
+          <label for="contact-message">Your message (required)</label>
+          <textarea id="contact-message" name="message" required rows={6} aria-describedby="message-error" />
+          <p data-field-error hidden id="message-error" />
+        </div>
+
+        <button type="submit">Send message</button>
+      </fieldset>
+    </form>
+  </div>
+
+  <h2 data-grid-heading>Latest Stories</h2>
+  <section data-grid aria-label="Latest stories">
+    {
+      railArticles.map((article) => (
+        <ArticleCard
+          uuid={article.uuid}
+          title={article.title}
+          href={articlePath(article.category.slug, article.slug, article.uuid)}
+          categorySlug={article.category.slug}
+          categoryName={article.category.name}
+          sourceName={article.source.name}
+          publishedAt={article.publishedAt}
+          summary={article.summary}
+        />
+      ))
+    }
+  </section>
+</Base>
