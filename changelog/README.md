@@ -10,6 +10,7 @@ Entries are named `YYYY-MM-DD-HHMM_slug.md` and grouped by month, newest first.
 
 | Date | Entry | Keywords |
 |------|-------|----------|
+| 2026-09-27 | [GREEN: implement the listing selection module (04-05 Task 1)](2026-09-27-0900_04-05-listing-module-green.md) | `[FEATURE]` `[FRONTEND]` `[BUG_FIX]` |
 | 2026-09-27 | [Failing tests for the listing selection module (04-05 Task 1, RED)](2026-09-27-0845_04-05-listing-module-red-tests.md) | `[TESTING]` `[FRONTEND]` `[FEATURE]` |
 | 2026-09-27 | [STATE/ROADMAP/REQUIREMENTS updated after Phase 4 Plan 04 completion](2026-09-27-0842_04-04-state-roadmap-requirements-update.md) | `[DOCUMENTATION]` `[PLANNING]` |
 | 2026-09-27 | [Complete full article template plan: verified byte-identity at full-corpus scale](2026-09-27-0841_04-04-complete-full-article-template-plan.md) | `[DOCUMENTATION]` `[TESTING]` `[SEO]` `[FRONTEND]` |
