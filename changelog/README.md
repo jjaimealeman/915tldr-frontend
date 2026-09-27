@@ -10,6 +10,7 @@ Entries are named `YYYY-MM-DD-HHMM_slug.md` and grouped by month, newest first.
 
 | Date | Entry | Keywords |
 |------|-------|----------|
+| 2026-09-27 | [Feed packages installed; v1's intended robots.txt policy shipped; /rss.xml built (04-07 Task 2)](2026-09-27-0951_04-07-feed-packages-robots-rss.md) | `[FEATURE]` `[SEO]` `[DEPENDENCIES]` `[SECURITY]` `[TESTING]` `[BACKEND]` |
 | 2026-09-27 | [Phase 4 Plan 06 complete: Worker, non-canonical URL redirects, and 404 suggestions](2026-09-27-1000_04-06-complete-worker-redirect-404-plan.md) | `[DOCUMENTATION]` `[PLANNING]` `[SEO]` `[SECURITY]` `[DEPLOYMENT]` |
 | 2026-09-27 | [Static 404 page with build-time suggestion index; legacy-route redirects (04-06 Task 3, plan complete)](2026-09-27-0950_04-06-not-found-page-and-redirects.md) | `[FEATURE]` `[FRONTEND]` `[SEO]` `[SECURITY]` `[TESTING]` `[ROUTING]` |
 | 2026-09-27 | [Wire the Worker into wrangler.jsonc; extend the D1-import guard (04-06 Task 2)](2026-09-27-0940_04-06-wire-worker-into-wrangler-and-d1-guard.md) | `[FEATURE]` `[SECURITY]` `[DEPLOYMENT]` `[CONFIG]` `[BUG_FIX]` `[CRITICAL]` `[TESTING]` |
