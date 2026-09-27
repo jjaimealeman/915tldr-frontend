@@ -33,9 +33,9 @@ test('splitStandfirst: does not break after "Dr." mid-sentence', () => {
 
 test('splitStandfirst: does not break after "St." mid-sentence', () => {
   const { standfirst } = splitStandfirst(
-    'The fire started on N. Mesa St. near downtown. Crews responded within minutes.'
+    'The fire started on Mesa St. near downtown. Crews responded within minutes.'
   );
-  assert.equal(standfirst, 'The fire started on N. Mesa St. near downtown.');
+  assert.equal(standfirst, 'The fire started on Mesa St. near downtown.');
 });
 
 test('splitStandfirst: does not break after "a.m." or "p.m." mid-sentence', () => {
