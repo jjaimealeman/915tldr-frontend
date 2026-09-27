@@ -37,11 +37,15 @@
     "test:unit": "pnpm run build && node --test \"design/tests/unit/**/*.test.mjs\" \"tests/unit/**/*.test.mjs\"",
     "test:fast": "node --test \"design/tests/unit/**/*.test.mjs\" \"tests/unit/**/*.test.mjs\"",
     "test:build-gate": "node --test tests/ci-fixtures/assert-no-d1.test.mjs",
+    "test:regression": "node --test \"tests/regression/**/*.test.mjs\"",
     "test:tracer": "node --test tests/tracer/tracer.test.mjs",
     "build": "pnpm run guard:config && pnpm run test:build-gate && astro build",
     "dev": "astro dev",
     "preview": "astro preview",
-    "deploy": "pnpm run guard:config && wrangler deploy --config wrangler.jsonc"
+    "deploy": "pnpm run guard:config && wrangler deploy --config wrangler.jsonc",
+    "build:ci": "node tools/ci-build.mjs build",
+    "deploy:ci": "node tools/ci-build.mjs deploy",
+    "ci:local": "node tools/ci-build.mjs all"
   },
   "dependencies": {
     "@astrojs/cloudflare": "14.3.2",
