@@ -10,6 +10,7 @@ Entries are named `YYYY-MM-DD-HHMM_slug.md` and grouped by month, newest first.
 
 | Date | Entry | Keywords |
 |------|-------|----------|
+| 2026-09-27 | [Failing tests for standfirst split, summary body and rail selection (RED)](2026-09-27-0031_04-04-summary-rail-red-tests.md) | `[TEST]` `[ASTRO]` `[SEO]` |
 | 2026-09-26 | [Phase 4 Plan 03 complete: D1 loader cold/warm/sweep sync, budgets & manifest deletes](2026-09-26-1825_04-03-complete-loader-plan.md) | `[DOCUMENTATION]` `[PLANNING]` `[BACKEND]` `[DATABASE]` |
 | 2026-09-26 | [First measured full-corpus build, budgets set from real numbers, baseline committed](2026-09-26-1822_04-03-first-measured-full-corpus-build.md) | `[BACKEND]` `[DATABASE]` `[PERFORMANCE]` `[TESTING]` `[DOCUMENTATION]` `[BUG_FIX]` |
 | 2026-09-26 | [Loader modes (cold/warm/warm+sweep), budgets, shrink check, manifest deletes](2026-09-26-1807_04-03-loader-modes-budgets-shrink-manifest-deletes.md) | `[BACKEND]` `[DATABASE]` `[FEATURE]` `[TESTING]` `[BUG_FIX]` |
