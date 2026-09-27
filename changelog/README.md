@@ -10,6 +10,7 @@ Entries are named `YYYY-MM-DD-HHMM_slug.md` and grouped by month, newest first.
 
 | Date | Entry | Keywords |
 |------|-------|----------|
+| 2026-09-27 | [GREEN: Google News sitemap implemented; @astrojs/sitemap integration added (04-07 Task 3, plan complete)](2026-09-27-0953_04-07-news-sitemap-green-and-sitemap-integration.md) | `[FEATURE]` `[SEO]` `[BACKEND]` `[CONFIG]` `[TESTING]` |
 | 2026-09-27 | [Failing tests for the Google News sitemap and general sitemap (04-07 Task 3, RED)](2026-09-27-0952_04-07-news-sitemap-red-tests.md) | `[TESTING]` `[SEO]` `[FEATURE]` |
 | 2026-09-27 | [Feed packages installed; v1's intended robots.txt policy shipped; /rss.xml built (04-07 Task 2)](2026-09-27-0951_04-07-feed-packages-robots-rss.md) | `[FEATURE]` `[SEO]` `[DEPENDENCIES]` `[SECURITY]` `[TESTING]` `[BACKEND]` |
 | 2026-09-27 | [Phase 4 Plan 06 complete: Worker, non-canonical URL redirects, and 404 suggestions](2026-09-27-1000_04-06-complete-worker-redirect-404-plan.md) | `[DOCUMENTATION]` `[PLANNING]` `[SEO]` `[SECURITY]` `[DEPLOYMENT]` |

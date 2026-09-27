@@ -17,6 +17,7 @@
 import { defineConfig } from 'astro/config';
 import cloudflare from '@astrojs/cloudflare';
 import vue from '@astrojs/vue';
+import sitemap from '@astrojs/sitemap';
 import { assertNoD1Plugin } from './tools/assert-no-d1.mjs';
 
 export default defineConfig({
@@ -58,7 +59,27 @@ export default defineConfig({
     imageService: { build: 'compile', runtime: 'passthrough' },
     prerenderEnvironment: 'node',
   }),
-  integrations: [vue()],
+  integrations: [
+    vue(),
+    // SEO-04: the general crawl-surface sitemap, generated from the build's own route list
+    // (astro:build:done's `pages`), not a hand-maintained URL list. That `pages` list includes
+    // every route under src/pages/ this build produced, including this plan's own non-HTML
+    // endpoints (rss.xml, news-sitemap.xml, version.json, 404-index.json) — a sitemap is a
+    // crawl surface for HTML pages, so those are filtered out below, confirmed against the real
+    // built sitemap output (04-07-PLAN.md Task 3), not assumed. `/404` is also excluded by the
+    // integration's own internal STATUS_CODE_PAGES set; named here too for clarity since this
+    // filter already has to reason about every other non-page route.
+    sitemap({
+      filter: (page) => {
+        if (/\/404$/.test(page)) return false;
+        const { pathname } = new URL(page);
+        // Every real HTML route in this project (home, category, article, tag, source, tags)
+        // is extensionless under trailingSlash:'never' + build.format:'file'; a dotted final
+        // path segment is this project's own reliable "not an HTML page" signal.
+        return !/\.[a-z0-9]+$/i.test(pathname);
+      },
+    }),
+  ],
   vite: {
     plugins: [assertNoD1Plugin()],
   },
