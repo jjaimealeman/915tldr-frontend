@@ -5,15 +5,15 @@ milestone_name: milestone
 current_phase: 04
 current_phase_name: Static Generation, Templates & SEO
 status: executing
-stopped_at: Completed 04-06-PLAN.md
-last_updated: "2026-09-27T15:33:34.796Z"
+stopped_at: Completed 04-07-PLAN.md
+last_updated: "2026-09-27T15:56:51.147Z"
 last_activity: 2026-09-26
 last_activity_desc: Phase 03 complete, transitioned to Phase 4
 progress:
   total_phases: 4
   completed_phases: 3
   total_plans: 52
-  completed_plans: 46
+  completed_plans: 47
 ---
 
 # Project State
@@ -28,11 +28,11 @@ See: .planning/PROJECT.md (updated 2026-09-16)
 ## Current Position
 
 Phase: 04 (Static Generation, Templates & SEO) — EXECUTING
-Plan: 7 of 12
+Plan: 8 of 12
 Status: Ready to execute
 Last activity: 2026-09-26 — Phase 04 execution started
 
-Progress: [█████████░] 88%
+Progress: [█████████░] 90%
 
 ## Performance Metrics
 
@@ -95,6 +95,7 @@ Progress: [█████████░] 88%
 | Phase 04 P04 | ~35min (continuation) | 3 tasks | 8 files |
 | Phase 04 P05 | ~16min | 3 tasks | 9 files |
 | Phase 04 P06 | 30min | 3 tasks | 14 files |
+| Phase 04 P07 | 21min | 3 tasks | 10 files |
 
 ## Accumulated Context
 
@@ -207,6 +208,8 @@ Recent decisions affecting current work:
 - [Phase ?]: 04-05: HOME_FEED_COUNT=7 cited directly from design/mockups/index.html's no-JS feed state (1 lead + 6 grid cards)
 - [Phase ?]: 04-06: wrangler deploy MUST pin --config wrangler.jsonc — @astrojs/cloudflare 14.3.2 marks the entry-Worker environment devOnly (dropping a custom main) whenever the Astro app has zero on-demand routes, independent of main's value; found via the plan's own instructed inspection of the generated deploy config, not assumed.
 - [Phase ?]: 04-06: test:build-gate wired into the build script — the live Rollup-based D1-import guard cannot see src/worker.ts during a real astro build (its devOnly environment is never built at all), so the fixture suite's real-graph case is the only current-content check for this file.
+- [Phase ?]: 04-07: Owner decision -- public/robots.txt ships v1's INTENDED per-bot AI-crawler-blocking policy (server/routes/robots.txt.ts's rendered body), not the live trivial file production actually serves -- v1's static public/robots.txt shadows its own server route, so that policy has never actually been served. Deliberate production policy change on next deploy.
+- [Phase ?]: 04-07: astro.config.mjs's sitemap() filter excludes any URL with a dotted final path segment (rss.xml, news-sitemap.xml, version.json, 404-index.json) rather than a hand-maintained list, confirmed against the package's own astro:build:done hook source.
 
 ### Pending Todos
 
@@ -246,6 +249,7 @@ Recent decisions affecting current work:
 - **UPDATED — Phase 1, 01-23 Task 2/3** (supersedes the prior line above). The owner completed the round-2 review and replied **APPROVED**, with spot comments on article/changelog/contact/load-more and two new feature requests (sticky rail, Astro view transitions — both deferred to the Astro build phase, see Pending Todos). Per this plan's own non-negotiable rule (T-01-32/T-01-33, "the executor never writes the owner's sign-off line, and never records an approval on the owner's behalf"), the executor did NOT add the `Approved-by:` line to `01-APPROVAL.md` — that relayed "APPROVED" came through the orchestrator, not the owner's own hand on the file, and the plan requires the literal line to be the owner's own act. **Remaining step (owner-only, not a code blocker):** add `Approved-by: <name> — 2026-09-17` to the "## Owner sign-off" section of `01-APPROVAL.md`, then `pnpm run verify:approval` will exit 0 and a trivial follow-up commit finalizes Task 3.
 - **RESOLVED — Phase 3, 03-01 Task 2.** The Cloudflare token gained `Workers KV Storage:Edit` (D1:Edit and the account id were confirmed intact in the same pass). The `915tldr-render-manifest` KV namespace was created (id `3c92531f94294fcc94006455f433885f`), wired into `wrangler.jsonc` and a gitignored `.dev.vars`. `pnpm build` and `pnpm test:tracer` both pass end-to-end against the real D1 row and the real KV namespace; Phase 1's 43-test suite is unaffected. Three further build-blocking issues were found and fixed in the same session (stale `wrangler.jsonc` `main` field, an unwanted auto-provisioned `SESSION` KV binding, and a bundler bug dropping a frontmatter-local `slugify()` function) — see 03-01-SUMMARY.md for full detail. 03-01 is complete.
 - **RESOLVED — Phase 3, 03-05 (both prior halts).** The owner granted the missing Rulesets/Transform Rules token scope. Resumed from mandatory-ordering Step 2 and completed the plan: the noindex Transform Rule now covers `dev.915tldr.com` AND `admin-dev.915tldr.com` (extended scope, Rule 2 deviation — admin-dev didn't exist when the plan's Task 2 was first scoped); `915tldr-v2` is deployed and live on `dev.915tldr.com` (Custom Domain reassigned from `915tldr-dev`, `workers_dev: false`, stale zone Worker Route deleted after it was found to be out-prioritizing the reassignment); `pnpm verify:edge` (`tools/verify-edge-headers.mjs`) re-proves the whole policy on every future deploy. Two real bugs found and fixed along the way: `session: false` was a no-op in the wrong astro.config.mjs location (03-01's claimed fix never worked), and a stale zone Worker Route silently out-prioritized a correctly-reassigned Custom Domain for 3+ minutes, contrary to Cloudflare's documented precedence. Production (`915tldr.com`/`www.915tldr.com`) and `admin-dev.915tldr.com` verified unaffected throughout. See 03-05-SUMMARY.md for full detail. 03-05 is complete.
+- 04-07: production robots.txt behavior changes on next deploy -- v1's AI-crawler-blocking policy (Content-signal, GPTBot/ClaudeBot/CCBot/etc. Disallow) has never actually been served (v1's static public/robots.txt shadowed its own server route); v2 ships the intended policy, an owner-approved but real change to what's been crawlable. Also flagged: SEO-04 sitemap ordering-determinism unverified across two builds (@astrojs/sitemap documents no stable ordering guarantee) -- see 04-07-SUMMARY.md coverage D4.
 
 ## Deferred Items
 
@@ -257,6 +261,6 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-09-27T15:33:34.778Z
-Stopped at: Completed 04-06-PLAN.md
+Last session: 2026-09-27T15:56:45.277Z
+Stopped at: Completed 04-07-PLAN.md
 Resume file: None

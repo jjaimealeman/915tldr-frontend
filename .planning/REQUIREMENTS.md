@@ -100,10 +100,10 @@
 
 - [x] **SEO-01**: Every article emits valid `NewsArticle` structured data, validated not merely emitted
 - [x] **SEO-02**: `BreadcrumbList`, `Organization` and `WebSite` structured data are present and valid
-- [ ] **SEO-03**: A Google News sitemap covers articles from the last 48 hours
+- [x] **SEO-03**: A Google News sitemap covers articles from the last 48 hours
 - [x] **SEO-04**: Every page has a canonical URL and existing `/[category]/[slug]-[uuid]` URLs still resolve
-- [ ] **SEO-05**: The existing per-bot `robots.txt` policy, including AI-crawler and `Content-signal` rules, is preserved
-- [ ] **SEO-06**: `/rss.xml` is preserved
+- [x] **SEO-05**: The existing per-bot `robots.txt` policy, including AI-crawler and `Content-signal` rules, is preserved
+- [x] **SEO-06**: `/rss.xml` is preserved
 - [x] **SEO-07**: Canonical links to the originating outlet are prominent on every article
 - [x] **SEO-08**: The 404 suggestion endpoint carries over
 - [ ] **SEO-09**: Lighthouse SEO scores 100 across the representative page set
@@ -320,10 +320,10 @@ Deferred. Tracked, not in this roadmap.
 | PERF-10 | Phase 7 | Pending |
 | SEO-01 | Phase 4 | Complete |
 | SEO-02 | Phase 4 | Complete |
-| SEO-03 | Phase 4 | Pending |
+| SEO-03 | Phase 4 | Complete |
 | SEO-04 | Phase 4 | Complete |
-| SEO-05 | Phase 4 | Pending |
-| SEO-06 | Phase 4 | Pending |
+| SEO-05 | Phase 4 | Complete |
+| SEO-06 | Phase 4 | Complete |
 | SEO-07 | Phase 4 | Complete |
 | SEO-08 | Phase 4 | Complete |
 | SEO-09 | Phase 11 | Pending |
