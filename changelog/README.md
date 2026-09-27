@@ -10,6 +10,7 @@ Entries are named `YYYY-MM-DD-HHMM_slug.md` and grouped by month, newest first.
 
 | Date | Entry | Keywords |
 |------|-------|----------|
+| 2026-09-27 | [STATE/ROADMAP/REQUIREMENTS updated after Phase 4 Plan 04 completion](2026-09-27-0842_04-04-state-roadmap-requirements-update.md) | `[DOCUMENTATION]` `[PLANNING]` |
 | 2026-09-27 | [Complete full article template plan: verified byte-identity at full-corpus scale](2026-09-27-0841_04-04-complete-full-article-template-plan.md) | `[DOCUMENTATION]` `[TESTING]` `[SEO]` `[FRONTEND]` |
 | 2026-09-27 | [Phase 4 Plan 04 Task 3: full article template — disclosure, attribution, tags, rail, canonical & structured data](2026-09-27-0043_04-04-full-article-template.md) | `[FEATURE]` `[FRONTEND]` `[SEO]` `[SECURITY]` `[TESTING]` `[BUG_FIX]` |
 | 2026-09-27 | [GREEN: implement standfirst split, summary body and rail selection](2026-09-27-0038_04-04-summary-rail-green.md) | `[FEATURE]` `[FRONTEND]` `[SEO]` `[BUG_FIX]` |

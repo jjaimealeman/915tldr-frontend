@@ -98,13 +98,13 @@
 
 ### SEO
 
-- [ ] **SEO-01**: Every article emits valid `NewsArticle` structured data, validated not merely emitted
+- [x] **SEO-01**: Every article emits valid `NewsArticle` structured data, validated not merely emitted
 - [x] **SEO-02**: `BreadcrumbList`, `Organization` and `WebSite` structured data are present and valid
 - [ ] **SEO-03**: A Google News sitemap covers articles from the last 48 hours
 - [x] **SEO-04**: Every page has a canonical URL and existing `/[category]/[slug]-[uuid]` URLs still resolve
 - [ ] **SEO-05**: The existing per-bot `robots.txt` policy, including AI-crawler and `Content-signal` rules, is preserved
 - [ ] **SEO-06**: `/rss.xml` is preserved
-- [ ] **SEO-07**: Canonical links to the originating outlet are prominent on every article
+- [x] **SEO-07**: Canonical links to the originating outlet are prominent on every article
 - [ ] **SEO-08**: The 404 suggestion endpoint carries over
 - [ ] **SEO-09**: Lighthouse SEO scores 100 across the representative page set
 
@@ -164,8 +164,8 @@
 
 - [ ] **IDNT-01**: The About page names a real person, with photo, written in first person
 - [ ] **IDNT-02**: The About page explains in plain English what is automated, what is summarised and where the reporting comes from
-- [ ] **IDNT-03**: Each article carries AI-generation disclosure at point of consumption, not only on the About page
-- [ ] **IDNT-04**: Original outlets are prominently attributed on every article
+- [x] **IDNT-03**: Each article carries AI-generation disclosure at point of consumption, not only on the About page
+- [x] **IDNT-04**: Original outlets are prominently attributed on every article
 - [ ] **IDNT-05**: A contact route exists that is not a form-only dead end
 - [ ] **IDNT-06**: Links to `jjaimealeman.com` and `915website.com` are present
 
@@ -318,13 +318,13 @@ Deferred. Tracked, not in this roadmap.
 | PERF-08 | Phase 7 | Pending |
 | PERF-09 | Phase 7 | Pending |
 | PERF-10 | Phase 7 | Pending |
-| SEO-01 | Phase 4 | Pending |
+| SEO-01 | Phase 4 | Complete |
 | SEO-02 | Phase 4 | Complete |
 | SEO-03 | Phase 4 | Pending |
 | SEO-04 | Phase 4 | Complete |
 | SEO-05 | Phase 4 | Pending |
 | SEO-06 | Phase 4 | Pending |
-| SEO-07 | Phase 4 | Pending |
+| SEO-07 | Phase 4 | Complete |
 | SEO-08 | Phase 4 | Pending |
 | SEO-09 | Phase 11 | Pending |
 | SOC-01 | Phase 7 | Pending |
@@ -366,8 +366,8 @@ Deferred. Tracked, not in this roadmap.
 | SUB-08 | Phase 10 | Pending |
 | IDNT-01 | Phase 10 | Pending |
 | IDNT-02 | Phase 10 | Pending |
-| IDNT-03 | Phase 4 | Pending |
-| IDNT-04 | Phase 4 | Pending |
+| IDNT-03 | Phase 4 | Complete |
+| IDNT-04 | Phase 4 | Complete |
 | IDNT-05 | Phase 10 | Pending |
 | IDNT-06 | Phase 10 | Pending |
 | OPS-01 | Phase 12 | Pending |
