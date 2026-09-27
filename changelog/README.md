@@ -10,6 +10,7 @@ Entries are named `YYYY-MM-DD-HHMM_slug.md` and grouped by month, newest first.
 
 | Date | Entry | Keywords |
 |------|-------|----------|
+| 2026-09-27 | [Wire the Worker into wrangler.jsonc; extend the D1-import guard (04-06 Task 2)](2026-09-27-0940_04-06-wire-worker-into-wrangler-and-d1-guard.md) | `[FEATURE]` `[SECURITY]` `[DEPLOYMENT]` `[CONFIG]` `[BUG_FIX]` `[CRITICAL]` `[TESTING]` |
 | 2026-09-27 | [GREEN: implement article-redirect and the Worker fetch handler (04-06 Task 1)](2026-09-27-0915_04-06-worker-redirect-green.md) | `[FEATURE]` `[SECURITY]` `[BACKEND]` `[ROUTING]` `[BUG_FIX]` |
 | 2026-09-27 | [Failing tests for article-redirect and the Worker (04-06 Task 1, RED)](2026-09-27-0904_04-06-worker-redirect-tests-red.md) | `[TESTING]` `[FEATURE]` `[SECURITY]` `[BACKEND]` |
 | 2026-09-27 | [Phase 4 Plan 05 complete: home, category, tag, tags and source listing pages](2026-09-27-0932_04-05-complete-listing-pages-plan.md) | `[DOCUMENTATION]` `[SEO]` `[FRONTEND]` `[TESTING]` |

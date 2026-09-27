@@ -1,15 +1,41 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "915tldr-v2",
-  // No `main` field: this tracer's output is fully static (no `server:defer` islands yet), and
-  // Astro's own docs (withastro/docs, "Configure wrangler.jsonc for static sites") show the
-  // static-site shape with no `main` entry at all. The old Astro <6 convention of pointing
-  // `main` at `dist/_worker.js/index.js` no longer applies as of Astro 6 / @astrojs/cloudflare
-  // v13 — the unified entrypoint is `@astrojs/cloudflare/entrypoints/server`, and that is only
-  // needed for on-demand/SSR routes, which this tracer does not have. A finding from this
-  // task's own build, not in 03-RESEARCH.md.
+  // `main` now points at this project's first real Worker (D-08, Phase 4 plan 06): it exists
+  // solely to catch a static-asset MISS and turn a known article uuid into one 301 to its
+  // canonical path (one KV read, zero D1 reads) — it never runs for an asset hit. `run_worker_
+  // first` stays unset (the default, `false`): Workers Static Assets serves every matched static
+  // file directly without invoking this Worker at all, which is what keeps the zero-D1-reads
+  // core value intact even though a Worker now exists. Before this plan, this tracer's output was
+  // fully static with no `main` field at all (see git history for that comment) — D-08 is the
+  // first thing in this project that needs on-demand code to run on the public request path.
+  "main": "src/worker.ts",
+  // CRITICAL, deploy-invocation note (04-06 Task 2 finding, not a tweak): `@astrojs/cloudflare`
+  // 14.3.2's build hook computes `buildOutput === 'static'` whenever the Astro app has ZERO
+  // on-demand routes (which this project still has, pre-Phase-8) and, purely from that, tells the
+  // underlying `@cloudflare/vite-plugin` to mark the whole entry-Worker environment `devOnly` —
+  // REGARDLESS of what `main` names. `devOnly` workers are excluded from the adapter's
+  // auto-generated `dist/client/wrangler.json`, which is what `wrangler deploy` reads BY DEFAULT
+  // via its own redirect file (`.wrangler/deploy/config.json`, auto-written at build time).
+  // Measured directly: `dist/client/wrangler.json` after a real build carries every OTHER key set
+  // here (`compatibility_flags`, both `assets.*` keys, `kv_namespaces`) byte-correct, but omits
+  // `main` entirely — a bare `wrangler deploy` would silently ship WITHOUT this Worker, defeating
+  // D-08 while every other guard stays green. Fix: `wrangler deploy` MUST be invoked with
+  // `--config wrangler.jsonc` (see package.json's `deploy` script) — this bypasses the adapter's
+  // redirect and reads this file directly, which correctly bundles `src/worker.ts` (confirmed via
+  // a real `wrangler deploy --config wrangler.jsonc --dry-run`: the emitted `worker.js` contains
+  // this project's own redirect code and both `RENDER_MANIFEST`/`ASSETS` bindings). NEVER run a
+  // bare `wrangler deploy` (no `--config`) against this project once a Worker exists here.
   "compatibility_date": "2026-09-16",
-  "compatibility_flags": ["nodejs_compat"],
+  // `assets_navigation_has_no_effect`: the documented Workers opt-out for "Navigation requests
+  // prefer asset serving" (default since 2025-04-01, and this project's compatibility_date is
+  // past that). Without this flag, a request carrying `Sec-Fetch-Mode: navigate` — which every
+  // browser sends on a real link click, but `curl` does not — would serve the static 404 page
+  // directly on an asset miss WITHOUT ever invoking this Worker, silently breaking every D-08
+  // redirect for real readers while a curl-based check kept passing. [CITED: Context7
+  // `/llmstxt/developers_cloudflare_workers_llms-full_txt`, fetched 2026-09-26 during 04-06
+  // planning.] Verified with both request kinds, not curl alone (04-06 Task 2 verification).
+  "compatibility_flags": ["nodejs_compat", "assets_navigation_has_no_effect"],
   // `workers_dev: false` set explicitly (deviation Rule 2 — missing critical, not in
   // 03-RESEARCH.md or the plan's own action text). Omitting this key defaults to `true`,
   // which hands the Worker a free public `915tldr-v2.<account>.workers.dev` hostname — a
@@ -41,6 +67,17 @@
   "assets": {
     "directory": "dist/client",
     "binding": "ASSETS",
+    // `not_found_handling: "404-page"`: on a static-asset miss that this Worker's own fetch
+    // handler also declines (no uuid in the path, or no matching manifest entry),
+    // `env.ASSETS.fetch(request)` serves the project's own built `404.html` (D-10a's build-time
+    // suggestion index) with HTTP status 404 — not a generic Cloudflare "not found" response.
+    // `html_handling: "auto-trailing-slash"` (explicit, matching `build.format: 'file'` in
+    // astro.config.mjs): `/path` serves `path.html` directly; `/path/` redirects once to `/path`.
+    // Cloudflare's own docs describe this redirect as a 307 — 04-01's spike measured the same
+    // (docs/phase-04/spikes.md), and 04-12 re-checks it live; not a 301, and not something this
+    // Worker mediates.
+    "not_found_handling": "404-page",
+    "html_handling": "auto-trailing-slash",
   },
   // D1 Database — DELIBERATELY ABSENT. Not an empty block, not commented out: this app's D1
   // access happens once, in Node, at build time (src/lib/server/d1-client.ts), never inside the

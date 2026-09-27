@@ -46,6 +46,10 @@ const FIXTURE_ID_MAP = {
   'island-wrapper-kv.astro': 'src/islands/island-wrapper-kv.astro',
   'island-with-kv-import.vue': 'src/islands/island-with-kv-import.vue',
   'helper-reaching-kv.ts': 'src/lib/helper-reaching-kv.ts',
+  // T-04-26 (04-06) fixture: proves the guard's `ENTRYPOINT_EXACT_FILES` treatment of
+  // `src/worker.ts` catches a transitive reach into the D1/KV chokepoint directory exactly like
+  // any other entrypoint kind.
+  'worker-with-kv-import.ts': 'src/worker.ts',
 };
 
 function idFor(absPath) {
@@ -119,11 +123,12 @@ function buildGraph(seedFilenames) {
 
 class StubBuildError extends Error {}
 
-/** Runs the real checker against the graph built from `seedFilenames`, capturing both its
- * `this.error(...)` message(s) and its `console.log` diagnostics (the entrypoint/candidate
- * count line), the same way a real Rollup build would surface them. */
-function runScenario(seedFilenames) {
-  const { allIds, moduleInfo } = buildGraph(seedFilenames);
+/** Runs the real checker against an already-built `{ allIds, moduleInfo }` graph, capturing both
+ * its `this.error(...)` message(s) and its `console.log` diagnostics (the entrypoint/candidate
+ * count line), the same way a real Rollup build would surface them. Shared by both the
+ * fixture-seeded scenarios (`runScenario`) and the real-repo-file scenario (`runRealGraphScenario`,
+ * 04-06) below. */
+function runAgainstGraph({ allIds, moduleInfo }) {
   const messages = [];
   const ctx = {
     getModuleIds: () => allIds,
@@ -149,6 +154,49 @@ function runScenario(seedFilenames) {
   }
 
   return { threw, messages, logs };
+}
+
+/** Runs the real checker against the graph built from `seedFilenames` (fixture files, resolved
+ * relative to `FIXTURES_DIR` and re-mapped to their synthetic project-relative id via
+ * `FIXTURE_ID_MAP`). */
+function runScenario(seedFilenames) {
+  return runAgainstGraph(buildGraph(seedFilenames));
+}
+
+/**
+ * 04-06 (T-04-26): builds a real module graph — same shape as `buildGraph` above, but seeded from
+ * REAL project files by absolute path, with ids computed as their actual repo-relative path (no
+ * `FIXTURE_ID_MAP` substitution). Used to prove the checker's behavior against the Worker's ACTUAL
+ * import graph (`src/worker.ts` -> `src/lib/article-redirect.ts` -> `src/lib/article-url.ts`), not
+ * a synthesized stand-in — an edit to any of those three files' own import lines is reflected here
+ * automatically, the same non-staleness guarantee `buildGraph` gives the fixture-seeded cases.
+ */
+function buildRealGraph(seedAbsPaths) {
+  const moduleInfo = new Map();
+  const stack = seedAbsPaths.map((absPath) => ({ absPath }));
+
+  while (stack.length > 0) {
+    const { absPath } = stack.pop();
+    const id = path.relative(REPO_ROOT, absPath).replaceAll('\\', '/');
+    if (moduleInfo.has(id)) continue;
+
+    const region = importableRegion(absPath);
+    const importedIds = [];
+    const importRe = /from\s+['"](\.[^'"]+)['"]/g;
+    let match;
+    while ((match = importRe.exec(region))) {
+      const resolvedAbs = resolveSpecifier(absPath, match[1]);
+      importedIds.push(path.relative(REPO_ROOT, resolvedAbs).replaceAll('\\', '/'));
+      stack.push({ absPath: resolvedAbs });
+    }
+    moduleInfo.set(id, { importedIds, dynamicallyImportedIds: [] });
+  }
+
+  return { allIds: [...moduleInfo.keys()], moduleInfo };
+}
+
+function runRealGraphScenario(seedAbsPaths) {
+  return runAgainstGraph(buildRealGraph(seedAbsPaths));
 }
 
 test('Case 1 (ARCH-02): a page-shaped fixture that reaches d1-client.ts transitively through a helper is rejected', () => {
@@ -261,5 +309,39 @@ test('Case 4 (D-06 non-vacuity / A1 regression guard): a build matching zero pag
     result.stderr,
     /matched zero candidate files/,
     'must fail with the explicit zero-candidate message, not a generic crash'
+  );
+});
+
+// --- T-04-26 (04-06): the Worker entrypoint (src/worker.ts) is inside the guard's scope ---
+
+test('Case 7 (T-04-26): a Worker-shaped fixture that reaches kv-manifest.ts transitively through a helper is rejected', () => {
+  const { threw, messages, logs } = runScenario(['worker-with-kv-import.ts']);
+  assert.equal(threw, true, 'checker must reject a transitive Worker-entrypoint violation');
+  const combined = messages.join('\n');
+  assert.match(combined, /src\/worker\.ts/, 'message must name the violating Worker entrypoint');
+  assert.match(combined, /kv-manifest\.ts/, 'message must name the forbidden module reached');
+  assert.match(
+    logs.join('\n'),
+    /entrypoints found: [1-9]/,
+    'non-vacuity: this fixture tree must match at least one entrypoint, not zero'
+  );
+});
+
+test('Case 8 (T-04-26, control): the REAL src/worker.ts -> article-redirect.ts -> article-url.ts graph is accepted', () => {
+  // Drives the checker against the actual repository files (not a synthesized stand-in) — an
+  // edit to any of these three files' own import lines is reflected here automatically, matching
+  // 03-02's own "reads the ACTUAL import statements" guarantee for the fixture-seeded cases.
+  const workerPath = path.resolve(REPO_ROOT, 'src/worker.ts');
+  const { threw, messages, logs } = runRealGraphScenario([workerPath]);
+  assert.equal(
+    threw,
+    false,
+    `the real Worker's import graph must not be rejected: ${JSON.stringify(messages)}`
+  );
+  assert.deepEqual(messages, []);
+  assert.match(
+    logs.join('\n'),
+    /entrypoints found: [1-9]/,
+    'non-vacuity: the real src/worker.ts graph must match at least one entrypoint, not zero'
   );
 });
