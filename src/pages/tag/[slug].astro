@@ -1,0 +1,80 @@
+---
+// 04-05 (Task 3): tag pages — v1 URL parity (`.claude/CLAUDE.md`'s indexed-URL compatibility
+// constraint doesn't cover `/tag/*` directly, but D-11/the plan's own must-haves keep v1's
+// `/tag/*`, `/tags` and `/source/*` shapes). One path per tag present on at least one public
+// article (`groupByTag` — a tag with zero public articles gets no page, per this plan's
+// must-haves). Tag slugs come from D1's `tags.slug` column (unique) — validated against
+// `TAG_SLUG_RE` before ever becoming a file name (T-04-18: a tag/source slug used as a file path
+// is a tampering surface this project mitigates, same discipline as `article-url.ts`'s
+// `ARTICLE_SLUG_RE`/`CATEGORY_SLUG_RE`).
+import { getCollection } from 'astro:content';
+import { mkdirSync, writeFileSync } from 'node:fs';
+import Base from '../../layouts/Base.astro';
+import ArticleCard from '../../components/ArticleCard.astro';
+import { articlePath, TAG_SLUG_RE } from '../../lib/article-url';
+import { groupByTag, TAG_PAGE_COUNT } from '../../lib/listing';
+import { breadcrumbNode } from '../../lib/structured-data';
+
+export async function getStaticPaths() {
+  const entries = await getCollection('articles');
+  const allArticles = entries.map((entry) => entry.data);
+  const grouped = groupByTag(allArticles);
+
+  // Build-time log line (plan's own acceptance criterion): records the authoritative tag-page
+  // count this getStaticPaths call actually computed, so tests/unit/listing-pages.test.mjs can
+  // cross-check the built `dist/client/tag/*.html` file count against the exact number this
+  // route intended to generate, not just a re-derived guess. `.astro/` is gitignored — this is a
+  // build-time scratch artifact, never committed.
+  console.log(`tag pages: ${grouped.size} tags`);
+  mkdirSync('.astro', { recursive: true });
+  writeFileSync('.astro/tag-build-log.json', JSON.stringify({ tagCount: grouped.size }));
+
+  return [...grouped.entries()].map(([slug, entry]) => {
+    if (!TAG_SLUG_RE.test(slug)) {
+      throw new Error(`tag/[slug]: invalid tag slug "${slug}" — must match ${TAG_SLUG_RE}`);
+    }
+    return {
+      params: { slug },
+      props: {
+        slug,
+        name: entry.name,
+        articles: entry.articles.slice(0, TAG_PAGE_COUNT),
+      },
+    };
+  });
+}
+
+const { slug, name, articles } = Astro.props;
+---
+
+<Base
+  page="tag"
+  title={`${name} News - El Paso`}
+  description={`El Paso news articles about ${name}. Browse all articles tagged with this topic.`}
+  canonicalPath={`/tag/${slug}`}
+  jsonLd={[breadcrumbNode([{ name: 'Home', path: '/' }, { name, path: `/tag/${slug}` }])]}
+>
+  <header data-block>
+    <h1>{name}</h1>
+    <p data-story-count>
+      {articles.length} {articles.length === 1 ? 'story' : 'stories'} with this tag
+    </p>
+  </header>
+
+  <section data-grid aria-label={`Stories tagged ${name}`}>
+    {
+      articles.map((article) => (
+        <ArticleCard
+          uuid={article.uuid}
+          title={article.title}
+          href={articlePath(article.category.slug, article.slug, article.uuid)}
+          categorySlug={article.category.slug}
+          categoryName={article.category.name}
+          sourceName={article.source.name}
+          publishedAt={article.publishedAt}
+          summary={article.summary}
+        />
+      ))
+    }
+  </section>
+</Base>

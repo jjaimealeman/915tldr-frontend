@@ -109,3 +109,103 @@ test('listing-pages: at least 9 top-level HTML files exist (index + 8 categories
   const topLevelHtml = readdirSync(DIST_CLIENT).filter((f) => f.endsWith('.html') && statSync(path.join(DIST_CLIENT, f)).isFile());
   assert.ok(topLevelHtml.length >= 9, `expected at least 9 top-level .html files, got ${topLevelHtml.length}`);
 });
+
+// ---------------------------------------------------------------------------
+// Tag pages, /tags, source pages (Task 3)
+// ---------------------------------------------------------------------------
+
+const ARTICLE_FILE_RE =
+  /^(.+)-([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12})\.html$/;
+
+/** Every article HTML file under a category directory (`dist/client/<category>/<slug>-<uuid>.html`). */
+function findArticleHtmlFiles(dir) {
+  const found = [];
+  for (const entry of readdirSync(dir)) {
+    const full = path.join(dir, entry);
+    if (!statSync(full).isDirectory()) continue;
+    for (const inner of readdirSync(full)) {
+      const innerFull = path.join(full, inner);
+      if (statSync(innerFull).isFile() && ARTICLE_FILE_RE.test(inner)) {
+        found.push(innerFull);
+      }
+    }
+  }
+  return found;
+}
+
+function sampleEvenly(items, count) {
+  if (items.length <= count) return items;
+  const step = items.length / count;
+  const sampled = [];
+  for (let i = 0; i < count; i++) {
+    sampled.push(items[Math.floor(i * step)]);
+  }
+  return sampled;
+}
+
+function tagSlugsIn(html) {
+  return new Set([...html.matchAll(/<a href="\/tag\/([a-z0-9-]+)">/g)].map((m) => m[1]));
+}
+
+test('listing-pages: dist/client/tag/*.html count matches the build-time authoritative tag count', { skip: !DIST_BUILT && SKIP_REASON }, () => {
+  const tagDir = path.join(DIST_CLIENT, 'tag');
+  assert.ok(existsSync(tagDir), 'expected dist/client/tag/ to exist');
+  const tagFiles = readdirSync(tagDir).filter((f) => f.endsWith('.html'));
+  assert.ok(tagFiles.length > 0, 'expected at least one tag page');
+
+  // Cross-check against the exact count `tag/[slug].astro`'s own getStaticPaths computed at
+  // build time (src/pages/tag/[slug].astro writes this — see that file's own comment).
+  const buildLogPath = path.join(REPO_ROOT, '.astro', 'tag-build-log.json');
+  assert.ok(existsSync(buildLogPath), 'expected .astro/tag-build-log.json to exist after a build');
+  const buildLog = JSON.parse(readFileSync(buildLogPath, 'utf8'));
+  assert.equal(tagFiles.length, buildLog.tagCount, 'built tag page count must match getStaticPaths\'s own authoritative count');
+
+  // Sanity cross-check via sampling: every tag slug linked from a sample of up to 200 real
+  // article pages must have its own built tag page. A partial sample can never prove the full
+  // set of tag pages is *exactly* the full set of linked tags (most tags won't appear in any
+  // given 200-article sample), but it does prove no sampled article links to a tag with no page.
+  const articleFiles = findArticleHtmlFiles(DIST_CLIENT).sort();
+  const sample = sampleEvenly(articleFiles, 200);
+  const tagFileSet = new Set(tagFiles.map((f) => f.replace(/\.html$/, '')));
+  for (const filePath of sample) {
+    const html = readFileSync(filePath, 'utf8');
+    for (const slug of tagSlugsIn(html)) {
+      assert.ok(tagFileSet.has(slug), `article ${path.relative(DIST_CLIENT, filePath)} links to /tag/${slug}, but dist/client/tag/${slug}.html does not exist`);
+    }
+  }
+});
+
+test('listing-pages: a sampled tag page lists at most TAG_PAGE_COUNT cards, newest first', { skip: !DIST_BUILT && SKIP_REASON }, () => {
+  const tagDir = path.join(DIST_CLIENT, 'tag');
+  const tagFiles = readdirSync(tagDir).filter((f) => f.endsWith('.html'));
+  assert.ok(tagFiles.length > 0, 'expected at least one tag page to sample');
+  const html = readFileSync(path.join(tagDir, tagFiles[0]), 'utf8');
+
+  const cardCount = countCards(html);
+  assert.ok(cardCount <= 30, `expected at most 30 cards on a tag page, got ${cardCount}`);
+  assertDescending(extractCardDatetimes(html), `tag page ${tagFiles[0]} cards`);
+});
+
+test('listing-pages: dist/client/tags.html has at most TAGS_INDEX_COUNT tag links', { skip: !DIST_BUILT && SKIP_REASON }, () => {
+  assert.ok(distFileExists('tags.html'), 'expected dist/client/tags.html to exist');
+  const html = readDist('tags.html');
+  const links = [...html.matchAll(/<a href="\/tag\/[a-z0-9-]+">/g)];
+  assert.ok(links.length <= TAGS_INDEX_COUNT, `expected at most ${TAGS_INDEX_COUNT} tag links, got ${links.length}`);
+  assert.equal(extractCanonical(html), 'https://915tldr.com/tags');
+});
+
+test('listing-pages: dist/client/source/ holds exactly 3 files', { skip: !DIST_BUILT && SKIP_REASON }, () => {
+  const sourceDir = path.join(DIST_CLIENT, 'source');
+  assert.ok(existsSync(sourceDir), 'expected dist/client/source/ to exist');
+  const sourceFiles = readdirSync(sourceDir).filter((f) => f.endsWith('.html'));
+  assert.equal(sourceFiles.length, 3, 'expected exactly 3 source pages (3 fixed RSS sources)');
+
+  for (const file of sourceFiles) {
+    const html = readFileSync(path.join(sourceDir, file), 'utf8');
+    const cardCount = countCards(html);
+    assert.ok(cardCount <= SOURCE_PAGE_COUNT, `expected at most ${SOURCE_PAGE_COUNT} cards on ${file}, got ${cardCount}`);
+    assertDescending(extractCardDatetimes(html), `source page ${file} cards`);
+    const expectedSlug = file.replace(/\.html$/, '');
+    assert.equal(extractCanonical(html), `https://915tldr.com/source/${expectedSlug}`);
+  }
+});

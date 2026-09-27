@@ -16,6 +16,14 @@ export const ARTICLE_SLUG_RE = /^[a-z0-9-]{1,100}$/;
 /** Category slugs — no length ceiling; the category set is small and fixed (8 categories). */
 export const CATEGORY_SLUG_RE = /^[a-z0-9-]+$/;
 
+/** Tag slugs (D1's `tags.slug` column, unique) — a tag slug becomes a `dist/client/tag/*.html`
+ * file name (04-05, T-04-18), so it needs the same tampering guard as `ARTICLE_SLUG_RE`/
+ * `CATEGORY_SLUG_RE`. Exported from this shared module rather than declared inline in
+ * `tag/[slug].astro`'s frontmatter — a top-level `const`/`function` referenced only from
+ * `getStaticPaths()` can be silently dropped by Astro 7.3.3's bundler (see 03-01-SUMMARY.md's
+ * `slugify()` deviation and this project's own `src/lib/slug.ts` fix for the same class of bug). */
+export const TAG_SLUG_RE = /^[a-z0-9-]+$/;
+
 function assertMatches(value: string, re: RegExp, label: string): void {
   if (typeof value !== 'string' || !re.test(value)) {
     throw new Error(`article-url: invalid ${label}: ${JSON.stringify(value)}`);
