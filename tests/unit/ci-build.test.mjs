@@ -9,7 +9,7 @@
 
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { runCi, classifyFailure, redact } from '../../tools/ci-build.mjs';
+import { runCi, classifyFailure, redact, toHeaderSafe } from '../../tools/ci-build.mjs';
 
 const EIGHTEEN_MINUTES_MS = 18 * 60 * 1000;
 
@@ -110,6 +110,45 @@ test('redact: removes any 40+ character token-like run even without a matching e
 test('redact: leaves ordinary short text untouched', () => {
   const out = redact('build failed: mode=warm rowsRead=5911', {});
   assert.equal(out, 'build failed: mode=warm rowsRead=5911');
+});
+
+// ---------------------------------------------------------------------------
+// toHeaderSafe (04-10 regression, D-15 real drill)
+// ---------------------------------------------------------------------------
+
+test('toHeaderSafe: normalizes em-dash/en-dash/curly quotes/ellipsis to ASCII equivalents', () => {
+  assert.equal(
+    toHeaderSafe('changelog-loader: v1 changelog.json has zero entries — refusing to build'),
+    'changelog-loader: v1 changelog.json has zero entries - refusing to build'
+  );
+  assert.equal(toHeaderSafe('a – b'), 'a - b');
+  assert.equal(toHeaderSafe('‘quoted’ and “double”'), "'quoted' and \"double\"");
+  assert.equal(toHeaderSafe('wait…'), 'wait...');
+});
+
+test('toHeaderSafe: strips any remaining code point above 255 rather than throwing', () => {
+  const out = toHeaderSafe('build failed \u{1F6A8} now');
+  assert.doesNotThrow(() => {
+    // eslint-disable-next-line no-new
+    new Headers({ Title: out });
+  });
+  assert.ok(!/[^\x00-\xff]/.test(out));
+});
+
+test('toHeaderSafe: the exact real message that crashed the notifier (04-10 D-15 drill) round-trips through a real Headers object without throwing', () => {
+  const realMessage =
+    'changelog-loader: v1 changelog.json has zero entries — refusing to build (the /changelog empty-state failure, REND-03)';
+  const safe = toHeaderSafe(realMessage);
+  assert.doesNotThrow(() => new Headers({ Title: safe }));
+});
+
+test('toHeaderSafe: leaves plain ASCII untouched', () => {
+  assert.equal(toHeaderSafe('astro build exited 1'), 'astro build exited 1');
+});
+
+test('toHeaderSafe: handles null/undefined without throwing', () => {
+  assert.equal(toHeaderSafe(undefined), '');
+  assert.equal(toHeaderSafe(null), '');
 });
 
 // ---------------------------------------------------------------------------

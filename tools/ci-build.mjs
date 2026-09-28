@@ -146,15 +146,40 @@ function defaultSpawn(cmd, args, opts = {}) {
 }
 
 /**
+ * HTTP header VALUES must be byte-safe (Latin1) — undici's `fetch()` throws a `TypeError` for any
+ * header value containing a code point above 255 ("Cannot convert argument to a ByteString").
+ * This project's own error messages routinely use em-dashes, en-dashes and curly quotes (see this
+ * very file's own comments, and `changelog-loader.ts`'s real thrown messages), so a REAL failure
+ * title must be normalized before use as the ntfy `Title` header, or the notifier crashes
+ * uncaught.
+ *
+ * 04-10 finding (D-15 drill): after `classifyFailure()` was fixed to correctly name the real
+ * failing check, the corrected title crashed the entire `ci-build` process with exactly this
+ * `ByteString` `TypeError` — defeating "a failure never fails silently" (D-15's whole point) at
+ * the exact moment the notification mattered most. Common typographic punctuation is normalized
+ * to its ASCII equivalent; anything else outside Latin1 is stripped rather than crashing.
+ * `body` (the POST payload, not a header) is NOT subject to this restriction and is sent as-is.
+ */
+export function toHeaderSafe(text) {
+  return String(text ?? '')
+    .replace(/[–—]/g, '-') // en dash, em dash
+    .replace(/[‘’]/g, "'") // curly single quotes
+    .replace(/[“”]/g, '"') // curly double quotes
+    .replace(/…/g, '...') // ellipsis
+    .replace(/[^\x00-\xff]/g, ''); // strip anything else outside Latin1
+}
+
+/**
  * Real ntfy push (jja-ntfy skill's own protocol: `POST {server}/{topic}`, `Title`/`Priority`/
  * `Tags` headers, optional Bearer auth). Never called with a raw secret — every caller routes
- * `body`/`title` through `redact()` first.
+ * `body`/`title` through `redact()` first, and `title` through `toHeaderSafe()` here (the header
+ * boundary, not `redact()`'s job).
  */
 async function defaultNotify({ env, title, body }) {
   const server = env.NTFY_SERVER ?? 'https://ntfy.sh';
   const topic = env.NTFY_TOPIC;
   const headers = {
-    Title: title,
+    Title: toHeaderSafe(title),
     Priority: 'high',
     Tags: 'rotating_light',
   };
