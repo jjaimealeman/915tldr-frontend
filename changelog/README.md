@@ -10,6 +10,7 @@ Entries are named `YYYY-MM-DD-HHMM_slug.md` and grouped by month, newest first.
 
 | Date | Entry | Keywords |
 |------|-------|----------|
+| 2026-09-27 | [Fix Workers Builds non-production deploy command missing --config flag](2026-09-27-2302_fix-workers-builds-version-command-flag.md) | `[DOCUMENTATION]` `[DEPLOYMENT]` `[INFRA]` `[CONFIG]` |
 | 2026-09-27 | [Replaced four Phase 4 placeholder changelog entries with real ones](2026-09-27-1415_replace-phase-4-changelog-placeholders.md) | `[DOCUMENTATION]` |
 | 2026-09-27 | [Phase 4 Plan 09 complete: Workers Builds CI wrapper and incremental-build spike](2026-09-27-1243_04-09-complete-ci-wrapper-and-incremental-build-spike.md) | `[DOCUMENTATION]` `[PLANNING]` `[CI_CD]` `[PERFORMANCE]` |
 | 2026-09-27 | [Local incremental-build spike: REUSE_WARM_ONLY, reproducing #18055 (04-09 Task 3, plan complete)](2026-09-27-1236_04-09-incremental-build-spike-reuse-warm-only.md) | `[FEATURE]` `[TESTING]` `[DOCUMENTATION]` `[PERFORMANCE]` |

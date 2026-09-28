@@ -35,10 +35,17 @@ Cloudflare dashboard → **Workers & Pages** → **`915tldr-v2`** → **Settings
 - **Build command:** `pnpm run build:ci`
 - **Deploy command:** `pnpm run deploy:ci`
 - **Non-production branch builds:** enabled, with deploy command
-  `pnpm exec wrangler versions upload` — a preview/versioned deploy, which **never** calls
-  `commitLastGood` (only `deploy:ci`, i.e. `tools/ci-build.mjs deploy`, does that — see
-  `tools/ci-build.mjs`'s `runCi()`). Previews must never advance the last-good baseline that
-  gates the next production build's never-shrink check (D-14).
+  `pnpm exec wrangler versions upload --config wrangler.jsonc` — a preview/versioned deploy,
+  which **never** calls `commitLastGood` (only `deploy:ci`, i.e. `tools/ci-build.mjs deploy`,
+  does that — see `tools/ci-build.mjs`'s `runCi()`). Previews must never advance the last-good
+  baseline that gates the next production build's never-shrink check (D-14). **The
+  `--config wrangler.jsonc` flag is required, not optional** — 04-06 found that a bare
+  `wrangler` invocation reads the adapter-generated `dist/client/wrangler.json` via
+  `.wrangler/deploy/config.json`'s redirect, which carries no `main` field and would silently
+  omit this project's Worker (see 04-06-SUMMARY.md's Deviation 1). The Cloudflare dashboard
+  itself now labels this field **"Version command"** (non-production) and **"Deploy command"**
+  as **"Preview command"** in some dashboard revisions — same setting, updated label; enter the
+  full command with the flag regardless of which label the dashboard shows.
 - **Build caching:** on. This is what makes D-06's incremental-loading design real — Workers
   Builds' build caching auto-detects Astro and caches `node_modules/.astro` (plus the pnpm
   store) between builds; without it, every build is a cold, full-corpus fetch.
