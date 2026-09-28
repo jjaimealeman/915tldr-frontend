@@ -312,3 +312,162 @@ either, softening (not eliminating) the urgency RESEARCH originally flagged for 
 - The flag's default stays OFF (`astro.config.mjs`, unchanged by this task) pending 04-11's
   decision, which should treat this section's `REUSE_WARM_ONLY` verdict as the working assumption
   for Workers Builds, not the warm-checkout numbers.
+
+## Workers Builds spike (04-10 Task 2)
+
+Measured on the REAL, newly-connected Workers Builds pipeline (`915tldr-v2` Worker, repository
+`915tldr-frontend`, branch `feature/phase-04`), triggered via the Deploy Hook exactly as D-02
+describes. Read via the `cloudflare-builds` MCP (full build logs, saved to the gitignored
+`.gsd/build{1,2}-log.txt` — never committed) cross-checked independently against the Workers
+Versions REST API (`GET /accounts/{id}/workers/scripts/915tldr-v2/versions`), which this session's
+own `CLOUDFLARE_API_TOKEN` CAN read (unlike the Workers Builds API itself, which returned
+`403 {"code":12004,"message":"Forbidden"}` for every builds/logs endpoint — this token lacks the
+"Workers CI Read" permission scope; flagged for the owner if a future session needs to read builds
+without MCP access).
+
+### Build 1 — cold (first-ever connection, empty cache)
+
+| Field | Value |
+|---|---|
+| Trigger → deployed | 2026-09-28T05:03:48.905Z → 05:14:38Z (build log) / 05:14:32.448Z (new version created_on) |
+| **Total wall time (hook POST → deployed version)** | **649s (10m49s)** |
+| Dependencies cache | Empty (first build) — fresh install, 347 packages, **8.9s** |
+| `guard:config` + `test:build-gate` | Pass, 8/8, ~1-4s |
+| D1 loader | `mode=cold public=40176 changed=40176 removed=0 explained=0 rowsRead=508421 budget=1500000` |
+| Content-sync phase (D1 cold fetch + type-gen) | **3m26s** (05:04:36 → 05:08:02) |
+| Astro page-generation | **2m44s** (05:08:02 → 05:10:46), 59,977 pages ≈ 2.74ms/page |
+| Astro's own self-reported total | 6m11s (content-sync + page-gen combined) |
+| Deploy (`wrangler versions upload --config wrangler.jsonc`) | **3m46s** (05:10:47 → 05:14:33), 59,985 assets uploaded |
+| Build/dependency cache upload (for next build) | ~5s |
+| Result | **SUCCESS** — version `58c11ea8` (number 5), alias `feature-phase-04` |
+
+**D-08 held on the real platform**: the deployed version's own `resources.script_runtime` (read via
+the Versions API) shows `handlers:["fetch"]` and the real `_redirects` rules (`/categories`→`/`,
+`/sources`→`/`, `/sitemap.xml`→`/sitemap-index.xml`, etc.) — confirming 04-06's mandatory
+`--config wrangler.jsonc` deploy-flag fix (without which `@astrojs/cloudflare` silently drops the
+custom Worker) also holds on a genuine Workers Builds run, not just local `wrangler deploy`.
+
+**Verdict: `WB_COLD_FITS`** — 649s (10.8min) is well under the 900s (15min) threshold, leaving
+~9.2 minutes of margin to the hard 20-minute ceiling.
+
+### Build 2 — warm (build cache restored, D1 loader warm+sweep)
+
+Triggered immediately after Build 1 completed, no config change (flag still off) — this build
+tests D-06's build-cache-restore claim cleanly, separate from the `experimental.incrementalBuild`
+question (04-09 already found that toggling that flag forces the D1 loader cold on the very next
+build, which would have confounded this specific measurement).
+
+| Field | Value |
+|---|---|
+| Trigger → deployed | 2026-09-28T05:18:02.405Z → new version `e58f7fde` created 05:21:59.031Z |
+| **Total wall time (hook POST → deployed version)** | **~237s (3m57s)** |
+| Dependencies + build-output cache | **RESTORED** (`Success: Build output restored from build cache.` / `Success: Dependencies restored from build cache.`, 05:18:12/05:18:14) — **D-06 confirmed on the real platform**, not just locally |
+| Changelog loader | `[d1-changelog] sources=json:9,d1:6 total=15` |
+| D1 articles loader | `mode=warm+sweep public=40176 changed=0 removed=0 explained=0 rowsRead=48748 budget=100000` |
+| Content-sync phase | **15.19s** (vs. 3m26s cold — the cache-restore payoff) |
+| Vite warnings (benign, pre-existing, unrelated to this spike) | 3× `fonts/*.woff2 referenced ... didn't resolve at build time, it will remain unchanged to be resolved at runtime` |
+
+**CAVEAT — this build's own returned log is truncated.** The Workers Builds API's log response for
+this build ends mid-render at 05:21:15 (still individually re-rendering article routes, no final
+"page(s) built" line, no asset-upload lines, no closing "Success!" line) even though the build's
+own recorded outcome is SUCCESS. The **total wall time above is derived from the Workers Versions
+API's `created_on` timestamp for the new deployed version**, not from the (incomplete) build log —
+this is a real, disclosed measurement-source substitution, not a gap in what was checked. Per-phase
+timing breakdown for the render/upload portion of Build 2 is therefore not available; only the
+aggregate total is.
+
+This second build's D1 loader confirms warm-mode reuse cleanly (rowsRead dropped from 508,421 to
+48,748, matching 04-03's warm+sweep pattern) with the flag off — no page-render reuse was expected
+or observed (pages were still being individually re-rendered per the truncated log's `(+Nms)`
+lines), consistent with `experimental.incrementalBuild` being off for this build.
+
+### D-15 failure-notification drill
+
+The owner did not grant a token scoped to edit Cloudflare dashboard build variables (04-10 Task 1
+checkpoint), so per the plan's own documented fallback, this drill ran **locally**
+(`WORKERS_CI=1 V1_CHANGELOG_URL=<empty-entries data: URL> NTFY_TOPIC=<real topic>
+node tools/ci-build.mjs build`), not on Workers Builds itself. **The in-container (real Workers
+Builds) notification path remains unproven** — flagged for the 04-12 human-check, exactly as the
+plan anticipates for this fallback path.
+
+Three consecutive real local runs, each confirmed by reading the real ntfy topic back:
+
+1. **Drill 1** — build correctly failed at the changelog-loader's zero-entries guard (D-13/REND-03,
+   working as designed) and a real ntfy push WAS delivered — but with the WRONG title
+   (`915 TLDR build failed: $ node --test tests/ci-fixtures/assert-no-d1.test.mjs`). Root cause: a
+   real bug in `classifyFailure()` (04-09) — it picked the FIRST line anywhere in the build's tail
+   output that substring-matched a `CHECK_PATTERNS` name, and `assert-no-d1` is both a pattern name
+   AND the literal filename of an earlier, successful `test:build-gate` step, so that step's own
+   command echo won the match every time. **Fixed** (Rule 1; `classifyFailure` now anchors on this
+   codebase's own `` `${moduleName}: ${message}` `` throw convention first, falling back to the old
+   substring scan; regression test added using the real log lines).
+2. **Drill 2** (post-fix #1) — the now-CORRECT title
+   (`changelog-loader: v1 changelog.json has zero entries — refusing to build (...)`) crashed the
+   ENTIRE `ci-build` process with an uncaught `TypeError: Cannot convert argument to a ByteString
+   because the character at index 76 has a value of 8212 which is greater than 255` — the message's
+   em-dash (this codebase's own routine punctuation style) is not a valid HTTP header byte, and
+   `defaultNotify()` passed it into the ntfy `Title` header unsanitized. This defeated D-15's own
+   "never fails silently" guarantee at the exact moment it mattered. **Fixed** (Rule 1;
+   `toHeaderSafe()` added — normalizes em/en-dash, curly quotes, ellipsis to ASCII, strips anything
+   else outside Latin1 — applied to the `Title` header only; the POST body keeps the real UTF-8
+   text unchanged).
+3. **Drill 3** (post-fix #2) — clean exit code 1, correct sanitized ntfy title delivered:
+   `915 TLDR build failed: changelog-loader: v1 changelog.json has zero entries - refusing to build
+   (the /changelog empty-state failure, REND-03)`, with the real em-dash preserved in the message
+   body (confirmed by reading the ntfy topic back). **This is the passing result.**
+
+Both bugs were found only because this drill used a REAL failure message in this codebase's own
+real prose style, not a synthetic ASCII-only fixture — see
+`changelog/2026-09-27-2333_fix-classifyfailure-misattribution.md` and
+`changelog/2026-09-27-2337_fix-notifier-bytestring-crash.md` for full writeups.
+
+### Account limits and cost (Task 2 item 5)
+
+Fetched 2026-09-28 from `developers.cloudflare.com/workers/ci-cd/builds/limits-and-pricing/`
+(page last updated 2026-05-29):
+
+| Limit | Value |
+|---|---|
+| Build minutes/month (Paid plan) | 6,000, shared across **every** Workers Builds project on this account, then $0.005/min overage |
+| Concurrent builds | 6 |
+| Build timeout | 20 minutes (hard) |
+| Deploy Hooks | 10/min per Worker, 100/min per account |
+| Build container | 4 vCPU, 8GB RAM, 20GB disk |
+| Env vars | 64 max |
+
+**Projection** (worst case, every build costs Build 1's cold-build time): 12 builds/day (2-hourly
+ingest cron per D-02) × 30 days × ~11 min ≈ **3,960 min/month** — under the 6,000-min allowance,
+with real steady-state likely far cheaper (Build 2's warm ~4-minute number, if representative of
+most cycles, projects to ~1,440 min/month). This account's allowance is shared with the owner's
+other Workers Builds projects, so this projection is a floor on total usage, not a ceiling
+specific to 915tldr.
+
+**Owner cost input for 04-11 (not the decision itself)** — Jaime, 2026-09-27 23:25 MDT: *"$0 to $5
+per month is acceptable, but I would definitely want to look into optimizing later."*
+
+### `experimental.incrementalBuild` platform reuse test — PENDING (owner morning action needed)
+
+**Not yet measured.** Testing whether Astro's page-reuse mechanism works in a genuinely fresh
+Workers Builds container (mirroring 04-09's local fresh-clone CI simulation, but on the real
+platform) requires two more hook-triggered builds against a commit with the flag ON. Deploy Hooks
+build whatever is currently on GitHub's `feature/phase-04` tip; this session cannot push (project
+git rules reserve pushes for the owner via lazygit), and the owner was asleep when this spike
+reached this point. **Two ready paths, recorded for the owner to choose from (see
+04-10-SUMMARY.md's checkpoint):**
+
+- **(a) Push the prepared commit.** Commit `cc1b050` (`chore(astro-config): TEMPORARY hardcode
+  incrementalBuild=true for 04-10 spike`) is already committed locally on `feature/phase-04`,
+  clearly marked temporary. Owner pushes via lazygit; a continuation session then triggers Build 3
+  (expected `mode=cold` again — 04-09's own documented toggle-reset behavior, not a new bug) and
+  Build 4 immediately after with no further toggle (the real test — does a genuinely fresh
+  container reuse pages via the flag, unlike local's warm-checkout-only success), records
+  `WB_REUSE_PROVEN`/`WB_REUSE_ABSENT` here, then commits a revert back to the env-var seam.
+- **(b) Dashboard variable.** Owner temporarily sets `ASTRO_INCREMENTAL_BUILD=1` in the Cloudflare
+  dashboard's (unscoped) build variables. Currently low-risk for production since `main` is still
+  only the initial commit with no `build:ci` script configured to do anything meaningful with it —
+  but this must be removed immediately after Builds 3/4, and unlike (a) it has no self-reverting
+  commit to make that obvious later. (a) is the safer default; (b) is faster if the owner is at a
+  computer without wanting to touch `git push`.
+
+**`WB_REUSE_PROVEN`/`WB_REUSE_ABSENT` verdict: not yet recorded.** This plan (04-10) is not
+complete until one of these two tokens is written here.

@@ -10,6 +10,7 @@ Entries are named `YYYY-MM-DD-HHMM_slug.md` and grouped by month, newest first.
 
 | Date | Entry | Keywords |
 |------|-------|----------|
+| 2026-09-27 | [Real Workers Builds spike measurements: cold/warm builds, D-15 drill, account limits](2026-09-27-2345_workers-builds-spike-measurements.md) | `[DOCUMENTATION]` `[CI_CD]` `[PERFORMANCE]` `[DEPLOYMENT]` |
 | 2026-09-27 | [TEMPORARY: hardcode incrementalBuild=true for the 04-10 Workers Builds reuse spike](2026-09-27-2341_temp-hardcode-incremental-build-flag.md) | `[CONFIG]` `[CI_CD]` `[DEPLOYMENT]` |
 | 2026-09-27 | [Fix ntfy notifier crashing on non-Latin1 characters in the failure title](2026-09-27-2337_fix-notifier-bytestring-crash.md) | `[BUG_FIX]` `[BACKEND]` `[CI_CD]` `[TESTING]` `[CRITICAL]` `[SECURITY]` |
 | 2026-09-27 | [Fix classifyFailure() misattributing a real build failure to a benign line](2026-09-27-2333_fix-classifyfailure-misattribution.md) | `[BUG_FIX]` `[BACKEND]` `[CI_CD]` `[TESTING]` `[CRITICAL]` |
