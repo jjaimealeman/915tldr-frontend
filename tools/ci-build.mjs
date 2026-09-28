@@ -71,18 +71,44 @@ export function redact(text, env = {}) {
 }
 
 /**
- * Scans `outputTail` line by line and returns the first line naming one of this project's own
+ * Scans `outputTail` line by line and returns the line naming one of this project's own
  * fail-loud modules (T-04-35's `CHECK_PATTERNS`) — an operator reading the ntfy push then knows
  * exactly which check failed, not just that "the build" failed. Falls back to a bare
  * `astro build exited <code>` when nothing in the tail names a known check.
+ *
+ * 04-10 (D-15 real-build drill, Workers Builds spike): a real failing build proved the original
+ * "first line containing the substring anywhere" rule mis-attributes the failure whenever an
+ * EARLIER, successful step's own output happens to mention a check's name — a shell command echo
+ * (`$ node --test tests/ci-fixtures/assert-no-d1.test.mjs`) or a PASSING test's own description
+ * (`✔ Case 1 (ARCH-02): a page-shaped fixture that reaches d1-client.ts transitively through a
+ * helper is rejected`) both substring-match a CHECK_PATTERNS entry despite naming no failure at
+ * all. Every real throw in this codebase follows one consistent convention — `` `${moduleName}:
+ * ${message}` `` (see src/content/loaders/changelog-loader.ts, src/lib/server/d1-client.ts,
+ * src/lib/server/kv-manifest.ts, src/lib/server/build-state.ts, src/lib/listing.ts) — so this now
+ * prefers a line ANCHORED on `<pattern>:` at the start (after trimming, and after skipping `$
+ * `-prefixed command echoes, which are never a failure) before falling back to the original loose
+ * substring scan for any error shape that doesn't follow that convention.
  */
 export function classifyFailure(outputTail, exitCode) {
   const lines = String(outputTail ?? '').split('\n');
+
+  // Pass 1: prefer a line anchored on this project's own `<check>: <message>` throw convention.
   for (const line of lines) {
-    if (CHECK_PATTERNS.some((pattern) => line.includes(pattern))) {
-      return line.trim();
+    const trimmed = line.trim();
+    if (trimmed.startsWith('$ ')) continue; // shell command echo, never a failure
+    for (const pattern of CHECK_PATTERNS) {
+      if (trimmed.startsWith(`${pattern}:`)) return trimmed;
     }
   }
+
+  // Pass 2: fall back to a loose substring match (still skipping command echoes) for any real
+  // error shape that doesn't follow the anchored convention above.
+  for (const line of lines) {
+    const trimmed = line.trim();
+    if (trimmed.startsWith('$ ')) continue;
+    if (CHECK_PATTERNS.some((pattern) => trimmed.includes(pattern))) return trimmed;
+  }
+
   return `astro build exited ${exitCode}`;
 }
 

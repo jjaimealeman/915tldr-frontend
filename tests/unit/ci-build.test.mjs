@@ -57,6 +57,33 @@ test('classifyFailure: falls back cleanly on empty/undefined output', () => {
   assert.equal(classifyFailure(undefined, 1), 'astro build exited 1');
 });
 
+test('classifyFailure: a real build\'s benign command-echo/passing-test lines that merely MENTION a check name must not be picked over the actual failing check (04-10 regression, D-15 real Workers Builds drill)', () => {
+  // Trimmed, but otherwise verbatim, from a real local `node tools/ci-build.mjs build` run
+  // (04-10 Task 2's D-15 drill, V1_CHANGELOG_URL pointed at an empty-entries data: URL) — the
+  // ORIGINAL classifyFailure misattributed this failure to the "$ node --test
+  // tests/ci-fixtures/assert-no-d1.test.mjs" command echo, purely because "assert-no-d1" is both
+  // a CHECK_PATTERNS entry and the literal filename of an earlier, successful build step.
+  const tail = [
+    '$ pnpm run guard:config && pnpm run test:build-gate && astro build',
+    '$ node tools/check-config-guards.mjs',
+    '[check-config-guards] no violations found (ARCH-04, ARCH-05, T-03-01)',
+    '$ node --test tests/ci-fixtures/assert-no-d1.test.mjs',
+    '✔ Case 1 (ARCH-02): a page-shaped fixture that reaches d1-client.ts transitively through a helper is rejected (1.577085ms)',
+    'ℹ pass 8',
+    'ℹ fail 0',
+    '[content] Syncing content',
+    'changelog-loader: v1 changelog.json has zero entries — refusing to build (the /changelog empty-state failure, REND-03)',
+    '  Location:',
+    '    /repo/src/content/loaders/changelog-loader.ts:103:11',
+    '[assert-no-d1] matched zero candidate files under src/pages/**, src/islands/**, or src/middleware.ts across the ENTIRE build (all internal passes) — the matcher is broken, not necessarily the codebase.',
+    '[ELIFECYCLE] Command failed with exit code 1.',
+  ].join('\n');
+  assert.equal(
+    classifyFailure(tail, 1),
+    'changelog-loader: v1 changelog.json has zero entries — refusing to build (the /changelog empty-state failure, REND-03)'
+  );
+});
+
 // ---------------------------------------------------------------------------
 // redact
 // ---------------------------------------------------------------------------
