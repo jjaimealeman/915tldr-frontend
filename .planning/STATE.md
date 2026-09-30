@@ -5,15 +5,15 @@ milestone_name: milestone
 current_phase: 04
 current_phase_name: Static Generation, Templates & SEO
 status: executing
-stopped_at: Completed 04-09-PLAN.md
-last_updated: "2026-09-28T05:40:11.318Z"
+stopped_at: Completed 04-10-PLAN.md
+last_updated: "2026-09-30T21:34:07.376Z"
 last_activity: 2026-09-26
 last_activity_desc: Phase 03 complete, transitioned to Phase 4
 progress:
   total_phases: 4
   completed_phases: 3
   total_plans: 52
-  completed_plans: 49
+  completed_plans: 50
 ---
 
 # Project State
@@ -28,11 +28,11 @@ See: .planning/PROJECT.md (updated 2026-09-16)
 ## Current Position
 
 Phase: 04 (Static Generation, Templates & SEO) — EXECUTING
-Plan: 10 of 12
+Plan: 11 of 12
 Status: Ready to execute
 Last activity: 2026-09-26 — Phase 04 execution started
 
-Progress: [█████████░] 94%
+Progress: [██████████] 96%
 
 ## Performance Metrics
 
@@ -98,6 +98,7 @@ Progress: [█████████░] 94%
 | Phase 04 P07 | 21min | 3 tasks | 10 files |
 | Phase 04 P08 | ~90min | 3 tasks | 12 files |
 | Phase 04 P09 | ~3h10min | 3 tasks | 10 files |
+| Phase 04 P10 | ~2h45min (active, spanning two sessions) | 2 tasks | 6 files |
 
 ## Accumulated Context
 
@@ -218,6 +219,9 @@ Recent decisions affecting current work:
 - [Phase ?]: 04-09: incremental-build spike verdict is REUSE_WARM_ONLY (withastro/astro#18055 reproduced locally) — reuse works in a warm checkout but reused zero pages in a fresh-clone CI simulation; byte-identity confirmed once a restored page's disclosed stale build-stamp is accounted for
 - [Phase ?]: 04-09: ASTRO_INCREMENTAL_BUILD scoped to feature/phase-04 non-production branch only, per docs/phase-04/workers-builds-setup.md — production stays off until 04-11's decision
 - [Phase ?]: 04-09: toggling ASTRO_INCREMENTAL_BUILD forces the D1 loader cold on the next build (store.keys().length===0) — a real, measured Astro/Vite config-change cache-invalidation behavior, flagged for awareness not fixed
+- [Phase ?]: 04-10: WB_COLD_FITS (649s cold build) and WB_REUSE_PROVEN (>=34,871/~60,349 pages restored on a real fresh Workers Builds container) both confirmed on the real platform, superseding 04-09's local REUSE_WARM_ONLY assumption -- explained by Workers Builds restoring both a dependencies cache and a build-output cache from the prior build, unlike 04-09's local fresh-clone simulation which only reproduced the build-output half.
+- [Phase ?]: 04-10: found and fixed two real bugs in tools/ci-build.mjs's D-15 notification path during a live drill -- classifyFailure() was misattributing failures to benign command-echo lines, and the corrected title then crashed the process via an HTTP header ByteString error on an em-dash. Both fixed and verified end-to-end against the real ntfy topic.
+- [Phase ?]: 04-10: found (not fixed, Rule 4) that src/layouts/Base.astro unconditionally prints BUILD_HASH in every page's footer, defeating content-hash asset-upload dedup on any commit change (Build 3 re-uploaded 60,355/60,355 assets, only 7 deduped) -- flagged as a cost-relevant finding for 04-11's decision.
 
 ### Pending Todos
 
@@ -258,7 +262,7 @@ Recent decisions affecting current work:
 - **RESOLVED — Phase 3, 03-01 Task 2.** The Cloudflare token gained `Workers KV Storage:Edit` (D1:Edit and the account id were confirmed intact in the same pass). The `915tldr-render-manifest` KV namespace was created (id `3c92531f94294fcc94006455f433885f`), wired into `wrangler.jsonc` and a gitignored `.dev.vars`. `pnpm build` and `pnpm test:tracer` both pass end-to-end against the real D1 row and the real KV namespace; Phase 1's 43-test suite is unaffected. Three further build-blocking issues were found and fixed in the same session (stale `wrangler.jsonc` `main` field, an unwanted auto-provisioned `SESSION` KV binding, and a bundler bug dropping a frontmatter-local `slugify()` function) — see 03-01-SUMMARY.md for full detail. 03-01 is complete.
 - **RESOLVED — Phase 3, 03-05 (both prior halts).** The owner granted the missing Rulesets/Transform Rules token scope. Resumed from mandatory-ordering Step 2 and completed the plan: the noindex Transform Rule now covers `dev.915tldr.com` AND `admin-dev.915tldr.com` (extended scope, Rule 2 deviation — admin-dev didn't exist when the plan's Task 2 was first scoped); `915tldr-v2` is deployed and live on `dev.915tldr.com` (Custom Domain reassigned from `915tldr-dev`, `workers_dev: false`, stale zone Worker Route deleted after it was found to be out-prioritizing the reassignment); `pnpm verify:edge` (`tools/verify-edge-headers.mjs`) re-proves the whole policy on every future deploy. Two real bugs found and fixed along the way: `session: false` was a no-op in the wrong astro.config.mjs location (03-01's claimed fix never worked), and a stale zone Worker Route silently out-prioritized a correctly-reassigned Custom Domain for 3+ minutes, contrary to Cloudflare's documented precedence. Production (`915tldr.com`/`www.915tldr.com`) and `admin-dev.915tldr.com` verified unaffected throughout. See 03-05-SUMMARY.md for full detail. 03-05 is complete.
 - 04-07: production robots.txt behavior changes on next deploy -- v1's AI-crawler-blocking policy (Content-signal, GPTBot/ClaudeBot/CCBot/etc. Disallow) has never actually been served (v1's static public/robots.txt shadowed its own server route); v2 ships the intended policy, an owner-approved but real change to what's been crawlable. Also flagged: SEO-04 sitemap ordering-determinism unverified across two builds (@astrojs/sitemap documents no stable ordering guarantee) -- see 04-07-SUMMARY.md coverage D4.
-- 04-10 Task 2 paused overnight: WB_REUSE_PROVEN/WB_REUSE_ABSENT not yet measured. Builds 1-2 (cold/warm) succeeded on real Workers Builds; D-15 drill passed locally after 2 real bug fixes (classifyFailure misattribution, ntfy Title ByteString crash). Blocked because Deploy Hooks build GitHub's feature/phase-04 tip and this session cannot push. A ready-to-push commit (cc1b050) hardcodes incrementalBuild=true for the spike. Owner must choose: (a) push cc1b050 so Builds 3-4 can run, or (b) temporarily set ASTRO_INCREMENTAL_BUILD=1 in the dashboard (unscoped, must remove after). See docs/phase-04/build-measurements.md's PENDING section.
+- **RESOLVED — Phase 4, 04-10 Task 2.** The owner chose option (a) and pushed `cc1b050` on 2026-09-30. Builds 3-4 ran on the real Workers Builds platform: Build 3 (flag-on, first toggle) was cold again as 04-09 already documented, 0/60,349 pages restored (expected); Build 4 (flag-on, no toggle) confirmed at least 34,871/~60,349 pages restored via `experimental.incrementalBuild` on a genuinely fresh Workers Builds container, wall time collapsing from 554s to 147s. **Verdict: `WB_REUSE_PROVEN`** — contradicts and supersedes 04-09's local `REUSE_WARM_ONLY` finding; likely explained by Workers Builds restoring both a dependencies cache and a build-output cache from the prior build, which 04-09's local fresh-clone simulation never fully reproduced. A new cost-relevant finding surfaced along the way: Build 3's deploy re-uploaded 60,355/60,355 assets (only 7 deduplicated), root-caused to `src/layouts/Base.astro` unconditionally printing `BUILD_HASH` in every page's footer — reported for 04-11, not fixed (Rule 4). The temporary `incrementalBuild=true` hardcode was reverted (`99795e3`) once both spike builds completed. See `04-10-SUMMARY.md` and `docs/phase-04/build-measurements.md` for full detail. 04-10 is complete.
 
 ## Deferred Items
 
@@ -270,6 +274,6 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-09-27T18:34:55.408Z
-Stopped at: Completed 04-09-PLAN.md
+Last session: 2026-09-30T21:34:07.358Z
+Stopped at: Completed 04-10-PLAN.md
 Resume file: None

@@ -180,7 +180,7 @@
 - [ ] **OPS-07**: A daily routine reports D1 reads, spend, OpenAI balance, static-asset file count and Core Web Vitals against budget
 - [x] **OPS-08**: The read budget is stated in the README
 - [ ] **OPS-09**: Rollback to the existing worker is a route change and is verified before cutover
-- [ ] **OPS-10**: The cron run triggers the public site's incremental build
+- [x] **OPS-10**: The cron run triggers the public site's incremental build
 - [x] **OPS-11**: No operation costing more than $1 runs without prior approval and an estimate
 
 ### Known Defect Fixes
@@ -379,7 +379,7 @@ Deferred. Tracked, not in this roadmap.
 | OPS-07 | Phase 12 | Pending |
 | OPS-08 | Phase 3 | Complete |
 | OPS-09 | Phase 12 | Pending |
-| OPS-10 | Phase 4 | Pending |
+| OPS-10 | Phase 4 | Complete |
 | OPS-11 | Phase 2 | Complete |
 | FIX-01 | Phase 2 | Complete |
 | FIX-02 | Phase 2 | Complete |

@@ -269,7 +269,7 @@ trailing slashes"): the RSS feed emits links WITH a trailing slash by default, *
 endpoint, or the feed's links will not match the page URLs. Verify by fetching `/rss.xml` and
 checking that item links have no trailing slash and each answers 200 directly.
 
-**Plans**: 9/12 plans executed in 6 waves
+**Plans**: 10/12 plans executed in 6 waves
 
 Plans:
 **Wave 1**
@@ -292,7 +292,7 @@ Plans:
 
 **Wave 4** *(blocked on Wave 3 completion)*
 
-- [ ] 04-10-PLAN.md — Owner connects 915tldr-frontend to Workers Builds; hook-triggered cold/warm builds, page reuse and failure drill measured (wave 4)
+- [x] 04-10-PLAN.md — Owner connects 915tldr-frontend to Workers Builds; hook-triggered cold/warm builds, page reuse and failure drill measured (wave 4)
 
 **Wave 5** *(blocked on Wave 4 completion)*
 
@@ -447,7 +447,7 @@ Phase 3 and may run alongside Phases 5-7.
 | 1. Design Sketch & Editorial Identity | 23/23 | Complete    | 2026-09-17 |
 | 2. Content Quality & Grounding | 11/10 | Complete    | 2026-09-21 |
 | 3. Foundation & Read-Budget Guardrails | 7/7 | Complete    | 2026-09-26 |
-| 4. Static Generation, Templates & SEO | 9/12 | In Progress|  |
+| 4. Static Generation, Templates & SEO | 10/12 | In Progress|  |
 | 5. Hybrid Archive & Zero-Reads Proof | 0/TBD | Not started | - |
 | 6. Bilingual | 0/TBD | Not started | - |
 | 7. Imagery & Share Cards | 0/TBD | Not started | - |
