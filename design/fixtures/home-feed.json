@@ -1,0 +1,1753 @@
+{
+  "schema": 1,
+  "source": "design/mockups/index.html [data-grid] at 1a1a778",
+  "cards": [
+    {
+      "uuid": "326af4d4-ff96-4dec-8da2-a02085a802b3",
+      "category": "community",
+      "categoryName": "Community",
+      "stress": "usable-image",
+      "lang": null,
+      "variant": null,
+      "image": {
+        "src": "https://www.ktsm.com/wp-content/uploads/sites/38/2026/09/FEATURE_Trader-Joes-3-Halloween-mini-totes-are-returning-so-prepare-for-chaos.jpg?w=900",
+        "width": 1200,
+        "height": 800
+      },
+      "headline": "Get Your Spooky $3 Halloween Mini Totes at Trader Joe's",
+      "headlineI18n": null,
+      "summaryI18n": null,
+      "bylineI18n": "byline",
+      "href": "article.html",
+      "summary": [
+        {
+          "type": "p",
+          "inlines": [
+            {
+              "text": "Trader Joe's has launched its latest collection of $3 mini tote bags, featuring festive Halloween designs. These limited-edition totes are expected to be popular among shoppers, especially those looking to celebrate the spooky season. The bags are available for purchase at Trader Joe's locations, and fans are encouraged to visit soon, as these items tend to sell out quickly. This initiative not only adds a fun element to Halloween shopping but also promotes sustainability through reusable bags."
+            }
+          ]
+        },
+        {
+          "type": "p",
+          "inlines": [
+            {
+              "text": "Key Details:",
+              "strong": true
+            }
+          ]
+        },
+        {
+          "type": "list",
+          "items": [
+            [
+              {
+                "text": "Mini tote bags are priced at $3 each."
+              }
+            ],
+            [
+              {
+                "text": "Available in Halloween-themed colors and designs."
+              }
+            ],
+            [
+              {
+                "text": "Visit your local Trader Joe's to purchase before they sell out."
+              }
+            ]
+          ]
+        }
+      ],
+      "source": "KTSM",
+      "datetime": "2026-09-16T13:49:20-06:00",
+      "timeLabel": "Sept. 16, 1:49 p.m."
+    },
+    {
+      "uuid": "5deacd9f-9618-4f2e-b5a0-41d0bfcd79b8",
+      "category": "education",
+      "categoryName": "Education",
+      "stress": null,
+      "lang": null,
+      "variant": null,
+      "image": {
+        "src": "https://kvia.com/wp-content/uploads/2025/08/NEW-KVIA-Generic-Thumbnail.png",
+        "width": 1200,
+        "height": 800
+      },
+      "headline": "Anthony Elementary Hosts 5th Grade Pledge Ceremony on September 16, 2026",
+      "headlineI18n": null,
+      "summaryI18n": null,
+      "bylineI18n": null,
+      "href": "article.html",
+      "summary": [
+        {
+          "type": "p",
+          "inlines": [
+            {
+              "text": "Anthony Elementary School is set to hold a significant 5th Grade Pledge ceremony on September 16, 2026. This event is an important tradition that marks the transition of students as they prepare to advance to middle school. The ceremony aims to instill a sense of responsibility and commitment among the students. Families and community members are encouraged to attend and support the students during this milestone event."
+            }
+          ]
+        },
+        {
+          "type": "p",
+          "inlines": [
+            {
+              "text": "Key Details:",
+              "strong": true
+            }
+          ]
+        },
+        {
+          "type": "list",
+          "items": [
+            [
+              {
+                "text": "Date of the ceremony: September 16, 2026"
+              }
+            ],
+            [
+              {
+                "text": "Location: Anthony Elementary School"
+              }
+            ],
+            [
+              {
+                "text": "Encouragement for families and community to attend"
+              }
+            ]
+          ]
+        }
+      ],
+      "source": "KVIA",
+      "datetime": "2026-09-16T13:27:08-06:00",
+      "timeLabel": "Sept. 16, 1:27 p.m."
+    },
+    {
+      "uuid": "a90c2be1-600a-4f16-ad94-9118e1d50088",
+      "category": "community",
+      "categoryName": "Community",
+      "stress": null,
+      "lang": null,
+      "variant": null,
+      "image": {
+        "src": "https://www.ktsm.com/wp-content/uploads/sites/38/2026/09/GettyImages-171625842-e1789581942639.jpg?w=900",
+        "width": 1200,
+        "height": 800
+      },
+      "headline": "USPS Launches Operation Santa, Inviting El Pasoans to Adopt Holiday Letters",
+      "headlineI18n": null,
+      "summaryI18n": null,
+      "bylineI18n": null,
+      "href": "article.html",
+      "summary": [
+        {
+          "type": "p",
+          "inlines": [
+            {
+              "text": "The U.S. Postal Service has begun its annual Operation Santa, inviting residents to send letters to Santa Claus. This cherished initiative, which has been running since 1912, allows individuals to adopt letters from children and fulfill their holiday wishes. This year, El Pasoans are encouraged to participate and spread joy during the festive season. The program not only brings smiles to children's faces but also fosters community spirit by connecting donors with those in need."
+            }
+          ]
+        }
+      ],
+      "source": "KTSM",
+      "datetime": "2026-09-16T13:06:48-06:00",
+      "timeLabel": "Sept. 16, 1:06 p.m."
+    },
+    {
+      "uuid": "93b39255-d54d-470f-aab2-b558fa40f2b4",
+      "category": "politics",
+      "categoryName": "Politics",
+      "stress": null,
+      "lang": null,
+      "variant": null,
+      "image": null,
+      "headline": "Trump Retains Colombia's Drug Certification Status Amid New Leadership",
+      "headlineI18n": null,
+      "summaryI18n": null,
+      "bylineI18n": null,
+      "href": "article.html",
+      "summary": [
+        {
+          "type": "p",
+          "inlines": [
+            {
+              "text": "President Donald Trump has decided to keep Colombia on the list of countries that have failed to meet U.S. drug control obligations, a designation it received a year ago. This decision comes as Colombia's new president, Abelardo de La Espriella, has committed to an aggressive anti-drug campaign. Trump indicated that if Colombia makes significant progress in dismantling narcoterrorist networks, he may reconsider its status in the future. The U.S. also recognizes Mexico's efforts against drug trafficking but emphasizes the need for further action. Meanwhile, Venezuela has been removed from the descertification list due to improved cooperation against drug cartels under its interim government."
+            }
+          ]
+        },
+        {
+          "type": "p",
+          "inlines": [
+            {
+              "text": "Key Details:",
+              "strong": true
+            }
+          ]
+        },
+        {
+          "type": "list",
+          "items": [
+            [
+              {
+                "text": "Colombia remains on the U.S. descertification list for drug control as of 2025."
+              }
+            ],
+            [
+              {
+                "text": "President Abelardo de La Espriella has pledged to combat coca cultivation and cocaine production."
+              }
+            ],
+            [
+              {
+                "text": "Mexico is urged to enhance efforts against narcoterrorist organizations."
+              }
+            ],
+            [
+              {
+                "text": "Venezuela's status has changed due to improved cooperation against drug trafficking."
+              }
+            ]
+          ]
+        }
+      ],
+      "source": "KVIA",
+      "datetime": "2026-09-16T12:48:59-06:00",
+      "timeLabel": "Sept. 16, 12:48 p.m."
+    },
+    {
+      "uuid": "746de4d5-1c01-46e1-a834-14108bcadd68",
+      "category": "education",
+      "categoryName": "Education",
+      "stress": null,
+      "lang": null,
+      "variant": null,
+      "image": null,
+      "headline": "New Study Confirms T. rex Was Warm-Blooded, Changing Our Understanding of Dinosaurs",
+      "headlineI18n": null,
+      "summaryI18n": null,
+      "bylineI18n": null,
+      "href": "article.html",
+      "summary": [
+        {
+          "type": "p",
+          "inlines": [
+            {
+              "text": "Recent research has confirmed that Tyrannosaurus rex had a body temperature of approximately 97 degrees Fahrenheit, indicating it was warm-blooded. This finding, published in the journal Science Advances, is based on chemical analysis of fossilized teeth and adds to evidence that T. rex could thrive in colder climates. The study enhances our understanding of the dinosaur's behavior, physiology, and ecological interactions during the Late Cretaceous period, around 69 to 66 million years ago. Researchers believe this new method could be applied to other dinosaur species, potentially reshaping our views on their metabolic rates and lifestyles."
+            }
+          ]
+        },
+        {
+          "type": "p",
+          "inlines": [
+            {
+              "text": "Key Details:",
+              "strong": true
+            }
+          ]
+        },
+        {
+          "type": "list",
+          "items": [
+            [
+              {
+                "text": "T. rex body temperature estimated at 97°F (36°C), similar to humans."
+              }
+            ],
+            [
+              {
+                "text": "Study published in Science Advances provides direct evidence of warm-bloodedness."
+              }
+            ],
+            [
+              {
+                "text": "Research utilized fossilized teeth from a T. rex skeleton at the Natural History Museum of Los Angeles County."
+              }
+            ],
+            [
+              {
+                "text": "Technique could be applied to other dinosaurs to explore their metabolic rates."
+              }
+            ]
+          ]
+        }
+      ],
+      "source": "KVIA",
+      "datetime": "2026-09-16T12:48:08-06:00",
+      "timeLabel": "Sept. 16, 12:48 p.m."
+    },
+    {
+      "uuid": "3b53a85d-feea-454c-a707-da861aa6dc81",
+      "category": "education",
+      "categoryName": "Education",
+      "stress": null,
+      "lang": null,
+      "variant": null,
+      "image": {
+        "src": "https://kvia.b-cdn.net/2024/04/EPISD.jpg",
+        "width": 1200,
+        "height": 800
+      },
+      "headline": "EPISD Raises Tax Rate, Impacting Homeowners in El Paso",
+      "headlineI18n": null,
+      "summaryI18n": null,
+      "bylineI18n": null,
+      "href": "article.html",
+      "summary": [
+        {
+          "type": "p",
+          "inlines": [
+            {
+              "text": "The El Paso Independent School District (EPISD) board has approved a new tax rate that will increase the average homeowner's tax bill by approximately $114 annually. The new rate is set at $1.0745 per $100 of taxable property valuation, which is slightly below the maximum rate allowed by voters. This change raises the average tax due on homes from $1,179 last year to $1,294.18 this year, reflecting a rise in average taxable home values from $109,167 to $120,455. Homeowners should be aware of exemptions available, including a $140,000 exemption for most homeowners and additional exemptions for seniors and disabled individuals."
+            }
+          ]
+        },
+        {
+          "type": "p",
+          "inlines": [
+            {
+              "text": "Key Details:",
+              "strong": true
+            }
+          ]
+        },
+        {
+          "type": "list",
+          "items": [
+            [
+              {
+                "text": "New tax rate approved at $1.0745 per $100 of property valuation."
+              }
+            ],
+            [
+              {
+                "text": "Average homeowner's tax bill increases from $1,179 to $1,294.18."
+              }
+            ],
+            [
+              {
+                "text": "First $140,000 of property value is exempt from school taxes for most homeowners."
+              }
+            ],
+            [
+              {
+                "text": "Additional $60,000 exemption for seniors and disabled individuals."
+              }
+            ],
+            [
+              {
+                "text": "Veterans with 100% disability rating are exempt from all property taxes."
+              }
+            ]
+          ]
+        }
+      ],
+      "source": "KVIA",
+      "datetime": "2026-09-16T12:46:37-06:00",
+      "timeLabel": "Sept. 16, 12:46 p.m."
+    },
+    {
+      "uuid": "aee43053-15ad-41e3-8560-2e86a6dc114e",
+      "category": "community",
+      "categoryName": "Community",
+      "stress": null,
+      "lang": null,
+      "variant": null,
+      "image": {
+        "src": "https://kvia.com/wp-content/uploads/2026/09/fredd-young.webp",
+        "width": 1200,
+        "height": 800
+      },
+      "headline": "Fredd Young, NMSU Football Legend and NFL Star, Passes Away at 64",
+      "headlineI18n": null,
+      "summaryI18n": null,
+      "bylineI18n": null,
+      "href": "article.html",
+      "summary": [
+        {
+          "type": "p",
+          "inlines": [
+            {
+              "text": "Fredd Young, a celebrated Hall of Famer from New Mexico State University (NMSU) and former Seattle Seahawks player, has died at the age of 64. Young was a standout linebacker for the Aggies from 1980 to 1983, setting a record with six sacks in a single game against LA Tech in 1983. Drafted by the Seahawks in 1984, he played seven seasons in the NFL, participating in 101 games and starting 79. His contributions to football and the Las Cruces community were recognized in 1991 when he was inducted into the U.S. Bank/NM State Athletics Hall of Fame. His legacy is remembered fondly by NMSU Athletics, highlighting his significant impact on the sport and local community."
+            }
+          ]
+        },
+        {
+          "type": "p",
+          "inlines": [
+            {
+              "text": "Key Details:",
+              "strong": true
+            }
+          ]
+        },
+        {
+          "type": "list",
+          "items": [
+            [
+              {
+                "text": "Fredd Young played for NMSU from 1980-1983."
+              }
+            ],
+            [
+              {
+                "text": "He was drafted by the Seattle Seahawks in the third round of the 1984 NFL Draft."
+              }
+            ],
+            [
+              {
+                "text": "Young set a record with six sacks in a single game against LA Tech in 1983."
+              }
+            ],
+            [
+              {
+                "text": "Inducted into the NMSU Hall of Fame in 1991."
+              }
+            ],
+            [
+              {
+                "text": "He played a total of 101 NFL games, starting 79."
+              }
+            ]
+          ]
+        }
+      ],
+      "source": "KVIA",
+      "datetime": "2026-09-16T12:39:04-06:00",
+      "timeLabel": "Sept. 16, 12:39 p.m."
+    },
+    {
+      "uuid": "df2e5a2b-46e0-4b0f-b7e2-fc98dc975d69",
+      "category": "community",
+      "categoryName": "Community",
+      "stress": null,
+      "lang": null,
+      "variant": null,
+      "image": {
+        "src": "https://www.ktsm.com/wp-content/uploads/sites/38/2024/05/El-Paso-Animal-Services.jpg?w=897",
+        "width": 1200,
+        "height": 800
+      },
+      "headline": "El Paso Animal Services Under Scrutiny Following Rescue Group's Allegations",
+      "headlineI18n": null,
+      "summaryI18n": null,
+      "bylineI18n": null,
+      "href": "article.html",
+      "summary": [
+        {
+          "type": "p",
+          "inlines": [
+            {
+              "text": "El Paso Animal Services is currently under investigation due to serious allegations raised by the local nonprofit, Paws for Promise. The organization claims that animals returned from the city's facilities have exhibited health issues, prompting concerns about the procedures in place. A representative from Paws for Promise shared these concerns through a Facebook video, highlighting the potential impact on animal welfare. This situation is significant as it raises questions about the standards of care provided by Animal Services and the implications for local animal rescue efforts."
+            }
+          ]
+        }
+      ],
+      "source": "KTSM",
+      "datetime": "2026-09-16T12:35:48-06:00",
+      "timeLabel": "Sept. 16, 12:35 p.m."
+    },
+    {
+      "uuid": "dc23f0ba-1cc7-4ad0-b95b-87fa99c5e851",
+      "category": "health",
+      "categoryName": "Health",
+      "stress": null,
+      "lang": null,
+      "variant": null,
+      "image": {
+        "src": "https://kvia.com/wp-content/uploads/2025/06/New-World-Screwworm.png",
+        "width": 1200,
+        "height": 800
+      },
+      "headline": "El Paso Residents Urged to Monitor Pets for New World Screwworm Threat",
+      "headlineI18n": null,
+      "summaryI18n": null,
+      "bylineI18n": null,
+      "href": "article.html",
+      "summary": [
+        {
+          "type": "p",
+          "inlines": [
+            {
+              "text": "Health officials are alerting El Paso pet owners about the potential threat of the New World screwworm, a flesh-eating fly larva recently detected in Juárez and other areas in Texas. Although no cases have been reported in El Paso, the parasite can cause severe tissue damage and infection in animals if not treated promptly. Symptoms to watch for include foul-smelling wounds, lethargy, and visible maggots. Pet owners are advised to seek immediate veterinary care if they suspect an infection. Local animal services are prepared for potential cases, emphasizing the importance of preventative measures."
+            }
+          ]
+        },
+        {
+          "type": "p",
+          "inlines": [
+            {
+              "text": "Key Details:",
+              "strong": true
+            }
+          ]
+        },
+        {
+          "type": "list",
+          "items": [
+            [
+              {
+                "text": "Monitor pets for symptoms like foul-smelling wounds and lethargy."
+              }
+            ],
+            [
+              {
+                "text": "Seek veterinary care immediately if infection is suspected."
+              }
+            ],
+            [
+              {
+                "text": "Stay updated on preventative measures and local health advisories."
+              }
+            ]
+          ]
+        }
+      ],
+      "source": "KVIA",
+      "datetime": "2026-09-16T11:55:00-06:00",
+      "timeLabel": "Sept. 16, 11:55 a.m."
+    },
+    {
+      "uuid": "0fe96c27-5d18-4df6-a9a3-167a4df63212",
+      "category": "community",
+      "categoryName": "Community",
+      "stress": null,
+      "lang": null,
+      "variant": null,
+      "image": null,
+      "headline": "Sunny, Beloved Portuguese Water Dog of the Obamas, Passes Away at 13",
+      "headlineI18n": null,
+      "summaryI18n": null,
+      "bylineI18n": null,
+      "href": "article.html",
+      "summary": [
+        {
+          "type": "p",
+          "inlines": [
+            {
+              "text": "Sunny, the Portuguese water dog who brought joy to the Obama family during their time in the White House, has died at the age of 13. Former President Barack Obama announced her passing on social media, calling her a cherished family member. Sunny joined the Obamas in 2013, providing companionship to their other dog, Bo, and was known for her playful and spirited personality. Throughout her life, she was involved in various official events and even met Pope Francis. The cause of her death has not been disclosed, but her legacy as a beloved first pet endures, as she helped the Obamas transition to life as empty nesters after their daughters left for college."
+            }
+          ]
+        }
+      ],
+      "source": "KVIA",
+      "datetime": "2026-09-16T11:30:21-06:00",
+      "timeLabel": "Sept. 16, 11:30 a.m."
+    },
+    {
+      "uuid": "72a957d7-d5f1-4f95-a88b-f68992bf41fb",
+      "category": "politics",
+      "categoryName": "Politics",
+      "stress": null,
+      "lang": null,
+      "variant": null,
+      "image": null,
+      "headline": "House of Representatives Adjourns Early, Dodges Hegseth Impeachment Vote",
+      "headlineI18n": null,
+      "summaryI18n": null,
+      "bylineI18n": null,
+      "href": "article.html",
+      "summary": [
+        {
+          "type": "p",
+          "inlines": [
+            {
+              "text": "The Speaker of the House, Mike Johnson, has decided to send lawmakers back to their districts early for a seven-week campaign recess, preventing a scheduled vote on the impeachment of Defense Secretary Pete Hegseth. Originally, the House was set to remain in session until Thursday, but will now conclude with key votes on a sanctions bill against Russia on Wednesday night. This decision comes amid growing pressure on Republicans regarding contentious issues and an unexpected impeachment resolution introduced by Representative Thomas Massie. Johnson criticized Massie's actions as a publicity stunt and emphasized that the early adjournment was unrelated to Hegseth's situation. The House will reconvene after the November elections."
+            }
+          ]
+        },
+        {
+          "type": "p",
+          "inlines": [
+            {
+              "text": "Key Details:",
+              "strong": true
+            }
+          ]
+        },
+        {
+          "type": "list",
+          "items": [
+            [
+              {
+                "text": "House adjourns early for a seven-week recess before midterm elections."
+              }
+            ],
+            [
+              {
+                "text": "Final votes will occur on Wednesday night, including a sanctions bill against Russia."
+              }
+            ],
+            [
+              {
+                "text": "Impeachment resolution against Hegseth introduced by Rep. Thomas Massie delayed until November."
+              }
+            ],
+            [
+              {
+                "text": "Johnson dismisses Massie's impeachment initiative as a publicity stunt."
+              }
+            ]
+          ]
+        }
+      ],
+      "source": "KVIA",
+      "datetime": "2026-09-16T11:21:31-06:00",
+      "timeLabel": "Sept. 16, 11:21 a.m."
+    },
+    {
+      "uuid": "a9fa14b6-1f6e-4a95-ae94-e3e7d0281996",
+      "category": "community",
+      "categoryName": "Community",
+      "stress": null,
+      "lang": null,
+      "variant": null,
+      "image": {
+        "src": "https://www.ktsm.com/wp-content/uploads/sites/38/2026/09/Theresa-Caputo-Live-The-Experience.jpg?w=900",
+        "width": 1200,
+        "height": 800
+      },
+      "headline": "Theresa Caputo to Bring Live Medium Experience to El Paso This October",
+      "headlineI18n": null,
+      "summaryI18n": null,
+      "bylineI18n": null,
+      "href": "article.html",
+      "summary": [
+        {
+          "type": "p",
+          "inlines": [
+            {
+              "text": "Theresa Caputo, known from the TV show 'Long Island Medium,' will perform live in El Paso on Sunday, October 18, at 3 p.m. The event will take place at The Plaza Theatre, located at One Civic Center Plaza. Attendees can expect a blend of personal stories, humor, and Caputo's unique ability to connect with the spirit world. This event is significant for fans of the show and those interested in spiritual experiences, offering a chance to see Caputo in person."
+            }
+          ]
+        },
+        {
+          "type": "p",
+          "inlines": [
+            {
+              "text": "Key Details:",
+              "strong": true
+            }
+          ]
+        },
+        {
+          "type": "list",
+          "items": [
+            [
+              {
+                "text": "Event date: Sunday, October 18, 3 p.m."
+              }
+            ],
+            [
+              {
+                "text": "Location: The Plaza Theatre, One Civic Center Plaza, El Paso"
+              }
+            ],
+            [
+              {
+                "text": "Expect personal stories and a mediumship experience"
+              }
+            ]
+          ]
+        }
+      ],
+      "source": "KTSM",
+      "datetime": "2026-09-16T11:19:01-06:00",
+      "timeLabel": "Sept. 16, 11:19 a.m."
+    },
+    {
+      "uuid": "a6047080-bc70-4eab-9fdb-3de80995ee04",
+      "category": "education",
+      "categoryName": "Education",
+      "stress": null,
+      "lang": null,
+      "variant": null,
+      "image": {
+        "src": "https://www.ktsm.com/wp-content/uploads/sites/38/2026/09/artificial_intelligene_classroom_01222026_AP26022717764507-1.jpg?w=900",
+        "width": 1200,
+        "height": 800
+      },
+      "headline": "Majority of Teachers Support Limits on Student Screen Time in Schools",
+      "headlineI18n": null,
+      "summaryI18n": null,
+      "bylineI18n": null,
+      "href": "article.html",
+      "summary": [
+        {
+          "type": "p",
+          "inlines": [
+            {
+              "text": "A recent Gallup poll reveals that nearly 75% of teachers are advocating for restrictions on screen time for students in classrooms. While educators recognize the role of technology in learning, many express concerns about its overuse and potential negative impacts on student engagement and health. This sentiment underscores a growing debate about the balance between digital learning tools and traditional teaching methods. The findings highlight the need for school districts to consider policies that address screen time in order to enhance educational outcomes."
+            }
+          ]
+        }
+      ],
+      "source": "KTSM",
+      "datetime": "2026-09-16T11:18:39-06:00",
+      "timeLabel": "Sept. 16, 11:18 a.m."
+    },
+    {
+      "uuid": "26f5b453-8290-4b40-8e37-2ca0417294d4",
+      "category": "community",
+      "categoryName": "Community",
+      "stress": null,
+      "lang": null,
+      "variant": null,
+      "image": {
+        "src": "https://www.ktsm.com/wp-content/uploads/sites/38/2026/09/7ff31fb41c594182a7a04d8ee00ae0bd.jpg?w=900",
+        "width": 1200,
+        "height": 800
+      },
+      "headline": "Merriam-Webster Expands Dictionary with 1,400 New Terms Including 'Rickroll'",
+      "headlineI18n": null,
+      "summaryI18n": null,
+      "bylineI18n": null,
+      "href": "article.html",
+      "summary": [
+        {
+          "type": "p",
+          "inlines": [
+            {
+              "text": "Merriam-Webster has updated its online dictionary with a significant addition of 1,400 new words and definitions, reflecting evolving language trends. Among the newly included terms are 'looksmaxxing,' which refers to efforts to enhance one's appearance, and 'rickroll,' a popular internet prank. This update highlights the dynamic nature of language and its adaptation to cultural phenomena. The inclusion of these terms allows users to better understand contemporary discussions and online interactions."
+            }
+          ]
+        }
+      ],
+      "source": "KTSM",
+      "datetime": "2026-09-16T11:16:07-06:00",
+      "timeLabel": "Sept. 16, 11:16 a.m."
+    },
+    {
+      "uuid": "ffe39014-337e-4e34-b3ca-c4228ad1c16d",
+      "category": "community",
+      "categoryName": "Community",
+      "stress": null,
+      "lang": null,
+      "variant": null,
+      "image": {
+        "src": "https://kvia.com/wp-content/uploads/2026/09/videoframe_1810.png",
+        "width": 1200,
+        "height": 800
+      },
+      "headline": "Meta Contributes $2.5 Million to Boost El Paso Giving Day Efforts",
+      "headlineI18n": null,
+      "summaryI18n": null,
+      "bylineI18n": null,
+      "href": "article.html",
+      "summary": [
+        {
+          "type": "p",
+          "inlines": [
+            {
+              "text": "Meta has donated $2.5 million to the Paso del Norte Community Foundation (PdNCF) to enhance resources for local nonprofits during El Paso Giving Day, scheduled for October 15. This significant contribution will effectively double the funding available to participating organizations, allowing them to receive up to $25,000 each. The initiative aims to support essential services in areas such as family assistance, education, and health. Meta's investment aligns with its commitment to community development, particularly as it establishes a data center in Northeast El Paso, emphasizing the importance of local engagement."
+            }
+          ]
+        },
+        {
+          "type": "p",
+          "inlines": [
+            {
+              "text": "Key Details:",
+              "strong": true
+            }
+          ]
+        },
+        {
+          "type": "list",
+          "items": [
+            [
+              {
+                "text": "El Paso Giving Day is on October 15, 2023."
+              }
+            ],
+            [
+              {
+                "text": "Nonprofits can receive up to $25,000 from the donation."
+              }
+            ],
+            [
+              {
+                "text": "Meta's donation aims to support services in education, health, and family services."
+              }
+            ]
+          ]
+        }
+      ],
+      "source": "KVIA",
+      "datetime": "2026-09-16T11:10:35-06:00",
+      "timeLabel": "Sept. 16, 11:10 a.m."
+    },
+    {
+      "uuid": "228e8097-3fda-468e-99bf-ba92ddea7d8f",
+      "category": "politics",
+      "categoryName": "Politics",
+      "stress": null,
+      "lang": null,
+      "variant": null,
+      "image": null,
+      "headline": "Supreme Court Ruling on Mail-In Voting Seen as Win for Democracy",
+      "headlineI18n": null,
+      "summaryI18n": null,
+      "bylineI18n": null,
+      "href": "article.html",
+      "summary": [
+        {
+          "type": "p",
+          "inlines": [
+            {
+              "text": "The U.S. Supreme Court's recent decision to block former President Trump's attempts to restrict mail-in voting for the 2026 midterm elections has sparked varied reactions, primarily from Democrats who benefit more from this voting method. While Trump argues that such changes favor Republicans, analysts suggest that the ruling may ultimately enhance democratic participation rather than just benefiting one party. A recent CBS News poll indicates that 38% of Democrats plan to vote by mail compared to 22% of Republicans, highlighting the importance of mail-in voting for older and rural voters, who tend to lean Republican. Concerns remain about the potential for errors in the mail-in voting verification process, which could disenfranchise voters across party lines."
+            }
+          ]
+        },
+        {
+          "type": "p",
+          "inlines": [
+            {
+              "text": "Key Details:",
+              "strong": true
+            }
+          ]
+        },
+        {
+          "type": "list",
+          "items": [
+            [
+              {
+                "text": "Supreme Court decision blocks Trump's mail-in voting restrictions for 2026 elections."
+              }
+            ],
+            [
+              {
+                "text": "CBS News poll shows 38% of Democrats vs. 22% of Republicans plan to vote by mail."
+              }
+            ],
+            [
+              {
+                "text": "Older and rural voters, more likely to vote by mail, are crucial for both parties."
+              }
+            ],
+            [
+              {
+                "text": "Concerns about mail-in voting verification errors could impact voter turnout."
+              }
+            ]
+          ]
+        }
+      ],
+      "source": "KVIA",
+      "datetime": "2026-09-16T10:50:20-06:00",
+      "timeLabel": "Sept. 16, 10:50 a.m."
+    },
+    {
+      "uuid": "61cf76bc-1b2f-4825-90ec-e4ad491f5378",
+      "category": "crime",
+      "categoryName": "Crime",
+      "stress": null,
+      "lang": null,
+      "variant": null,
+      "image": {
+        "src": "https://www.ktsm.com/wp-content/uploads/sites/38/2026/09/Kevin-Daniel-Cuellar.png?w=356",
+        "width": 1200,
+        "height": 800
+      },
+      "headline": "23-Year-Old Arrested for High-Speed Chase in El Paso",
+      "headlineI18n": null,
+      "summaryI18n": null,
+      "bylineI18n": null,
+      "href": "article.html",
+      "summary": [
+        {
+          "type": "p",
+          "inlines": [
+            {
+              "text": "An El Paso man, aged 23, was apprehended early Sunday morning after leading deputies on a high-speed chase, reaching speeds over 100 mph. The incident occurred around 4:18 a.m. on September 13, when a deputy attempted to pull over a black Dodge Charger. This reckless behavior not only endangers public safety but also highlights ongoing issues with traffic violations in the area. Residents are reminded of the importance of adhering to traffic laws to ensure community safety."
+            }
+          ]
+        },
+        {
+          "type": "p",
+          "inlines": [
+            {
+              "text": "Key Details:",
+              "strong": true
+            }
+          ]
+        },
+        {
+          "type": "list",
+          "items": [
+            [
+              {
+                "text": "Incident occurred on September 13 at approximately 4:18 a.m."
+              }
+            ],
+            [
+              {
+                "text": "Chase involved a black Dodge Charger exceeding 100 mph."
+              }
+            ],
+            [
+              {
+                "text": "Emphasizes the dangers of high-speed pursuits in residential areas."
+              }
+            ]
+          ]
+        }
+      ],
+      "source": "KTSM",
+      "datetime": "2026-09-16T10:42:55-06:00",
+      "timeLabel": "Sept. 16, 10:42 a.m."
+    },
+    {
+      "uuid": "a4c0252e-1fbd-4d34-b0ca-bd2769659f7f",
+      "category": "community",
+      "categoryName": "Community",
+      "stress": null,
+      "lang": null,
+      "variant": null,
+      "image": {
+        "src": "https://www.ktsm.com/wp-content/uploads/sites/38/2026/05/69fa2ad64c9159.97822759.jpeg?w=900",
+        "width": 1200,
+        "height": 800
+      },
+      "headline": "Meta Donates $2.5 Million to Paso del Norte Community Foundation",
+      "headlineI18n": null,
+      "summaryI18n": null,
+      "bylineI18n": null,
+      "href": "article.html",
+      "summary": [
+        {
+          "type": "p",
+          "inlines": [
+            {
+              "text": "Meta, the tech company constructing a data center in El Paso, has contributed $2.5 million to the Paso del Norte Community Foundation (PdNCF). This significant donation supports the foundation's initiative, 'The Future Is Everyone,' aimed at enhancing community resources and opportunities. The funds will be utilized to address various local needs, ultimately benefiting residents in the El Paso area. This investment underscores Meta's commitment to supporting the communities where it operates."
+            }
+          ]
+        }
+      ],
+      "source": "KTSM",
+      "datetime": "2026-09-16T10:30:06-06:00",
+      "timeLabel": "Sept. 16, 10:30 a.m."
+    },
+    {
+      "uuid": "4da04c7d-5884-4c49-87a3-fe3aad49e6dc",
+      "category": "health",
+      "categoryName": "Health",
+      "stress": null,
+      "lang": null,
+      "variant": null,
+      "image": {
+        "src": "https://www.ktsm.com/wp-content/uploads/sites/38/2026/09/soapy-hand-foam-dispenser-GettyImages-2214554721-e1789570308134.jpg?w=900",
+        "width": 1200,
+        "height": 800
+      },
+      "headline": "Recall Alert: Hand Soap Linked to Bacterial Contamination in 15 States",
+      "headlineI18n": null,
+      "summaryI18n": null,
+      "bylineI18n": null,
+      "href": "article.html",
+      "summary": [
+        {
+          "type": "p",
+          "inlines": [
+            {
+              "text": "Intercon Chemical Co. has expanded a recall of hand soaps due to potential bacterial contamination, affecting consumers in 15 states, including Texas. The recall, which began in June, involves six varieties of soap sold under various brand names. This action is crucial as it aims to protect public health by preventing exposure to harmful bacteria. Consumers are advised to check their products and discontinue use if they possess any of the affected soaps."
+            }
+          ]
+        },
+        {
+          "type": "p",
+          "inlines": [
+            {
+              "text": "Key Details:",
+              "strong": true
+            }
+          ]
+        },
+        {
+          "type": "list",
+          "items": [
+            [
+              {
+                "text": "Recall initiated in June 2023 by Intercon Chemical Co."
+              }
+            ],
+            [
+              {
+                "text": "Affects hand soaps sold under multiple brand names across 15 states."
+              }
+            ],
+            [
+              {
+                "text": "Consumers should check for affected products and stop using them."
+              }
+            ]
+          ]
+        }
+      ],
+      "source": "KTSM",
+      "datetime": "2026-09-16T09:40:46-06:00",
+      "timeLabel": "Sept. 16, 9:40 a.m."
+    },
+    {
+      "uuid": "9118b58b-67e1-4050-a668-3cab03dbe729",
+      "category": "community",
+      "categoryName": "Community",
+      "stress": null,
+      "lang": null,
+      "variant": null,
+      "image": {
+        "src": "https://www.ktsm.com/wp-content/uploads/sites/38/2026/09/download-1.png?w=900",
+        "width": 1200,
+        "height": 800
+      },
+      "headline": "Man Arrested for Dropping Toys from Paraglider at Concert on 9/11",
+      "headlineI18n": null,
+      "summaryI18n": null,
+      "bylineI18n": null,
+      "href": "article.html",
+      "summary": [
+        {
+          "type": "p",
+          "inlines": [
+            {
+              "text": "An Indiana resident was apprehended after allegedly dropping toys from a paraglider during a Dan + Shay concert held on September 11, marking the 25th anniversary of the 9/11 attacks. This unusual incident raised safety concerns and disrupted the event, prompting a swift response from law enforcement. The actions of the individual not only drew attention but also highlighted the potential risks associated with aerial activities in crowded venues. Concertgoers and event organizers are urged to remain vigilant and report any suspicious activities in the future."
+            }
+          ]
+        },
+        {
+          "type": "p",
+          "inlines": [
+            {
+              "text": "Key Details:",
+              "strong": true
+            }
+          ]
+        },
+        {
+          "type": "list",
+          "items": [
+            [
+              {
+                "text": "Incident occurred on September 11, 2023, during a Dan + Shay concert."
+              }
+            ],
+            [
+              {
+                "text": "The paraglider was flying over the concert venue in El Paso."
+              }
+            ],
+            [
+              {
+                "text": "The man was arrested by local police for his actions."
+              }
+            ]
+          ]
+        }
+      ],
+      "source": "KTSM",
+      "datetime": "2026-09-16T09:31:14-06:00",
+      "timeLabel": "Sept. 16, 9:31 a.m."
+    },
+    {
+      "uuid": "7c49d880-054d-4835-8f1c-0f10c77bb4c0",
+      "category": "community",
+      "categoryName": "Community",
+      "stress": null,
+      "lang": null,
+      "variant": null,
+      "image": {
+        "src": "https://kvia.com/wp-content/uploads/2026/09/Waterfest-1-860x721.jpg",
+        "width": 1200,
+        "height": 800
+      },
+      "headline": "El Paso Water Festival 2026 to Showcase Local Water Resources and Activities",
+      "headlineI18n": null,
+      "summaryI18n": null,
+      "bylineI18n": null,
+      "href": "article.html",
+      "summary": [
+        {
+          "type": "p",
+          "inlines": [
+            {
+              "text": "EPWater is set to host the 2026 Water Festival on Saturday, September 19, from 11 a.m. to 3 p.m. at the TecH2O Learning Center, located at 10751 Montana Ave. This free event will feature family-friendly activities, including art sessions, demonstrations, and performances by local artists such as the Ysleta del Sur Pueblo Dancers and the El Paso Youth Jazz Ensemble. Attendees can also explore exhibition booths from various local organizations, including the El Paso Zoo and El Paso Electric. Additionally, guided tours of the Kay Bailey Hutchison Desalination Plant will be available for those aged 14 and older, with tours commencing every 20 minutes from 11 a.m. to 2 p.m. Registration for the tours is required to meet security protocols."
+            }
+          ]
+        },
+        {
+          "type": "p",
+          "inlines": [
+            {
+              "text": "Key Details:",
+              "strong": true
+            }
+          ]
+        },
+        {
+          "type": "list",
+          "items": [
+            [
+              {
+                "text": "Event Date: Saturday, September 19, 11 a.m. - 3 p.m."
+              }
+            ],
+            [
+              {
+                "text": "Location: TecH2O Learning Center, 10751 Montana Ave"
+              }
+            ],
+            [
+              {
+                "text": "Tours of the desalination plant for ages 14 and up, starting every 20 minutes from 11 a.m."
+              }
+            ],
+            [
+              {
+                "text": "Registration required for plant tours; call 915-621-2000 for more info"
+              }
+            ],
+            [
+              {
+                "text": "Food sales available at the event"
+              }
+            ]
+          ]
+        }
+      ],
+      "source": "KVIA",
+      "datetime": "2026-09-16T09:27:02-06:00",
+      "timeLabel": "Sept. 16, 9:27 a.m."
+    },
+    {
+      "uuid": "3c025a1b-04f9-4397-b686-f121561caeff",
+      "category": "politics",
+      "categoryName": "Politics",
+      "stress": null,
+      "lang": null,
+      "variant": null,
+      "image": {
+        "src": "https://www.ktsm.com/wp-content/uploads/sites/38/2026/09/AP25136563980661-e1789571631163.jpg?w=900",
+        "width": 1200,
+        "height": 800
+      },
+      "headline": "Federal Paid Leave Costs Surge to Nearly $7 Billion by 2025",
+      "headlineI18n": null,
+      "summaryI18n": null,
+      "bylineI18n": null,
+      "href": "article.html",
+      "summary": [
+        {
+          "type": "p",
+          "inlines": [
+            {
+              "text": "A recent study reveals that federal employees are projected to receive almost $7 billion in paid leave through the Department of Labor's DOGE initiative. This figure represents a staggering sixfold increase in salary costs related to paid leave from 2023 to 2025. Such a significant rise raises concerns about the financial implications for federal budgets and the overall efficiency of workforce management. Stakeholders in government and public service sectors should closely monitor these developments as they may impact future policy decisions and funding allocations."
+            }
+          ]
+        },
+        {
+          "type": "p",
+          "inlines": [
+            {
+              "text": "Key Details:",
+              "strong": true
+            }
+          ]
+        },
+        {
+          "type": "list",
+          "items": [
+            [
+              {
+                "text": "Projected paid leave costs will reach nearly $7 billion by 2025."
+              }
+            ],
+            [
+              {
+                "text": "Salary costs for paid leave have increased sixfold from 2023 to 2025."
+              }
+            ],
+            [
+              {
+                "text": "Implications for federal budgets and workforce efficiency are significant."
+              }
+            ]
+          ]
+        }
+      ],
+      "source": "KTSM",
+      "datetime": "2026-09-16T09:18:11-06:00",
+      "timeLabel": "Sept. 16, 9:18 a.m."
+    },
+    {
+      "uuid": "67af3117-4a43-413d-bf59-d6c0bccc218e",
+      "category": "community",
+      "categoryName": "Community",
+      "stress": null,
+      "lang": null,
+      "variant": null,
+      "image": {
+        "src": "https://www.ktsm.com/wp-content/uploads/sites/38/2026/09/metallica.jpg?w=900",
+        "width": 1200,
+        "height": 800
+      },
+      "headline": "Metallica to Rock El Paso's Sun Bowl Stadium This May",
+      "headlineI18n": null,
+      "summaryI18n": null,
+      "bylineI18n": null,
+      "href": "article.html",
+      "summary": [
+        {
+          "type": "p",
+          "inlines": [
+            {
+              "text": "Iconic heavy metal band Metallica is set to perform at the UTEP Sun Bowl Stadium on May 18 as part of their M72 World Tour, which will run through 2027. This concert is a significant event for local fans, marking a major stop in the band's extensive touring schedule. The announcement has generated excitement among music lovers in El Paso, as it brings a world-renowned act to the city. Fans are encouraged to prepare for the event and secure their tickets as soon as they become available."
+            }
+          ]
+        },
+        {
+          "type": "p",
+          "inlines": [
+            {
+              "text": "Key Details:",
+              "strong": true
+            }
+          ]
+        },
+        {
+          "type": "list",
+          "items": [
+            [
+              {
+                "text": "Concert date: May 18, 2024"
+              }
+            ],
+            [
+              {
+                "text": "Location: UTEP Sun Bowl Stadium, 2701 Sun Bowl Drive, El Paso"
+              }
+            ],
+            [
+              {
+                "text": "Part of the M72 World Tour running until 2027"
+              }
+            ],
+            [
+              {
+                "text": "Fans should check for ticket availability soon"
+              }
+            ]
+          ]
+        }
+      ],
+      "source": "KTSM",
+      "datetime": "2026-09-16T09:13:36-06:00",
+      "timeLabel": "Sept. 16, 9:13 a.m."
+    },
+    {
+      "uuid": "f87bc4d7-b0ad-4c43-8ae6-d7bba2b059f0",
+      "category": "community",
+      "categoryName": "Community",
+      "stress": "junk-image",
+      "lang": null,
+      "variant": null,
+      "image": null,
+      "headline": "Key Updates for El Paso Residents: August 21 Highlights",
+      "headlineI18n": null,
+      "summaryI18n": null,
+      "bylineI18n": null,
+      "href": "article.html",
+      "summary": [
+        {
+          "type": "p",
+          "inlines": [
+            {
+              "text": "On August 21, several significant topics are making headlines, including the unexpected return of Prince Harry and Meghan to the UK, which is stirring public interest. The Democratic strategy to support independent candidates in Republican states for the 2026 Senate elections could lead to more competitive races, especially in Idaho, Nebraska, and South Dakota. Additionally, the Salvadoran community in the U.S. is awaiting a crucial decision regarding the Temporary Protected Status for El Salvador, amid ongoing immigration debates. The article also touches on a tragic incident in New York involving a boat captain and a bomb attack, as well as the impact of the El Niño phenomenon on winter weather in the U.S."
+            }
+          ]
+        },
+        {
+          "type": "p",
+          "inlines": [
+            {
+              "text": "Key Details:",
+              "strong": true
+            }
+          ]
+        },
+        {
+          "type": "list",
+          "items": [
+            [
+              {
+                "text": "Monitor developments regarding the Senate elections in Idaho, Nebraska, and South Dakota for 2026."
+              }
+            ],
+            [
+              {
+                "text": "Stay informed about the status of Temporary Protected Status for Salvadorans in the U.S."
+              }
+            ],
+            [
+              {
+                "text": "Be aware of the potential effects of El Niño on winter weather patterns across the country."
+              }
+            ]
+          ]
+        }
+      ],
+      "source": "KVIA",
+      "datetime": "2026-08-21T03:42:46-06:00",
+      "timeLabel": "Aug. 21, 3:42 a.m."
+    },
+    {
+      "uuid": "e8d5c5fe-9795-403e-9f5d-dd776540a2db",
+      "category": "community",
+      "categoryName": "Community",
+      "stress": "longest-summary",
+      "lang": null,
+      "variant": null,
+      "image": null,
+      "headline": "Crisis de agua en EE.UU.: Niveles históricos bajos en embalses clave afectan a millones",
+      "headlineI18n": null,
+      "summaryI18n": "card-summary",
+      "bylineI18n": null,
+      "href": "article.html",
+      "summary": [
+        {
+          "type": "p",
+          "inlines": [
+            {
+              "text": "Los niveles de agua en Lake Powell y Lake Mead han alcanzado cifras históricamente bajas, lo que representa un grave problema para el suministro de agua y energía en el suroeste de EE.UU. A partir del 12 de julio, Lake Powell estaba a 3,524 pies y Lake Mead a 1,043 pies, rompiendo récords anteriores. Estos embalses son cruciales, ya que abastecen agua a 40 millones de personas y generan electricidad para 700,000 hogares. Con el 95% de la cuenca del río Colorado en sequía, se prevé que los niveles sigan cayendo, lo que podría llevar a una crisis en la gestión del agua entre los siete estados que dependen de este recurso. Las negociaciones para compartir el agua se complican, y se espera que nuevas directrices operativas se publiquen en las próximas semanas para abordar la crisis."
+            }
+          ]
+        },
+        {
+          "type": "p",
+          "inlines": [
+            {
+              "text": "Key Details:",
+              "strong": true
+            }
+          ]
+        },
+        {
+          "type": "list",
+          "items": [
+            [
+              {
+                "text": "Lake Powell actualmente al 23% de su capacidad, y Lake Mead al 27%."
+              }
+            ],
+            [
+              {
+                "text": "Se espera que ambos embalses establezcan nuevos mínimos históricos diariamente hasta la primavera de 2024."
+              }
+            ],
+            [
+              {
+                "text": "Se impuso una fecha límite en febrero para que los estados llegaran a un acuerdo sobre la gestión del agua, pero no se alcanzó un consenso."
+              }
+            ],
+            [
+              {
+                "text": "El Secretario del Interior, Doug Burgum, se reunió con los gobernadores de los siete estados para discutir soluciones."
+              }
+            ],
+            [
+              {
+                "text": "Se anticipa que El Niño podría traer alivio a la sequía en otoño e invierno."
+              }
+            ]
+          ]
+        }
+      ],
+      "source": "KVIA",
+      "datetime": "2026-07-22T16:49:45-06:00",
+      "timeLabel": "July 22, 4:49 p.m."
+    },
+    {
+      "uuid": "adf5f53b-ddb1-4741-be5e-7a75fe847a50",
+      "category": "community",
+      "categoryName": "Community",
+      "stress": "shortest-summary",
+      "lang": null,
+      "variant": null,
+      "image": {
+        "src": "https://www.ktsm.com/wp-content/uploads/sites/38/2020/04/KTSM9-Logo.png?w=753",
+        "width": 1200,
+        "height": 800
+      },
+      "headline": "KTSM+ Broadcasts at 4 PM Featuring Tirza Ortiz",
+      "headlineI18n": null,
+      "summaryI18n": "card-summary-thin",
+      "bylineI18n": null,
+      "href": "article.html",
+      "summary": [
+        {
+          "type": "p",
+          "inlines": [
+            {
+              "text": "KTSM+ will air its program at 4 PM, showcasing Tirza Ortiz. This segment is anticipated to cover various local topics relevant to the El Paso community. Viewers can expect engaging discussions and updates that reflect current events and issues affecting the area."
+            }
+          ]
+        }
+      ],
+      "source": "KTSM",
+      "datetime": "2026-07-22T15:58:44-06:00",
+      "timeLabel": "July 22, 3:58 p.m."
+    },
+    {
+      "uuid": "5f20c478-64a2-44f6-8cc4-cc9478c3c449",
+      "category": "community",
+      "categoryName": "Community",
+      "stress": "shortest-headline",
+      "lang": null,
+      "variant": null,
+      "image": {
+        "src": "https://www.ktsm.com/wp-content/uploads/sites/38/2025/07/basic-graphic.jpg?w=900",
+        "width": 1200,
+        "height": 800
+      },
+      "headline": "Catch KTSM+ at 4 PM for Local News Updates",
+      "headlineI18n": null,
+      "summaryI18n": null,
+      "bylineI18n": null,
+      "href": "article.html",
+      "summary": [
+        {
+          "type": "p",
+          "inlines": [
+            {
+              "text": "Tune in to KTSM+ at 4 p.m. for the latest news and updates from El Paso. The program will feature Monica Cortez and Tirza Ortiz, who will cover important local stories and events. This is a great opportunity for residents to stay informed about what's happening in their community."
+            }
+          ]
+        }
+      ],
+      "source": "KTSM",
+      "datetime": "2026-05-07T15:50:23-06:00",
+      "timeLabel": "May 7, 3:50 p.m."
+    },
+    {
+      "uuid": "5f20c478-64a2-44f6-8cc4-cc9478c3c449",
+      "category": "community",
+      "categoryName": "Community",
+      "stress": "no-summary",
+      "lang": null,
+      "variant": null,
+      "image": {
+        "src": "https://www.ktsm.com/wp-content/uploads/sites/38/2025/07/basic-graphic.jpg?w=900",
+        "width": 1200,
+        "height": 800
+      },
+      "headline": "Catch KTSM+ at 4 PM for Local News Updates",
+      "headlineI18n": null,
+      "summaryI18n": null,
+      "bylineI18n": null,
+      "href": "article.html",
+      "summary": null,
+      "source": "KTSM",
+      "datetime": "2026-05-07T15:50:23-06:00",
+      "timeLabel": "May 7, 3:50 p.m."
+    },
+    {
+      "uuid": "1fa497bd-5e43-4bcd-817e-50d101f4951b",
+      "category": "none",
+      "categoryName": null,
+      "stress": "uncategorized",
+      "lang": null,
+      "variant": null,
+      "image": null,
+      "headline": "Violent Gang Attack in Haiti Claims 16 Lives Amid Ongoing Crisis",
+      "headlineI18n": null,
+      "summaryI18n": null,
+      "bylineI18n": null,
+      "href": "article.html",
+      "summary": [
+        {
+          "type": "p",
+          "inlines": [
+            {
+              "text": "A brutal attack by the armed gang Gran Grif in Haiti resulted in at least 16 fatalities and numerous injuries on Sunday in Jean Denis, near Port-au-Prince. The gang blocked access routes to prevent police intervention, leading to a delayed response. While the police reported 16 deaths, an NGO claims the toll may be as high as 70, with many homes set ablaze and thousands displaced. The U.S. State Department has labeled Gran Grif as a foreign terrorist organization, noting its significant role in civilian deaths since 2022. Haiti continues to grapple with escalating violence, with a new multinational force expected to arrive in April to help restore order."
+            }
+          ]
+        },
+        {
+          "type": "p",
+          "inlines": [
+            {
+              "text": "Key Details:",
+              "strong": true
+            }
+          ]
+        },
+        {
+          "type": "list",
+          "items": [
+            [
+              {
+                "text": "At least 16 confirmed dead; NGO reports suggest 70 fatalities."
+              }
+            ],
+            [
+              {
+                "text": "Gang Gran Grif has been responsible for 80% of civilian deaths in Artibonite since 2022."
+              }
+            ],
+            [
+              {
+                "text": "New multinational forces to arrive in April to combat gang violence."
+              }
+            ]
+          ]
+        }
+      ],
+      "source": "KVIA",
+      "datetime": "2026-03-30T15:10:58-06:00",
+      "timeLabel": "March 30, 3:10 p.m."
+    },
+    {
+      "uuid": "f63b5753-90b6-4a54-b78d-160461c08bf8",
+      "category": "politics",
+      "categoryName": "Politics",
+      "stress": "longest-headline",
+      "lang": null,
+      "variant": null,
+      "image": null,
+      "headline": "Ucrania intensifica ofensiva contra la infraestructura petrolera rusa en medio de ganancias inesperadas del Kremlin",
+      "headlineI18n": "card-headline",
+      "summaryI18n": null,
+      "bylineI18n": null,
+      "href": "article.html",
+      "summary": [
+        {
+          "type": "p",
+          "inlines": [
+            {
+              "text": "El Ejército de Ucrania ha intensificado sus ataques a la infraestructura energética de Rusia, apuntando a refinerías y terminales de exportación en un esfuerzo por debilitar una de las principales fuentes de ingresos del Kremlin. En las últimas semanas, se han llevado a cabo al menos diez ataques significativos, incluyendo uno en una refinería en Yaroslavl, que resultó en daños a edificios residenciales. Mientras tanto, Rusia ha visto un aumento en los precios del petróleo, beneficiándose de la flexibilización de algunas sanciones estadounidenses. El presidente ucraniano, Volodymyr Zelensky, ha criticado estas medidas, argumentando que permiten a Rusia continuar sus ataques. Se espera que el gobierno ruso reintroduzca una prohibición a las exportaciones de gasolina a partir del 1 de abril debido a los efectos en el mercado interno."
+            }
+          ]
+        },
+        {
+          "type": "p",
+          "inlines": [
+            {
+              "text": "Key Details:",
+              "strong": true
+            }
+          ]
+        },
+        {
+          "type": "list",
+          "items": [
+            [
+              {
+                "text": "Ucrania ha realizado al menos 10 ataques significativos a la infraestructura energética rusa este mes."
+              }
+            ],
+            [
+              {
+                "text": "El último ataque fue a una refinería en Yaroslavl, causando un incendio y daños a edificios cercanos."
+              }
+            ],
+            [
+              {
+                "text": "Se espera que Rusia reintroduzca una prohibición a las exportaciones de gasolina a partir del 1 de abril."
+              }
+            ],
+            [
+              {
+                "text": "El presupuesto estatal de Rusia depende de los ingresos petroleros, que han aumentado en el último mes."
+              }
+            ]
+          ]
+        }
+      ],
+      "source": "KVIA",
+      "datetime": "2026-03-28T18:40:54-06:00",
+      "timeLabel": "March 28, 6:40 p.m."
+    },
+    {
+      "uuid": "f63b5753-90b6-4a54-b78d-160461c08bf8",
+      "category": "politics",
+      "categoryName": "Politics",
+      "stress": "spanish-real",
+      "lang": "es",
+      "variant": "es-real",
+      "image": null,
+      "headline": "Ucrania intensifica ofensiva contra la infraestructura petrolera rusa en medio de ganancias inesperadas del Kremlin",
+      "headlineI18n": null,
+      "summaryI18n": null,
+      "bylineI18n": null,
+      "href": "article.html",
+      "summary": [
+        {
+          "type": "p",
+          "inlines": [
+            {
+              "text": "El Ejército de Ucrania ha intensificado sus ataques a la infraestructura energética de Rusia, apuntando a refinerías y terminales de exportación en un esfuerzo por debilitar una de las principales fuentes de ingresos del Kremlin. En las últimas semanas, se han llevado a cabo al menos diez ataques significativos, incluyendo uno en una refinería en Yaroslavl, que resultó en daños a edificios residenciales. Mientras tanto, Rusia ha visto un aumento en los precios del petróleo, beneficiándose de la flexibilización de algunas sanciones estadounidenses. El presidente ucraniano, Volodymyr Zelensky, ha criticado estas medidas, argumentando que permiten a Rusia continuar sus ataques. Se espera que el gobierno ruso reintroduzca una prohibición a las exportaciones de gasolina a partir del 1 de abril debido a los efectos en el mercado interno."
+            }
+          ]
+        },
+        {
+          "type": "p",
+          "inlines": [
+            {
+              "text": "Key Details:",
+              "strong": true
+            }
+          ]
+        },
+        {
+          "type": "list",
+          "items": [
+            [
+              {
+                "text": "Ucrania ha realizado al menos 10 ataques significativos a la infraestructura energética rusa este mes."
+              }
+            ],
+            [
+              {
+                "text": "El último ataque fue a una refinería en Yaroslavl, causando un incendio y daños a edificios cercanos."
+              }
+            ],
+            [
+              {
+                "text": "Se espera que Rusia reintroduzca una prohibición a las exportaciones de gasolina a partir del 1 de abril."
+              }
+            ],
+            [
+              {
+                "text": "El presupuesto estatal de Rusia depende de los ingresos petroleros, que han aumentado en el último mes."
+              }
+            ]
+          ]
+        }
+      ],
+      "source": "KVIA",
+      "datetime": "2026-03-28T18:40:54-06:00",
+      "timeLabel": "March 28, 6:40 p.m."
+    },
+    {
+      "uuid": "f63b5753-90b6-4a54-b78d-160461c08bf8",
+      "category": "politics",
+      "categoryName": "Politics",
+      "stress": "spanish-synthetic",
+      "lang": "es",
+      "variant": "es-synthetic",
+      "image": null,
+      "headline": "Ucrania intensifica ofensiva contra la infraestructura petrolera rusa en medio de ganancias inesperadas del Kremlin comunicación comunicación",
+      "headlineI18n": null,
+      "summaryI18n": null,
+      "bylineI18n": null,
+      "href": "article.html",
+      "summary": [
+        {
+          "type": "p",
+          "inlines": [
+            {
+              "text": "El Ejército de Ucrania ha intensificado sus ataques a la infraestructura energética de Rusia, apuntando a refinerías y terminales de exportación en un esfuerzo por debilitar una de las principales fuentes de ingresos del Kremlin. En las últimas semanas, se han llevado a cabo al menos diez ataques significativos, incluyendo uno en una refinería en Yaroslavl, que resultó en daños a edificios residenciales. Mientras tanto, Rusia ha visto un aumento en los precios del petróleo, beneficiándose de la flexibilización de algunas sanciones estadounidenses. El presidente ucraniano, Volodymyr Zelensky, ha criticado estas medidas, argumentando que permiten a Rusia continuar sus ataques. Se espera que el gobierno ruso reintroduzca una prohibición a las exportaciones de gasolina a partir del 1 de abril debido a los efectos en el mercado interno."
+            }
+          ]
+        },
+        {
+          "type": "p",
+          "inlines": [
+            {
+              "text": "Key Details:",
+              "strong": true
+            }
+          ]
+        },
+        {
+          "type": "list",
+          "items": [
+            [
+              {
+                "text": "Ucrania ha realizado al menos 10 ataques significativos a la infraestructura energética rusa este mes."
+              }
+            ],
+            [
+              {
+                "text": "El último ataque fue a una refinería en Yaroslavl, causando un incendio y daños a edificios cercanos."
+              }
+            ],
+            [
+              {
+                "text": "Se espera que Rusia reintroduzca una prohibición a las exportaciones de gasolina a partir del 1 de abril."
+              }
+            ],
+            [
+              {
+                "text": "El presupuesto estatal de Rusia depende de los ingresos petroleros, que han aumentado en el último mes."
+              }
+            ]
+          ]
+        }
+      ],
+      "source": "KVIA",
+      "datetime": "2026-03-28T18:40:54-06:00",
+      "timeLabel": "March 28, 6:40 p.m."
+    },
+    {
+      "uuid": "f63b5753-90b6-4a54-b78d-160461c08bf8",
+      "category": "politics",
+      "categoryName": "Politics",
+      "stress": "worst-case",
+      "lang": "es",
+      "variant": "es-synthetic",
+      "image": null,
+      "headline": "Ucrania intensifica ofensiva contra la infraestructura petrolera rusa en medio de ganancias inesperadas del Kremlin comunicación comunicación",
+      "headlineI18n": null,
+      "summaryI18n": null,
+      "bylineI18n": null,
+      "href": "article.html",
+      "summary": [
+        {
+          "type": "p",
+          "inlines": [
+            {
+              "text": "El Ejército de Ucrania ha intensificado sus ataques a la infraestructura energética de Rusia, apuntando a refinerías y terminales de exportación en un esfuerzo por debilitar una de las principales fuentes de ingresos del Kremlin. En las últimas semanas, se han llevado a cabo al menos diez ataques significativos, incluyendo uno en una refinería en Yaroslavl, que resultó en daños a edificios residenciales. Mientras tanto, Rusia ha visto un aumento en los precios del petróleo, beneficiándose de la flexibilización de algunas sanciones estadounidenses. El presidente ucraniano, Volodymyr Zelensky, ha criticado estas medidas, argumentando que permiten a Rusia continuar sus ataques. Se espera que el gobierno ruso reintroduzca una prohibición a las exportaciones de gasolina a partir del 1 de abril debido a los efectos en el mercado interno."
+            }
+          ]
+        },
+        {
+          "type": "p",
+          "inlines": [
+            {
+              "text": "Key Details:",
+              "strong": true
+            }
+          ]
+        },
+        {
+          "type": "list",
+          "items": [
+            [
+              {
+                "text": "Ucrania ha realizado al menos 10 ataques significativos a la infraestructura energética rusa este mes."
+              }
+            ],
+            [
+              {
+                "text": "El último ataque fue a una refinería en Yaroslavl, causando un incendio y daños a edificios cercanos."
+              }
+            ],
+            [
+              {
+                "text": "Se espera que Rusia reintroduzca una prohibición a las exportaciones de gasolina a partir del 1 de abril."
+              }
+            ],
+            [
+              {
+                "text": "El presupuesto estatal de Rusia depende de los ingresos petroleros, que han aumentado en el último mes."
+              }
+            ]
+          ]
+        }
+      ],
+      "source": "KVIA",
+      "datetime": "2026-03-28T18:40:54-06:00",
+      "timeLabel": "March 28, 6:40 p.m."
+    }
+  ]
+}

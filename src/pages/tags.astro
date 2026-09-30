@@ -1,0 +1,57 @@
+---
+// 04-05 (Task 3): /tags — v1 parity (`app/pages/tags.vue`, `server/api/tags.get.ts`'s default
+// limit 100): the 100 most-used tags, grouped alphabetically by first letter (non-letters grouped
+// under '#', matching v1's `tag.name.charAt(0).toUpperCase()` grouping behavior for any tag name
+// that doesn't start with A-Z).
+import { getCollection } from 'astro:content';
+import Base from '../layouts/Base.astro';
+import { tagIndex, TAGS_INDEX_COUNT } from '../lib/listing';
+import { breadcrumbNode } from '../lib/structured-data';
+
+const entries = await getCollection('articles');
+const allArticles = entries.map((entry) => entry.data);
+const topTags = tagIndex(allArticles).slice(0, TAGS_INDEX_COUNT);
+
+const groups = new Map<string, typeof topTags>();
+for (const tag of topTags) {
+  const firstChar = tag.name.charAt(0).toUpperCase();
+  const letter = /^[A-Z]$/.test(firstChar) ? firstChar : '#';
+  const list = groups.get(letter);
+  if (list) {
+    list.push(tag);
+  } else {
+    groups.set(letter, [tag]);
+  }
+}
+const sortedLetters = [...groups.keys()].sort();
+---
+
+<Base
+  page="tags"
+  title="News Tags - El Paso Topics"
+  description="Browse all news tags and topics from El Paso news. Find articles by subject matter."
+  canonicalPath="/tags"
+  jsonLd={[breadcrumbNode([{ name: 'Home', path: '/' }, { name: 'Tags', path: '/tags' }])]}
+>
+  <header data-block>
+    <h1>Browse Tags</h1>
+    <p>Explore {topTags.length} topics covered in El Paso news.</p>
+  </header>
+
+  {
+    sortedLetters.map((letter) => (
+      <section data-tag-group aria-labelledby={`tag-letter-${letter}`}>
+        <h2 id={`tag-letter-${letter}`}>{letter}</h2>
+        <ul data-tag-list>
+          {groups.get(letter)!.map((tag) => (
+            <li>
+              <a href={`/tag/${tag.slug}`}>
+                {tag.name} <span data-tag-count>({tag.count})</span>
+              </a>
+            </li>
+          ))}
+        </ul>
+      </section>
+    ))
+  }
+</Base>

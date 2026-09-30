@@ -1,0 +1,78 @@
+---
+// 04-05 (Task 2): the homepage — REND-04. Draws the whole rendered feed from one flat,
+// newest-first list (`sortNewestFirst`, no separate "lead" concept in the loader itself): the
+// first article renders as the lead (`ArticleCard variant="lead"`, matching
+// design/mockups/index.html's no-image "type" lead shape), the remaining `HOME_FEED_COUNT - 1`
+// render as default grid cards. Regenerated every build (this page has no Content Layer digest of
+// its own — Astro always re-runs a page's own render). The load-more button and its status element
+// from the approved mockup are intentionally omitted here: that's the Phase 8 load-more island
+// (ISL-08); this page renders the mockup's plain no-JS state.
+import { getCollection } from 'astro:content';
+import Base from '../layouts/Base.astro';
+import ArticleCard from '../components/ArticleCard.astro';
+import { articlePath } from '../lib/article-url';
+import { sortNewestFirst, HOME_FEED_COUNT } from '../lib/listing';
+import { TIME_ZONE } from '../lib/format';
+import { BUILD_TIMESTAMP } from '../lib/build-info';
+
+const entries = await getCollection('articles');
+const allArticles = entries.map((entry) => entry.data);
+const feed = sortNewestFirst(allArticles).slice(0, HOME_FEED_COUNT);
+const [lead, ...rest] = feed;
+
+// showYear: true when an article's own year (America/Denver) differs from this build's year —
+// list pages regenerate every cycle anyway, so "this build's year" is a safe, deterministic
+// comparison basis (not a criterion-3 concern the way an article page's own render is).
+const buildYear = Number(
+  new Intl.DateTimeFormat('en-US', { timeZone: TIME_ZONE, year: 'numeric' }).format(new Date(BUILD_TIMESTAMP))
+);
+function showYearFor(publishedAt: number): boolean {
+  const articleYear = Number(
+    new Intl.DateTimeFormat('en-US', { timeZone: TIME_ZONE, year: 'numeric' }).format(new Date(publishedAt * 1000))
+  );
+  return articleYear !== buildYear;
+}
+---
+
+<Base
+  page="home"
+  title="915 TLDR - El Paso News, Simplified"
+  description="AI-powered local news for El Paso. Get the TLDR on what matters in the Sun City. News from El Paso Matters, KTSM, and more."
+  canonicalPath="/"
+  buildStamp={true}
+>
+  {
+    lead && (
+      <ArticleCard
+        uuid={lead.uuid}
+        title={lead.title}
+        href={articlePath(lead.category.slug, lead.slug, lead.uuid)}
+        categorySlug={lead.category.slug}
+        categoryName={lead.category.name}
+        sourceName={lead.source.name}
+        publishedAt={lead.publishedAt}
+        variant="lead"
+        summary={lead.summary}
+        showYear={showYearFor(lead.publishedAt)}
+      />
+    )
+  }
+
+  <section data-grid aria-label="Latest">
+    {
+      rest.map((article) => (
+        <ArticleCard
+          uuid={article.uuid}
+          title={article.title}
+          href={articlePath(article.category.slug, article.slug, article.uuid)}
+          categorySlug={article.category.slug}
+          categoryName={article.category.name}
+          sourceName={article.source.name}
+          publishedAt={article.publishedAt}
+          summary={article.summary}
+          showYear={showYearFor(article.publishedAt)}
+        />
+      ))
+    }
+  </section>
+</Base>

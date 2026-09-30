@@ -1,0 +1,13 @@
+---
+// D-06 fixture: deliberate violation of ARCH-02. Simulates an on-demand route
+// (`export const prerender = false` — the shape that actually ships to the Worker, per
+// tools/assert-no-d1.mjs's own prerender-exemption carve-out) whose frontmatter transitively
+// imports the D1 chokepoint module through helper-reaching-d1.ts, never directly. Proves the
+// module-graph walk catches a transitive reach, not only a direct one. Never a real page; never
+// reachable from `pnpm build` (this file lives outside `src/pages/**`).
+export const prerender = false;
+import { helperReachingD1 } from './helper-reaching-d1';
+
+const article = await helperReachingD1();
+---
+<p>{article}</p>

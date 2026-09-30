@@ -1,0 +1,378 @@
+{
+  "schema": 1,
+  "page": 4,
+  "next": "feed/page-5.json",
+  "cards": [
+    {
+      "uuid": "4da04c7d-5884-4c49-87a3-fe3aad49e6dc",
+      "category": "health",
+      "categoryName": "Health",
+      "stress": null,
+      "lang": null,
+      "variant": null,
+      "image": {
+        "src": "https://www.ktsm.com/wp-content/uploads/sites/38/2026/09/soapy-hand-foam-dispenser-GettyImages-2214554721-e1789570308134.jpg?w=900",
+        "width": 1200,
+        "height": 800
+      },
+      "headline": "Recall Alert: Hand Soap Linked to Bacterial Contamination in 15 States",
+      "headlineI18n": null,
+      "summaryI18n": null,
+      "bylineI18n": null,
+      "href": "article.html",
+      "summary": [
+        {
+          "type": "p",
+          "inlines": [
+            {
+              "text": "Intercon Chemical Co. has expanded a recall of hand soaps due to potential bacterial contamination, affecting consumers in 15 states, including Texas. The recall, which began in June, involves six varieties of soap sold under various brand names. This action is crucial as it aims to protect public health by preventing exposure to harmful bacteria. Consumers are advised to check their products and discontinue use if they possess any of the affected soaps."
+            }
+          ]
+        },
+        {
+          "type": "p",
+          "inlines": [
+            {
+              "text": "Key Details:",
+              "strong": true
+            }
+          ]
+        },
+        {
+          "type": "list",
+          "items": [
+            [
+              {
+                "text": "Recall initiated in June 2023 by Intercon Chemical Co."
+              }
+            ],
+            [
+              {
+                "text": "Affects hand soaps sold under multiple brand names across 15 states."
+              }
+            ],
+            [
+              {
+                "text": "Consumers should check for affected products and stop using them."
+              }
+            ]
+          ]
+        }
+      ],
+      "source": "KTSM",
+      "datetime": "2026-09-16T09:40:46-06:00",
+      "timeLabel": "Sept. 16, 9:40 a.m."
+    },
+    {
+      "uuid": "9118b58b-67e1-4050-a668-3cab03dbe729",
+      "category": "community",
+      "categoryName": "Community",
+      "stress": null,
+      "lang": null,
+      "variant": null,
+      "image": {
+        "src": "https://www.ktsm.com/wp-content/uploads/sites/38/2026/09/download-1.png?w=900",
+        "width": 1200,
+        "height": 800
+      },
+      "headline": "Man Arrested for Dropping Toys from Paraglider at Concert on 9/11",
+      "headlineI18n": null,
+      "summaryI18n": null,
+      "bylineI18n": null,
+      "href": "article.html",
+      "summary": [
+        {
+          "type": "p",
+          "inlines": [
+            {
+              "text": "An Indiana resident was apprehended after allegedly dropping toys from a paraglider during a Dan + Shay concert held on September 11, marking the 25th anniversary of the 9/11 attacks. This unusual incident raised safety concerns and disrupted the event, prompting a swift response from law enforcement. The actions of the individual not only drew attention but also highlighted the potential risks associated with aerial activities in crowded venues. Concertgoers and event organizers are urged to remain vigilant and report any suspicious activities in the future."
+            }
+          ]
+        },
+        {
+          "type": "p",
+          "inlines": [
+            {
+              "text": "Key Details:",
+              "strong": true
+            }
+          ]
+        },
+        {
+          "type": "list",
+          "items": [
+            [
+              {
+                "text": "Incident occurred on September 11, 2023, during a Dan + Shay concert."
+              }
+            ],
+            [
+              {
+                "text": "The paraglider was flying over the concert venue in El Paso."
+              }
+            ],
+            [
+              {
+                "text": "The man was arrested by local police for his actions."
+              }
+            ]
+          ]
+        }
+      ],
+      "source": "KTSM",
+      "datetime": "2026-09-16T09:31:14-06:00",
+      "timeLabel": "Sept. 16, 9:31 a.m."
+    },
+    {
+      "uuid": "7c49d880-054d-4835-8f1c-0f10c77bb4c0",
+      "category": "community",
+      "categoryName": "Community",
+      "stress": null,
+      "lang": null,
+      "variant": null,
+      "image": {
+        "src": "https://kvia.com/wp-content/uploads/2026/09/Waterfest-1-860x721.jpg",
+        "width": 1200,
+        "height": 800
+      },
+      "headline": "El Paso Water Festival 2026 to Showcase Local Water Resources and Activities",
+      "headlineI18n": null,
+      "summaryI18n": null,
+      "bylineI18n": null,
+      "href": "article.html",
+      "summary": [
+        {
+          "type": "p",
+          "inlines": [
+            {
+              "text": "EPWater is set to host the 2026 Water Festival on Saturday, September 19, from 11 a.m. to 3 p.m. at the TecH2O Learning Center, located at 10751 Montana Ave. This free event will feature family-friendly activities, including art sessions, demonstrations, and performances by local artists such as the Ysleta del Sur Pueblo Dancers and the El Paso Youth Jazz Ensemble. Attendees can also explore exhibition booths from various local organizations, including the El Paso Zoo and El Paso Electric. Additionally, guided tours of the Kay Bailey Hutchison Desalination Plant will be available for those aged 14 and older, with tours commencing every 20 minutes from 11 a.m. to 2 p.m. Registration for the tours is required to meet security protocols."
+            }
+          ]
+        },
+        {
+          "type": "p",
+          "inlines": [
+            {
+              "text": "Key Details:",
+              "strong": true
+            }
+          ]
+        },
+        {
+          "type": "list",
+          "items": [
+            [
+              {
+                "text": "Event Date: Saturday, September 19, 11 a.m. - 3 p.m."
+              }
+            ],
+            [
+              {
+                "text": "Location: TecH2O Learning Center, 10751 Montana Ave"
+              }
+            ],
+            [
+              {
+                "text": "Tours of the desalination plant for ages 14 and up, starting every 20 minutes from 11 a.m."
+              }
+            ],
+            [
+              {
+                "text": "Registration required for plant tours; call 915-621-2000 for more info"
+              }
+            ],
+            [
+              {
+                "text": "Food sales available at the event"
+              }
+            ]
+          ]
+        }
+      ],
+      "source": "KVIA",
+      "datetime": "2026-09-16T09:27:02-06:00",
+      "timeLabel": "Sept. 16, 9:27 a.m."
+    },
+    {
+      "uuid": "3c025a1b-04f9-4397-b686-f121561caeff",
+      "category": "politics",
+      "categoryName": "Politics",
+      "stress": null,
+      "lang": null,
+      "variant": null,
+      "image": {
+        "src": "https://www.ktsm.com/wp-content/uploads/sites/38/2026/09/AP25136563980661-e1789571631163.jpg?w=900",
+        "width": 1200,
+        "height": 800
+      },
+      "headline": "Federal Paid Leave Costs Surge to Nearly $7 Billion by 2025",
+      "headlineI18n": null,
+      "summaryI18n": null,
+      "bylineI18n": null,
+      "href": "article.html",
+      "summary": [
+        {
+          "type": "p",
+          "inlines": [
+            {
+              "text": "A recent study reveals that federal employees are projected to receive almost $7 billion in paid leave through the Department of Labor's DOGE initiative. This figure represents a staggering sixfold increase in salary costs related to paid leave from 2023 to 2025. Such a significant rise raises concerns about the financial implications for federal budgets and the overall efficiency of workforce management. Stakeholders in government and public service sectors should closely monitor these developments as they may impact future policy decisions and funding allocations."
+            }
+          ]
+        },
+        {
+          "type": "p",
+          "inlines": [
+            {
+              "text": "Key Details:",
+              "strong": true
+            }
+          ]
+        },
+        {
+          "type": "list",
+          "items": [
+            [
+              {
+                "text": "Projected paid leave costs will reach nearly $7 billion by 2025."
+              }
+            ],
+            [
+              {
+                "text": "Salary costs for paid leave have increased sixfold from 2023 to 2025."
+              }
+            ],
+            [
+              {
+                "text": "Implications for federal budgets and workforce efficiency are significant."
+              }
+            ]
+          ]
+        }
+      ],
+      "source": "KTSM",
+      "datetime": "2026-09-16T09:18:11-06:00",
+      "timeLabel": "Sept. 16, 9:18 a.m."
+    },
+    {
+      "uuid": "67af3117-4a43-413d-bf59-d6c0bccc218e",
+      "category": "community",
+      "categoryName": "Community",
+      "stress": null,
+      "lang": null,
+      "variant": null,
+      "image": {
+        "src": "https://www.ktsm.com/wp-content/uploads/sites/38/2026/09/metallica.jpg?w=900",
+        "width": 1200,
+        "height": 800
+      },
+      "headline": "Metallica to Rock El Paso's Sun Bowl Stadium This May",
+      "headlineI18n": null,
+      "summaryI18n": null,
+      "bylineI18n": null,
+      "href": "article.html",
+      "summary": [
+        {
+          "type": "p",
+          "inlines": [
+            {
+              "text": "Iconic heavy metal band Metallica is set to perform at the UTEP Sun Bowl Stadium on May 18 as part of their M72 World Tour, which will run through 2027. This concert is a significant event for local fans, marking a major stop in the band's extensive touring schedule. The announcement has generated excitement among music lovers in El Paso, as it brings a world-renowned act to the city. Fans are encouraged to prepare for the event and secure their tickets as soon as they become available."
+            }
+          ]
+        },
+        {
+          "type": "p",
+          "inlines": [
+            {
+              "text": "Key Details:",
+              "strong": true
+            }
+          ]
+        },
+        {
+          "type": "list",
+          "items": [
+            [
+              {
+                "text": "Concert date: May 18, 2024"
+              }
+            ],
+            [
+              {
+                "text": "Location: UTEP Sun Bowl Stadium, 2701 Sun Bowl Drive, El Paso"
+              }
+            ],
+            [
+              {
+                "text": "Part of the M72 World Tour running until 2027"
+              }
+            ],
+            [
+              {
+                "text": "Fans should check for ticket availability soon"
+              }
+            ]
+          ]
+        }
+      ],
+      "source": "KTSM",
+      "datetime": "2026-09-16T09:13:36-06:00",
+      "timeLabel": "Sept. 16, 9:13 a.m."
+    },
+    {
+      "uuid": "f87bc4d7-b0ad-4c43-8ae6-d7bba2b059f0",
+      "category": "community",
+      "categoryName": "Community",
+      "stress": "junk-image",
+      "lang": null,
+      "variant": null,
+      "image": null,
+      "headline": "Key Updates for El Paso Residents: August 21 Highlights",
+      "headlineI18n": null,
+      "summaryI18n": null,
+      "bylineI18n": null,
+      "href": "article.html",
+      "summary": [
+        {
+          "type": "p",
+          "inlines": [
+            {
+              "text": "On August 21, several significant topics are making headlines, including the unexpected return of Prince Harry and Meghan to the UK, which is stirring public interest. The Democratic strategy to support independent candidates in Republican states for the 2026 Senate elections could lead to more competitive races, especially in Idaho, Nebraska, and South Dakota. Additionally, the Salvadoran community in the U.S. is awaiting a crucial decision regarding the Temporary Protected Status for El Salvador, amid ongoing immigration debates. The article also touches on a tragic incident in New York involving a boat captain and a bomb attack, as well as the impact of the El Niño phenomenon on winter weather in the U.S."
+            }
+          ]
+        },
+        {
+          "type": "p",
+          "inlines": [
+            {
+              "text": "Key Details:",
+              "strong": true
+            }
+          ]
+        },
+        {
+          "type": "list",
+          "items": [
+            [
+              {
+                "text": "Monitor developments regarding the Senate elections in Idaho, Nebraska, and South Dakota for 2026."
+              }
+            ],
+            [
+              {
+                "text": "Stay informed about the status of Temporary Protected Status for Salvadorans in the U.S."
+              }
+            ],
+            [
+              {
+                "text": "Be aware of the potential effects of El Niño on winter weather patterns across the country."
+              }
+            ]
+          ]
+        }
+      ],
+      "source": "KVIA",
+      "datetime": "2026-08-21T03:42:46-06:00",
+      "timeLabel": "Aug. 21, 3:42 a.m."
+    }
+  ]
+}

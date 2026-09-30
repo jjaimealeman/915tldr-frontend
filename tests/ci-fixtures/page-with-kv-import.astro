@@ -1,0 +1,14 @@
+---
+// D-06 / T-03-02a fixture: deliberate violation. Simulates an on-demand route
+// (`export const prerender = false`) whose frontmatter transitively imports the render-manifest
+// KV module (`src/lib/server/kv-manifest.ts`) through helper-reaching-kv.ts, never directly.
+// Proves the module-graph walk catches a transitive reach into ANY module under
+// `src/lib/server/`, not only `d1-client.ts` — the exact gap the T-03-02a security audit found
+// (this shape was accepted before the fix). Never a real page; never reachable from
+// `pnpm build` (this file lives outside `src/pages/**`).
+export const prerender = false;
+import { helperReachingKv } from './helper-reaching-kv';
+
+const entry = await helperReachingKv();
+---
+<p>{entry}</p>

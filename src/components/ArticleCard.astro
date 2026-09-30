@@ -1,0 +1,91 @@
+---
+// 04-02: shared card markup for listings, rails and the 404 page (04-03..04-08+ all render
+// through this component rather than re-declaring card markup per page). Structure and data-*
+// attributes are ported verbatim from the approved mockups (01-APPROVAL.md):
+//   - `default`  — design/mockups/index.html's grid `article[data-card]` (no variant attribute)
+//   - `lead`     — design/mockups/index.html's no-image lead (`data-lead-variant="type"`)
+//   - `compact`  — design/mockups/article.html's rail cards (`data-card-variant="compact"`)
+// No image frame here — imagery is Phase 7; the approved CSS already handles the no-image card
+// (01-18's `:not(:has([data-frame] img))` rule).
+import { formatBylineTime, isoWithOffset } from '../lib/format';
+
+export type ArticleCardVariant = 'default' | 'lead' | 'compact';
+
+export interface Props {
+  uuid: string;
+  title: string;
+  href: string;
+  categorySlug: string;
+  categoryName: string;
+  sourceName: string;
+  /** Epoch seconds — the production schema's `published_at` shape. */
+  publishedAt: number;
+  variant?: ArticleCardVariant;
+  /** Plain-text summary. Omitted entirely for variants that don't show one in the mockups
+   * (`compact`, and any card built without a summary available). */
+  summary?: string;
+  headingLevel?: 'h2' | 'h3';
+  /** Appends the year to the byline time — used where cards may span more than one year. */
+  showYear?: boolean;
+}
+
+const {
+  uuid,
+  title,
+  href,
+  categorySlug,
+  categoryName,
+  sourceName,
+  publishedAt,
+  variant = 'default',
+  summary,
+  headingLevel,
+  showYear = false,
+} = Astro.props;
+
+const Heading = headingLevel ?? (variant === 'lead' ? 'h2' : 'h3');
+const bylineDatetime = isoWithOffset(publishedAt);
+const bylineText = formatBylineTime(publishedAt, { withYear: showYear });
+const showSummary = variant !== 'compact' && Boolean(summary);
+---
+
+{
+  variant === 'lead' ? (
+    <article data-lead data-lead-variant="type" data-uuid={uuid} data-category={categorySlug}>
+      <span data-stripe />
+      <p data-category-name>{categoryName}</p>
+      <Heading>
+        <a href={href}>{title}</a>
+      </Heading>
+      {showSummary && (
+        <div data-summary>
+          <p>{summary}</p>
+        </div>
+      )}
+      <p data-byline>
+        <span data-source>{sourceName}</span> · <time datetime={bylineDatetime}>{bylineText}</time>
+      </p>
+    </article>
+  ) : (
+    <article
+      data-card
+      data-card-variant={variant === 'compact' ? 'compact' : undefined}
+      data-uuid={uuid}
+      data-category={categorySlug}
+    >
+      <span data-stripe />
+      <p data-category-name>{categoryName}</p>
+      <Heading>
+        <a href={href}>{title}</a>
+      </Heading>
+      {showSummary && (
+        <div data-summary>
+          <p>{summary}</p>
+        </div>
+      )}
+      <p data-byline>
+        <span data-source>{sourceName}</span> · <time datetime={bylineDatetime}>{bylineText}</time>
+      </p>
+    </article>
+  )
+}

@@ -1,0 +1,58 @@
+{
+  "name": "915tldr-v2",
+  "private": true,
+  "type": "module",
+  "packageManager": "pnpm@11.26.0",
+  "engines": {
+    "node": ">=24"
+  },
+  "devDependencies": {
+    "@capsizecss/core": "4.1.3",
+    "@capsizecss/metrics": "4.2.0",
+    "@playwright/test": "1.63.0",
+    "culori": "4.0.2",
+    "subset-font": "2.7.0",
+    "wrangler": "4.136.3"
+  },
+  "scripts": {
+    "probe:webkit": "node design/scripts/probe-webkit.mjs",
+    "test:e2e": "node design/scripts/pw.mjs --project=all",
+    "serve:mockups": "node design/scripts/serve-mockups.mjs --port 4319",
+    "data:stress": "node design/scripts/fetch-stress-set.mjs",
+    "check:contrast": "node design/scripts/check-contrast.mjs",
+    "verify:phase-1": "node design/scripts/verify-phase-1.mjs",
+    "approval:packet": "node design/scripts/write-approval-packet.mjs",
+    "verify:approval": "node design/scripts/verify-approval.mjs",
+    "fonts:fetch": "node design/scripts/fetch-fonts.mjs",
+    "fonts:build": "node design/scripts/build-fonts.mjs",
+    "feed:build": "node design/scripts/build-feed.mjs",
+    "palette:sample": "node design/scripts/sample-hues.mjs",
+    "palette:build": "node design/scripts/build-palette.mjs",
+    "palette:swatches": "node design/scripts/render-swatches.mjs",
+    "guard:config": "node tools/check-config-guards.mjs",
+    "verify:edge": "node tools/verify-edge-headers.mjs",
+    "measure:d1": "node tools/measure-d1-pagination.mjs",
+    "measure:render": "node tools/measure-render-cost.mjs",
+    "measure:cpu": "node tools/cpu-ceiling-probe/run.mjs",
+    "test:unit": "pnpm run build && node --test \"design/tests/unit/**/*.test.mjs\" \"tests/unit/**/*.test.mjs\"",
+    "test:fast": "node --test \"design/tests/unit/**/*.test.mjs\" \"tests/unit/**/*.test.mjs\"",
+    "test:build-gate": "node --test tests/ci-fixtures/assert-no-d1.test.mjs",
+    "test:regression": "node --test \"tests/regression/**/*.test.mjs\"",
+    "test:tracer": "node --test tests/tracer/tracer.test.mjs",
+    "build": "pnpm run guard:config && pnpm run test:build-gate && astro build",
+    "dev": "astro dev",
+    "preview": "astro preview",
+    "deploy": "pnpm run guard:config && wrangler deploy --config wrangler.jsonc",
+    "build:ci": "node tools/ci-build.mjs build",
+    "deploy:ci": "node tools/ci-build.mjs deploy",
+    "ci:local": "node tools/ci-build.mjs all"
+  },
+  "dependencies": {
+    "@astrojs/cloudflare": "14.3.2",
+    "@astrojs/rss": "4.0.19",
+    "@astrojs/sitemap": "3.7.4",
+    "@astrojs/vue": "7.0.3",
+    "astro": "7.3.3",
+    "vue": "3.5.43"
+  }
+}

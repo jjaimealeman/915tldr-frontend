@@ -1,0 +1,95 @@
+---
+// 04-05 (Task 2): the 8 category indexes — REND-04 / FIX-04. `build.format: 'file'` means this
+// route emits `dist/client/<category>.html`, sitting beside the `dist/client/<category>/`
+// directory that `[category]/[slug].astro` fills with article pages — `/crime` coexists with
+// `/crime/**` (FIX-04). `assertNoRouteCollisions` runs before any page is generated, so a
+// category slug that ever collided with a reserved top-level route name (`RESERVED_TOP_LEVEL`)
+// would fail the build instead of silently overwriting that route's own output file.
+//
+// getStaticPaths returns all 8 CATEGORIES regardless of whether they currently hold any public
+// articles — a category with zero articles still gets a real page with an explicit empty-state
+// message (must-have), never a 404 or a skipped route.
+import { getCollection } from 'astro:content';
+import Base from '../../layouts/Base.astro';
+import ArticleCard from '../../components/ArticleCard.astro';
+import { articlePath } from '../../lib/article-url';
+import { CATEGORIES } from '../../lib/categories';
+import { groupByCategory, assertNoRouteCollisions, CATEGORY_PAGE_COUNT } from '../../lib/listing';
+import { breadcrumbNode } from '../../lib/structured-data';
+import { TIME_ZONE } from '../../lib/format';
+import { BUILD_TIMESTAMP } from '../../lib/build-info';
+
+export async function getStaticPaths() {
+  assertNoRouteCollisions(CATEGORIES.map((category) => category.slug));
+
+  const entries = await getCollection('articles');
+  const allArticles = entries.map((entry) => entry.data);
+  const grouped = groupByCategory(allArticles);
+
+  return CATEGORIES.map((category) => {
+    const categoryArticles = grouped.get(category.slug) ?? [];
+    return {
+      params: { category: category.slug },
+      props: {
+        slug: category.slug,
+        name: category.name,
+        totalCount: categoryArticles.length,
+        articles: categoryArticles.slice(0, CATEGORY_PAGE_COUNT),
+      },
+    };
+  });
+}
+
+const { slug, name, totalCount, articles } = Astro.props;
+
+const buildYear = Number(
+  new Intl.DateTimeFormat('en-US', { timeZone: TIME_ZONE, year: 'numeric' }).format(new Date(BUILD_TIMESTAMP))
+);
+function showYearFor(publishedAt: number): boolean {
+  const articleYear = Number(
+    new Intl.DateTimeFormat('en-US', { timeZone: TIME_ZONE, year: 'numeric' }).format(new Date(publishedAt * 1000))
+  );
+  return articleYear !== buildYear;
+}
+
+const storyCountText = `${new Intl.NumberFormat('en-US').format(totalCount)} ${totalCount === 1 ? 'story' : 'stories'}`;
+---
+
+<Base
+  page="category"
+  title={`${name} News - El Paso`}
+  description={`Latest ${name.toLowerCase()} news from El Paso, Texas. AI-summarized local news from multiple sources.`}
+  canonicalPath={`/${slug}`}
+  activeCategory={slug}
+  jsonLd={[breadcrumbNode([{ name: 'Home', path: '/' }, { name, path: `/${slug}` }])]}
+>
+  <header data-block data-category={slug}>
+    <h1>{name}</h1>
+    <p data-story-count>{storyCountText}</p>
+    <p data-back-link>
+      <a href="/">All sections</a>
+    </p>
+  </header>
+
+  {
+    articles.length === 0 ? (
+      <p data-empty-state>No {name} stories yet.</p>
+    ) : (
+      <section data-grid aria-label={`Latest in ${name}`}>
+        {articles.map((article) => (
+          <ArticleCard
+            uuid={article.uuid}
+            title={article.title}
+            href={articlePath(article.category.slug, article.slug, article.uuid)}
+            categorySlug={article.category.slug}
+            categoryName={article.category.name}
+            sourceName={article.source.name}
+            publishedAt={article.publishedAt}
+            summary={article.summary}
+            showYear={showYearFor(article.publishedAt)}
+          />
+        ))}
+      </section>
+    )
+  }
+</Base>

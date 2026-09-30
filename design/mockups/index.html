@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>915 TLDR — El Paso, without the scroll</title>
+<link rel="preload" as="font" type="font/woff2" href="fonts/InstrumentSerif-Regular.woff2" crossorigin>
+<link rel="preload" as="font" type="font/woff2" href="fonts/SourceSerif4-Roman.woff2" crossorigin>
+<link rel="stylesheet" href="style.css">
+<script>
+  (function () {
+    if (window.localStorage.getItem('915tldr:theme') === 'dark') {
+      document.documentElement.dataset.theme = 'dark';
+    }
+    document.addEventListener('DOMContentLoaded', function () {
+      var toggle = document.querySelector('[data-theme-toggle]');
+      if (!toggle) return;
+      toggle.hidden = false;
+      var isDark = document.documentElement.dataset.theme === 'dark';
+      toggle.setAttribute('aria-pressed', String(isDark));
+      toggle.addEventListener('click', function () {
+        var nowDark = document.documentElement.dataset.theme !== 'dark';
+        if (nowDark) {
+          document.documentElement.dataset.theme = 'dark';
+          window.localStorage.setItem('915tldr:theme', 'dark');
+        } else {
+          delete document.documentElement.dataset.theme;
+          window.localStorage.removeItem('915tldr:theme');
+        }
+        toggle.setAttribute('aria-pressed', String(nowDark));
+      });
+    });
+
+    document.addEventListener('DOMContentLoaded', function () {
+      // Load more (revision request 8, 01-21): reads only pre-built static
+      // same-origin feed/page-<n>.json files, never D1 or an API. Elements
+      // are built with createElement/setAttribute/textContent only; href is
+      // always the literal "article.html"; an image src is only ever set
+      // after an https-prefix check (T-01-58).
+      var loadMoreBtn = document.querySelector('[data-load-more]');
+      if (!loadMoreBtn) return;
+      loadMoreBtn.hidden = false;
+
+      var grid = document.querySelector('[data-grid]');
+      var status = document.querySelector('[data-load-more-status]');
+
+      function setStatus(message) {
+        if (status) status.textContent = message;
+      }
+
+      function appendInlines(parent, inlines) {
+        for (var n = 0; n < inlines.length; n++) {
+          var inline = inlines[n];
+          if (inline && inline.strong) {
+            var strong = document.createElement('strong');
+            strong.textContent = inline.text;
+            parent.appendChild(strong);
+          } else {
+            parent.appendChild(document.createTextNode(inline.text));
+          }
+        }
+      }
+
+      function buildCardEl(card) {
+        var article = document.createElement('article');
+        article.setAttribute('data-card', '');
+        article.setAttribute('data-uuid', card.uuid);
+        article.setAttribute('data-category', card.category);
+        if (card.stress) article.setAttribute('data-stress', card.stress);
+        if (card.lang) article.setAttribute('lang', card.lang);
+        if (card.variant) article.setAttribute('data-variant', card.variant);
+
+        var stripe = document.createElement('span');
+        stripe.setAttribute('data-stripe', '');
+        article.appendChild(stripe);
+
+        if (card.category !== 'none') {
+          var catName = document.createElement('p');
+          catName.setAttribute('data-category-name', '');
+          catName.textContent = card.categoryName;
+          article.appendChild(catName);
+        }
+
+        if (card.image) {
+          var frame = document.createElement('div');
+          frame.setAttribute('data-frame', '');
+          var img = document.createElement('img');
+          if (typeof card.image.src === 'string' && card.image.src.indexOf('https://') === 0) {
+            img.setAttribute('src', card.image.src);
+          }
+          img.setAttribute('width', String(card.image.width));
+          img.setAttribute('height', String(card.image.height));
+          img.setAttribute('loading', 'lazy');
+          img.setAttribute('alt', '');
+          frame.appendChild(img);
+          article.appendChild(frame);
+        }
+
+        var h3 = document.createElement('h3');
+        if (card.headlineI18n) h3.setAttribute('data-i18n', card.headlineI18n);
+        var a = document.createElement('a');
+        a.setAttribute('href', 'article.html');
+        a.textContent = card.headline;
+        h3.appendChild(a);
+        article.appendChild(h3);
+
+        if (card.summary) {
+          var summaryEl = document.createElement('div');
+          summaryEl.setAttribute('data-summary', '');
+          if (card.summaryI18n) summaryEl.setAttribute('data-i18n', card.summaryI18n);
+          for (var b = 0; b < card.summary.length; b++) {
+            var block = card.summary[b];
+            if (block.type === 'p') {
+              var p = document.createElement('p');
+              appendInlines(p, block.inlines || []);
+              summaryEl.appendChild(p);
+            } else if (block.type === 'list') {
+              var ul = document.createElement('ul');
+              ul.setAttribute('data-key-details', '');
+              var items = block.items || [];
+              for (var it = 0; it < items.length; it++) {
+                var li = document.createElement('li');
+                appendInlines(li, items[it]);
+                ul.appendChild(li);
+              }
+              summaryEl.appendChild(ul);
+            }
+          }
+          article.appendChild(summaryEl);
+        }
+
+        var byline = document.createElement('p');
+        byline.setAttribute('data-byline', '');
+        if (card.bylineI18n) byline.setAttribute('data-i18n', card.bylineI18n);
+        var source = document.createElement('span');
+        source.setAttribute('data-source', '');
+        source.textContent = card.source;
+        byline.appendChild(source);
+        byline.appendChild(document.createTextNode(' · '));
+        var time = document.createElement('time');
+        time.setAttribute('datetime', card.datetime);
+        time.textContent = card.timeLabel;
+        byline.appendChild(time);
+        article.appendChild(byline);
+
+        return article;
+      }
+
+      function validCard(card) {
+        return !!card &&
+          typeof card === 'object' &&
+          typeof card.uuid === 'string' &&
+          typeof card.category === 'string' &&
+          typeof card.headline === 'string' &&
+          card.href === 'article.html' &&
+          typeof card.source === 'string' &&
+          typeof card.datetime === 'string' &&
+          typeof card.timeLabel === 'string';
+      }
+
+      function validFeedPage(json) {
+        if (!json || typeof json !== 'object') return false;
+        if (json.schema !== 1) return false;
+        if (json.next !== null && typeof json.next !== 'string') return false;
+        if (!Array.isArray(json.cards) || json.cards.length === 0) return false;
+        for (var i = 0; i < json.cards.length; i++) {
+          if (!validCard(json.cards[i])) return false;
+        }
+        return true;
+      }
+
+      function fail() {
+        loadMoreBtn.removeAttribute('aria-disabled');
+        if (grid) grid.removeAttribute('aria-busy');
+        setStatus("Couldn't load more stories. Try again.");
+        loadMoreBtn.focus();
+      }
+
+      loadMoreBtn.addEventListener('click', function () {
+        if (loadMoreBtn.getAttribute('aria-disabled') === 'true') return;
+        loadMoreBtn.setAttribute('aria-disabled', 'true');
+        if (grid) grid.setAttribute('aria-busy', 'true');
+
+        var next = loadMoreBtn.getAttribute('data-next');
+        var target;
+        try {
+          target = new URL(next, window.location.href);
+        } catch (e) {
+          fail();
+          return;
+        }
+        if (target.origin !== window.location.origin || !/\/feed\/page-\d+\.json$/.test(target.pathname)) {
+          fail();
+          return;
+        }
+
+        fetch(target.href, { credentials: 'same-origin' })
+          .then(function (response) {
+            if (!response.ok) throw new Error('load-more: bad status');
+            var contentType = response.headers.get('content-type') || '';
+            if (contentType.indexOf('json') === -1) throw new Error('load-more: bad content-type');
+            return response.json();
+          })
+          .then(function (json) {
+            if (!validFeedPage(json)) throw new Error('load-more: bad shape');
+            if (!grid) throw new Error('load-more: no grid');
+
+            var firstNewCard = null;
+            for (var c = 0; c < json.cards.length; c++) {
+              var cardEl = buildCardEl(json.cards[c]);
+              grid.appendChild(cardEl);
+              if (c === 0) firstNewCard = cardEl;
+            }
+
+            var count = json.cards.length;
+            if (firstNewCard) {
+              var link = firstNewCard.querySelector('h3 a');
+              if (link) link.focus();
+            }
+
+            if (json.next === null) {
+              loadMoreBtn.hidden = true;
+              setStatus(count + " more stories loaded. That's everything for now.");
+            } else {
+              loadMoreBtn.setAttribute('data-next', json.next);
+              loadMoreBtn.removeAttribute('aria-disabled');
+              setStatus(count + ' more stories loaded.');
+            }
+            if (grid) grid.removeAttribute('aria-busy');
+          })
+          .catch(function () {
+            fail();
+          });
+      });
+    });
+  })();
+</script>
+</head>
+<body data-page="index">
+<a data-skip-link href="#main" data-i18n="skip-link">Skip to content</a>
+
+<header>
+  <h1>915 TLDR</h1>
+  <p data-tagline>El Paso news, in brief</p>
+  <p data-dateline>Wednesday, September 16, 2026 · El Paso, Texas</p>
+</header>
+
+<div data-spectrum aria-hidden="true">
+  <span data-category="crime"></span>
+  <span data-category="politics"></span>
+  <span data-category="sports"></span>
+  <span data-category="business"></span>
+  <span data-category="education"></span>
+  <span data-category="community"></span>
+  <span data-category="health"></span>
+  <span data-category="weather"></span>
+</div>
+
+<nav aria-label="Sections">
+  <ul>
+    <li><a href="category.html" data-nav-category="crime" data-category="crime"><span data-stripe></span>Crime</a></li>
+    <li><a href="category.html" data-nav-category="politics" data-category="politics"><span data-stripe></span>Politics</a></li>
+    <li><a href="category.html" data-nav-category="sports" data-category="sports"><span data-stripe></span>Sports</a></li>
+    <li><a href="category.html" data-nav-category="business" data-category="business"><span data-stripe></span>Business</a></li>
+    <li><a href="category.html" data-nav-category="education" data-category="education" data-i18n="nav-category-label"><span data-stripe></span>Education</a></li>
+    <li><a href="category.html" data-nav-category="community" data-category="community"><span data-stripe></span>Community</a></li>
+    <li><a href="category.html" data-nav-category="health" data-category="health"><span data-stripe></span>Health</a></li>
+    <li><a href="category.html" data-nav-category="weather" data-category="weather"><span data-stripe></span>Weather</a></li>
+  </ul>
+</nav>
+
+<button type="button" data-theme-toggle hidden aria-pressed="false" data-i18n="theme-toggle">Dark theme</button>
+
+<main id="main" tabindex="-1">
+    <article data-lead data-lead-variant="type" data-uuid="8b86f8d7-4ce1-477f-9dcd-e73f2193ca01" data-category="politics" data-stress="no-image">
+      <span data-stripe></span>
+      <p data-category-name>Politics</p>
+      <h2 data-i18n="lead-headline"><a href="article.html">Congress Holds Leon Black in Contempt Amid Epstein Investigation</a></h2>
+      <div data-summary data-i18n="lead-summary"><p>The House of Representatives has held billionaire investor Leon Black in contempt for failing to comply with subpoenas related to the investigation of Jeffrey Epstein. This decision, which follows a unanimous vote by the House Oversight Committee, now sends the matter to the Justice Department for potential criminal prosecution. Black&#39;s refusal to provide documents and testify has raised concerns among lawmakers, particularly regarding a $180 million payment he made to Epstein. Black&#39;s legal team is contesting the subpoenas, claiming they are illegitimate and an abuse of power, while lawmakers argue that accountability is essential for Epstein&#39;s survivors. The situation underscores the ongoing scrutiny of high-profile individuals connected to Epstein&#39;s network.</p>
+<p><strong>Key Details:</strong></p>
+<ul data-key-details><li>House held Leon Black in contempt on Wednesday.</li><li>The case is now with the Justice Department for possible prosecution.</li><li>Black is accused of refusing to comply with subpoenas for documents and testimony.</li><li>Lawmakers are pressing for answers about a $180 million payment to Epstein.</li></ul></div>
+      <p data-byline><span data-source>KVIA</span> · <time datetime="2026-09-16T12:49:05-06:00">Sept. 16, 12:49 p.m.</time></p>
+    </article>
+
+  <section data-grid aria-label="Latest">
+    <!-- feed:start -->
+    <article data-card data-uuid="326af4d4-ff96-4dec-8da2-a02085a802b3" data-category="community" data-stress="usable-image">
+      <span data-stripe></span>
+      <p data-category-name>Community</p>
+      <div data-frame><img src="https://www.ktsm.com/wp-content/uploads/sites/38/2026/09/FEATURE_Trader-Joes-3-Halloween-mini-totes-are-returning-so-prepare-for-chaos.jpg?w=900" width="1200" height="800" loading="lazy" alt=""></div>
+      <h3><a href="article.html">Get Your Spooky $3 Halloween Mini Totes at Trader Joe&#39;s</a></h3>
+      <div data-summary><p>Trader Joe&#39;s has launched its latest collection of $3 mini tote bags, featuring festive Halloween designs. These limited-edition totes are expected to be popular among shoppers, especially those looking to celebrate the spooky season. The bags are available for purchase at Trader Joe&#39;s locations, and fans are encouraged to visit soon, as these items tend to sell out quickly. This initiative not only adds a fun element to Halloween shopping but also promotes sustainability through reusable bags.</p>
+<p><strong>Key Details:</strong></p>
+<ul data-key-details><li>Mini tote bags are priced at $3 each.</li><li>Available in Halloween-themed colors and designs.</li><li>Visit your local Trader Joe&#39;s to purchase before they sell out.</li></ul></div>
+      <p data-byline data-i18n="byline"><span data-source>KTSM</span> · <time datetime="2026-09-16T13:49:20-06:00">Sept. 16, 1:49 p.m.</time></p>
+    </article>
+    <article data-card data-uuid="5deacd9f-9618-4f2e-b5a0-41d0bfcd79b8" data-category="education">
+      <span data-stripe></span>
+      <p data-category-name>Education</p>
+      <div data-frame><img src="https://kvia.com/wp-content/uploads/2025/08/NEW-KVIA-Generic-Thumbnail.png" width="1200" height="800" loading="lazy" alt=""></div>
+      <h3><a href="article.html">Anthony Elementary Hosts 5th Grade Pledge Ceremony on September 16, 2026</a></h3>
+      <div data-summary><p>Anthony Elementary School is set to hold a significant 5th Grade Pledge ceremony on September 16, 2026. This event is an important tradition that marks the transition of students as they prepare to advance to middle school. The ceremony aims to instill a sense of responsibility and commitment among the students. Families and community members are encouraged to attend and support the students during this milestone event.</p>
+<p><strong>Key Details:</strong></p>
+<ul data-key-details><li>Date of the ceremony: September 16, 2026</li><li>Location: Anthony Elementary School</li><li>Encouragement for families and community to attend</li></ul></div>
+      <p data-byline><span data-source>KVIA</span> · <time datetime="2026-09-16T13:27:08-06:00">Sept. 16, 1:27 p.m.</time></p>
+    </article>
+    <article data-card data-uuid="a90c2be1-600a-4f16-ad94-9118e1d50088" data-category="community">
+      <span data-stripe></span>
+      <p data-category-name>Community</p>
+      <div data-frame><img src="https://www.ktsm.com/wp-content/uploads/sites/38/2026/09/GettyImages-171625842-e1789581942639.jpg?w=900" width="1200" height="800" loading="lazy" alt=""></div>
+      <h3><a href="article.html">USPS Launches Operation Santa, Inviting El Pasoans to Adopt Holiday Letters</a></h3>
+      <div data-summary><p>The U.S. Postal Service has begun its annual Operation Santa, inviting residents to send letters to Santa Claus. This cherished initiative, which has been running since 1912, allows individuals to adopt letters from children and fulfill their holiday wishes. This year, El Pasoans are encouraged to participate and spread joy during the festive season. The program not only brings smiles to children&#39;s faces but also fosters community spirit by connecting donors with those in need.</p></div>
+      <p data-byline><span data-source>KTSM</span> · <time datetime="2026-09-16T13:06:48-06:00">Sept. 16, 1:06 p.m.</time></p>
+    </article>
+    <article data-card data-uuid="93b39255-d54d-470f-aab2-b558fa40f2b4" data-category="politics">
+      <span data-stripe></span>
+      <p data-category-name>Politics</p>
+      <h3><a href="article.html">Trump Retains Colombia&#39;s Drug Certification Status Amid New Leadership</a></h3>
+      <div data-summary><p>President Donald Trump has decided to keep Colombia on the list of countries that have failed to meet U.S. drug control obligations, a designation it received a year ago. This decision comes as Colombia&#39;s new president, Abelardo de La Espriella, has committed to an aggressive anti-drug campaign. Trump indicated that if Colombia makes significant progress in dismantling narcoterrorist networks, he may reconsider its status in the future. The U.S. also recognizes Mexico&#39;s efforts against drug trafficking but emphasizes the need for further action. Meanwhile, Venezuela has been removed from the descertification list due to improved cooperation against drug cartels under its interim government.</p>
+<p><strong>Key Details:</strong></p>
+<ul data-key-details><li>Colombia remains on the U.S. descertification list for drug control as of 2025.</li><li>President Abelardo de La Espriella has pledged to combat coca cultivation and cocaine production.</li><li>Mexico is urged to enhance efforts against narcoterrorist organizations.</li><li>Venezuela&#39;s status has changed due to improved cooperation against drug trafficking.</li></ul></div>
+      <p data-byline><span data-source>KVIA</span> · <time datetime="2026-09-16T12:48:59-06:00">Sept. 16, 12:48 p.m.</time></p>
+    </article>
+    <article data-card data-uuid="746de4d5-1c01-46e1-a834-14108bcadd68" data-category="education">
+      <span data-stripe></span>
+      <p data-category-name>Education</p>
+      <h3><a href="article.html">New Study Confirms T. rex Was Warm-Blooded, Changing Our Understanding of Dinosaurs</a></h3>
+      <div data-summary><p>Recent research has confirmed that Tyrannosaurus rex had a body temperature of approximately 97 degrees Fahrenheit, indicating it was warm-blooded. This finding, published in the journal Science Advances, is based on chemical analysis of fossilized teeth and adds to evidence that T. rex could thrive in colder climates. The study enhances our understanding of the dinosaur&#39;s behavior, physiology, and ecological interactions during the Late Cretaceous period, around 69 to 66 million years ago. Researchers believe this new method could be applied to other dinosaur species, potentially reshaping our views on their metabolic rates and lifestyles.</p>
+<p><strong>Key Details:</strong></p>
+<ul data-key-details><li>T. rex body temperature estimated at 97°F (36°C), similar to humans.</li><li>Study published in Science Advances provides direct evidence of warm-bloodedness.</li><li>Research utilized fossilized teeth from a T. rex skeleton at the Natural History Museum of Los Angeles County.</li><li>Technique could be applied to other dinosaurs to explore their metabolic rates.</li></ul></div>
+      <p data-byline><span data-source>KVIA</span> · <time datetime="2026-09-16T12:48:08-06:00">Sept. 16, 12:48 p.m.</time></p>
+    </article>
+    <article data-card data-uuid="3b53a85d-feea-454c-a707-da861aa6dc81" data-category="education">
+      <span data-stripe></span>
+      <p data-category-name>Education</p>
+      <div data-frame><img src="https://kvia.b-cdn.net/2024/04/EPISD.jpg" width="1200" height="800" loading="lazy" alt=""></div>
+      <h3><a href="article.html">EPISD Raises Tax Rate, Impacting Homeowners in El Paso</a></h3>
+      <div data-summary><p>The El Paso Independent School District (EPISD) board has approved a new tax rate that will increase the average homeowner&#39;s tax bill by approximately $114 annually. The new rate is set at $1.0745 per $100 of taxable property valuation, which is slightly below the maximum rate allowed by voters. This change raises the average tax due on homes from $1,179 last year to $1,294.18 this year, reflecting a rise in average taxable home values from $109,167 to $120,455. Homeowners should be aware of exemptions available, including a $140,000 exemption for most homeowners and additional exemptions for seniors and disabled individuals.</p>
+<p><strong>Key Details:</strong></p>
+<ul data-key-details><li>New tax rate approved at $1.0745 per $100 of property valuation.</li><li>Average homeowner&#39;s tax bill increases from $1,179 to $1,294.18.</li><li>First $140,000 of property value is exempt from school taxes for most homeowners.</li><li>Additional $60,000 exemption for seniors and disabled individuals.</li><li>Veterans with 100% disability rating are exempt from all property taxes.</li></ul></div>
+      <p data-byline><span data-source>KVIA</span> · <time datetime="2026-09-16T12:46:37-06:00">Sept. 16, 12:46 p.m.</time></p>
+    </article>
+    <!-- feed:end -->
+  </section>
+
+  <div data-feed-controls>
+    <button type="button" data-load-more data-next="feed/page-2.json" hidden data-i18n="load-more-button">Load more stories</button>
+    <p data-load-more-status role="status" data-i18n="load-more-status"></p>
+  </div>
+</main>
+
+<footer>
+  <p><a href="changelog.html">Changelog</a> · <a href="contact.html">Contact</a></p>
+  <p data-attribution>Summaries of reporting by KTSM, KVIA and other El Paso outlets — always credited, always linked</p>
+  <p data-build>build 0000000 · 2026-09-16</p>
+</footer>
+</body>
+</html>

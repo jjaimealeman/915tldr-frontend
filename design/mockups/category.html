@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>915 TLDR — Business</title>
+<link rel="preload" as="font" type="font/woff2" href="fonts/InstrumentSerif-Regular.woff2" crossorigin>
+<link rel="preload" as="font" type="font/woff2" href="fonts/SourceSerif4-Roman.woff2" crossorigin>
+<link rel="stylesheet" href="style.css">
+<script>
+  (function () {
+    if (window.localStorage.getItem('915tldr:theme') === 'dark') {
+      document.documentElement.dataset.theme = 'dark';
+    }
+    document.addEventListener('DOMContentLoaded', function () {
+      var toggle = document.querySelector('[data-theme-toggle]');
+      if (!toggle) return;
+      toggle.hidden = false;
+      var isDark = document.documentElement.dataset.theme === 'dark';
+      toggle.setAttribute('aria-pressed', String(isDark));
+      toggle.addEventListener('click', function () {
+        var nowDark = document.documentElement.dataset.theme !== 'dark';
+        if (nowDark) {
+          document.documentElement.dataset.theme = 'dark';
+          window.localStorage.setItem('915tldr:theme', 'dark');
+        } else {
+          delete document.documentElement.dataset.theme;
+          window.localStorage.removeItem('915tldr:theme');
+        }
+        toggle.setAttribute('aria-pressed', String(nowDark));
+      });
+    });
+
+    document.addEventListener('DOMContentLoaded', function () {
+      // Load more (revision request 8, 01-21): reads only pre-built static
+      // same-origin feed/page-<n>.json files, never D1 or an API. Elements
+      // are built with createElement/setAttribute/textContent only; href is
+      // always the literal "article.html"; an image src is only ever set
+      // after an https-prefix check (T-01-58).
+      var loadMoreBtn = document.querySelector('[data-load-more]');
+      if (!loadMoreBtn) return;
+      loadMoreBtn.hidden = false;
+
+      var grid = document.querySelector('[data-grid]');
+      var status = document.querySelector('[data-load-more-status]');
+
+      function setStatus(message) {
+        if (status) status.textContent = message;
+      }
+
+      function appendInlines(parent, inlines) {
+        for (var n = 0; n < inlines.length; n++) {
+          var inline = inlines[n];
+          if (inline && inline.strong) {
+            var strong = document.createElement('strong');
+            strong.textContent = inline.text;
+            parent.appendChild(strong);
+          } else {
+            parent.appendChild(document.createTextNode(inline.text));
+          }
+        }
+      }
+
+      function buildCardEl(card) {
+        var article = document.createElement('article');
+        article.setAttribute('data-card', '');
+        article.setAttribute('data-uuid', card.uuid);
+        article.setAttribute('data-category', card.category);
+        if (card.stress) article.setAttribute('data-stress', card.stress);
+        if (card.lang) article.setAttribute('lang', card.lang);
+        if (card.variant) article.setAttribute('data-variant', card.variant);
+
+        var stripe = document.createElement('span');
+        stripe.setAttribute('data-stripe', '');
+        article.appendChild(stripe);
+
+        if (card.category !== 'none') {
+          var catName = document.createElement('p');
+          catName.setAttribute('data-category-name', '');
+          catName.textContent = card.categoryName;
+          article.appendChild(catName);
+        }
+
+        if (card.image) {
+          var frame = document.createElement('div');
+          frame.setAttribute('data-frame', '');
+          var img = document.createElement('img');
+          if (typeof card.image.src === 'string' && card.image.src.indexOf('https://') === 0) {
+            img.setAttribute('src', card.image.src);
+          }
+          img.setAttribute('width', String(card.image.width));
+          img.setAttribute('height', String(card.image.height));
+          img.setAttribute('loading', 'lazy');
+          img.setAttribute('alt', '');
+          frame.appendChild(img);
+          article.appendChild(frame);
+        }
+
+        var h3 = document.createElement('h3');
+        if (card.headlineI18n) h3.setAttribute('data-i18n', card.headlineI18n);
+        var a = document.createElement('a');
+        a.setAttribute('href', 'article.html');
+        a.textContent = card.headline;
+        h3.appendChild(a);
+        article.appendChild(h3);
+
+        if (card.summary) {
+          var summaryEl = document.createElement('div');
+          summaryEl.setAttribute('data-summary', '');
+          if (card.summaryI18n) summaryEl.setAttribute('data-i18n', card.summaryI18n);
+          for (var b = 0; b < card.summary.length; b++) {
+            var block = card.summary[b];
+            if (block.type === 'p') {
+              var p = document.createElement('p');
+              appendInlines(p, block.inlines || []);
+              summaryEl.appendChild(p);
+            } else if (block.type === 'list') {
+              var ul = document.createElement('ul');
+              ul.setAttribute('data-key-details', '');
+              var items = block.items || [];
+              for (var it = 0; it < items.length; it++) {
+                var li = document.createElement('li');
+                appendInlines(li, items[it]);
+                ul.appendChild(li);
+              }
+              summaryEl.appendChild(ul);
+            }
+          }
+          article.appendChild(summaryEl);
+        }
+
+        var byline = document.createElement('p');
+        byline.setAttribute('data-byline', '');
+        if (card.bylineI18n) byline.setAttribute('data-i18n', card.bylineI18n);
+        var source = document.createElement('span');
+        source.setAttribute('data-source', '');
+        source.textContent = card.source;
+        byline.appendChild(source);
+        byline.appendChild(document.createTextNode(' · '));
+        var time = document.createElement('time');
+        time.setAttribute('datetime', card.datetime);
+        time.textContent = card.timeLabel;
+        byline.appendChild(time);
+        article.appendChild(byline);
+
+        return article;
+      }
+
+      function validCard(card) {
+        return !!card &&
+          typeof card === 'object' &&
+          typeof card.uuid === 'string' &&
+          typeof card.category === 'string' &&
+          typeof card.headline === 'string' &&
+          card.href === 'article.html' &&
+          typeof card.source === 'string' &&
+          typeof card.datetime === 'string' &&
+          typeof card.timeLabel === 'string';
+      }
+
+      function validFeedPage(json) {
+        if (!json || typeof json !== 'object') return false;
+        if (json.schema !== 1) return false;
+        if (json.next !== null && typeof json.next !== 'string') return false;
+        if (!Array.isArray(json.cards) || json.cards.length === 0) return false;
+        for (var i = 0; i < json.cards.length; i++) {
+          if (!validCard(json.cards[i])) return false;
+        }
+        return true;
+      }
+
+      function fail() {
+        loadMoreBtn.removeAttribute('aria-disabled');
+        if (grid) grid.removeAttribute('aria-busy');
+        setStatus("Couldn't load more stories. Try again.");
+        loadMoreBtn.focus();
+      }
+
+      loadMoreBtn.addEventListener('click', function () {
+        if (loadMoreBtn.getAttribute('aria-disabled') === 'true') return;
+        loadMoreBtn.setAttribute('aria-disabled', 'true');
+        if (grid) grid.setAttribute('aria-busy', 'true');
+
+        var next = loadMoreBtn.getAttribute('data-next');
+        var target;
+        try {
+          target = new URL(next, window.location.href);
+        } catch (e) {
+          fail();
+          return;
+        }
+        if (target.origin !== window.location.origin || !/\/feed\/page-\d+\.json$/.test(target.pathname)) {
+          fail();
+          return;
+        }
+
+        fetch(target.href, { credentials: 'same-origin' })
+          .then(function (response) {
+            if (!response.ok) throw new Error('load-more: bad status');
+            var contentType = response.headers.get('content-type') || '';
+            if (contentType.indexOf('json') === -1) throw new Error('load-more: bad content-type');
+            return response.json();
+          })
+          .then(function (json) {
+            if (!validFeedPage(json)) throw new Error('load-more: bad shape');
+            if (!grid) throw new Error('load-more: no grid');
+
+            var firstNewCard = null;
+            for (var c = 0; c < json.cards.length; c++) {
+              var cardEl = buildCardEl(json.cards[c]);
+              grid.appendChild(cardEl);
+              if (c === 0) firstNewCard = cardEl;
+            }
+
+            var count = json.cards.length;
+            if (firstNewCard) {
+              var link = firstNewCard.querySelector('h3 a');
+              if (link) link.focus();
+            }
+
+            if (json.next === null) {
+              loadMoreBtn.hidden = true;
+              setStatus(count + " more stories loaded. That's everything for now.");
+            } else {
+              loadMoreBtn.setAttribute('data-next', json.next);
+              loadMoreBtn.removeAttribute('aria-disabled');
+              setStatus(count + ' more stories loaded.');
+            }
+            if (grid) grid.removeAttribute('aria-busy');
+          })
+          .catch(function () {
+            fail();
+          });
+      });
+    });
+  })();
+</script>
+</head>
+<body data-page="category">
+<a data-skip-link href="#main" data-i18n="skip-link">Skip to content</a>
+
+<header>
+  <p data-wordmark><a href="index.html">915 TLDR</a></p>
+  <p data-tagline>El Paso news, in brief</p>
+  <p data-dateline>Wednesday, September 16, 2026 · El Paso, Texas</p>
+</header>
+
+<div data-spectrum aria-hidden="true">
+  <span data-category="crime"></span>
+  <span data-category="politics"></span>
+  <span data-category="sports"></span>
+  <span data-category="business"></span>
+  <span data-category="education"></span>
+  <span data-category="community"></span>
+  <span data-category="health"></span>
+  <span data-category="weather"></span>
+</div>
+
+<nav aria-label="Sections">
+  <ul>
+    <li><a href="category.html" data-nav-category="crime" data-category="crime"><span data-stripe></span>Crime</a></li>
+    <li><a href="category.html" data-nav-category="politics" data-category="politics"><span data-stripe></span>Politics</a></li>
+    <li><a href="category.html" data-nav-category="sports" data-category="sports"><span data-stripe></span>Sports</a></li>
+    <li><a href="category.html" data-nav-category="business" data-category="business" aria-current="page"><span data-stripe></span>Business</a></li>
+    <li><a href="category.html" data-nav-category="education" data-category="education" data-i18n="nav-category-label"><span data-stripe></span>Education</a></li>
+    <li><a href="category.html" data-nav-category="community" data-category="community"><span data-stripe></span>Community</a></li>
+    <li><a href="category.html" data-nav-category="health" data-category="health"><span data-stripe></span>Health</a></li>
+    <li><a href="category.html" data-nav-category="weather" data-category="weather"><span data-stripe></span>Weather</a></li>
+  </ul>
+</nav>
+
+<button type="button" data-theme-toggle hidden aria-pressed="false" data-i18n="theme-toggle">Dark theme</button>
+
+<main id="main" tabindex="-1">
+    <header data-block data-category="business">
+      <h1 data-i18n="category-masthead-title">Business</h1>
+      <p data-category-description data-i18n="category-masthead-description">Economy, development, jobs</p>
+      <p data-story-count>2,933 stories</p>
+      <p data-back-link><a href="index.html">All sections</a></p>
+    </header>
+
+    <article data-lead data-lead-variant="image" data-uuid="902d018b-a063-4dd8-9393-21c1c41acfc6" data-category="business">
+      <div data-frame><img src="https://www.ktsm.com/wp-content/uploads/sites/38/2026/09/AP26230751761751-e1787147222953.jpg?w=900" width="1200" height="800" loading="eager" fetchpriority="high" alt=""></div>
+      <div data-lead-body>
+        <span data-stripe></span>
+        <p data-category-name>Business</p>
+        <h2 data-i18n="category-lead-headline"><a href="article.html">Amazon Raises Starting Pay and Introduces Employee Discounts in El Paso</a></h2>
+        <div data-summary><p>Amazon has announced an increase in its minimum starting pay for employees, raising the average hourly wage to nearly $24. This decision is significant for workers in El Paso, as it reflects the company&#39;s commitment to improving compensation amidst rising living costs. Additionally, Amazon is implementing a new discount program for its employees, enhancing their overall benefits package. This change is expected to positively impact the local workforce by providing better financial support and incentives for current and prospective employees.</p></div>
+        <p data-byline><span data-source>KTSM</span> · <time datetime="2026-09-16T08:50:41-06:00">Sept. 16, 8:50 a.m.</time></p>
+      </div>
+    </article>
+
+  <section data-grid aria-label="Latest in Business">
+    <article data-card data-uuid="21b19dfd-96b0-461d-9bc9-02303a779d6e" data-category="business">
+      <span data-stripe></span>
+      <p data-category-name>Business</p>
+      <div data-frame><img src="https://analytics.stacker.com/tracking/69a62298-642e-4284-b030-ba14e851acba/pixel.gif?source=feed" width="1200" height="800" loading="lazy" alt=""></div>
+      <h3><a href="article.html">Hispanic Business Owners Show Strong Commitment Amid Financial Challenges</a></h3>
+      <div data-summary><p>A recent report highlights that Hispanic business owners exhibit a remarkable dedication to their enterprises, with 57% feeling fully committed to long-term success. Despite facing significant financial risks, including personal sacrifices and cash flow worries, 61% anticipate integrating AI into their operations within five years. The 2026 Business Ownership Report, which surveyed 1,305 business owners, reveals that 75% of Hispanic entrepreneurs are Millennials or younger, with many scaling their businesses rapidly. However, they are also more likely to dip into personal savings or borrow from family to sustain their ventures, indicating a high level of financial pressure. This data underscores the duality of ambition and risk that characterizes Hispanic entrepreneurship.</p>
+<p><strong>Key Details:</strong></p>
+<ul data-key-details><li>57% of Hispanic business owners are fully committed to their businesses long-term.</li><li>61% expect to use AI as a core tool within five years.</li><li>75% of Hispanic entrepreneurs are Millennials or younger.</li><li>24% have used retirement savings to fund their businesses.</li><li>34% constantly worry about cash flow issues.</li></ul></div>
+      <p data-byline><span data-source>KVIA</span> · <time datetime="2026-09-16T02:19:46-06:00">Sept. 16, 2:19 a.m.</time></p>
+    </article>
+    <article data-card data-uuid="4f22147a-baf5-4fcf-ad86-d78eee045131" data-category="business">
+      <span data-stripe></span>
+      <p data-category-name>Business</p>
+      <div data-frame><img src="https://kvia.com/wp-content/uploads/2026/09/Ally-How-to-start-microsaving.jpg" width="1200" height="800" loading="lazy" alt=""></div>
+      <h3><a href="article.html">Unlock Your Financial Future with Simple Microsaving Strategies</a></h3>
+      <div data-summary><p>Microsaving is an effective strategy for individuals looking to build savings without feeling overwhelmed by large goals. By setting aside small amounts of money regularly, such as $5 from each paycheck, you can gradually accumulate savings over time. This method can be automated through direct deposit, allowing you to prioritize savings effortlessly. The benefits of microsaving include the flexibility to save what you can afford, which helps avoid the temptation to dip into savings for everyday expenses. Additionally, setting clear goals for small luxuries can motivate you to save consistently and watch your funds grow in an interest-bearing account.</p>
+<p><strong>Key Details:</strong></p>
+<ul data-key-details><li>Consider starting with as little as $5 from each paycheck.</li><li>Automate savings through direct deposit for easier management.</li><li>Set specific goals for small luxuries to stay motivated.</li><li>Regular contributions, even small ones, can lead to significant savings over time.</li></ul></div>
+      <p data-byline><span data-source>KVIA</span> · <time datetime="2026-09-16T02:19:37-06:00">Sept. 16, 2:19 a.m.</time></p>
+    </article>
+    <article data-card data-uuid="e836b477-1647-4b66-8670-69cb02645332" data-category="business">
+      <span data-stripe></span>
+      <p data-category-name>Business</p>
+      <div data-frame><img src="https://kvia.com/wp-content/uploads/2026/09/RentRedi-The-rental-portfolio-math-that-changes-the-DIY-vs.-property-manager-debate.jpg" width="1200" height="800" loading="lazy" alt=""></div>
+      <h3><a href="article.html">Evaluating Rental Management: DIY vs. Professional Services in El Paso</a></h3>
+      <div data-summary><p>El Paso rental property owners face a crucial decision: manage their properties themselves or hire a property management company. While DIY management can seem chaotic, a new approach using property management software has shown to enhance cash flow significantly. For instance, landlords managing two units can save about $5,184 annually, while those with 20 units could see savings of $53,640 per year. The article emphasizes the importance of understanding the full cost of professional management, including hidden fees and payment delays, and encourages landlords to consider systematized self-management to maximize their income and streamline operations.</p>
+<p><strong>Key Details:</strong></p>
+<ul data-key-details><li>Property management fees typically range from 8%-12% of monthly rent.</li><li>Landlords using software can save thousands annually compared to hiring a property manager.</li><li>Automatic payments yield a 99% on-time rent payment rate.</li><li>Evaluate property management costs as a percentage of net cash flow, not gross rent.</li></ul></div>
+      <p data-byline><span data-source>KVIA</span> · <time datetime="2026-09-16T02:19:33-06:00">Sept. 16, 2:19 a.m.</time></p>
+    </article>
+    <article data-card data-uuid="1a9bab7b-ddf7-4516-b294-4f5ff81c5c4e" data-category="business">
+      <span data-stripe></span>
+      <p data-category-name>Business</p>
+      <div data-frame><img src="https://kvia.com/wp-content/uploads/2026/09/Pangram-50-written-with-AI.jpg" width="1200" height="800" loading="lazy" alt=""></div>
+      <h3><a href="article.html">AI's Role in Press Releases Surges, Reaching Nearly Half in June 2026</a></h3>
+      <div data-summary><p>A recent analysis by Pangram reveals that the use of AI in corporate press releases has significantly increased, with 48% of releases on PR Newswire containing AI-generated text as of June 2026. This marks a substantial rise from just 22% in August 2025. The study scanned over 178,000 press releases, finding that 25% were fully AI-generated, while the remaining 75% included a mix of human and AI content. Industries such as advertising saw the highest AI contribution rates, with 41% of their releases being fully AI-generated. This trend indicates a shift in public relations practices, particularly among smaller businesses and startups, which are more inclined to adopt AI tools for content creation.</p>
+<p><strong>Key Details:</strong></p>
+<ul data-key-details><li>48% of press releases on PR Newswire included AI-generated text in June 2026.</li><li>AI contribution in press releases doubled from 22% in August 2025 to 48% in June 2026.</li><li>Advertising industry had the highest share of fully AI-generated press releases at 41%.</li><li>Median word count of AI-influenced press releases increased from 488 to 562 words over the past year.</li><li>Small businesses are more likely to utilize AI in their press releases compared to larger corporations.</li></ul></div>
+      <p data-byline><span data-source>KVIA</span> · <time datetime="2026-09-16T02:19:31-06:00">Sept. 16, 2:19 a.m.</time></p>
+    </article>
+    <article data-card data-uuid="9513adb4-c64d-4a64-ac54-fd9fee0d1f9a" data-category="business">
+      <span data-stripe></span>
+      <p data-category-name>Business</p>
+      <h3><a href="article.html">Polymarket Flags Military Insider Trading Cases for DOJ Investigation</a></h3>
+      <div data-summary><p>Polymarket, a prediction market platform, has referred numerous accounts to the Justice Department for potential military insider trading, as revealed by a senior official. The referrals, linked to a report by the Anti-Corruption Data Collective, identified 152 accounts that collectively gained around $8 million from war-related markets, which are illegal in the U.S. The Justice Department has not commented on the matter, while Polymarket maintains it has not engaged in any wrongdoing. The situation has raised concerns among lawmakers regarding national security, as prediction markets could potentially incentivize corruption and expose sensitive military information.</p>
+<p><strong>Key Details:</strong></p>
+<ul data-key-details><li>152 accounts flagged for potential insider trading, profiting $8 million.</li><li>Polymarket&#39;s war markets are illegal under U.S. law but remain accessible offshore.</li><li>Recent scrutiny includes investigations by the CFTC and the House Oversight Committee.</li><li>Polymarket has implemented new integrity rules to prevent insider trading.</li></ul></div>
+      <p data-byline><span data-source>KVIA</span> · <time datetime="2026-08-21T13:31:51-06:00">Aug. 21, 1:31 p.m.</time></p>
+    </article>
+    <article data-card data-uuid="6511a542-d91b-4ab9-81a7-eab701d1b7e5" data-category="business">
+      <span data-stripe></span>
+      <p data-category-name>Business</p>
+      <h3><a href="article.html">Rising Bond Yields Signal Economic Concerns for El Paso Residents</a></h3>
+      <div data-summary><p>The bond market is experiencing significant turmoil, with long-dated government bond yields reaching their highest levels in over 15 years. This surge is primarily driven by fears of persistent inflation and soaring government debt, which recently hit $40 trillion. Despite a Treasury intervention aimed at stabilizing yields, the underlying issues remain unresolved, leading to increased borrowing costs for consumers and businesses. This situation is particularly concerning for those in El Paso, as rising yields directly impact mortgage and loan rates, making it more challenging for residents to secure affordable financing. Experts warn that without major changes in federal spending, these high costs are likely to persist.</p>
+<p><strong>Key Details:</strong></p>
+<ul data-key-details><li>30-year Treasury yield reached 5.34%, the highest since 2007.</li><li>National debt has quadrupled since 2008, now at $40 trillion.</li><li>Higher yields lead to increased costs for mortgages and personal loans.</li><li>El Paso residents should monitor interest rates closely as they may continue to rise.</li></ul></div>
+      <p data-byline><span data-source>KVIA</span> · <time datetime="2026-08-21T13:01:22-06:00">Aug. 21, 1:01 p.m.</time></p>
+    </article>
+    <article data-card data-uuid="ff7b8d27-2523-4e53-8fb0-1a978edb66a7" data-category="business">
+      <span data-stripe></span>
+      <p data-category-name>Business</p>
+      <div data-frame><img src="https://www.ktsm.com/wp-content/uploads/sites/38/2026/08/GettyImages-2276082209.jpg?w=900" width="1200" height="800" loading="lazy" alt=""></div>
+      <h3><a href="article.html">Walmart Introduces Contactless Payment Options for El Paso Shoppers</a></h3>
+      <div data-summary><p>Walmart has finally implemented tap-to-pay technology at its checkout counters, addressing long-standing customer requests for contactless payment options. This change is significant as it enhances convenience and safety for shoppers, especially in light of the ongoing preferences for contactless transactions. Customers in El Paso can now enjoy a quicker checkout experience, reducing wait times. The rollout of this feature is expected to improve customer satisfaction and align Walmart with other retailers who have already adopted similar payment methods.</p></div>
+      <p data-byline><span data-source>KTSM</span> · <time datetime="2026-08-21T12:43:15-06:00">Aug. 21, 12:43 p.m.</time></p>
+    </article>
+    <article data-card data-uuid="3e6810ca-3c56-4f34-8eba-5ac9f46a02f5" data-category="business">
+      <span data-stripe></span>
+      <p data-category-name>Business</p>
+      <div data-frame><img src="https://kvia.com/wp-content/uploads/2026/08/0209-Delta-8-Products-SF-37-.webp" width="1200" height="800" loading="lazy" alt=""></div>
+      <h3><a href="article.html">Hemp Industry Sues Texas Over THC Ban, Citing Job Losses and Monopoly Concerns</a></h3>
+      <div data-summary><p>The Texas hemp industry has filed a new lawsuit against the state, claiming the recent ban on most hemp-derived THC products has resulted in significant job losses and established a monopoly for the medical marijuana program. The lawsuit, initiated by four retailers in the U.S. District Court for the Western District of Texas, argues that the Texas Department of State Health Services (DSHS) overstepped its authority by classifying these products as illegal, contradicting the 2018 Farm Bill. The industry reports over 36,000 jobs lost and a dramatic decline in sales, with fears that more than half of THC products could vanish from shelves. Plaintiffs are seeking a temporary restraining order to lift the ban and protect Texas jobs.</p>
+<p><strong>Key Details:</strong></p>
+<ul data-key-details><li>Lawsuit filed on August 3, 2026, in U.S. District Court for the Western District of Texas.</li><li>Over 36,000 jobs reported lost due to the THC product ban.</li><li>Potential penalties for possession of banned THC products include jail time and fines up to $10,000.</li><li>Delta-9 THC remains legal, but other variants like delta-8 and delta-10 are now classified as Schedule I drugs.</li></ul></div>
+      <p data-byline><span data-source>KVIA</span> · <time datetime="2026-08-21T10:38:12-06:00">Aug. 21, 10:38 a.m.</time></p>
+    </article>
+    <article data-card data-uuid="e6cd3609-f68c-473d-8aba-46d4262dfe9f" data-category="business">
+      <span data-stripe></span>
+      <p data-category-name>Business</p>
+      <div data-frame><img src="https://www.ktsm.com/wp-content/uploads/sites/38/2026/08/AP25058112581489-e1787320864325.jpg?w=900" width="1200" height="800" loading="lazy" alt=""></div>
+      <h3><a href="article.html">Trump Suspends Ground Beef Tariffs for 90 Days to Aid Consumers</a></h3>
+      <div data-summary><p>In a recent announcement, President Donald Trump revealed a temporary suspension of increased tariffs on ground beef imports for a duration of 90 days. This decision aims to alleviate rising meat prices for consumers across the nation, including those in El Paso. The pause in tariffs is expected to provide some financial relief to families facing higher grocery bills. Residents should stay informed about potential changes in meat prices during this period.</p>
+<p><strong>Key Details:</strong></p>
+<ul data-key-details><li>Tariff suspension lasts for 90 days.</li><li>Aim is to reduce consumer costs for ground beef.</li><li>Consumers in El Paso may see lower prices at local grocery stores.</li></ul></div>
+      <p data-byline><span data-source>KTSM</span> · <time datetime="2026-08-21T08:40:55-06:00">Aug. 21, 8:40 a.m.</time></p>
+    </article>
+    <article data-card data-uuid="9231f91c-2afc-4795-9cbd-5f3140364e7d" data-category="business">
+      <span data-stripe></span>
+      <p data-category-name>Business</p>
+      <div data-frame><img src="https://www.ktsm.com/wp-content/uploads/sites/38/2026/08/AP25058112581489-e1787320864325.jpg?w=900" width="1200" height="800" loading="lazy" alt=""></div>
+      <h3><a href="article.html">Trump Suspends Ground Beef Tariffs for 90 Days to Ease Consumer Prices</a></h3>
+      <div data-summary><p>In a recent announcement, President Donald Trump declared a temporary suspension of increased tariffs on ground beef imports for a period of 90 days. This decision aims to alleviate rising meat costs for consumers in the U.S. The move is significant as it seeks to provide financial relief amidst growing concerns about food prices. The suspension is expected to impact both consumers and businesses reliant on affordable meat options during this timeframe.</p>
+<p><strong>Key Details:</strong></p>
+<ul data-key-details><li>Tariff suspension lasts for 90 days.</li><li>Aimed at reducing consumer costs for ground beef.</li><li>Effective immediately following the announcement.</li></ul></div>
+      <p data-byline><span data-source>KTSM</span> · <time datetime="2026-08-21T08:40:55-06:00">Aug. 21, 8:40 a.m.</time></p>
+    </article>
+    <article data-card data-uuid="37ae6fd6-8194-4911-9547-c8178b511d91" data-category="business">
+      <span data-stripe></span>
+      <p data-category-name>Business</p>
+      <div data-frame><img src="https://analytics.stacker.com/tracking/adf58339-b30c-4df3-a05c-4e251373ed7c/pixel.gif?source=feed" width="1200" height="800" loading="lazy" alt=""></div>
+      <h3><a href="article.html">Majority of Future Entrepreneurs in the U.S. to Utilize AI by 2026</a></h3>
+      <div data-summary><p>A recent survey by Intuit QuickBooks reveals that 33% of U.S. adults plan to start a business or side hustle in 2026, marking a significant 94% increase from the previous year. The study highlights that 65% of aspiring entrepreneurs intend to leverage AI tools to streamline their startup processes, with millennials leading the charge in adoption rates. Many potential business owners cite financial fears and lack of time as major barriers, but AI is seen as a solution that can expedite tasks such as market research, branding, and website creation. This trend underscores a shift toward a more accessible entrepreneurship landscape, particularly for younger generations seeking financial stability.</p>
+<p><strong>Key Details:</strong></p>
+<ul data-key-details><li>33% of U.S. adults plan to start a business in 2026.</li><li>65% of aspiring entrepreneurs will use AI tools for launching their ventures.</li><li>40% of millennials are very likely to use AI for their businesses.</li><li>24% cite lack of time as the biggest barrier to entrepreneurship.</li><li>Survey conducted by Intuit QuickBooks in December 2025.</li></ul></div>
+      <p data-byline><span data-source>KVIA</span> · <time datetime="2026-08-21T02:19:40-06:00">Aug. 21, 2:19 a.m.</time></p>
+    </article>
+    <article data-card data-uuid="7e7dd393-20ff-4c6d-b3c9-fe47454f4638" data-category="business">
+      <span data-stripe></span>
+      <p data-category-name>Business</p>
+      <div data-frame><img src="https://kvia.com/wp-content/uploads/2026/08/SoCi-What-growing-restaurant-chains.jpg" width="1200" height="800" loading="lazy" alt=""></div>
+      <h3><a href="article.html">How Local Digital Marketing Strategies Impact Restaurant Growth in El Paso</a></h3>
+      <div data-summary><p>Recent data reveals a stark divide between restaurant chains in El Paso, with some expanding rapidly while others are closing locations. Brands like Culver’s and Texas Roadhouse are thriving, averaging a visibility score of 62, while struggling chains like Wendy’s and Papa John’s only score 47. This disparity highlights the importance of local digital marketing, as expanding chains are significantly more visible in AI searches and traditional platforms like Google. The findings suggest that effective management of online reputation and localized social media engagement are crucial for success. As El Paso&#39;s dining scene evolves, restaurants must adapt their marketing strategies to maintain competitiveness.</p>
+<p><strong>Key Details:</strong></p>
+<ul data-key-details><li>Expanding chains have a visibility score of 62, compared to 47 for contracting ones.</li><li>37% of consumers initiate searches using AI, emphasizing the need for strong local digital presence.</li><li>Expanding brands respond to 72.4% of Google reviews, while contracting brands only respond to 43.6%.</li><li>Successful brands treat local search, reputation, social media, and AI visibility as interconnected.</li><li>Local content engagement for expanding brands is 26 times higher than for those that are contracting.</li></ul></div>
+      <p data-byline><span data-source>KVIA</span> · <time datetime="2026-08-21T02:19:34-06:00">Aug. 21, 2:19 a.m.</time></p>
+    </article>
+  </section>
+</main>
+
+<footer>
+  <p><a href="changelog.html">Changelog</a> · <a href="contact.html">Contact</a></p>
+  <p data-attribution>Summaries of reporting by KTSM, KVIA and other El Paso outlets — always credited, always linked</p>
+  <p data-build>build 0000000 · 2026-09-16</p>
+</footer>
+</body>
+</html>

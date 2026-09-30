@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>915 TLDR — Contact</title>
+<link rel="preload" as="font" type="font/woff2" href="fonts/InstrumentSerif-Regular.woff2" crossorigin>
+<link rel="preload" as="font" type="font/woff2" href="fonts/SourceSerif4-Roman.woff2" crossorigin>
+<link rel="stylesheet" href="style.css">
+<script>
+  (function () {
+    if (window.localStorage.getItem('915tldr:theme') === 'dark') {
+      document.documentElement.dataset.theme = 'dark';
+    }
+    document.addEventListener('DOMContentLoaded', function () {
+      var toggle = document.querySelector('[data-theme-toggle]');
+      if (!toggle) return;
+      toggle.hidden = false;
+      var isDark = document.documentElement.dataset.theme === 'dark';
+      toggle.setAttribute('aria-pressed', String(isDark));
+      toggle.addEventListener('click', function () {
+        var nowDark = document.documentElement.dataset.theme !== 'dark';
+        if (nowDark) {
+          document.documentElement.dataset.theme = 'dark';
+          window.localStorage.setItem('915tldr:theme', 'dark');
+        } else {
+          delete document.documentElement.dataset.theme;
+          window.localStorage.removeItem('915tldr:theme');
+        }
+        toggle.setAttribute('aria-pressed', String(nowDark));
+      });
+    });
+
+    document.addEventListener('DOMContentLoaded', function () {
+      // Load more (revision request 8, 01-21): reads only pre-built static
+      // same-origin feed/page-<n>.json files, never D1 or an API. Elements
+      // are built with createElement/setAttribute/textContent only; href is
+      // always the literal "article.html"; an image src is only ever set
+      // after an https-prefix check (T-01-58).
+      var loadMoreBtn = document.querySelector('[data-load-more]');
+      if (!loadMoreBtn) return;
+      loadMoreBtn.hidden = false;
+
+      var grid = document.querySelector('[data-grid]');
+      var status = document.querySelector('[data-load-more-status]');
+
+      function setStatus(message) {
+        if (status) status.textContent = message;
+      }
+
+      function appendInlines(parent, inlines) {
+        for (var n = 0; n < inlines.length; n++) {
+          var inline = inlines[n];
+          if (inline && inline.strong) {
+            var strong = document.createElement('strong');
+            strong.textContent = inline.text;
+            parent.appendChild(strong);
+          } else {
+            parent.appendChild(document.createTextNode(inline.text));
+          }
+        }
+      }
+
+      function buildCardEl(card) {
+        var article = document.createElement('article');
+        article.setAttribute('data-card', '');
+        article.setAttribute('data-uuid', card.uuid);
+        article.setAttribute('data-category', card.category);
+        if (card.stress) article.setAttribute('data-stress', card.stress);
+        if (card.lang) article.setAttribute('lang', card.lang);
+        if (card.variant) article.setAttribute('data-variant', card.variant);
+
+        var stripe = document.createElement('span');
+        stripe.setAttribute('data-stripe', '');
+        article.appendChild(stripe);
+
+        if (card.category !== 'none') {
+          var catName = document.createElement('p');
+          catName.setAttribute('data-category-name', '');
+          catName.textContent = card.categoryName;
+          article.appendChild(catName);
+        }
+
+        if (card.image) {
+          var frame = document.createElement('div');
+          frame.setAttribute('data-frame', '');
+          var img = document.createElement('img');
+          if (typeof card.image.src === 'string' && card.image.src.indexOf('https://') === 0) {
+            img.setAttribute('src', card.image.src);
+          }
+          img.setAttribute('width', String(card.image.width));
+          img.setAttribute('height', String(card.image.height));
+          img.setAttribute('loading', 'lazy');
+          img.setAttribute('alt', '');
+          frame.appendChild(img);
+          article.appendChild(frame);
+        }
+
+        var h3 = document.createElement('h3');
+        if (card.headlineI18n) h3.setAttribute('data-i18n', card.headlineI18n);
+        var a = document.createElement('a');
+        a.setAttribute('href', 'article.html');
+        a.textContent = card.headline;
+        h3.appendChild(a);
+        article.appendChild(h3);
+
+        if (card.summary) {
+          var summaryEl = document.createElement('div');
+          summaryEl.setAttribute('data-summary', '');
+          if (card.summaryI18n) summaryEl.setAttribute('data-i18n', card.summaryI18n);
+          for (var b = 0; b < card.summary.length; b++) {
+            var block = card.summary[b];
+            if (block.type === 'p') {
+              var p = document.createElement('p');
+              appendInlines(p, block.inlines || []);
+              summaryEl.appendChild(p);
+            } else if (block.type === 'list') {
+              var ul = document.createElement('ul');
+              ul.setAttribute('data-key-details', '');
+              var items = block.items || [];
+              for (var it = 0; it < items.length; it++) {
+                var li = document.createElement('li');
+                appendInlines(li, items[it]);
+                ul.appendChild(li);
+              }
+              summaryEl.appendChild(ul);
+            }
+          }
+          article.appendChild(summaryEl);
+        }
+
+        var byline = document.createElement('p');
+        byline.setAttribute('data-byline', '');
+        if (card.bylineI18n) byline.setAttribute('data-i18n', card.bylineI18n);
+        var source = document.createElement('span');
+        source.setAttribute('data-source', '');
+        source.textContent = card.source;
+        byline.appendChild(source);
+        byline.appendChild(document.createTextNode(' · '));
+        var time = document.createElement('time');
+        time.setAttribute('datetime', card.datetime);
+        time.textContent = card.timeLabel;
+        byline.appendChild(time);
+        article.appendChild(byline);
+
+        return article;
+      }
+
+      function validCard(card) {
+        return !!card &&
+          typeof card === 'object' &&
+          typeof card.uuid === 'string' &&
+          typeof card.category === 'string' &&
+          typeof card.headline === 'string' &&
+          card.href === 'article.html' &&
+          typeof card.source === 'string' &&
+          typeof card.datetime === 'string' &&
+          typeof card.timeLabel === 'string';
+      }
+
+      function validFeedPage(json) {
+        if (!json || typeof json !== 'object') return false;
+        if (json.schema !== 1) return false;
+        if (json.next !== null && typeof json.next !== 'string') return false;
+        if (!Array.isArray(json.cards) || json.cards.length === 0) return false;
+        for (var i = 0; i < json.cards.length; i++) {
+          if (!validCard(json.cards[i])) return false;
+        }
+        return true;
+      }
+
+      function fail() {
+        loadMoreBtn.removeAttribute('aria-disabled');
+        if (grid) grid.removeAttribute('aria-busy');
+        setStatus("Couldn't load more stories. Try again.");
+        loadMoreBtn.focus();
+      }
+
+      loadMoreBtn.addEventListener('click', function () {
+        if (loadMoreBtn.getAttribute('aria-disabled') === 'true') return;
+        loadMoreBtn.setAttribute('aria-disabled', 'true');
+        if (grid) grid.setAttribute('aria-busy', 'true');
+
+        var next = loadMoreBtn.getAttribute('data-next');
+        var target;
+        try {
+          target = new URL(next, window.location.href);
+        } catch (e) {
+          fail();
+          return;
+        }
+        if (target.origin !== window.location.origin || !/\/feed\/page-\d+\.json$/.test(target.pathname)) {
+          fail();
+          return;
+        }
+
+        fetch(target.href, { credentials: 'same-origin' })
+          .then(function (response) {
+            if (!response.ok) throw new Error('load-more: bad status');
+            var contentType = response.headers.get('content-type') || '';
+            if (contentType.indexOf('json') === -1) throw new Error('load-more: bad content-type');
+            return response.json();
+          })
+          .then(function (json) {
+            if (!validFeedPage(json)) throw new Error('load-more: bad shape');
+            if (!grid) throw new Error('load-more: no grid');
+
+            var firstNewCard = null;
+            for (var c = 0; c < json.cards.length; c++) {
+              var cardEl = buildCardEl(json.cards[c]);
+              grid.appendChild(cardEl);
+              if (c === 0) firstNewCard = cardEl;
+            }
+
+            var count = json.cards.length;
+            if (firstNewCard) {
+              var link = firstNewCard.querySelector('h3 a');
+              if (link) link.focus();
+            }
+
+            if (json.next === null) {
+              loadMoreBtn.hidden = true;
+              setStatus(count + " more stories loaded. That's everything for now.");
+            } else {
+              loadMoreBtn.setAttribute('data-next', json.next);
+              loadMoreBtn.removeAttribute('aria-disabled');
+              setStatus(count + ' more stories loaded.');
+            }
+            if (grid) grid.removeAttribute('aria-busy');
+          })
+          .catch(function () {
+            fail();
+          });
+      });
+    });
+  })();
+</script>
+</head>
+<body data-page="contact">
+<a data-skip-link href="#main" data-i18n="skip-link">Skip to content</a>
+
+<header>
+  <p data-wordmark><a href="index.html">915 TLDR</a></p>
+  <p data-tagline>El Paso news, in brief</p>
+  <p data-dateline>Wednesday, September 16, 2026 · El Paso, Texas</p>
+</header>
+
+<div data-spectrum aria-hidden="true">
+  <span data-category="crime"></span>
+  <span data-category="politics"></span>
+  <span data-category="sports"></span>
+  <span data-category="business"></span>
+  <span data-category="education"></span>
+  <span data-category="community"></span>
+  <span data-category="health"></span>
+  <span data-category="weather"></span>
+</div>
+
+<nav aria-label="Sections">
+  <ul>
+    <li><a href="category.html" data-nav-category="crime" data-category="crime"><span data-stripe></span>Crime</a></li>
+    <li><a href="category.html" data-nav-category="politics" data-category="politics"><span data-stripe></span>Politics</a></li>
+    <li><a href="category.html" data-nav-category="sports" data-category="sports"><span data-stripe></span>Sports</a></li>
+    <li><a href="category.html" data-nav-category="business" data-category="business"><span data-stripe></span>Business</a></li>
+    <li><a href="category.html" data-nav-category="education" data-category="education" data-i18n="nav-category-label"><span data-stripe></span>Education</a></li>
+    <li><a href="category.html" data-nav-category="community" data-category="community"><span data-stripe></span>Community</a></li>
+    <li><a href="category.html" data-nav-category="health" data-category="health"><span data-stripe></span>Health</a></li>
+    <li><a href="category.html" data-nav-category="weather" data-category="weather"><span data-stripe></span>Weather</a></li>
+  </ul>
+</nav>
+
+<button type="button" data-theme-toggle hidden aria-pressed="false" data-i18n="theme-toggle">Dark theme</button>
+
+<main id="main" tabindex="-1">
+<div data-contact-column>
+  <h1>Contact</h1>
+
+  <p data-contact-intro>I'm Jaime Aleman, a web developer here in El Paso, and I built 915 TLDR myself. Every summary on this site is written by AI from reporting by KTSM, KVIA and other local outlets — I did not report any of it, and I say so plainly on every story. What I do is pull the day's local news into one place, tag and de-duplicate it, and publish it free and without ads, in the open, with every change documented on the changelog.</p>
+
+  <p data-contact-links>You can also find me directly at <a href="https://jjaimealeman.com" rel="noopener" target="_blank">jjaimealeman.com<svg data-new-tab-icon aria-hidden="true" focusable="false" width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.1" stroke-linecap="round" stroke-linejoin="round"><path d="M5 1H1v10h10V7"></path><path d="M7 1h4v4"></path><path d="M11 1 5 7"></path></svg><span data-new-tab-cue data-visually-hidden> (opens in a new tab)</span></a> and <a href="https://915website.com" rel="noopener" target="_blank">915website.com<svg data-new-tab-icon aria-hidden="true" focusable="false" width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.1" stroke-linecap="round" stroke-linejoin="round"><path d="M5 1H1v10h10V7"></path><path d="M7 1h4v4"></path><path d="M11 1 5 7"></path></svg><span data-new-tab-cue data-visually-hidden> (opens in a new tab)</span></a>, where I build sites like this one for other El Paso businesses.</p>
+
+  <form data-contact-form method="post" aria-describedby="form-note">
+    <p id="form-note" data-form-note>This is a design mockup. The form below does not send anything.</p>
+
+    <div data-field>
+      <label for="contact-name">Name (required)</label>
+      <input id="contact-name" name="name" type="text" autocomplete="name" required aria-describedby="name-error">
+      <p data-field-error hidden id="name-error"></p>
+    </div>
+
+    <div data-field>
+      <label for="contact-email">Email (required)</label>
+      <input id="contact-email" name="email" type="email" autocomplete="email" required aria-describedby="email-error">
+      <p data-field-error hidden id="email-error"></p>
+    </div>
+
+    <div data-field>
+      <label for="contact-message" data-i18n="contact-label">Your message (required)</label>
+      <textarea id="contact-message" name="message" required rows="6" aria-describedby="message-error"></textarea>
+      <p data-field-error hidden id="message-error"></p>
+    </div>
+
+    <button type="submit" data-i18n="contact-submit">Send message</button>
+  </form>
+</div>
+
+  <h2 data-grid-heading>Latest Stories</h2>
+  <section data-grid aria-label="Latest stories">
+    <article data-card data-uuid="326af4d4-ff96-4dec-8da2-a02085a802b3" data-category="community">
+      <span data-stripe></span>
+      <p data-category-name>Community</p>
+      <div data-frame><img src="https://www.ktsm.com/wp-content/uploads/sites/38/2026/09/FEATURE_Trader-Joes-3-Halloween-mini-totes-are-returning-so-prepare-for-chaos.jpg?w=900" width="1200" height="800" loading="lazy" alt=""></div>
+      <h3><a href="article.html">Get Your Spooky $3 Halloween Mini Totes at Trader Joe's</a></h3>
+      <div data-summary><p>Trader Joe&#39;s has launched its latest collection of $3 mini tote bags, featuring festive Halloween designs. These limited-edition totes are expected to be popular among shoppers, especially those looking to celebrate the spooky season. The bags are available for purchase at Trader Joe&#39;s locations, and fans are encouraged to visit soon, as these items tend to sell out quickly. This initiative not only adds a fun element to Halloween shopping but also promotes sustainability through reusable bags.</p></div>
+      <p data-byline><span data-source>KTSM</span> · <time datetime="2026-09-16T13:49:20-06:00">Sept. 16, 1:49 p.m.</time></p>
+    </article>
+    <article data-card data-uuid="aee43053-15ad-41e3-8560-2e86a6dc114e" data-category="community">
+      <span data-stripe></span>
+      <p data-category-name>Community</p>
+      <div data-frame><img src="https://kvia.com/wp-content/uploads/2026/09/fredd-young.webp" width="1200" height="800" loading="lazy" alt=""></div>
+      <h3><a href="article.html">Fredd Young, NMSU Football Legend and NFL Star, Passes Away at 64</a></h3>
+      <div data-summary><p>Fredd Young, a celebrated Hall of Famer from New Mexico State University (NMSU) and former Seattle Seahawks player, has died at the age of 64. Young was a standout linebacker for the Aggies from 1980 to 1983, setting a record with six sacks in a single game against LA Tech in 1983. Drafted by the Seahawks in 1984, he played seven seasons in the NFL, participating in 101 games and starting 79. His contributions to football and the Las Cruces community were recognized in 1991 when he was inducted into the U.S. Bank/NM State Athletics Hall of Fame. His legacy is remembered fondly by NMSU Athletics, highlighting his significant impact on the sport and local community.</p></div>
+      <p data-byline><span data-source>KVIA</span> · <time datetime="2026-09-16T12:39:04-06:00">Sept. 16, 12:39 p.m.</time></p>
+    </article>
+    <article data-card data-uuid="df2e5a2b-46e0-4b0f-b7e2-fc98dc975d69" data-category="community">
+      <span data-stripe></span>
+      <p data-category-name>Community</p>
+      <div data-frame><img src="https://www.ktsm.com/wp-content/uploads/sites/38/2024/05/El-Paso-Animal-Services.jpg?w=897" width="1200" height="800" loading="lazy" alt=""></div>
+      <h3><a href="article.html">El Paso Animal Services Under Scrutiny Following Rescue Group's Allegations</a></h3>
+      <div data-summary><p>El Paso Animal Services is currently under investigation due to serious allegations raised by the local nonprofit, Paws for Promise. The organization claims that animals returned from the city&#39;s facilities have exhibited health issues, prompting concerns about the procedures in place. A representative from Paws for Promise shared these concerns through a Facebook video, highlighting the potential impact on animal welfare. This situation is significant as it raises questions about the standards of care provided by Animal Services and the implications for local animal rescue efforts.</p></div>
+      <p data-byline><span data-source>KTSM</span> · <time datetime="2026-09-16T12:35:48-06:00">Sept. 16, 12:35 p.m.</time></p>
+    </article>
+  </section>
+</main>
+
+<footer>
+  <p><a href="changelog.html">Changelog</a> · <a href="contact.html">Contact</a></p>
+  <p data-attribution>Summaries of reporting by KTSM, KVIA and other El Paso outlets — always credited, always linked</p>
+  <p data-build>build 0000000 · 2026-09-16</p>
+</footer>
+</body>
+</html>

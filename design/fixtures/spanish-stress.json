@@ -1,0 +1,477 @@
+{
+  "corpusSpanish": {
+    "uuid": "f63b5753-90b6-4a54-b78d-160461c08bf8",
+    "title": "Ucrania intensifica ofensiva contra la infraestructura petrolera rusa en medio de ganancias inesperadas del Kremlin"
+  },
+  "components": [
+    {
+      "id": "card-headline",
+      "component": "card-headline",
+      "page": "index",
+      "fontRole": "headline",
+      "fontStyle": "normal",
+      "en": "Ucrania intensifica ofensiva contra la infraestructura petrolera rusa en medio de ganancias inesperadas del Kremlin",
+      "enSource": "stress-set.json cases['longest-headline'].title",
+      "es_real": "Ucrania intensifica ofensiva contra la infraestructura petrolera rusa en medio de ganancias inesperadas del Kremlin",
+      "esRealSource": "identical to en — the corpus's single longest-in-corpus headline (uuid f63b5753, CNN Español via KVIA) is itself genuine Spanish-original wire content, not English. There is nothing to translate; using it as-is is more honest than fabricating a translation of a translation.",
+      "es_synthetic": "Ucrania intensifica ofensiva contra la infraestructura petrolera rusa en medio de ganancias inesperadas del Kremlin comunicación comunicación",
+      "calibration": {
+        "widthRatio": 1.2544500655799138,
+        "hi": 1.3,
+        "graphemeRatio": 1.2260869565217392,
+        "utf8ByteRatio": 1.2434782608695651
+      }
+    },
+    {
+      "id": "card-summary",
+      "component": "card-summary",
+      "page": "index",
+      "fontRole": "body",
+      "fontStyle": "normal",
+      "en": "El Ejército de Ucrania ha intensificado sus ataques a la infraestructura energética de Rusia, apuntando a refinerías y terminales de exportación en un esfuerzo por debilitar una de las principales fuentes de ingresos del Kremlin. En las últimas semanas, se han llevado a cabo al menos diez ataques significativos, incluyendo uno en una refinería en Yaroslavl, que resultó en daños a edificios residenciales. Mientras tanto, Rusia ha visto un aumento en los precios del petróleo, beneficiándose de la flexibilización de algunas sanciones estadounidenses. El presidente ucraniano, Volodymyr Zelensky, ha criticado estas medidas, argumentando que permiten a Rusia continuar sus ataques. Se espera que el gobierno ruso reintroduzca una prohibición a las exportaciones de gasolina a partir del 1 de abril debido a los efectos en el mercado interno.\n\n**Key Details:**\n• Ucrania ha realizado al menos 10 ataques significativos a la infraestructura energética rusa este mes.\n• El último ataque fue a una refinería en Yaroslavl, causando un incendio y daños a edificios cercanos.\n• Se espera que Rusia reintroduzca una prohibición a las exportaciones de gasolina a partir del 1 de abril.\n• El presupuesto estatal de Rusia depende de los ingresos petroleros, que han aumentado en el último mes.",
+      "enSource": "stress-set.json cases['longest-summary'].summary",
+      "es_real": "El Ejército de Ucrania ha intensificado sus ataques a la infraestructura energética de Rusia, apuntando a refinerías y terminales de exportación en un esfuerzo por debilitar una de las principales fuentes de ingresos del Kremlin. En las últimas semanas, se han llevado a cabo al menos diez ataques significativos, incluyendo uno en una refinería en Yaroslavl, que resultó en daños a edificios residenciales. Mientras tanto, Rusia ha visto un aumento en los precios del petróleo, beneficiándose de la flexibilización de algunas sanciones estadounidenses. El presidente ucraniano, Volodymyr Zelensky, ha criticado estas medidas, argumentando que permiten a Rusia continuar sus ataques. Se espera que el gobierno ruso reintroduzca una prohibición a las exportaciones de gasolina a partir del 1 de abril debido a los efectos en el mercado interno.\n\n**Key Details:**\n• Ucrania ha realizado al menos 10 ataques significativos a la infraestructura energética rusa este mes.\n• El último ataque fue a una refinería en Yaroslavl, causando un incendio y daños a edificios cercanos.\n• Se espera que Rusia reintroduzca una prohibición a las exportaciones de gasolina a partir del 1 de abril.\n• El presupuesto estatal de Rusia depende de los ingresos petroleros, que han aumentado en el último mes.",
+      "esRealSource": "identical to en — the corpus's longest-by-word-count summary (uuid e8d5c5fe, CNN Español via KVIA, the Lake Powell/Lake Mead water-crisis story) is itself genuine Spanish-original wire content, including its English-language '**Key Details:**' heading, which is a real artifact of the production summarisation pipeline left exactly as stored. Nothing here is translated or altered.",
+      "es_synthetic": "El Ejército de Ucrania ha intensificado sus ataques a la infraestructura energética de Rusia, apuntando a refinerías y terminales de exportación en un esfuerzo por debilitar una de las principales fuentes de ingresos del Kremlin. En las últimas semanas, se han llevado a cabo al menos diez ataques significativos, incluyendo uno en una refinería en Yaroslavl, que resultó en daños a edificios residenciales. Mientras tanto, Rusia ha visto un aumento en los precios del petróleo, beneficiándose de la flexibilización de algunas sanciones estadounidenses. El presidente ucraniano, Volodymyr Zelensky, ha criticado estas medidas, argumentando que permiten a Rusia continuar sus ataques. Se espera que el gobierno ruso reintroduzca una prohibición a las exportaciones de gasolina a partir del 1 de abril debido a los efectos en el mercado interno.\n\n**Key Details:**\n• Ucrania ha realizado al menos 10 ataques significativos a la infraestructura energética rusa este mes.\n• El último ataque fue a una refinería en Yaroslavl, causando un incendio y daños a edificios cercanos.\n• Se espera que Rusia reintroduzca una prohibición a las exportaciones de gasolina a partir del 1 de abril.\n• El presupuesto estatal de Rusia depende de los ingresos petroleros, que han aumentado en el último mes. comunicación comunicación comunicación comunicación comunicación comunicación comunicación comunicación comunicación comunicación comunicación comunicación comunicación comunicación comunicación comunicación comunicación comunicación comunicación comunicación comunicación comunicación",
+      "calibration": {
+        "widthRatio": 1.2572803510137645,
+        "hi": 1.3,
+        "graphemeRatio": 1.222741433021807,
+        "utf8ByteRatio": 1.2351145038167939
+      }
+    },
+    {
+      "id": "card-summary-thin",
+      "component": "card-summary-thin",
+      "page": "index",
+      "fontRole": "body",
+      "fontStyle": "normal",
+      "en": "KTSM+ will air its program at 4 PM, showcasing Tirza Ortiz. This segment is anticipated to cover various local topics relevant to the El Paso community. Viewers can expect engaging discussions and updates that reflect current events and issues affecting the area.",
+      "enSource": "stress-set.json cases['shortest-summary'].summary",
+      "es_real": "KTSM+ transmitirá su programa a las 4 p. m., con Tirza Ortiz. Se espera que este segmento cubra diversos temas locales relevantes para la comunidad de El Paso. Los televidentes pueden esperar discusiones y actualizaciones interesantes que reflejen los sucesos y problemas actuales que afectan la zona.",
+      "esRealSource": "in-session translation",
+      "es_synthetic": "KTSM+ transmitirá su programa a las 4 p. m., con Tirza Ortiz. Se espera que este segmento cubra diversos temas locales relevantes para la comunidad de El Paso. Los televidentes pueden esperar discusiones y actualizaciones interesantes que reflejen los sucesos y problemas actuales que afectan la zona. comunicación comunicación",
+      "calibration": {
+        "widthRatio": 1.2726489095767606,
+        "hi": 1.3,
+        "graphemeRatio": 1.2433460076045628,
+        "utf8ByteRatio": 1.2547528517110267
+      }
+    },
+    {
+      "id": "lead-headline",
+      "component": "lead-headline",
+      "page": "index",
+      "fontRole": "headline",
+      "fontStyle": "normal",
+      "en": "Congress Holds Leon Black in Contempt Amid Epstein Investigation",
+      "enSource": "stress-set.json cases['no-image'].title",
+      "es_real": "El Congreso declara a Leon Black en desacato en medio de la investigación sobre Epstein",
+      "esRealSource": "in-session translation",
+      "es_synthetic": "El Congreso declara a Leon Black en desacato en medio de la investigación sobre  Juárez",
+      "calibration": {
+        "widthRatio": 1.287189415940626,
+        "hi": 1.3044315992292872,
+        "graphemeRatio": 1.359375,
+        "utf8ByteRatio": 1.390625
+      }
+    },
+    {
+      "id": "lead-summary",
+      "component": "lead-summary",
+      "page": "index",
+      "fontRole": "body",
+      "fontStyle": "normal",
+      "en": "The House of Representatives has held billionaire investor Leon Black in contempt for failing to comply with subpoenas related to the investigation of Jeffrey Epstein. This decision, which follows a unanimous vote by the House Oversight Committee, now sends the matter to the Justice Department for potential criminal prosecution. Black's refusal to provide documents and testify has raised concerns among lawmakers, particularly regarding a $180 million payment he made to Epstein. Black's legal team is contesting the subpoenas, claiming they are illegitimate and an abuse of power, while lawmakers argue that accountability is essential for Epstein's survivors. The situation underscores the ongoing scrutiny of high-profile individuals connected to Epstein's network.\n\n**Key Details:**\n• House held Leon Black in contempt on Wednesday.\n• The case is now with the Justice Department for possible prosecution.\n• Black is accused of refusing to comply with subpoenas for documents and testimony.\n• Lawmakers are pressing for answers about a $180 million payment to Epstein.",
+      "enSource": "stress-set.json cases['no-image'].summary",
+      "es_real": "La Cámara de Representantes declaró en desacato al inversionista multimillonario Leon Black por no cumplir con las citaciones relacionadas con la investigación de Jeffrey Epstein. Esta decisión, que sigue a una votación unánime del Comité de Supervisión de la Cámara, envía ahora el caso al Departamento de Justicia para una posible acción penal. La negativa de Black a entregar documentos y testificar ha generado preocupación entre los legisladores, en particular por un pago de 180 millones de dólares que hizo a Epstein. El equipo legal de Black impugna las citaciones, alegando que son ilegítimas y un abuso de poder, mientras los legisladores sostienen que la rendición de cuentas es esencial para las víctimas de Epstein. La situación subraya el escrutinio continuo sobre las personas de alto perfil vinculadas a la red de Epstein.\n\n**Puntos clave:**\n• La Cámara declaró a Leon Black en desacato el miércoles.\n• El caso pasa ahora al Departamento de Justicia para una posible acción penal.\n• A Black se le acusa de negarse a cumplir con las citaciones de documentos y testimonio.\n• Los legisladores exigen respuestas sobre un pago de 180 millones de dólares a Epstein.",
+      "esRealSource": "in-session translation",
+      "es_synthetic": "La Cámara de Representantes declaró en desacato al inversionista multimillonario Leon Black por no cumplir con las citaciones relacionadas con la investigación de Jeffrey Epstein. Esta decisión, que sigue a una votación unánime del Comité de Supervisión de la Cámara, envía ahora el caso al Departamento de Justicia para una posible acción penal. La negativa de Black a entregar documentos y testificar ha generado preocupación entre los legisladores, en particular por un pago de 180 millones de dólares que hizo a Epstein. El equipo legal de Black impugna las citaciones, alegando que son ilegítimas y un abuso de poder, mientras los legisladores sostienen que la rendición de cuentas es esencial para las víctimas de Epstein. La situación subraya el escrutinio continuo sobre las personas de alto perfil vinculadas a la red de Epstein.\n\n**Puntos clave:**\n• La Cámara declaró a Leon Black en desacato el miércoles.\n• El caso pasa ahora al Departamento de Justicia para una posible acción penal.\n• A Black se le acusa de negarse a cumplir con las citaciones de documentos y testimonio.\n• Los legisladores exigen respuestas sobre un pago de 180 millones de dólares a Epstein. comunicación comunicación comunicación comunicación comunicación comunicación comunicación comunicación comunicación comunicación comunicación comunicación comunicación",
+      "calibration": {
+        "widthRatio": 1.2634695579649708,
+        "hi": 1.3,
+        "graphemeRatio": 1.2513966480446927,
+        "utf8ByteRatio": 1.2818853974121995
+      }
+    },
+    {
+      "id": "nav-category-label",
+      "component": "nav-category-label",
+      "page": "all",
+      "fontRole": "body",
+      "fontStyle": "normal",
+      "en": "Education",
+      "enSource": "literal UI string",
+      "es_real": "Educación",
+      "esRealSource": "in-session translation",
+      "es_synthetic": "Educación así",
+      "calibration": {
+        "widthRatio": 1.3606194690265487,
+        "hi": 1.4119469026548672,
+        "graphemeRatio": 1.4444444444444444,
+        "utf8ByteRatio": 1.6666666666666667
+      }
+    },
+    {
+      "id": "category-masthead-title",
+      "component": "category-masthead-title",
+      "page": "category",
+      "fontRole": "headline",
+      "fontStyle": "normal",
+      "en": "Business",
+      "enSource": "literal UI string",
+      "es_real": "Negocios",
+      "esRealSource": "in-session translation",
+      "es_synthetic": "Negocios así",
+      "calibration": {
+        "widthRatio": 1.39119804400978,
+        "hi": 1.4680851063829787,
+        "graphemeRatio": 1.5,
+        "utf8ByteRatio": 1.625
+      }
+    },
+    {
+      "id": "category-masthead-description",
+      "component": "category-masthead-description",
+      "page": "category",
+      "fontRole": "body",
+      "fontStyle": "normal",
+      "en": "Economy, development, jobs",
+      "enSource": "stress-set.json cases['categories'] (business row).description",
+      "es_real": "Economía, desarrollo y empleos",
+      "esRealSource": "in-session translation",
+      "es_synthetic": "Economía, desarrollo y empleos año",
+      "calibration": {
+        "widthRatio": 1.2654176424668229,
+        "hi": 1.3071428571428572,
+        "graphemeRatio": 1.3076923076923077,
+        "utf8ByteRatio": 1.3846153846153846
+      }
+    },
+    {
+      "id": "category-lead-headline",
+      "component": "category-lead-headline",
+      "page": "category",
+      "fontRole": "headline",
+      "fontStyle": "normal",
+      "en": "Amazon Raises Starting Pay and Introduces Employee Discounts in El Paso",
+      "enSource": "stress-set.json cases['category-lead'].chosen.title",
+      "es_real": "Amazon aumenta el salario inicial e introduce descuentos para empleados en El Paso",
+      "esRealSource": "in-session translation",
+      "es_synthetic": "Amazon aumenta el salario inicial e introduce descuentos para empleados en El Paso tradición",
+      "calibration": {
+        "widthRatio": 1.2693770108218778,
+        "hi": 1.3,
+        "graphemeRatio": 1.295774647887324,
+        "utf8ByteRatio": 1.3098591549295775
+      }
+    },
+    {
+      "id": "article-headline",
+      "component": "article-headline",
+      "page": "article",
+      "fontRole": "headline",
+      "fontStyle": "normal",
+      "en": "USPS Launches Operation Santa, Inviting El Pasoans to Adopt Holiday Letters",
+      "enSource": "stress-set.json cases['five-tags'].title",
+      "es_real": "USPS lanza Operation Santa e invita a los paseños a adoptar cartas navideñas",
+      "esRealSource": "in-session translation",
+      "es_synthetic": "USPS lanza Operation Santa e invita a los paseños a adoptar cartas navideñas comunicación después",
+      "calibration": {
+        "widthRatio": 1.298191068400226,
+        "hi": 1.307482993197279,
+        "graphemeRatio": 1.2933333333333332,
+        "utf8ByteRatio": 1.3466666666666667
+      }
+    },
+    {
+      "id": "article-standfirst",
+      "component": "article-standfirst",
+      "page": "article",
+      "fontRole": "body",
+      "fontStyle": "italic",
+      "en": "The U.S. Postal Service has begun its annual Operation Santa, inviting residents to send letters to Santa Claus.",
+      "enSource": "first sentence of stress-set.json cases['five-tags'].summary",
+      "es_real": "El Servicio Postal de EE. UU. dio inicio a su tradicional Operation Santa, invitando a los residentes a enviar cartas a Santa Claus.",
+      "esRealSource": "in-session translation",
+      "es_synthetic": "El Servicio Postal de EE. UU. dio inicio a su tradicional Operation Santa, invitando a los residentes a enviar cartas a Santa Claus. información",
+      "calibration": {
+        "widthRatio": 1.2959947183098592,
+        "hi": 1.3081570996978853,
+        "graphemeRatio": 1.2857142857142858,
+        "utf8ByteRatio": 1.2946428571428572
+      }
+    },
+    {
+      "id": "article-body",
+      "component": "article-body",
+      "page": "article",
+      "fontRole": "body",
+      "fontStyle": "normal",
+      "en": "This cherished initiative, which has been running since 1912, allows individuals to adopt letters from children and fulfill their holiday wishes. This year, El Pasoans are encouraged to participate and spread joy during the festive season. The program not only brings smiles to children's faces but also fosters community spirit by connecting donors with those in need.",
+      "enSource": "remainder (after the first sentence) of stress-set.json cases['five-tags'].summary",
+      "es_real": "Esta querida iniciativa, que se realiza desde 1912, permite a las personas adoptar cartas de niños y cumplir sus deseos navideños. Este año se invita a los paseños a participar y compartir la alegría durante la temporada festiva. El programa no solo dibuja sonrisas en los rostros de los niños, sino que también fortalece el espíritu comunitario al conectar a los donantes con quienes lo necesitan.",
+      "esRealSource": "in-session translation",
+      "es_synthetic": "Esta querida iniciativa, que se realiza desde 1912, permite a las personas adoptar cartas de niños y cumplir sus deseos navideños. Este año se invita a los paseños a participar y compartir la alegría durante la temporada festiva. El programa no solo dibuja sonrisas en los rostros de los niños, sino que también fortalece el espíritu comunitario al conectar a los donantes con quienes lo necesitan. comunicación comunicación comunicación comunicación comunicación",
+      "calibration": {
+        "widthRatio": 1.278484923381117,
+        "hi": 1.3,
+        "graphemeRatio": 1.2547425474254743,
+        "utf8ByteRatio": 1.2899728997289972
+      }
+    },
+    {
+      "id": "tag-chip",
+      "component": "tag-chip",
+      "page": "article",
+      "fontRole": "body",
+      "fontStyle": "normal",
+      "en": "operation-santa",
+      "enSource": "longest tag name of stress-set.json cases['five-tags'].tags",
+      "es_real": "operación-santa",
+      "esRealSource": "in-session translation",
+      "es_synthetic": "operación-santa año",
+      "calibration": {
+        "widthRatio": 1.2926136363636365,
+        "hi": 1.3539772727272728,
+        "graphemeRatio": 1.2666666666666666,
+        "utf8ByteRatio": 1.4
+      }
+    },
+    {
+      "id": "ai-disclosure",
+      "component": "ai-disclosure",
+      "page": "article",
+      "fontRole": "body",
+      "fontStyle": "normal",
+      "en": "This summary was written by AI from reporting by KTSM. Read the original story.",
+      "enSource": "literal UI string, source name from stress-set.json cases['five-tags'].source_name",
+      "es_real": "Este resumen fue redactado por IA a partir de la cobertura de KTSM. Lea la nota original.",
+      "esRealSource": "in-session translation",
+      "es_synthetic": "Este resumen fue redactado por IA a partir de la cobertura de KTSM. Lea la nota original. comunicación",
+      "calibration": {
+        "widthRatio": 1.2698019801980198,
+        "hi": 1.3,
+        "graphemeRatio": 1.2911392405063291,
+        "utf8ByteRatio": 1.3037974683544304
+      }
+    },
+    {
+      "id": "byline",
+      "component": "byline",
+      "page": "index",
+      "fontRole": "body",
+      "fontStyle": "normal",
+      "en": "KVIA · Sept. 16, 12:49 p.m.",
+      "enSource": "literal UI string, source/date from stress-set.json cases['no-image'] (source_name, published_at)",
+      "es_real": "KVIA · 16 de sept. de 2026, 12:49 p. m.",
+      "esRealSource": "in-session translation",
+      "es_synthetic": "KVIA · 16 de sept. de 2026, 12:49 p. ",
+      "calibration": {
+        "widthRatio": 1.3056506849315068,
+        "hi": 1.316831683168317,
+        "graphemeRatio": 1.3703703703703705,
+        "utf8ByteRatio": 1.3571428571428572
+      }
+    },
+    {
+      "id": "changelog-title",
+      "component": "changelog-title",
+      "page": "changelog",
+      "fontRole": "headline",
+      "fontStyle": "normal",
+      "en": "We're Back — Full Restoration Underway",
+      "enSource": "longest entry title in changelog.json",
+      "es_real": "Ya Volvimos — Restauración Completa en Marcha",
+      "esRealSource": "in-session translation",
+      "es_synthetic": "Ya Volvimos — Restauración Completa en Marcha así",
+      "calibration": {
+        "widthRatio": 1.291220556745182,
+        "hi": 1.306172839506173,
+        "graphemeRatio": 1.2894736842105263,
+        "utf8ByteRatio": 1.325
+      }
+    },
+    {
+      "id": "changelog-prose",
+      "component": "changelog-prose",
+      "page": "changelog",
+      "fontRole": "body",
+      "fontStyle": "normal",
+      "en": "Category pages like Crime and Politics were quietly showing an old, frozen list of stories — they now show everything, currently 3,803 stories under Crime alone",
+      "enSource": "longest item in changelog.json",
+      "es_real": "Las páginas de categorías como Crimen y Política mostraban silenciosamente una lista de noticias antigua y congelada — ahora muestran todo, actualmente 3,803 historias solo bajo Crimen",
+      "esRealSource": "in-session translation",
+      "es_synthetic": "Las páginas de categorías como Crimen y Política mostraban silenciosamente una lista de noticias antigua y congelada — ahora muestran todo, actualmente 3,803 historias solo bajo Crimen comunicación",
+      "calibration": {
+        "widthRatio": 1.2728424609320006,
+        "hi": 1.3,
+        "graphemeRatio": 1.23125,
+        "utf8ByteRatio": 1.2530864197530864
+      }
+    },
+    {
+      "id": "contact-label",
+      "component": "contact-label",
+      "page": "contact",
+      "fontRole": "body",
+      "fontStyle": "normal",
+      "en": "Your message",
+      "enSource": "literal UI string",
+      "es_real": "Tu mensaje",
+      "esRealSource": "in-session translation",
+      "es_synthetic": "Tu mensaje Juárez",
+      "calibration": {
+        "widthRatio": 1.340983606557377,
+        "hi": 1.37,
+        "graphemeRatio": 1.4166666666666667,
+        "utf8ByteRatio": 1.5
+      }
+    },
+    {
+      "id": "contact-submit",
+      "component": "contact-submit",
+      "page": "contact",
+      "fontRole": "body",
+      "fontStyle": "normal",
+      "en": "Send message",
+      "enSource": "literal UI string",
+      "es_real": "Enviar mensaje",
+      "esRealSource": "in-session translation",
+      "es_synthetic": "Enviar mensaje así",
+      "calibration": {
+        "widthRatio": 1.3456591639871383,
+        "hi": 1.3733333333333333,
+        "graphemeRatio": 1.5,
+        "utf8ByteRatio": 1.5833333333333333
+      }
+    },
+    {
+      "id": "theme-toggle",
+      "component": "theme-toggle",
+      "page": "all",
+      "fontRole": "body",
+      "fontStyle": "normal",
+      "en": "Dark theme",
+      "enSource": "literal UI string",
+      "es_real": "Tema oscuro",
+      "esRealSource": "in-session translation",
+      "es_synthetic": "Tema oscuro así",
+      "calibration": {
+        "widthRatio": 1.361216730038023,
+        "hi": 1.4024390243902438,
+        "graphemeRatio": 1.5,
+        "utf8ByteRatio": 1.6
+      }
+    },
+    {
+      "id": "skip-link",
+      "component": "skip-link",
+      "page": "all",
+      "fontRole": "body",
+      "fontStyle": "normal",
+      "en": "Skip to content",
+      "enSource": "literal UI string",
+      "es_real": "Saltar la navegación",
+      "esRealSource": "in-session translation (functionally-equivalent a11y skip-link phrasing — \"skip the navigation\" rather than a literal \"skip to content\" — chosen because it carries a real diacritic (navegación) where a literal \"Saltar al contenido\" does not; both are common real skip-link translations)",
+      "es_synthetic": "Saltar la navegación",
+      "calibration": {
+        "widthRatio": 1.3303437967115097,
+        "hi": 1.3793103448275863,
+        "graphemeRatio": 1.3333333333333333,
+        "utf8ByteRatio": 1.4
+      }
+    },
+    {
+      "id": "worst-case",
+      "component": "worst-case",
+      "page": "index",
+      "fontRole": "headline",
+      "fontStyle": "normal",
+      "en": "Ucrania intensifica ofensiva contra la infraestructura petrolera rusa en medio de ganancias inesperadas del Kremlin",
+      "enSource": "stress-set.json cases['longest-headline'].title — used for the drawn D-07 worst-case card",
+      "es_real": "Ucrania intensifica ofensiva contra la infraestructura petrolera rusa en medio de ganancias inesperadas del Kremlin",
+      "esRealSource": "identical to en — see card-headline's esRealSource note (same corpus row, reused here for the D-07 worst-case layout stress test).",
+      "es_synthetic": "Ucrania intensifica ofensiva contra la infraestructura petrolera rusa en medio de ganancias inesperadas del Kremlin comunicación comunicación",
+      "calibration": {
+        "widthRatio": 1.2544500655799138,
+        "hi": 1.3,
+        "graphemeRatio": 1.2260869565217392,
+        "utf8ByteRatio": 1.2434782608695651
+      }
+    },
+    {
+      "id": "new-tab-cue",
+      "component": "new-tab-cue",
+      "page": "article",
+      "fontRole": "body",
+      "fontStyle": "normal",
+      "assistiveOnly": true,
+      "en": " (opens in a new tab)",
+      "enSource": "01-17 external-link cue",
+      "es_real": " (se abre en una pestaña nueva)",
+      "esRealSource": "translated in-session (A-05 precedent); no paid API",
+      "es_synthetic": " (se abre en una pestaña  sí",
+      "calibration": {
+        "widthRatio": 1.2807606263982103,
+        "hi": 1.3318791946308726,
+        "graphemeRatio": 1.3333333333333333,
+        "utf8ByteRatio": 1.4285714285714286
+      }
+    },
+    {
+      "id": "load-more-button",
+      "component": "load-more-button",
+      "page": "index",
+      "fontRole": "body",
+      "fontStyle": "normal",
+      "en": "Load more stories",
+      "enSource": "01-21 load-more control",
+      "es_real": "Cargar más noticias",
+      "esRealSource": "translated in-session (A-05 precedent); no paid API",
+      "es_synthetic": "Cargar más noticias año",
+      "calibration": {
+        "widthRatio": 1.3312577833125778,
+        "hi": 1.3509933774834437,
+        "graphemeRatio": 1.3529411764705883,
+        "utf8ByteRatio": 1.4705882352941178
+      }
+    },
+    {
+      "id": "load-more-status",
+      "component": "load-more-status",
+      "page": "index",
+      "fontRole": "body",
+      "fontStyle": "normal",
+      "en": "6 more stories loaded.",
+      "enSource": "01-21 load-more control",
+      "es_real": "Se cargaron 6 noticias más.",
+      "esRealSource": "translated in-session (A-05 precedent); no paid API",
+      "es_synthetic": "Se cargaron 6 noticias más. sí",
+      "calibration": {
+        "widthRatio": 1.3231707317073171,
+        "hi": 1.3495934959349594,
+        "graphemeRatio": 1.3636363636363635,
+        "utf8ByteRatio": 1.4545454545454546
+      }
+    },
+    {
+      "id": "rail-heading",
+      "component": "rail-heading",
+      "page": "article",
+      "fontRole": "headline",
+      "fontStyle": "normal",
+      "en": "Latest",
+      "enSource": "01-19 rail heading",
+      "es_real": "Últimas noticias",
+      "esRealSource": "translated in-session (A-05 precedent); no paid API",
+      "es_synthetic": "Últimas ",
+      "calibration": {
+        "widthRatio": 1.2882562277580072,
+        "hi": 1.5222419928825623,
+        "graphemeRatio": 1.3333333333333333,
+        "utf8ByteRatio": 1.5
+      }
+    }
+  ]
+}

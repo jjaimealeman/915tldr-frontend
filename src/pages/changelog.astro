@@ -1,0 +1,111 @@
+---
+// D-13 / FIX-05 (04-08 Task 2): /changelog — the full preserved history from both D-13 sources
+// (v1's changelog.json + D1 public_changelogs), merged and sorted by the changelog Content Layer
+// loader (`src/content/loaders/changelog-loader.ts`). Re-sorted here defensively with the exact
+// same rule (date desc, then source — json before d1 — then original index) so this page never
+// silently depends on the loader's internal store-iteration order.
+//
+// Structure ported verbatim from design/mockups/changelog.html (01-APPROVAL.md): the dispatch
+// layout (`data-layout="with-rail"`, per 01-20's grid-template-areas fix), each entry as
+// `article[data-dispatch]` with a `time[data-dispatch-date]` and item sentences, plus the
+// mockup's rail Latest Stories grid (`aside[data-rail]`) with the 6 newest articles as
+// ArticleCards (compact variant, matching the rail's own card shape).
+import { getCollection } from 'astro:content';
+import Base from '../layouts/Base.astro';
+import ArticleCard from '../components/ArticleCard.astro';
+import { articlePath } from '../lib/article-url';
+import { sortNewestFirst } from '../lib/listing';
+
+/** design/mockups/changelog.html's rail — 6 newest articles, compact variant (04-08-PLAN.md
+ * Task 2's own instruction; the mockup itself shows only 3 as a sample). */
+const RAIL_COUNT = 6;
+
+interface ChangelogEntryView {
+  id: string;
+  date: string;
+  title: string;
+  items: string[];
+  source: 'v1-json' | 'd1';
+}
+
+const changelogEntries = await getCollection('changelog');
+const entries: ChangelogEntryView[] = changelogEntries
+  .map((entry) => entry.data as ChangelogEntryView)
+  .sort((a, b) => {
+    if (a.date !== b.date) return a.date < b.date ? 1 : -1; // desc
+    if (a.source !== b.source) return a.source === 'v1-json' ? -1 : 1; // json before d1
+    return 0; // both sources already carry a stable original order from the loader
+  });
+
+const articleEntries = await getCollection('articles');
+const allArticles = articleEntries.map((entry) => entry.data);
+const railArticles = sortNewestFirst(allArticles).slice(0, RAIL_COUNT);
+
+function dispatchDateLabel(date: string): string {
+  // date is already YYYY-MM-DD — render as "September 15, 2026" without a timezone conversion
+  // (the loader already resolved D1's epoch dates to this zone; a Date parse here would risk a
+  // second, redundant timezone step against a value that's already a calendar date, not an
+  // instant).
+  const [year, month, day] = date.split('-').map(Number);
+  const monthName = new Intl.DateTimeFormat('en-US', { month: 'long', timeZone: 'UTC' }).format(
+    new Date(Date.UTC(year, month - 1, day))
+  );
+  return `${monthName} ${day}, ${year}`;
+}
+---
+
+<Base
+  page="changelog"
+  title="Changelog — 915 TLDR"
+  description="915 TLDR is built in the open. Every change, in plain English, newest first."
+  canonicalPath="/changelog"
+  layout="with-rail"
+>
+  <div data-reading-column>
+    <h1>Changelog</h1>
+    <p data-lede>915 TLDR is built in the open. Every change, in plain English, newest first.</p>
+
+    {
+      entries.map((entry) => (
+        <article data-dispatch>
+          <time data-dispatch-date datetime={entry.date}>
+            {dispatchDateLabel(entry.date)}
+          </time>
+          <h2>{entry.title}</h2>
+          <p data-dispatch-body>
+            {entry.items.map((item, index) => (
+              <>
+                <span data-item data-item-sentence>
+                  {item}
+                </span>
+                {index < entry.items.length - 1 && ' '}
+              </>
+            ))}
+          </p>
+        </article>
+      ))
+    }
+  </div>
+
+  <aside data-rail aria-label="Latest stories">
+    <h2 id="rail-latest-heading" data-grid-heading>
+      Latest Stories
+    </h2>
+    <section data-grid aria-labelledby="rail-latest-heading">
+      {
+        railArticles.map((article) => (
+          <ArticleCard
+            uuid={article.uuid}
+            title={article.title}
+            href={articlePath(article.category.slug, article.slug, article.uuid)}
+            categorySlug={article.category.slug}
+            categoryName={article.category.name}
+            sourceName={article.source.name}
+            publishedAt={article.publishedAt}
+            variant="compact"
+          />
+        ))
+      }
+    </section>
+  </aside>
+</Base>

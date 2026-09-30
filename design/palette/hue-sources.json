@@ -1,0 +1,162 @@
+[
+  {
+    "slug": "crime",
+    "subject": "ocotillo in bloom",
+    "pageUrl": "https://commons.wikimedia.org/wiki/File:Ocotillo_(50619242221).jpg",
+    "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/7/7b/Ocotillo_%2850619242221%29.jpg/1280px-Ocotillo_%2850619242221%29.jpg",
+    "license": "Public domain",
+    "author": "SaguaroNPS",
+    "region": {
+      "x": 0.5,
+      "y": 0.3,
+      "w": 0.3,
+      "h": 0.4
+    },
+    "note": "A fully open ocotillo (Fouquieria splendens) flower photographed against a neutral rock backdrop rather than open sky. This close focus on a single flower was chosen over wider ocotillo-spike photographs because the individual tube-shaped flowers in a spike are naturally gappy — even a tight crop around a spike still lets high-chroma blue sky show through at full resolution, which pulled the circular mean hue toward blue in early trials (rejected: circularStdDev ~65-70 against a plain sky background). This region is a clean single cluster. License note: this is a US National Park Service work (PD-USGov), which is public domain and at least as freely reusable as the four license types named in the plan; it was accepted on that basis rather than strictly one of the four listed strings.",
+    "keptPixels": 19750,
+    "hue": 30.7,
+    "circularStdDev": 6.7,
+    "medianL": 0.51,
+    "medianC": 0.162
+  },
+  {
+    "slug": "politics",
+    "subject": "the Franklin Mountains or the El Paso skyline under a deep indigo night sky",
+    "pageUrl": "https://commons.wikimedia.org/wiki/File:Sunset_over_desert_outside_Santa_Fe.jpg",
+    "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/b/ba/Sunset_over_desert_outside_Santa_Fe.jpg/1280px-Sunset_over_desert_outside_Santa_Fe.jpg",
+    "license": "CC BY-SA 3.0",
+    "author": "Grendelkhan",
+    "region": {
+      "x": 0.55,
+      "y": 0,
+      "w": 0.45,
+      "h": 0.15
+    },
+    "note": "SUBSTITUTION FLAGGED FOR OWNER REVIEW: this photograph is high-desert dusk sky near Santa Fe, New Mexico, not the Franklin Mountains or the El Paso skyline as the subject calls for. A genuine search across Wikimedia Commons (queries covering 'El Paso night sky', 'Franklin Mountains night/moon/dusk', 'Cityscape of El Paso at Dusk', 'ElPasoEveningMarch2008', 'HUS 4312', and the full 'Cityscapes of El Paso, Texas' category) did not produce a usable indigo-sky source: literal full-darkness night-sky photographs of El Paso have near-zero chroma (a real physical property of true darkness, not a search failure), and the one dusk skyline shot found low-resolution enough to sample (Cityscape_of_El_Paso_at_Dusk.jpg, 420x190) yielded only 70 kept pixels against the required 500. This Santa Fe high-desert dusk sky is the same Southwestern register (clear, dry, high-elevation blue hour) and produced a clean, well-sampled indigo-blue hue; it is offered as the closest defensible substitute, not hidden as if it were El Paso. Owner judgement requested at the human-check step and before final sign-off.",
+    "keptPixels": 32400,
+    "hue": 265.5,
+    "circularStdDev": 4.6,
+    "medianL": 0.516,
+    "medianC": 0.135
+  },
+  {
+    "slug": "sports",
+    "subject": "a saturated storefront or neon sign in El Paso or Ciudad Juárez (orange for sports)",
+    "pageUrl": "https://commons.wikimedia.org/wiki/File:Painting_mural_in_El_Paso_2022_12.jpg",
+    "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/4c/Painting_mural_in_El_Paso_2022_12.jpg/1280px-Painting_mural_in_El_Paso_2022_12.jpg",
+    "license": "CC BY-SA 4.0",
+    "author": "Megalibrarygirl",
+    "region": {
+      "x": 0.16,
+      "y": 0.08,
+      "w": 0.16,
+      "h": 0.2
+    },
+    "note": "A large, unobstructed, daylight block of vivid orange paint from a real El Paso street mural (color-block/checkerboard pattern), photographed in daylight. Not UTEP-specific, but a genuine saturated El Paso storefront/street-art orange as the subject calls for.",
+    "keptPixels": 10955,
+    "hue": 43.4,
+    "circularStdDev": 1.1,
+    "medianL": 0.631,
+    "medianC": 0.165
+  },
+  {
+    "slug": "business",
+    "subject": "a saturated turquoise or teal painted storefront, wall or mural in El Paso or Ciudad Juárez",
+    "pageUrl": "https://commons.wikimedia.org/wiki/File:Bar_Kentucky_02.jpg",
+    "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/b/be/Bar_Kentucky_02.jpg/1280px-Bar_Kentucky_02.jpg",
+    "license": "CC BY-SA 4.0",
+    "author": "Wotancito",
+    "region": {
+      "x": 0.42,
+      "y": 0.3,
+      "w": 0.055,
+      "h": 0.35
+    },
+    "note": "D-GAP-C REPLACEMENT (2026-09-17): replaces the marigold record after the owner's round-1 review flagged both Sports and Business as reading brown ('business and sports both read as brown. sports is more redish, thats ok') -- Sports was accepted as-is, Business was sent back for a new photo and re-sample. Physics explains the marigold's failure: any final hue in roughly 40-100deg drops to amber/olive at the block stop's L 0.46, reading as brown regardless of which photo supplies it -- so the replacement had to land outside that band, not just be a different yellow-orange. The new subject is the neon tube-light border of the real 'Kentucky Club & Grill' bar sign (operating since 1920) in downtown Ciudad Juárez, Mexico -- a genuine saturated storefront colour, one of C-01's own named registers, and squarely on-subject for this category's 'a saturated storefront or neon sign in El Paso or Ciudad Juárez' family already used for sports/weather/community. The sampled region is a single vertical run of the sign's green-cyan neon tubing (left border of the 'World Famous' panel, visible through the shop window), chosen after probing several candidate regions/photos: night-lit mural photographs from the same photo set as sports/weather (artificial worksite lighting) and a mural's shaded agave plant were both rejected first -- the mural photos' visually 'blue' paint measured chroma too low to clear the sampler's own 0.08 floor once downscaled, and a broader crop of this same neon sign pulled in window-glass reflections that pushed circularStdDev over 60deg. This tight region stays entirely on one clean run of tube glass and clears both sampler gates with margin (see hue-sources.json). Photographed 2019-04-06 in daylight (not night, so no artificial-light colour cast risk); the neon itself is self-illuminated tube light, not a painted or dyed surface, noted for completeness alongside 01-03's storefront/neon precedent (sports, weather).",
+    "keptPixels": 538,
+    "hue": 152.1,
+    "circularStdDev": 17.2,
+    "medianL": 0.847,
+    "medianC": 0.141
+  },
+  {
+    "slug": "education",
+    "subject": "a violet desert sunset",
+    "pageUrl": "https://commons.wikimedia.org/wiki/File:Desert_Sunset_in_Saguaro4.jpg",
+    "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/9/9b/Desert_Sunset_in_Saguaro4.jpg/1280px-Desert_Sunset_in_Saguaro4.jpg",
+    "license": "CC BY 2.0",
+    "author": "Bianca's Lens",
+    "region": {
+      "x": 0.3,
+      "y": 0.5,
+      "w": 0.25,
+      "h": 0.1
+    },
+    "note": "Genuine violet-magenta sky band above a saguaro-silhouetted desert sunset in Saguaro National Park (Sonoran Desert, Arizona) — not Chihuahuan desert specifically, but the plan's own subject wording for this category names only 'a violet desert sunset' with no place tied to it, unlike the other seven categories. Region chosen to sit clearly in the magenta-violet band (hue ~296) rather than the more blue-violet band closer to the horizon (hue ~265-275), which sampled too close to the politics hue during trial regions.",
+    "keptPixels": 3084,
+    "hue": 295.9,
+    "circularStdDev": 10.2,
+    "medianL": 0.682,
+    "medianC": 0.086
+  },
+  {
+    "slug": "community",
+    "subject": "a saturated storefront or neon sign in El Paso or Ciudad Juárez (magenta or pink for community)",
+    "pageUrl": "https://commons.wikimedia.org/wiki/File:2010_Ciudad_Juarez_Mexico_5161988454.jpg",
+    "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/7/75/2010_Ciudad_Juarez_Mexico_5161988454.jpg/1280px-2010_Ciudad_Juarez_Mexico_5161988454.jpg",
+    "license": "CC BY 2.0",
+    "author": "Astrid Bussink from Queens, New York, USA",
+    "region": {
+      "x": 0.15,
+      "y": 0.28,
+      "w": 0.12,
+      "h": 0.14
+    },
+    "note": "A saturated pink storefront building on a street corner in Ciudad Juárez, visible past a row of Policía Federal motorcycles. Sampled hue reads as pink-red (hue ~0.8, at the red/magenta boundary) rather than a deeper magenta — an honest photographic reading, not adjusted toward magenta by eye.",
+    "keptPixels": 1105,
+    "hue": 359.9,
+    "circularStdDev": 5.3,
+    "medianL": 0.658,
+    "medianC": 0.088
+  },
+  {
+    "slug": "health",
+    "subject": "sotol or creosote bush",
+    "pageUrl": "https://commons.wikimedia.org/wiki/File:Creosote_bush,_Larrea_tridentata_(15205639513).jpg",
+    "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/5/55/Creosote_bush%2C_Larrea_tridentata_%2815205639513%29.jpg/1280px-Creosote_bush%2C_Larrea_tridentata_%2815205639513%29.jpg",
+    "license": "CC BY-SA 2.0",
+    "author": "Jim Morefield from Nevada, USA",
+    "region": {
+      "x": 0.5,
+      "y": 0.35,
+      "w": 0.25,
+      "h": 0.3
+    },
+    "note": "Larrea tridentata (creosote bush) foliage in direct sun; region targets the dense green leaf mass, avoiding the yellow flowers so the sampled hue is the leaf green named in the subject. Creosote bush ranges across the Chihuahuan, Sonoran and Mojave deserts; this specimen was photographed in Nevada (Mojave Desert) rather than the Chihuahuan desert specifically — same species, different desert region, noted for completeness.",
+    "keptPixels": 7090,
+    "hue": 120.7,
+    "circularStdDev": 6.7,
+    "medianL": 0.521,
+    "medianC": 0.101
+  },
+  {
+    "slug": "weather",
+    "subject": "a hard turquoise midday sky over El Paso",
+    "pageUrl": "https://commons.wikimedia.org/wiki/File:Painting_mural_in_El_Paso_2022.jpg",
+    "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b2/Painting_mural_in_El_Paso_2022.jpg/1280px-Painting_mural_in_El_Paso_2022.jpg",
+    "license": "CC BY-SA 4.0",
+    "author": "Megalibrarygirl",
+    "region": {
+      "x": 0.35,
+      "y": 0.06,
+      "w": 0.15,
+      "h": 0.08
+    },
+    "note": "A real clear midday sky over El Paso, TX (photographed through a car windshield at a street mural project; region avoids clouds, wires and the windshield's own reflections). The measured hue reads as a saturated azure/sky blue (~245-246) rather than the colloquially 'turquoise' the subject wording anticipates — an honest outcome of D-02's photo-first methodology (hue comes from the photo, not from what the design brief expected to see), flagged for the owner's C-01 judgement alongside the other notes rather than nudged toward cyan by eye.",
+    "keptPixels": 5374,
+    "hue": 246.5,
+    "circularStdDev": 1.3,
+    "medianL": 0.684,
+    "medianC": 0.094
+  }
+]

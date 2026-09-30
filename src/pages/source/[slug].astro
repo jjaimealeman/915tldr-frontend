@@ -1,0 +1,64 @@
+---
+// 04-05 (Task 3): per-source pages — v1 parity (`app/pages/source/[slug].vue`). One path per
+// source present on at least one public article (`groupBySource`); the source's own
+// `websiteUrl` is linked with `rel="noopener external"`, matching the article template's outlet
+// link discipline (04-04's disclosure/attribution links).
+import { getCollection } from 'astro:content';
+import Base from '../../layouts/Base.astro';
+import ArticleCard from '../../components/ArticleCard.astro';
+import { articlePath } from '../../lib/article-url';
+import { groupBySource, SOURCE_PAGE_COUNT } from '../../lib/listing';
+import { breadcrumbNode } from '../../lib/structured-data';
+
+export async function getStaticPaths() {
+  const entries = await getCollection('articles');
+  const allArticles = entries.map((entry) => entry.data);
+  const grouped = groupBySource(allArticles);
+
+  return [...grouped.entries()].map(([slug, entry]) => ({
+    params: { slug },
+    props: {
+      slug,
+      source: entry.source,
+      articles: entry.articles.slice(0, SOURCE_PAGE_COUNT),
+    },
+  }));
+}
+
+const { slug, source, articles } = Astro.props;
+---
+
+<Base
+  page="source"
+  title={`${source.name} - El Paso News`}
+  description={`Latest news from ${source.name}. AI-summarized articles from this El Paso news source.`}
+  canonicalPath={`/source/${slug}`}
+  jsonLd={[breadcrumbNode([{ name: 'Home', path: '/' }, { name: source.name, path: `/source/${slug}` }])]}
+>
+  <header data-block>
+    <h1>{source.name}</h1>
+    <p data-story-count>
+      {articles.length} {articles.length === 1 ? 'story' : 'stories'} ·{' '}
+      <a href={source.websiteUrl} rel="noopener external" target="_blank">
+        Visit website
+      </a>
+    </p>
+  </header>
+
+  <section data-grid aria-label={`Latest from ${source.name}`}>
+    {
+      articles.map((article) => (
+        <ArticleCard
+          uuid={article.uuid}
+          title={article.title}
+          href={articlePath(article.category.slug, article.slug, article.uuid)}
+          categorySlug={article.category.slug}
+          categoryName={article.category.name}
+          sourceName={article.source.name}
+          publishedAt={article.publishedAt}
+          summary={article.summary}
+        />
+      ))
+    }
+  </section>
+</Base>
