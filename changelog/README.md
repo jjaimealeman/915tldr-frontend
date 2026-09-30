@@ -10,6 +10,7 @@ Entries are named `YYYY-MM-DD-HHMM_slug.md` and grouped by month, newest first.
 
 | Date | Entry | Keywords |
 |------|-------|----------|
+| 2026-09-30 | [Phase 4 Plan 11 complete: build pipeline decision, byte-identity lock, Deploy Hook trigger](2026-09-30-1601_04-11-summary-state-roadmap-complete.md) | `[DOCUMENTATION]` `[PLANNING]` |
 | 2026-09-30 | [Apply the owner's build-pipeline decision (D-05/REND-05), lock byte-identity, reconcile render-step docs](2026-09-30-1558_04-11-apply-build-pipeline-decision.md) | `[ARCHITECTURE]` `[PERFORMANCE]` `[DOCUMENTATION]` `[TEST]` |
 | 2026-09-30 | [STATE/ROADMAP/REQUIREMENTS updated after Phase 4 Plan 10 completion](2026-09-30-1534_state-roadmap-requirements-04-10-complete.md) | `[DOCUMENTATION]` `[PLANNING]` |
 | 2026-09-30 | [Phase 4 Plan 10 complete: Workers Builds connection and real-platform spike](2026-09-30-1530_04-10-summary-workers-builds-spike-complete.md) | `[DOCUMENTATION]` `[PLANNING]` `[CI_CD]` `[PERFORMANCE]` `[DEPLOYMENT]` |

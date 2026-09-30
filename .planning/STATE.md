@@ -5,15 +5,15 @@ milestone_name: milestone
 current_phase: 04
 current_phase_name: Static Generation, Templates & SEO
 status: executing
-stopped_at: Completed 04-10-PLAN.md
-last_updated: "2026-09-30T21:34:07.376Z"
+stopped_at: Completed 04-11-PLAN.md
+last_updated: "2026-09-30T22:01:37.703Z"
 last_activity: 2026-09-26
 last_activity_desc: Phase 03 complete, transitioned to Phase 4
 progress:
   total_phases: 4
   completed_phases: 3
   total_plans: 52
-  completed_plans: 50
+  completed_plans: 51
 ---
 
 # Project State
@@ -28,11 +28,11 @@ See: .planning/PROJECT.md (updated 2026-09-16)
 ## Current Position
 
 Phase: 04 (Static Generation, Templates & SEO) — EXECUTING
-Plan: 11 of 12
+Plan: 12 of 12
 Status: Ready to execute
 Last activity: 2026-09-26 — Phase 04 execution started
 
-Progress: [██████████] 96%
+Progress: [██████████] 98%
 
 ## Performance Metrics
 
@@ -99,6 +99,7 @@ Progress: [██████████] 96%
 | Phase 04 P08 | ~90min | 3 tasks | 12 files |
 | Phase 04 P09 | ~3h10min | 3 tasks | 10 files |
 | Phase 04 P10 | ~2h45min (active, spanning two sessions) | 2 tasks | 6 files |
+| Phase 04 P11 | ~25min | 3 tasks | 9 files |
 
 ## Accumulated Context
 
@@ -222,6 +223,9 @@ Recent decisions affecting current work:
 - [Phase ?]: 04-10: WB_COLD_FITS (649s cold build) and WB_REUSE_PROVEN (>=34,871/~60,349 pages restored on a real fresh Workers Builds container) both confirmed on the real platform, superseding 04-09's local REUSE_WARM_ONLY assumption -- explained by Workers Builds restoring both a dependencies cache and a build-output cache from the prior build, unlike 04-09's local fresh-clone simulation which only reproduced the build-output half.
 - [Phase ?]: 04-10: found and fixed two real bugs in tools/ci-build.mjs's D-15 notification path during a live drill -- classifyFailure() was misattributing failures to benign command-echo lines, and the corrected title then crashed the process via an HTTP header ByteString error on an em-dash. Both fixed and verified end-to-end against the real ntfy topic.
 - [Phase ?]: 04-10: found (not fixed, Rule 4) that src/layouts/Base.astro unconditionally prints BUILD_HASH in every page's footer, defeating content-hash asset-upload dedup on any commit change (Build 3 re-uploaded 60,355/60,355 assets, only 7 deduped) -- flagged as a cost-relevant finding for 04-11's decision.
+- [Phase ?]: 04-11: Owner selected option-a (Workers Builds does all builds, including forced full rebuilds) for the D-05 forced-rebuild mechanism and REND-05's render layer — a one-way door, 2026-09-30 ~15:40 MDT.
+- [Phase ?]: 04-11: experimental.incrementalBuild flipped from off-by-default to on-by-default in astro.config.mjs, now that WB_REUSE_PROVEN (04-10) is confirmed on the real platform; ASTRO_INCREMENTAL_BUILD=0 remains the documented off switch.
+- [Phase ?]: 04-11: tests/regression/byte-identity.test.mjs tolerates live production D1 drift via a count-based bound (loader's own changed=N x rail fan-out of 9) since the loader logs only a count, not article ids — a disclosed approximation, not a literal per-article check.
 
 ### Pending Todos
 
@@ -274,6 +278,6 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-09-30T21:34:07.358Z
-Stopped at: Completed 04-10-PLAN.md
+Last session: 2026-09-30T22:01:37.686Z
+Stopped at: Completed 04-11-PLAN.md
 Resume file: None
