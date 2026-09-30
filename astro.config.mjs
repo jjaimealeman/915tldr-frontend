@@ -94,15 +94,6 @@ export default defineConfig({
   // D-06) instead of re-rendering it. [CITED: Context7 /withastro/docs,
   // reference/experimental-flags/incremental-build.mdx, queried 2026-09-27.]
   experimental: {
-    // TEMPORARY — 04-10 Task 2 Workers Builds reuse spike (WB_REUSE_PROVEN/WB_REUSE_ABSENT).
-    // Hardcoded `true` (not the `ASTRO_INCREMENTAL_BUILD` env-var seam above) because the
-    // Cloudflare dashboard's build variables are NOT branch-scoped on this account (checkpoint
-    // finding, 04-10 Task 1) — setting the env var there would also reach `main` before 04-11's
-    // decision. This commit exists ONLY to be built by two feature/phase-04 Deploy Hook triggers
-    // (a first, expected-cold toggle build, then an immediate no-toggle follow-up to test real
-    // page-reuse in a genuinely fresh Workers Builds container) and MUST be reverted by a
-    // follow-up commit immediately after — see docs/phase-04/build-measurements.md's "Workers
-    // Builds spike" section and 04-10-SUMMARY.md for the revert commit hash.
-    incrementalBuild: true,
+    incrementalBuild: process.env.ASTRO_INCREMENTAL_BUILD === '1',
   },
 });
