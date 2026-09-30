@@ -10,6 +10,7 @@ Entries are named `YYYY-MM-DD-HHMM_slug.md` and grouped by month, newest first.
 
 | Date | Entry | Keywords |
 |------|-------|----------|
+| 2026-09-30 | [Phase 4 Plan 10 complete: Workers Builds connection and real-platform spike](2026-09-30-1530_04-10-summary-workers-builds-spike-complete.md) | `[DOCUMENTATION]` `[PLANNING]` `[CI_CD]` `[PERFORMANCE]` `[DEPLOYMENT]` |
 | 2026-09-30 | [Revert TEMPORARY incrementalBuild=true hardcode back to env-var seam](2026-09-30-1527_revert-temp-incremental-build-hardcode.md) | `[CONFIG]` `[CI_CD]` |
 | 2026-09-30 | [Build 4 measured, WB_REUSE_PROVEN verdict recorded — 04-10 spike complete](2026-09-30-1524_build4-wb-reuse-proven-verdict.md) | `[DOCUMENTATION]` `[CI_CD]` `[PERFORMANCE]` `[DEPLOYMENT]` |
 | 2026-09-30 | [Build 3 measurements plus a new asset-dedup finding for 04-11](2026-09-30-1517_build3-measurements-and-asset-dedup-finding.md) | `[DOCUMENTATION]` `[CI_CD]` `[PERFORMANCE]` `[DEPLOYMENT]` |
