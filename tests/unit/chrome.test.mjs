@@ -122,10 +122,18 @@ test('chrome: a [data-dateline] element is present', { skip: !DIST_BUILT && SKIP
 });
 
 test(
-  'chrome: a [data-build][data-stamp] element is present',
+  // 04-11a: the footer's commit-hash/build-stamp line is opt-in (Base.astro's `buildStamp` prop,
+  // default false) so an unchanged article's rendered bytes don't change on every commit —
+  // see docs/phase-04/build-measurements.md's "near-total asset re-upload" finding. Article
+  // pages do not pass `buildStamp`, so the element must be ABSENT here, not present.
+  'chrome: article pages do NOT render a [data-build] stamp element (04-11a — homepage/version.json only)',
   { skip: !DIST_BUILT && SKIP_REASON },
   () => {
     const html = readSampleArticleHtml();
-    assert.match(html, /<p data-build data-stamp="[a-z]+">/);
+    assert.doesNotMatch(
+      html,
+      /<p data-build/,
+      'article pages must not carry the footer build stamp — only the homepage and /version.json do (04-11a)'
+    );
   }
 );

@@ -18,13 +18,33 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync, readdirSync, statSync, existsSync } from 'node:fs';
 import path from 'node:path';
-import { resolveBuildHash, resolveCommitDate, BUILD_TIMESTAMP } from '../../src/lib/build-info.ts';
+import { resolveBuildHash, resolveCommitDate, BUILD_TIMESTAMP, BUILD_HASH } from '../../src/lib/build-info.ts';
+import { CATEGORIES } from '../../src/lib/categories.ts';
 
 const REPO_ROOT = path.resolve(import.meta.dirname, '../..');
 const DIST_CLIENT = path.join(REPO_ROOT, 'dist', 'client');
 const VERSION_JSON = path.join(DIST_CLIENT, 'version.json');
+const HOME_HTML = path.join(DIST_CLIENT, 'index.html');
 const DIST_BUILT = existsSync(VERSION_JSON);
 const SKIP_REASON = 'dist/client/version.json not found — run `pnpm build` first (pnpm test:unit does this automatically)';
+
+/** One built category index page (top-level `<slug>.html`, `build.format: 'file'`) — used only
+ * to prove the footer stamp is absent there. Any category works; the first in CATEGORIES order
+ * is arbitrary, not special. */
+function findCategoryHtmlFile() {
+  const file = path.join(DIST_CLIENT, `${CATEGORIES[0].slug}.html`);
+  assert.ok(existsSync(file), `expected a built category page at ${file}`);
+  return file;
+}
+
+/** One built tag page (`dist/client/tag/<slug>.html`) — used only to prove the footer stamp is
+ * absent there. Picks the first tag file found; which one is arbitrary. */
+function findTagHtmlFile() {
+  const tagDir = path.join(DIST_CLIENT, 'tag');
+  const files = existsSync(tagDir) ? readdirSync(tagDir).filter((f) => f.endsWith('.html')) : [];
+  assert.ok(files.length > 0, `expected at least one built tag page under ${tagDir}`);
+  return path.join(tagDir, files[0]);
+}
 
 /** Finds every built article page under `dist/client`. Updated 04-01 (Rule 1 — this test's
  * original walk looked for `index.html`, the `build.format: 'directory'` shape from before
@@ -143,47 +163,42 @@ test('resolveCommitDate: a real git invocation against this repo returns a YYYY-
 // --- Cross-surface cases — real emitted artifacts, not the source module twice ------------
 
 test(
-  'cross-surface: dist/client/version.json and the built article HTML report the exact same commit hash',
+  // 04-11a: the footer commit-hash stamp is now opt-in (Base.astro's `buildStamp` prop) and only
+  // the homepage passes it — see docs/phase-04/build-measurements.md's "near-total asset
+  // re-upload" finding. This case moved from asserting against an article page (pre-04-11a) to
+  // the homepage, the one page that still carries the stamp.
+  'cross-surface: dist/client/version.json and the built homepage report the exact same commit hash',
   { skip: !DIST_BUILT && SKIP_REASON },
   () => {
     const version = JSON.parse(readFileSync(VERSION_JSON, 'utf8'));
     assert.ok(version.commit, 'version.json must have a commit field');
-    const articleFiles = findArticleHtmlFiles(DIST_CLIENT);
-    assert.ok(
-      articleFiles.length > 0,
-      'expected at least one built article HTML file under dist/client'
-    );
-    const html = readFileSync(articleFiles[0], 'utf8');
+    assert.ok(existsSync(HOME_HTML), `expected a built homepage at ${HOME_HTML}`);
+    const html = readFileSync(HOME_HTML, 'utf8');
     assert.ok(
       html.includes(version.commit),
-      `built HTML at ${articleFiles[0]} should contain the exact commit string "${version.commit}" that dist/client/version.json reports`
+      `built homepage HTML should contain the exact commit string "${version.commit}" that dist/client/version.json reports`
     );
   }
 );
 
 test(
-  // 04-04: article pages pass `stamp="commit"` to Base.astro (not the default `"build"`) so an
-  // unchanged article's footer stamp doesn't drift on every rebuild (criterion 3) — the footer
-  // date must equal version.json's `committedAt`, never `builtAt`.
-  'cross-surface: an article page carries data-stamp="commit" and its footer date matches version.json\'s committedAt',
+  // 04-11a: the homepage renders the DEFAULT stamp mode (`stamp="build"`, not `"commit"` — it
+  // passes no `stamp` prop) since it always regenerates in full every build; its footer date is
+  // therefore `BUILD_TIMESTAMP`'s own date, matching version.json's `builtAt`, not `committedAt`.
+  "cross-surface: the homepage carries data-stamp=\"build\" and its footer date matches version.json's builtAt",
   { skip: !DIST_BUILT && SKIP_REASON },
   () => {
     const version = JSON.parse(readFileSync(VERSION_JSON, 'utf8'));
-    assert.match(
-      version.committedAt,
-      /^(\d{4}-\d{2}-\d{2}|unknown)$/,
-      'committedAt must be a YYYY-MM-DD date or the honest "unknown" fallback'
-    );
-    const articleFiles = findArticleHtmlFiles(DIST_CLIENT);
-    const html = readFileSync(articleFiles[0], 'utf8');
+    const html = readFileSync(HOME_HTML, 'utf8');
     assert.match(
       html,
-      /<p data-build data-stamp="commit">/,
-      'article pages should render data-stamp="commit", not the default "build"'
+      /<p data-build data-stamp="build">/,
+      'the homepage should render data-stamp="build" (Base.astro\'s default), not "commit"'
     );
+    const builtAtDate = version.builtAt.slice(0, 10);
     assert.ok(
-      html.includes(`· ${version.committedAt}`),
-      `footer should render the date "${version.committedAt}" from version.json's committedAt — a footer computing its own clock read (or falling back to builtAt) would drift on every unchanged rebuild`
+      html.includes(`· ${builtAtDate}`),
+      `homepage footer should render the date "${builtAtDate}" derived from version.json's builtAt`
     );
   }
 );
@@ -202,16 +217,58 @@ test(
 );
 
 test(
-  'cross-surface: exactly one data-build element exists in the built article page',
+  'cross-surface: exactly one data-build element exists in the built homepage',
   { skip: !DIST_BUILT && SKIP_REASON },
   () => {
-    const articleFiles = findArticleHtmlFiles(DIST_CLIENT);
-    const html = readFileSync(articleFiles[0], 'utf8');
+    const html = readFileSync(HOME_HTML, 'utf8');
     const matches = html.match(/data-build/g) ?? [];
     assert.equal(
       matches.length,
       1,
       'expected exactly one data-build occurrence — a duplicated footer would let the two instances diverge independently'
+    );
+  }
+);
+
+test(
+  // 04-11a: proves the fix, not just the homepage's new behavior — an article, a category index,
+  // and a tag page must ALL omit the footer stamp so their rendered bytes stay independent of
+  // BUILD_HASH across commits (the whole point of the fix — see docs/phase-04/
+  // build-measurements.md's "near-total asset re-upload" finding).
+  'cross-surface: article, category, and tag pages carry NO data-build element (04-11a)',
+  { skip: !DIST_BUILT && SKIP_REASON },
+  () => {
+    const articleFiles = findArticleHtmlFiles(DIST_CLIENT);
+    assert.ok(articleFiles.length > 0, 'expected at least one built article HTML file');
+    const articleHtml = readFileSync(articleFiles[0], 'utf8');
+    assert.doesNotMatch(articleHtml, /data-build/, `article page ${articleFiles[0]} must not carry a data-build element`);
+
+    const categoryFile = findCategoryHtmlFile();
+    const categoryHtml = readFileSync(categoryFile, 'utf8');
+    assert.doesNotMatch(categoryHtml, /data-build/, `category page ${categoryFile} must not carry a data-build element`);
+
+    const tagFile = findTagHtmlFile();
+    const tagHtml = readFileSync(tagFile, 'utf8');
+    assert.doesNotMatch(tagHtml, /data-build/, `tag page ${tagFile} must not carry a data-build element`);
+  }
+);
+
+test(
+  // 04-11a's actual claim under test: an article page's rendered bytes are independent of
+  // BUILD_HASH — not merely that the footer element is absent (the prior test), but that THIS
+  // real build's actual hash string does not leak into the article HTML anywhere at all. Direct
+  // proof, no second build needed: if the real, current BUILD_HASH is nowhere in the page, a
+  // different BUILD_HASH on the next commit cannot change these bytes either.
+  // tests/regression/byte-identity.test.mjs separately proves this end-to-end via two real builds.
+  "article page bytes do not vary with BUILD_HASH — this build's real commit hash is absent from a real built article page",
+  { skip: !DIST_BUILT && SKIP_REASON },
+  () => {
+    assert.notEqual(BUILD_HASH, 'unknown', 'test setup: expected a real resolved BUILD_HASH for this local build');
+    const articleFiles = findArticleHtmlFiles(DIST_CLIENT);
+    const html = readFileSync(articleFiles[0], 'utf8');
+    assert.ok(
+      !html.includes(BUILD_HASH),
+      `article page ${articleFiles[0]} must not contain this build's commit hash "${BUILD_HASH}" anywhere`
     );
   }
 );

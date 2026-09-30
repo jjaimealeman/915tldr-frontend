@@ -10,10 +10,16 @@
 //
 // Deterministic rendering (criterion 3 — byte-identical unchanged articles): every date is
 // computed from the article's own `publishedAt` via `src/lib/format.ts` (never a host-zone clock
-// read or convenience formatter), the footer build stamp uses Base's commit-date mode (not its
-// default build-timestamp mode, which would drift on every rebuild), and the rail
-// (`src/lib/rail.ts`) is derived entirely from each article's own position in the collection —
-// never "now" or a build clock.
+// read or convenience formatter), and the rail (`src/lib/rail.ts`) is derived entirely from each
+// article's own position in the collection — never "now" or a build clock.
+//
+// 04-11a: article pages do NOT render Base's footer build-stamp element at all (`buildStamp`
+// defaults to false — see Base.astro) — BUILD_HASH changes on every commit, and printing it
+// unconditionally on every page changed every page's bytes on every deploy, defeating Cloudflare's
+// content-hash asset-upload dedup (docs/phase-04/build-measurements.md's "near-total asset
+// re-upload" finding). `stamp="commit"` is still passed below, kept as the correct value should
+// `buildStamp` ever be turned on for articles again; today it has no visible effect since the
+// element it would gate is never rendered here.
 import { getCollection } from 'astro:content';
 import Base from '../../layouts/Base.astro';
 import ArticleCard from '../../components/ArticleCard.astro';

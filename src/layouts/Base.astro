@@ -30,8 +30,19 @@ export interface Props {
   /** Epoch seconds for the dateline date; defaults to the build date. */
   datelineEpoch?: number;
   /** Footer build-stamp date source. Defaults to `'build'` — article pages switch to `'commit'`
-   * in 04-04 so an unchanged article's stamp doesn't drift across rebuilds. */
+   * in 04-04 so an unchanged article's stamp doesn't drift across rebuilds. Only meaningful when
+   * `buildStamp` is true (see below) — an unrendered stamp has no date to drift. */
   stamp?: 'build' | 'commit';
+  /** Renders the footer's `<p data-build>` commit-hash/build-stamp line. Defaults to `false`.
+   * 04-11a: `BUILD_HASH` changes on every commit, so printing it unconditionally on every page
+   * (04-02's original behavior) changed every page's raw bytes on every deploy, defeating
+   * Cloudflare's content-hash asset-upload dedup for the entire site (04-10's
+   * build-measurements.md finding). The homepage passes `true` — it already regenerates in full
+   * on every build (its feed is "now", not a digest), so the stamp costs nothing there.
+   * `/version.json` (src/pages/version.json.ts) is unaffected — it reads the same
+   * `src/lib/build-info.ts` constants directly and keeps reporting full provenance regardless of
+   * this prop. */
+  buildStamp?: boolean;
   /** Rendered as `data-layout` on `<main>` — article pages pass `'with-rail'`. Omitted when not
    * given, matching the mockups' plain listing pages. */
   layout?: string;
@@ -47,6 +58,7 @@ const {
   activeCategory,
   datelineEpoch,
   stamp = 'build',
+  buildStamp = false,
   layout,
 } = Astro.props;
 
@@ -149,7 +161,7 @@ const stampDate = stamp === 'commit' ? BUILD_COMMIT_DATE : buildDate;
         Summaries of reporting by KTSM, KVIA and other El Paso outlets — always credited, always
         linked
       </p>
-      <p data-build data-stamp={stamp}>build {BUILD_HASH} · {stampDate}</p>
+      {buildStamp && <p data-build data-stamp={stamp}>build {BUILD_HASH} · {stampDate}</p>}
     </footer>
   </body>
 </html>
