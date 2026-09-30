@@ -538,6 +538,18 @@ in the footer the same way `stampDate` already is, or omitting it from `stamp="c
 entirely) is a product/design decision about what the footer should show on an unchanged article,
 not a mechanical bug fix — Rule 4 territory, left for 04-11 or a dedicated follow-up.
 
+**FIXED in `89bbe38` (04-11a, owner-approved quick fix, 2026-09-30).** `Base.astro` gained a new
+`buildStamp` boolean prop, default `false`, gating the entire `<p data-build>` element — not just
+`stampDate` — so `BUILD_HASH` no longer renders anywhere by default. Only `src/pages/index.astro`
+passes `buildStamp={true}`; every article, category, tag, and static page now omits the footer
+build stamp entirely, and `/version.json` is untouched (it reads `build-info.ts` directly,
+independent of this prop). The owner's rationale: the homepage already regenerates in full on
+every build regardless of commit (its feed reflects "now"), so the stamp costs nothing there,
+while every other page can now stay byte-identical across commits when its own content is
+unchanged. Measured directly against a real build: before this fix, all ~60,359 built HTML files
+carried the commit hash; after, exactly 1 (`dist/client/index.html`) does. See
+`.planning/phases/04-static-generation-templates-seo/04-11a-SUMMARY.md` for full verification detail.
+
 ### Build 4 — flag-on, no toggle (the real reuse test)
 
 Triggered via the `feature/phase-04` Deploy Hook against the SAME tip (`e95a734`, no new commit,

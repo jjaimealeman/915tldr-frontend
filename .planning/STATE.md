@@ -226,6 +226,7 @@ Recent decisions affecting current work:
 - [Phase ?]: 04-11: Owner selected option-a (Workers Builds does all builds, including forced full rebuilds) for the D-05 forced-rebuild mechanism and REND-05's render layer — a one-way door, 2026-09-30 ~15:40 MDT.
 - [Phase ?]: 04-11: experimental.incrementalBuild flipped from off-by-default to on-by-default in astro.config.mjs, now that WB_REUSE_PROVEN (04-10) is confirmed on the real platform; ASTRO_INCREMENTAL_BUILD=0 remains the documented off switch.
 - [Phase ?]: 04-11: tests/regression/byte-identity.test.mjs tolerates live production D1 drift via a count-based bound (loader's own changed=N x rail fan-out of 9) since the loader logs only a count, not article ids — a disclosed approximation, not a literal per-article check.
+- [Phase ?]: 04-11a (owner-approved quick fix, 2026-09-30): Base.astro's footer build-stamp (`BUILD_HASH`) is now opt-in via a new `buildStamp` prop, default false — only the homepage passes `buildStamp={true}`; /version.json is unaffected (reads build-info.ts directly). Fixes 04-10's "near-total asset re-upload" finding: before, all ~60,359 built HTML files carried the commit hash and changed bytes on every commit; after, only 1 (the homepage) does.
 
 ### Pending Todos
 
