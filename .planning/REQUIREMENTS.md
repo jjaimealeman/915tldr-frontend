@@ -18,11 +18,11 @@
 
 ### Content Loading & Render
 
-- [ ] **REND-01**: A hand-written `astro/loaders` Loader reads articles from the D1 REST API at build time
-- [ ] **REND-02**: The loader throws and fails the build when it returns zero or fewer rows than expected — an empty result never ships as a successful build
-- [ ] **REND-03**: A regression test reproduces the `/changelog` empty-state failure and proves the loader rejects it
-- [ ] **REND-04**: Homepage, category pages, tag indexes and static pages regenerate on each cron cycle via a new Worker deployment
-- [ ] **REND-05**: Only new and changed articles re-render; unchanged articles are not recomputed
+- [x] **REND-01**: A hand-written `astro/loaders` Loader reads articles from the D1 REST API at build time
+- [x] **REND-02**: The loader throws and fails the build when it returns zero or fewer rows than expected — an empty result never ships as a successful build
+- [x] **REND-03**: A regression test reproduces the `/changelog` empty-state failure and proves the loader rejects it
+- [x] **REND-04**: Homepage, category pages, tag indexes and static pages regenerate on each cron cycle via a new Worker deployment
+- [x] **REND-05**: Only new and changed articles re-render; unchanged articles are not recomputed
 - [x] **REND-06**: A render manifest in KV records what has been rendered and at which version
 - [ ] **REND-07**: Articles outside the hot window are rendered once to R2 and served from there
 - [ ] **REND-08**: A request for an archived article falls through the static-asset layer to the Worker and is served from R2
@@ -98,14 +98,14 @@
 
 ### SEO
 
-- [ ] **SEO-01**: Every article emits valid `NewsArticle` structured data, validated not merely emitted
-- [ ] **SEO-02**: `BreadcrumbList`, `Organization` and `WebSite` structured data are present and valid
-- [ ] **SEO-03**: A Google News sitemap covers articles from the last 48 hours
-- [ ] **SEO-04**: Every page has a canonical URL and existing `/[category]/[slug]-[uuid]` URLs still resolve
-- [ ] **SEO-05**: The existing per-bot `robots.txt` policy, including AI-crawler and `Content-signal` rules, is preserved
-- [ ] **SEO-06**: `/rss.xml` is preserved
-- [ ] **SEO-07**: Canonical links to the originating outlet are prominent on every article
-- [ ] **SEO-08**: The 404 suggestion endpoint carries over
+- [x] **SEO-01**: Every article emits valid `NewsArticle` structured data, validated not merely emitted
+- [x] **SEO-02**: `BreadcrumbList`, `Organization` and `WebSite` structured data are present and valid
+- [x] **SEO-03**: A Google News sitemap covers articles from the last 48 hours
+- [x] **SEO-04**: Every page has a canonical URL and existing `/[category]/[slug]-[uuid]` URLs still resolve
+- [x] **SEO-05**: The existing per-bot `robots.txt` policy, including AI-crawler and `Content-signal` rules, is preserved
+- [x] **SEO-06**: `/rss.xml` is preserved
+- [x] **SEO-07**: Canonical links to the originating outlet are prominent on every article
+- [x] **SEO-08**: The 404 suggestion endpoint carries over
 - [ ] **SEO-09**: Lighthouse SEO scores 100 across the representative page set
 
 ### Social Sharing
@@ -164,8 +164,8 @@
 
 - [ ] **IDNT-01**: The About page names a real person, with photo, written in first person
 - [ ] **IDNT-02**: The About page explains in plain English what is automated, what is summarised and where the reporting comes from
-- [ ] **IDNT-03**: Each article carries AI-generation disclosure at point of consumption, not only on the About page
-- [ ] **IDNT-04**: Original outlets are prominently attributed on every article
+- [x] **IDNT-03**: Each article carries AI-generation disclosure at point of consumption, not only on the About page
+- [x] **IDNT-04**: Original outlets are prominently attributed on every article
 - [ ] **IDNT-05**: A contact route exists that is not a form-only dead end
 - [ ] **IDNT-06**: Links to `jjaimealeman.com` and `915website.com` are present
 
@@ -180,7 +180,7 @@
 - [ ] **OPS-07**: A daily routine reports D1 reads, spend, OpenAI balance, static-asset file count and Core Web Vitals against budget
 - [x] **OPS-08**: The read budget is stated in the README
 - [ ] **OPS-09**: Rollback to the existing worker is a route change and is verified before cutover
-- [ ] **OPS-10**: The cron run triggers the public site's incremental build
+- [x] **OPS-10**: The cron run triggers the public site's incremental build
 - [x] **OPS-11**: No operation costing more than $1 runs without prior approval and an estimate
 
 ### Known Defect Fixes
@@ -188,8 +188,8 @@
 - [x] **FIX-01**: `reprocess-all.post.ts` no longer binds an unbounded ID list across `inArray` calls; D1's 100-parameter ceiling is respected
 - [x] **FIX-02**: `pnpm deploy` and `pnpm deploy:dev` resolve `wrangler` as a real dependency
 - [x] **FIX-03**: The Prettier error at `app/pages/privacy.vue:164` is resolved
-- [ ] **FIX-04**: Category index routes resolve (`/crime` as well as `/crime/**`)
-- [ ] **FIX-05**: `/changelog` renders its content reliably
+- [x] **FIX-04**: Category index routes resolve (`/crime` as well as `/crime/**`)
+- [x] **FIX-05**: `/changelog` renders its content reliably
 
 ## v2 Requirements
 
@@ -256,11 +256,11 @@ Deferred. Tracked, not in this roadmap.
 | ARCH-06 | Phase 3 | Complete |
 | ARCH-07 | Phase 12 | Pending |
 | ARCH-08 | Phase 5 | Pending |
-| REND-01 | Phase 4 | Pending |
-| REND-02 | Phase 4 | Pending |
-| REND-03 | Phase 4 | Pending |
-| REND-04 | Phase 4 | Pending |
-| REND-05 | Phase 4 | Pending |
+| REND-01 | Phase 4 | Complete |
+| REND-02 | Phase 4 | Complete |
+| REND-03 | Phase 4 | Complete |
+| REND-04 | Phase 4 | Complete |
+| REND-05 | Phase 4 | Complete |
 | REND-06 | Phase 3 | Complete |
 | REND-07 | Phase 5 | Pending |
 | REND-08 | Phase 5 | Pending |
@@ -318,14 +318,14 @@ Deferred. Tracked, not in this roadmap.
 | PERF-08 | Phase 7 | Pending |
 | PERF-09 | Phase 7 | Pending |
 | PERF-10 | Phase 7 | Pending |
-| SEO-01 | Phase 4 | Pending |
-| SEO-02 | Phase 4 | Pending |
-| SEO-03 | Phase 4 | Pending |
-| SEO-04 | Phase 4 | Pending |
-| SEO-05 | Phase 4 | Pending |
-| SEO-06 | Phase 4 | Pending |
-| SEO-07 | Phase 4 | Pending |
-| SEO-08 | Phase 4 | Pending |
+| SEO-01 | Phase 4 | Complete |
+| SEO-02 | Phase 4 | Complete |
+| SEO-03 | Phase 4 | Complete |
+| SEO-04 | Phase 4 | Complete |
+| SEO-05 | Phase 4 | Complete |
+| SEO-06 | Phase 4 | Complete |
+| SEO-07 | Phase 4 | Complete |
+| SEO-08 | Phase 4 | Complete |
 | SEO-09 | Phase 11 | Pending |
 | SOC-01 | Phase 7 | Pending |
 | SOC-02 | Phase 7 | Pending |
@@ -366,8 +366,8 @@ Deferred. Tracked, not in this roadmap.
 | SUB-08 | Phase 10 | Pending |
 | IDNT-01 | Phase 10 | Pending |
 | IDNT-02 | Phase 10 | Pending |
-| IDNT-03 | Phase 4 | Pending |
-| IDNT-04 | Phase 4 | Pending |
+| IDNT-03 | Phase 4 | Complete |
+| IDNT-04 | Phase 4 | Complete |
 | IDNT-05 | Phase 10 | Pending |
 | IDNT-06 | Phase 10 | Pending |
 | OPS-01 | Phase 12 | Pending |
@@ -379,13 +379,13 @@ Deferred. Tracked, not in this roadmap.
 | OPS-07 | Phase 12 | Pending |
 | OPS-08 | Phase 3 | Complete |
 | OPS-09 | Phase 12 | Pending |
-| OPS-10 | Phase 4 | Pending |
+| OPS-10 | Phase 4 | Complete |
 | OPS-11 | Phase 2 | Complete |
 | FIX-01 | Phase 2 | Complete |
 | FIX-02 | Phase 2 | Complete |
 | FIX-03 | Phase 2 | Complete |
-| FIX-04 | Phase 4 | Pending |
-| FIX-05 | Phase 4 | Pending |
+| FIX-04 | Phase 4 | Complete |
+| FIX-05 | Phase 4 | Complete |
 
 **Coverage:**
 

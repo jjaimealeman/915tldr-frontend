@@ -1,21 +1,81 @@
 ---
-// D-07: reproduces the approved page chrome from design/mockups/article.html verbatim — the
-// two font preloads, the global stylesheet import, `<body data-page>`, the masthead `<header>`,
-// a `<main id="main" tabindex="-1">` slot, and the `<footer>`. OPS-05: the build-stamp line now
-// renders from src/lib/build-info.ts's constants — the same module src/pages/version.json.ts
-// reads for OPS-06 — rather than the literal placeholder text this file carried until 03-03.
-// The date is sliced out of BUILD_TIMESTAMP, not constructed from a second independently-read
-// clock here: a second clock read is a second source of truth and the two would drift.
+// 04-02: extends the D-07 tracer chrome to the full head-metadata + approved-chrome contract
+// every Phase 4 page renders through (04-03..04-08+ all wrap in this layout — see
+// `.planning/phases/04-static-generation-templates-seo/04-02-PLAN.md`'s `<interfaces>` block for
+// the frozen prop names downstream plans depend on).
+//
+// Chrome markup below is ported verbatim (structure + data-* attributes) from the approved
+// mockups (design/mockups/article.html, design/mockups/index.html — 01-APPROVAL.md): skip link,
+// masthead, dateline, category spectrum, the 8-category nav in mockup order, the (unhydrated)
+// theme-toggle button (markup only — the island ships in Phase 8, ISL-07), main, footer. The
+// footer's Changelog/Contact links are joined by About/Privacy/Terms (D-10's static pages) — a
+// named addition to the approved mockup footer, not present in the original design.
 import '../styles/global.css';
-import { BUILD_HASH, BUILD_TIMESTAMP } from '../lib/build-info';
+import { BUILD_HASH, BUILD_TIMESTAMP, BUILD_COMMIT_DATE } from '../lib/build-info';
+import { formatDateline } from '../lib/format';
+import { toSafeJsonLd, organizationNode, websiteNode, SITE_ORIGIN } from '../lib/structured-data';
+import { CATEGORIES } from '../lib/categories';
 
-interface Props {
+export interface Props {
   page: string;
   title: string;
+  description?: string;
+  /** Absolute-from-origin path with no trailing slash (except `/` itself) — the single
+   * `<link rel="canonical">` this page emits is `Astro.site` + this path. */
+  canonicalPath?: string;
+  noindex?: boolean;
+  /** Extra schema.org nodes rendered after the site-wide Organization + WebSite nodes. */
+  jsonLd?: object[];
+  activeCategory?: string;
+  /** Epoch seconds for the dateline date; defaults to the build date. */
+  datelineEpoch?: number;
+  /** Footer build-stamp date source. Defaults to `'build'` — article pages switch to `'commit'`
+   * in 04-04 so an unchanged article's stamp doesn't drift across rebuilds. Only meaningful when
+   * `buildStamp` is true (see below) — an unrendered stamp has no date to drift. */
+  stamp?: 'build' | 'commit';
+  /** Renders the footer's `<p data-build>` commit-hash/build-stamp line. Defaults to `false`.
+   * 04-11a: `BUILD_HASH` changes on every commit, so printing it unconditionally on every page
+   * (04-02's original behavior) changed every page's raw bytes on every deploy, defeating
+   * Cloudflare's content-hash asset-upload dedup for the entire site (04-10's
+   * build-measurements.md finding). The homepage passes `true` — it already regenerates in full
+   * on every build (its feed is "now", not a digest), so the stamp costs nothing there.
+   * `/version.json` (src/pages/version.json.ts) is unaffected — it reads the same
+   * `src/lib/build-info.ts` constants directly and keeps reporting full provenance regardless of
+   * this prop. */
+  buildStamp?: boolean;
+  /** Rendered as `data-layout` on `<main>` — article pages pass `'with-rail'`. Omitted when not
+   * given, matching the mockups' plain listing pages. */
+  layout?: string;
 }
 
-const { page, title } = Astro.props;
+const {
+  page,
+  title,
+  description,
+  canonicalPath,
+  noindex = false,
+  jsonLd = [],
+  activeCategory,
+  datelineEpoch,
+  stamp = 'build',
+  buildStamp = false,
+  layout,
+} = Astro.props;
+
+if (canonicalPath && canonicalPath !== '/' && canonicalPath.endsWith('/')) {
+  throw new Error(
+    `Base.astro: canonicalPath "${canonicalPath}" has a trailing slash — this project's ` +
+      `trailingSlash: 'never' contract requires every path but "/" itself to have none.`
+  );
+}
+
+const origin = Astro.site?.origin ?? SITE_ORIGIN;
+const canonicalHref = canonicalPath ? new URL(canonicalPath, Astro.site).href : undefined;
+
+const buildEpoch = Math.floor(new Date(BUILD_TIMESTAMP).getTime() / 1000);
+const datelineText = formatDateline(datelineEpoch ?? buildEpoch);
 const buildDate = BUILD_TIMESTAMP.slice(0, 10);
+const stampDate = stamp === 'commit' ? BUILD_COMMIT_DATE : buildDate;
 ---
 
 <!doctype html>
@@ -24,6 +84,7 @@ const buildDate = BUILD_TIMESTAMP.slice(0, 10);
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>{title}</title>
+    {description && <meta name="description" content={description} />}
     <link
       rel="preload"
       as="font"
@@ -38,26 +99,69 @@ const buildDate = BUILD_TIMESTAMP.slice(0, 10);
       href="/fonts/SourceSerif4-Roman.woff2"
       crossorigin
     />
+    {canonicalHref && <link rel="canonical" href={canonicalHref} />}
+    {noindex && <meta name="robots" content="noindex" />}
+    <link rel="alternate" type="application/rss+xml" title="915 TLDR" href="/rss.xml" />
+    <script type="application/ld+json" set:html={toSafeJsonLd(organizationNode(origin))} />
+    <script type="application/ld+json" set:html={toSafeJsonLd(websiteNode(origin))} />
+    {jsonLd.map((node) => <script type="application/ld+json" set:html={toSafeJsonLd(node)} />)}
   </head>
   <body data-page={page}>
     <a data-skip-link href="#main">Skip to content</a>
 
     <header>
-      <p data-wordmark><a href="/">915 TLDR</a></p>
+      {
+        page === 'home' ? (
+          <h1>915 TLDR</h1>
+        ) : (
+          <p data-wordmark>
+            <a href="/">915 TLDR</a>
+          </p>
+        )
+      }
       <p data-tagline>El Paso news, in brief</p>
+      <p data-dateline>{datelineText} · El Paso, Texas</p>
     </header>
 
-    <main id="main" tabindex="-1">
+    <div data-spectrum aria-hidden="true">
+      {CATEGORIES.map((category) => <span data-category={category.slug} />)}
+    </div>
+
+    <nav aria-label="Sections">
+      <ul>
+        {
+          CATEGORIES.map((category) => (
+            <li>
+              <a
+                href={`/${category.slug}`}
+                data-nav-category={category.slug}
+                data-category={category.slug}
+                aria-current={activeCategory === category.slug ? 'page' : undefined}
+              >
+                <span data-stripe />
+                {category.name}
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+    </nav>
+
+    <button type="button" data-theme-toggle hidden aria-pressed="false">Dark theme</button>
+
+    <main id="main" tabindex="-1" data-layout={layout}>
       <slot />
     </main>
 
     <footer>
-      <p><a href="/changelog">Changelog</a> · <a href="/contact">Contact</a></p>
+      <p>
+        <a href="/changelog">Changelog</a> · <a href="/contact">Contact</a> · <a href="/about">About</a> · <a href="/privacy">Privacy</a> · <a href="/terms">Terms</a>
+      </p>
       <p data-attribution>
         Summaries of reporting by KTSM, KVIA and other El Paso outlets — always credited, always
         linked
       </p>
-      <p data-build>build {BUILD_HASH} · {buildDate}</p>
+      {buildStamp && <p data-build data-stamp={stamp}>build {BUILD_HASH} · {stampDate}</p>}
     </footer>
   </body>
 </html>

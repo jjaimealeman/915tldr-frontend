@@ -10,20 +10,89 @@ Entries are named `YYYY-MM-DD-HHMM_slug.md` and grouped by month, newest first.
 
 | Date | Entry | Keywords |
 |------|-------|----------|
+| 2026-09-30 | [Phase 4 reviewed and verified: 5/5 must-haves, 4 checks left for the owner](2026-09-30-1717_phase-4-review-verification-uat.md) | `[DOCUMENTATION]` `[TESTING]` `[SECURITY]` |
+| 2026-09-30 | [Phase 4 Plan 12 complete: live verification, deployment, validation close-out](2026-09-30-1659_04-12-summary-phase-4-complete.md) | `[DOCUMENTATION]` `[PLANNING]` `[TESTING]` `[DEPLOYMENT]` `[SEO]` |
+| 2026-09-30 | [Phase 4 validation map filled, Nyquist compliant (04-12 Task 3)](2026-09-30-1657_04-validation-map-filled-nyquist-compliant.md) | `[DOCUMENTATION]` `[TESTING]` `[PLANNING]` |
+| 2026-09-30 | [Real-browser reader journeys verified against deployed dev.915tldr.com (04-12 Task 2)](2026-09-30-1649_browser-journeys-real-chromium-verification.md) | `[TESTING]` `[FRONTEND]` `[SEO]` |
+| 2026-09-30 | [Live URL contracts verified on deployed dev.915tldr.com (04-12 Task 1)](2026-09-30-1646_edge-verify-homepage-discovery-live-url-suite.md) | `[TESTING]` `[DEPLOYMENT]` `[BACKEND]` `[SEO]` |
+| 2026-09-30 | [Phase 4 Plan 11a complete: build-stamp fix documented, state updated](2026-09-30-1618_04-11a-summary-docs-state-complete.md) | `[DOCUMENTATION]` `[PLANNING]` |
+| 2026-09-30 | [Footer build stamp made opt-in, homepage only (04-11a, fixes 04-10 asset-dedup finding)](2026-09-30-1611_footer-build-stamp-opt-in-homepage-only.md) | `[FRONTEND]` `[PERFORMANCE]` `[BUG_FIX]` `[TESTING]` |
+| 2026-09-30 | [Phase 4 Plan 11 complete: build pipeline decision, byte-identity lock, Deploy Hook trigger](2026-09-30-1601_04-11-summary-state-roadmap-complete.md) | `[DOCUMENTATION]` `[PLANNING]` |
+| 2026-09-30 | [Apply the owner's build-pipeline decision (D-05/REND-05), lock byte-identity, reconcile render-step docs](2026-09-30-1558_04-11-apply-build-pipeline-decision.md) | `[ARCHITECTURE]` `[PERFORMANCE]` `[DOCUMENTATION]` `[TEST]` |
+| 2026-09-30 | [STATE/ROADMAP/REQUIREMENTS updated after Phase 4 Plan 10 completion](2026-09-30-1534_state-roadmap-requirements-04-10-complete.md) | `[DOCUMENTATION]` `[PLANNING]` |
+| 2026-09-30 | [Phase 4 Plan 10 complete: Workers Builds connection and real-platform spike](2026-09-30-1530_04-10-summary-workers-builds-spike-complete.md) | `[DOCUMENTATION]` `[PLANNING]` `[CI_CD]` `[PERFORMANCE]` `[DEPLOYMENT]` |
+| 2026-09-30 | [Revert TEMPORARY incrementalBuild=true hardcode back to env-var seam](2026-09-30-1527_revert-temp-incremental-build-hardcode.md) | `[CONFIG]` `[CI_CD]` |
+| 2026-09-30 | [Build 4 measured, WB_REUSE_PROVEN verdict recorded — 04-10 spike complete](2026-09-30-1524_build4-wb-reuse-proven-verdict.md) | `[DOCUMENTATION]` `[CI_CD]` `[PERFORMANCE]` `[DEPLOYMENT]` |
+| 2026-09-30 | [Build 3 measurements plus a new asset-dedup finding for 04-11](2026-09-30-1517_build3-measurements-and-asset-dedup-finding.md) | `[DOCUMENTATION]` `[CI_CD]` `[PERFORMANCE]` `[DEPLOYMENT]` |
+| 2026-09-27 | [Record overnight blocker: 04-10 Task 2 paused pending owner's morning input](2026-09-27-2348_state-blocker-04-10-overnight.md) | `[DOCUMENTATION]` `[PLANNING]` |
+| 2026-09-27 | [Real Workers Builds spike measurements: cold/warm builds, D-15 drill, account limits](2026-09-27-2345_workers-builds-spike-measurements.md) | `[DOCUMENTATION]` `[CI_CD]` `[PERFORMANCE]` `[DEPLOYMENT]` |
+| 2026-09-27 | [TEMPORARY: hardcode incrementalBuild=true for the 04-10 Workers Builds reuse spike](2026-09-27-2341_temp-hardcode-incremental-build-flag.md) | `[CONFIG]` `[CI_CD]` `[DEPLOYMENT]` |
+| 2026-09-27 | [Fix ntfy notifier crashing on non-Latin1 characters in the failure title](2026-09-27-2337_fix-notifier-bytestring-crash.md) | `[BUG_FIX]` `[BACKEND]` `[CI_CD]` `[TESTING]` `[CRITICAL]` `[SECURITY]` |
+| 2026-09-27 | [Fix classifyFailure() misattributing a real build failure to a benign line](2026-09-27-2333_fix-classifyfailure-misattribution.md) | `[BUG_FIX]` `[BACKEND]` `[CI_CD]` `[TESTING]` `[CRITICAL]` |
+| 2026-09-27 | [Fix Workers Builds non-production deploy command missing --config flag](2026-09-27-2302_fix-workers-builds-version-command-flag.md) | `[DOCUMENTATION]` `[DEPLOYMENT]` `[INFRA]` `[CONFIG]` |
+| 2026-09-27 | [Replaced four Phase 4 placeholder changelog entries with real ones](2026-09-27-1415_replace-phase-4-changelog-placeholders.md) | `[DOCUMENTATION]` |
+| 2026-09-27 | [Phase 4 Plan 09 complete: Workers Builds CI wrapper and incremental-build spike](2026-09-27-1243_04-09-complete-ci-wrapper-and-incremental-build-spike.md) | `[DOCUMENTATION]` `[PLANNING]` `[CI_CD]` `[PERFORMANCE]` |
+| 2026-09-27 | [Local incremental-build spike: REUSE_WARM_ONLY, reproducing #18055 (04-09 Task 3, plan complete)](2026-09-27-1236_04-09-incremental-build-spike-reuse-warm-only.md) | `[FEATURE]` `[TESTING]` `[DOCUMENTATION]` `[PERFORMANCE]` |
+| 2026-09-27 | [Owner setup document, incremental-build flag seam, and per-page cacheKeys (04-09 Task 2)](2026-09-27-1146_04-09-workers-builds-setup-and-cachekeys.md) | `[DOCUMENTATION]` `[CONFIG]` `[FEATURE]` `[SEO]` |
+| 2026-09-27 | [GREEN: implement the Workers Builds CI wrapper (04-09 Task 1)](2026-09-27-1140_04-09-ci-build-wrapper-green.md) | `[FEATURE]` `[BACKEND]` `[CI_CD]` `[SECURITY]` |
+| 2026-09-27 | [Failing tests for the Workers Builds CI wrapper (04-09 Task 1, RED)](2026-09-27-1136_04-09-ci-build-wrapper-red-tests.md) | `[TESTING]` `[BACKEND]` `[CI_CD]` `[SECURITY]` |
+| 2026-09-27 | [Phase 4 Plan 08 complete: changelog loader and static pages](2026-09-27-1130_04-08-complete-changelog-static-pages-plan.md) | `[DOCUMENTATION]` `[PLANNING]` `[SEO]` `[BACKEND]` |
+| 2026-09-27 | [/about, /privacy and /terms ported with v1's current text (04-08 Task 3, plan complete)](2026-09-27-1127_04-08-about-privacy-terms-pages.md) | `[FEATURE]` `[FRONTEND]` `[SEO]` `[TESTING]` `[DOCUMENTATION]` |
+| 2026-09-27 | [/changelog and /contact pages ported from the approved mockups (04-08 Task 2)](2026-09-27-1123_04-08-changelog-contact-pages.md) | `[FEATURE]` `[FRONTEND]` `[SEO]` `[TESTING]` |
+| 2026-09-27 | [GREEN: implement the D-13 dual-source changelog loader (04-08 Task 1)](2026-09-27-1122_04-08-changelog-loader-green.md) | `[FEATURE]` `[BACKEND]` `[DATABASE]` `[BUG_FIX]` |
+| 2026-09-27 | [Failing tests for the D-13 dual-source changelog loader and REND-03 replay (04-08 Task 1, RED)](2026-09-27-1121_04-08-changelog-loader-failing-tests.md) | `[TESTING]` `[BACKEND]` `[DATABASE]` |
+| 2026-09-27 | [Phase 4 Plan 06 complete: Worker, non-canonical URL redirects, and 404 suggestions](2026-09-27-1000_04-06-complete-worker-redirect-404-plan.md) | `[DOCUMENTATION]` `[PLANNING]` `[SEO]` `[SECURITY]` `[DEPLOYMENT]` |
+| 2026-09-27 | [Phase 4 Plan 07 complete: robots.txt, RSS, and sitemaps as static build artifacts](2026-09-27-0957_04-07-complete-seo-surfaces-plan.md) | `[DOCUMENTATION]` `[PLANNING]` `[SEO]` `[SECURITY]` |
+| 2026-09-27 | [GREEN: Google News sitemap implemented; @astrojs/sitemap integration added (04-07 Task 3, plan complete)](2026-09-27-0953_04-07-news-sitemap-green-and-sitemap-integration.md) | `[FEATURE]` `[SEO]` `[BACKEND]` `[CONFIG]` `[TESTING]` |
+| 2026-09-27 | [Failing tests for the Google News sitemap and general sitemap (04-07 Task 3, RED)](2026-09-27-0952_04-07-news-sitemap-red-tests.md) | `[TESTING]` `[SEO]` `[FEATURE]` |
+| 2026-09-27 | [Feed packages installed; v1's intended robots.txt policy shipped; /rss.xml built (04-07 Task 2)](2026-09-27-0951_04-07-feed-packages-robots-rss.md) | `[FEATURE]` `[SEO]` `[DEPENDENCIES]` `[SECURITY]` `[TESTING]` `[BACKEND]` |
+| 2026-09-27 | [Static 404 page with build-time suggestion index; legacy-route redirects (04-06 Task 3, plan complete)](2026-09-27-0950_04-06-not-found-page-and-redirects.md) | `[FEATURE]` `[FRONTEND]` `[SEO]` `[SECURITY]` `[TESTING]` `[ROUTING]` |
+| 2026-09-27 | [Wire the Worker into wrangler.jsonc; extend the D1-import guard (04-06 Task 2)](2026-09-27-0940_04-06-wire-worker-into-wrangler-and-d1-guard.md) | `[FEATURE]` `[SECURITY]` `[DEPLOYMENT]` `[CONFIG]` `[BUG_FIX]` `[CRITICAL]` `[TESTING]` |
+| 2026-09-27 | [Phase 4 Plan 05 complete: home, category, tag, tags and source listing pages](2026-09-27-0932_04-05-complete-listing-pages-plan.md) | `[DOCUMENTATION]` `[SEO]` `[FRONTEND]` `[TESTING]` |
+| 2026-09-27 | [Tag pages, /tags index and per-source pages (04-05 Task 3, plan complete)](2026-09-27-0925_04-05-tag-source-pages.md) | `[FEATURE]` `[FRONTEND]` `[SEO]` `[ROUTING]` `[TESTING]` `[BUG_FIX]` |
+| 2026-09-27 | [GREEN: implement article-redirect and the Worker fetch handler (04-06 Task 1)](2026-09-27-0915_04-06-worker-redirect-green.md) | `[FEATURE]` `[SECURITY]` `[BACKEND]` `[ROUTING]` `[BUG_FIX]` |
+| 2026-09-27 | [Homepage and the 8 category indexes, coexisting with /crime/** (04-05 Task 2)](2026-09-27-0913_04-05-home-and-category-pages.md) | `[FEATURE]` `[FRONTEND]` `[SEO]` `[ROUTING]` `[TESTING]` |
+| 2026-09-27 | [Failing tests for article-redirect and the Worker (04-06 Task 1, RED)](2026-09-27-0904_04-06-worker-redirect-tests-red.md) | `[TESTING]` `[FEATURE]` `[SECURITY]` `[BACKEND]` |
+| 2026-09-27 | [GREEN: implement the listing selection module (04-05 Task 1)](2026-09-27-0900_04-05-listing-module-green.md) | `[FEATURE]` `[FRONTEND]` `[BUG_FIX]` |
+| 2026-09-27 | [Failing tests for the listing selection module (04-05 Task 1, RED)](2026-09-27-0845_04-05-listing-module-red-tests.md) | `[TESTING]` `[FRONTEND]` `[FEATURE]` |
+| 2026-09-27 | [STATE/ROADMAP/REQUIREMENTS updated after Phase 4 Plan 04 completion](2026-09-27-0842_04-04-state-roadmap-requirements-update.md) | `[DOCUMENTATION]` `[PLANNING]` |
+| 2026-09-27 | [Complete full article template plan: verified byte-identity at full-corpus scale](2026-09-27-0841_04-04-complete-full-article-template-plan.md) | `[DOCUMENTATION]` `[TESTING]` `[SEO]` `[FRONTEND]` |
+| 2026-09-27 | [Phase 4 Plan 04 Task 3: full article template — disclosure, attribution, tags, rail, canonical & structured data](2026-09-27-0043_04-04-full-article-template.md) | `[FEATURE]` `[FRONTEND]` `[SEO]` `[SECURITY]` `[TESTING]` `[BUG_FIX]` |
+| 2026-09-27 | [GREEN: implement standfirst split, summary body and rail selection](2026-09-27-0038_04-04-summary-rail-green.md) | `[FEATURE]` `[FRONTEND]` `[SEO]` `[BUG_FIX]` |
+| 2026-09-27 | [Failing tests for standfirst split, summary body and rail selection (RED)](2026-09-27-0031_04-04-summary-rail-red-tests.md) | `[TEST]` `[ASTRO]` `[SEO]` |
+| 2026-09-26 | [Phase 4 Plan 02 complete: Base layout, ArticleCard, structured data, deterministic formatting](2026-09-26-2359_04-02-complete-base-chrome-plan.md) | `[DOCUMENTATION]` `[PLANNING]` `[SEO]` `[FRONTEND]` |
+| 2026-09-26 | [Base.astro's full chrome + head-metadata contract, ArticleCard, committedAt](2026-09-26-2355_04-02-base-chrome-articlecard-commit-date-stamp.md) | `[FEATURE]` `[FRONTEND]` `[SEO]` `[BACKEND]` |
+| 2026-09-26 | [GREEN: implement format.ts, structured-data.ts, categories.ts](2026-09-26-2340_04-02-format-structured-data-categories-green.md) | `[FEATURE]` `[FRONTEND]` `[SEO]` `[BUG_FIX]` |
+| 2026-09-26 | [Phase 4 Plan 2, Task 1 RED: failing tests for format.ts and structured-data.ts](2026-09-26-2321_04-02-format-structured-data-red-tests.md) | `[TESTING]` `[FRONTEND]` `[SEO]` |
+| 2026-09-26 | [Phase 4 Plan 03 complete: D1 loader cold/warm/sweep sync, budgets & manifest deletes](2026-09-26-1825_04-03-complete-loader-plan.md) | `[DOCUMENTATION]` `[PLANNING]` `[BACKEND]` `[DATABASE]` |
+| 2026-09-26 | [First measured full-corpus build, budgets set from real numbers, baseline committed](2026-09-26-1822_04-03-first-measured-full-corpus-build.md) | `[BACKEND]` `[DATABASE]` `[PERFORMANCE]` `[TESTING]` `[DOCUMENTATION]` `[BUG_FIX]` |
+| 2026-09-26 | [Loader modes (cold/warm/warm+sweep), budgets, shrink check, manifest deletes](2026-09-26-1807_04-03-loader-modes-budgets-shrink-manifest-deletes.md) | `[BACKEND]` `[DATABASE]` `[FEATURE]` `[TESTING]` `[BUG_FIX]` |
+| 2026-09-26 | [Dry run, last-good build state, and cold/sweep D1 fetchers](2026-09-26-1749_04-03-dry-run-last-good-state-cold-fetchers.md) | `[BACKEND]` `[DATABASE]` `[FEATURE]` `[TESTING]` |
+| 2026-09-26 | [Spike 1: a Loader throw does fail astro build; warm-window cost and trailing-slash recorded](2026-09-26-1735_04-01-spike1-loader-throw-confirmed-fails-build.md) | `[DOCUMENTATION]` `[BACKEND]` `[TESTING]` `[PERFORMANCE]` `[BUG_FIX]` |
+| 2026-09-26 | [Lock the tracer slice: d1-client stitch, loader window, manifest v2, entity-safe tracer](2026-09-26-1720_04-01-lock-slice-with-unit-and-tracer-tests.md) | `[TESTING]` `[BACKEND]` `[DATABASE]` `[BUG_FIX]` |
+| 2026-09-26 | [04-01 complete: 328 real articles live on dev at their v1 URLs](2026-09-26-1718_04-01-complete-content-layer-loader-canonical-urls.md) | `[DOCS]` `[PLANNING]` `[DEPLOYMENT]` |
+| 2026-09-26 | [GREEN: implement html-text decodeEntities/textOf](2026-09-26-1708_04-01-html-text-green-implementation.md) | `[TESTING]` `[BUG_FIX]` |
+| 2026-09-26 | [RED: failing test for html-text decodeEntities/textOf](2026-09-26-1705_04-01-html-text-red-test.md) | `[TESTING]` `[BUG_FIX]` |
+| 2026-09-26 | [Content Layer loader, stored-slug canonical URLs, manifest v2](2026-09-26-1702_04-01-content-layer-loader-canonical-urls-manifest-v2.md) | `[BACKEND]` `[DATABASE]` `[FRONTEND]` `[ROUTING]` `[FEATURE]` |
+| 2026-09-26 | [Phase 4 plan: 12 plans in 6 waves, from tracer to live dev deploy](2026-09-26-1649_04-create-phase-plan.md) | `[PLANNING]` `[ARCHITECTURE]` `[SEO]` `[DEPLOYMENT]` |
+| 2026-09-26 | [Phase 4 validation strategy: how each requirement gets tested](2026-09-26-1555_phase-4-add-validation-strategy.md) | `[PLANNING]` `[TESTING]` |
+| 2026-09-26 | [Phase 4 research: Content Layer loader, and a risky experimental flag](2026-09-26-1554_04-research-static-generation-templates-seo.md) | `[PLANNING]` `[RESEARCH]` `[ARCHITECTURE]` `[PERFORMANCE]` |
+| 2026-09-26 | [Phase 4 context: Workers Builds, stored slugs, fail-loud rules](2026-09-26-1505_phase4-context.md) | `[PLANNING]` `[ARCHITECTURE]` `[SEO]` `[DEPLOYMENT]` |
+| 2026-09-26 | [Todo filed: tracer test fails on apostrophes in titles](2026-09-26-1420_todo-tracer-html-entity-title.md) | `[TESTING]` `[PLANNING]` |
 | 2026-09-26 | [Phase 3 complete: Foundation & Read-Budget Guardrails](2026-09-26-1315_phase3-complete.md) | `[PLANNING]` `[DOCUMENTATION]` `[ARCHITECTURE]` |
 | 2026-09-26 | [Phase 3 security review: 26 of 26 threats closed](2026-09-26-1300_phase3-security-verified.md) | `[SECURITY]` `[DOCUMENTATION]` `[PLANNING]` |
 | 2026-09-26 | [Config guard now runs on `build` and `deploy`, not only `test:unit`](2026-09-26-1251_config-guard-runs-on-build-and-deploy.md) | `[SECURITY]` `[CONFIG]` `[TESTING]` `[DEPLOYMENT]` `[CRITICAL]` |
 | 2026-09-26 | [Close T-03-02a: widen the D1-import guard from one filename to the whole server directory](2026-09-26-1250_close-t-03-02a-kv-manifest-directory-guard.md) | `[SECURITY]` `[CRITICAL]` `[TESTING]` `[BACKEND]` `[DOCUMENTATION]` |
 | 2026-09-26 | [Phase 3 UAT complete: 2 of 2 passed](2026-09-26-1212_phase3-uat-complete.md) | `[TESTING]` `[PLANNING]` `[DOCUMENTATION]` |
 | 2026-09-26 | [Trailing slash: decided to drop it in Phase 4, RSS gotcha recorded](2026-09-26-1130_trailing-slash-dropped-rss-gotcha-recorded.md) | `[DOCUMENTATION]` `[SEO]` `[ARCHITECTURE]` `[PLANNING]` |
-| 2026-09-23 | [Fix Phase 3 COVERAGE.md to pass the api-coverage.verify-pre gate](2026-09-23-1422_phase3-coverage-md-length-gate.md) | `[DOCUMENTATION]` `[CONFIG]` `[BUG_FIX]` |
 | 2026-09-23 | [`pnpm verify:edge` loads `.dev.vars` itself — no more manual export required](2026-09-23-1930_verify-edge-loads-dev-vars-automatically.md) | `[TESTING]` `[BACKEND]` `[BUG_FIX]` `[DOCUMENTATION]` |
 | 2026-09-23 | [Phase 12 directory reorganization recorded (plain parent, two repos)](2026-09-23-1900_phase12-directory-reorg-recorded.md) | `[DOCUMENTATION]` `[PLANNING]` `[ARCHITECTURE]` |
 | 2026-09-23 | [Repo-role READMEs: frontend/backend split is permanent, not transitional](2026-09-23-1850_repo-role-readmes-frontend-backend-split.md) | `[DOCUMENTATION]` `[ARCHITECTURE]` |
 | 2026-09-23 | [`pnpm verify:edge` hardened: discover the live article, not the local build](2026-09-23-1840_harden-verify-edge-live-article-discovery.md) | `[TESTING]` `[BACKEND]` `[BUG_FIX]` `[DOCUMENTATION]` |
 | 2026-09-23 | [Trailing-slash redirect deferral recorded as an explicit Phase 4 carry-over](2026-09-23-1830_trailing-slash-deferral-recorded-in-roadmap.md) | `[DOCUMENTATION]` `[SEO]` `[ARCHITECTURE]` |
-| 2026-09-23 | [Phase 3 verification persisted: 5/5 must-haves, two items routed to the owner](2026-09-23-0759_03-persist-human-verification-items-as-uat.md) | `[DOCUMENTATION]` `[PLANNING]` `[TESTING]` |
+| 2026-09-23 | [Fix Phase 3 COVERAGE.md to pass the api-coverage.verify-pre gate](2026-09-23-1422_phase3-coverage-md-length-gate.md) | `[DOCUMENTATION]` `[CONFIG]` `[BUG_FIX]` |
 | 2026-09-23 | [Render-step location decided (D-01): Option A, ruled in by measured ingest volume](2026-09-23-1345_render-step-location-decided-option-a.md) | `[ARCHITECTURE]` `[DOCUMENTATION]` `[INFRA]` `[DEPLOYMENT]` |
+| 2026-09-23 | [Phase 3 verification persisted: 5/5 must-haves, two items routed to the owner](2026-09-23-0759_03-persist-human-verification-items-as-uat.md) | `[DOCUMENTATION]` `[PLANNING]` `[TESTING]` |
 | 2026-09-23 | [03-06 Addendum: Bulk-fetch query shape solves the D1 rows-read budget, not the cron CPU ceiling](2026-09-23-0730_03-06-addendum-bulk-fetch-solves-d1-budget-not-cpu-ceiling.md) | `[BACKEND]` `[DATABASE]` `[PERFORMANCE]` `[TESTING]` `[DOCUMENTATION]` |
 | 2026-09-23 | [Cron CPU ceiling measured — STATE.md's 300s figure was wrong by 3x](2026-09-23-0058_cron-cpu-ceiling-measured.md) | `[BACKEND]` `[PERFORMANCE]` `[SECURITY]` `[DOCUMENTATION]` `[BUG_FIX]` |
 | 2026-09-22 | [Per-page render cost measurement harness — manifest write, not render, dominates](2026-09-22-2306_render-cost-measurement-harness.md) | `[BACKEND]` `[PERFORMANCE]` `[TESTING]` `[BUG_FIX]` |
@@ -46,12 +115,12 @@ Entries are named `YYYY-MM-DD-HHMM_slug.md` and grouped by month, newest first.
 | 2026-09-22 | [Phase 3 plan set: seven plans, five waves, tracer-first](2026-09-22-1144_phase-03-plan-set-read-budget-guardrails.md) | `[PLANNING]` `[INFRA]` `[TESTING]` `[SECURITY]` `[CONFIG]` |
 | 2026-09-21 | [CONT-06 Gap Closure (Plan 02-11)](2026-09-21-1615_cont06-gap-closure-plan-02-11.md) | `[DOCUMENTATION]` `[PLANNING]` `[BACKEND]` `[AI]` |
 | 2026-09-21 | [CONT-07 Editorial Read Closes Plan 02-10](2026-09-21-0910_cont07-editorial-read-closes-plan-10.md) | `[DOCUMENTATION]` `[PLANNING]` `[AI]` |
-| 2026-09-21 | [Complete Plan 02-10: Attribution-Wrapper Judge Fix, September Backfill Finished](2026-09-21-0212_complete-02-10-attribution-fix-and-backfill-completion.md) | `[DOCUMENTATION]` `[BACKEND]` `[AI]` |
 | 2026-09-21 | [CHECKPOINT: Grounding Judge Holds ~54% of Thin-Source Summaries on Attribution False Positive](2026-09-21-0705_checkpoint-grounding-judge-attribution-false-positive.md) | `[DOCUMENTATION]` `[PLANNING]` `[AI]` `[SECURITY]` |
 | 2026-09-21 | [Plan 10 Halted: September Backfill Batch Submitted, Write-Back Pending](2026-09-21-0650_plan-02-10-halted-batch-submitted-pending.md) | `[DOCUMENTATION]` `[PLANNING]` `[AI]` |
+| 2026-09-21 | [Complete Plan 02-10: Attribution-Wrapper Judge Fix, September Backfill Finished](2026-09-21-0212_complete-02-10-attribution-fix-and-backfill-completion.md) | `[DOCUMENTATION]` `[BACKEND]` `[AI]` |
+| 2026-09-20 | [Complete Plan 8: Grounding Calibration, Checkpoint Resolved (Option C+D)](2026-09-20-0421_02-08-complete-grounding-calibration-checkpoint-resolved.md) | `[FEATURE]` `[SECURITY]` `[TESTING]` `[AI]` `[DOCS]` |
 | 2026-09-19 | [Complete Plan 9: OPS-11 Dry-Run Cost Projection — Checkpoint on the Real Figure](2026-09-19-2350_complete-02-09-dry-run-cost-projection-checkpoint.md) | `[DOCUMENTATION]` `[PLANNING]` `[AI]` |
 | 2026-09-19 | [Reconcile the Phase 2 Validation Map for Plans 02-01 Through 02-09](2026-09-19-2325_reconcile-validation-map-for-plans-02-01-through-02-09.md) | `[DOCUMENTATION]` `[TESTING]` |
-| 2026-09-20 | [Complete Plan 8: Grounding Calibration, Checkpoint Resolved (Option C+D)](2026-09-20-0421_02-08-complete-grounding-calibration-checkpoint-resolved.md) | `[FEATURE]` `[SECURITY]` `[TESTING]` `[AI]` `[DOCS]` |
 | 2026-09-19 | [Replace auto-generated placeholders in Phase 2 tracking changelogs](2026-09-19-2101_replace-auto-generated-tracking-changelog-placeholders.md) | `[DOCUMENTATION]` `[PLANNING]` `[PROCESS]` |
 | 2026-09-19 | [Complete Plan 7: Grounding Detection Cascade](2026-09-19-2100_02-07-complete-grounding-detection-cascade.md) | `[FEATURE]` `[SECURITY]` `[TESTING]` `[AI]` |
 | 2026-09-19 | [Phase 2 Wave 4 complete: real extraction path and prompt rewrite](2026-09-19-2032_phase-02-update-tracking-after-wave-4.md) | `[TRACKING]` `[PHASE-02]` `[AI]` `[MEASUREMENT]` |

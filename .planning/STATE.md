@@ -2,18 +2,18 @@
 gsd_state_version: 1.0
 milestone: v1.5
 milestone_name: milestone
-current_phase: 4
+current_phase: 04
 current_phase_name: Static Generation, Templates & SEO
-status: planning
-stopped_at: Completed 03-07-PLAN.md — Phase 3 complete
-last_updated: "2026-09-26T18:54:01.740Z"
+status: verifying
+stopped_at: Completed 04-12-PLAN.md
+last_updated: "2026-09-30T22:59:23.283Z"
 last_activity: 2026-09-26
 last_activity_desc: Phase 03 complete, transitioned to Phase 4
 progress:
-  total_phases: 3
-  completed_phases: 3
-  total_plans: 40
-  completed_plans: 40
+  total_phases: 4
+  completed_phases: 4
+  total_plans: 52
+  completed_plans: 52
 ---
 
 # Project State
@@ -23,16 +23,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-09-16)
 
 **Core value:** Zero D1 reads on the public request path — architecturally zero, enforced structurally at build time.
-**Current focus:** Phase 03 — foundation-read-budget-guardrails
+**Current focus:** Phase 04 — Static Generation, Templates & SEO
 
 ## Current Position
 
-Phase: 4 — Static Generation, Templates & SEO
-Plan: Not started
-Status: Ready to plan
-Last activity: 2026-09-26 — Phase 03 complete, transitioned to Phase 4
+Phase: 04 (Static Generation, Templates & SEO) — EXECUTING
+Plan: 12 of 12
+Status: Phase complete — ready for verification
+Last activity: 2026-09-26 — Phase 04 execution started
 
-Progress: [██████████] 98%
+Progress: [██████████] 100%
 
 ## Performance Metrics
 
@@ -89,6 +89,18 @@ Progress: [██████████] 98%
 | Phase 03 P05 | ~65min | 3 tasks | 5 files |
 | Phase 03 P06 | 135min | 3 tasks | 17 files |
 | Phase 03 P07 | ~30min | 2 tasks | 2 files |
+| Phase 04 P01 | ~25min | 3 tasks | 17 files |
+| Phase 04 P02 | ~15min | 2 tasks | 11 files |
+| Phase 04 P03 | 43min | 3 tasks | 15 files |
+| Phase 04 P04 | ~35min (continuation) | 3 tasks | 8 files |
+| Phase 04 P05 | ~16min | 3 tasks | 9 files |
+| Phase 04 P06 | 30min | 3 tasks | 14 files |
+| Phase 04 P07 | 21min | 3 tasks | 10 files |
+| Phase 04 P08 | ~90min | 3 tasks | 12 files |
+| Phase 04 P09 | ~3h10min | 3 tasks | 10 files |
+| Phase 04 P10 | ~2h45min (active, spanning two sessions) | 2 tasks | 6 files |
+| Phase 04 P11 | ~25min | 3 tasks | 9 files |
+| Phase 04 P12 | ~1h50min | 3 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -182,6 +194,43 @@ Recent decisions affecting current work:
 - [Phase ?]: 03-06: limits.cpu_ms (max configurable 300,000ms) has no effect on Cron Trigger CPU ceiling — confirmed empirically, a real cron-triggered burn ran to 902,000ms of CPU regardless.
 - [Phase ?]: 03-07: D-01 render-step location decided as Option A (existing 2-hour cron Worker) for both steady-state incremental renders and full-corpus rebuilds (chained across ~26-33 cron cycles), not Queues or CI — ruled in by a measured real ingest volume of 15 articles/cycle mean (62 peak) against a ~1,223-1,574/cycle capacity, ~20x headroom at the worst observed week. See docs/phase-03/render-step-location.md.
 - [Phase ?]: 03-07: staleness detection for Phase 4's loader must not bulk-fetch the full corpus every cron cycle — 957,008 rows/pass x 12 cycles/day = 11.48M rows/day, 5.7x PROJECT.md's 2M daily soft budget and 2.3x its 5M daily hard-fail, even though a single bulk-fetch pass fits comfortably. Use an incremental signal (updated_at comparison or an ingest-set flag) instead; reserve the full bulk-fetch pass for forced full rebuilds only.
+- [Phase ?]: 04-01: A Content Layer Loader throw does fail astro build (RESEARCH Open Question 1 CONFIRMED by spike) - REND-02/03's fail-loud guarantee can rest on it
+- [Phase ?]: 04-01: Trailing-slash redirect measured at 307, not 301 - Cloudflare's native html_handling never emits 301 in any mode; named deviation from CONTEXT.md's wording, flagged for end-of-phase owner review
+- [Phase ?]: 04-01: Manifest schema bumped to v2 - every entry now carries slug (D-08), enabling a future zero-D1-read non-canonical-URL Worker redirect (plan 04-06) from one KV read
+- [Phase ?]: 04-02: toSafeJsonLd escapes <, >, &, and the line/paragraph separator code points (built via String.fromCharCode, not a typed escape sequence) after JSON.stringify -- each JSON-LD node carries its own @context since Base.astro renders each as an independent <script> block
+- [Phase ?]: 04-02: home page's wordmark renders as a plain <h1> matching design/mockups/index.html verbatim; every other page gets <p data-wordmark><a href="/">915 TLDR</a></p>, per the plan's own interface note
+- [Phase ?]: 04-02: footer gains About/Privacy/Terms links beside the mockup's Changelog/Contact -- a named, plan-specified addition to the approved mockup footer (D-10's static pages need a way in)
+- [Phase ?]: 04-02: a single-backslash \u2028/\u2029-style escape sequence typed directly into this session's file-write tool call gets silently decoded into the real invisible Unicode character before it reaches disk -- worked around via String.fromCharCode(...) at runtime instead of typing the escape sequence into source text
+- [Phase ?]: 04-03: evaluateShrink's explained set is every observed nonPublic uuid from the current fetch, not pre-filtered against previous.ids — the function's own intersection logic makes pre-filtering redundant
+- [Phase ?]: 04-03: Rule 1 fix — a NULL/empty summary (140 of ~40,183 production articles) is classified nonPublic with reason missing-summary, matching the existing no-primary-category pattern, rather than crashing the whole cold build on a Zod schema violation
+- [Phase ?]: 04-03: Rule 1 fix — cold mode no longer sets meta.lastSweep; the original draft did, which silently skipped warm+sweep mode on every real deployment's first post-cold build (found by the plan's own verification sequence not matching its expected output)
+- [Phase ?]: 04-03: peak RSS measured via /proc/<pid>/status VmHWM polling since /usr/bin/time -v is not installed on this machine; equivalent figure, no new system package installed
+- [Phase ?]: 04-04: Owner selected option-a (article-relative rail) for Task 1's checkpoint — More in <Category> + Earlier neighbours computed from the article's own position, not a build clock, to satisfy criterion 3
+- [Phase ?]: 04-04: chrome.test.mjs's Organization/WebSite JSON-LD count assertion fixed (Rule 1) — a substring match was also matching NewsArticle.isBasedOn.publisher's nested Organization node; now parses top-level @type
+- [Phase ?]: 04-04: criterion 3 (byte-identical unchanged articles) empirically confirmed across the full 40,108-article corpus via two consecutive real builds, not sampled
+- [Phase ?]: 04-05: Category masthead omits the mockup's decorative subtitle - no data source exists for it (categories.ts is slug+name only); flagged for owner review if wanted later
+- [Phase ?]: 04-05: Found and fixed a real bundler bug (same class as 03-01's slugify()) - a frontmatter-local TAG_SLUG_RE const referenced only from getStaticPaths() was silently dropped by Astro 7.3.3's bundler; moved into src/lib/article-url.ts
+- [Phase ?]: 04-05: HOME_FEED_COUNT=7 cited directly from design/mockups/index.html's no-JS feed state (1 lead + 6 grid cards)
+- [Phase ?]: 04-06: wrangler deploy MUST pin --config wrangler.jsonc — @astrojs/cloudflare 14.3.2 marks the entry-Worker environment devOnly (dropping a custom main) whenever the Astro app has zero on-demand routes, independent of main's value; found via the plan's own instructed inspection of the generated deploy config, not assumed.
+- [Phase ?]: 04-06: test:build-gate wired into the build script — the live Rollup-based D1-import guard cannot see src/worker.ts during a real astro build (its devOnly environment is never built at all), so the fixture suite's real-graph case is the only current-content check for this file.
+- [Phase ?]: 04-07: Owner decision -- public/robots.txt ships v1's INTENDED per-bot AI-crawler-blocking policy (server/routes/robots.txt.ts's rendered body), not the live trivial file production actually serves -- v1's static public/robots.txt shadows its own server route, so that policy has never actually been served. Deliberate production policy change on next deploy.
+- [Phase ?]: 04-07: astro.config.mjs's sitemap() filter excludes any URL with a dotted final path segment (rss.xml, news-sitemap.xml, version.json, 404-index.json) rather than a hand-maintained list, confirmed against the package's own astro:build:done hook source.
+- [Phase ?]: 04-08: Owner-adjusted CHANGELOG_MIN_EXPECTED to 15 (not the planned 18) after confirming v1's live changelog.json genuinely serves fewer entries today (3 entries committed to v1's repo 2026-09-21 were never deployed, last deploy 2026-09-19T17:13Z) -- the never-shrink baseline ratchets this back up to 18 automatically once v1 deploys.
+- [Phase ?]: 04-08: v1's /contact page never publishes a contact address anywhere in its rendered markup (confirmed by reading server/api/contact.post.ts) -- no address was fabricated for the new contact.astro; the mockup's own jjaimealeman.com/915website.com links already provide a way to reach the owner.
+- [Phase ?]: 04-08: [data-contact-column] reused as the narrow reading column for about/privacy/terms (not [data-reading-column], which is paired with the rail layout) -- confirmed against design/mockups/style.css before reuse.
+- [Phase ?]: 04-09: incremental-build spike verdict is REUSE_WARM_ONLY (withastro/astro#18055 reproduced locally) — reuse works in a warm checkout but reused zero pages in a fresh-clone CI simulation; byte-identity confirmed once a restored page's disclosed stale build-stamp is accounted for
+- [Phase ?]: 04-09: ASTRO_INCREMENTAL_BUILD scoped to feature/phase-04 non-production branch only, per docs/phase-04/workers-builds-setup.md — production stays off until 04-11's decision
+- [Phase ?]: 04-09: toggling ASTRO_INCREMENTAL_BUILD forces the D1 loader cold on the next build (store.keys().length===0) — a real, measured Astro/Vite config-change cache-invalidation behavior, flagged for awareness not fixed
+- [Phase ?]: 04-10: WB_COLD_FITS (649s cold build) and WB_REUSE_PROVEN (>=34,871/~60,349 pages restored on a real fresh Workers Builds container) both confirmed on the real platform, superseding 04-09's local REUSE_WARM_ONLY assumption -- explained by Workers Builds restoring both a dependencies cache and a build-output cache from the prior build, unlike 04-09's local fresh-clone simulation which only reproduced the build-output half.
+- [Phase ?]: 04-10: found and fixed two real bugs in tools/ci-build.mjs's D-15 notification path during a live drill -- classifyFailure() was misattributing failures to benign command-echo lines, and the corrected title then crashed the process via an HTTP header ByteString error on an em-dash. Both fixed and verified end-to-end against the real ntfy topic.
+- [Phase ?]: 04-10: found (not fixed, Rule 4) that src/layouts/Base.astro unconditionally prints BUILD_HASH in every page's footer, defeating content-hash asset-upload dedup on any commit change (Build 3 re-uploaded 60,355/60,355 assets, only 7 deduped) -- flagged as a cost-relevant finding for 04-11's decision.
+- [Phase ?]: 04-11: Owner selected option-a (Workers Builds does all builds, including forced full rebuilds) for the D-05 forced-rebuild mechanism and REND-05's render layer — a one-way door, 2026-09-30 ~15:40 MDT.
+- [Phase ?]: 04-11: experimental.incrementalBuild flipped from off-by-default to on-by-default in astro.config.mjs, now that WB_REUSE_PROVEN (04-10) is confirmed on the real platform; ASTRO_INCREMENTAL_BUILD=0 remains the documented off switch.
+- [Phase ?]: 04-11: tests/regression/byte-identity.test.mjs tolerates live production D1 drift via a count-based bound (loader's own changed=N x rail fan-out of 9) since the loader logs only a count, not article ids — a disclosed approximation, not a literal per-article check.
+- [Phase ?]: 04-11a (owner-approved quick fix, 2026-09-30): Base.astro's footer build-stamp (`BUILD_HASH`) is now opt-in via a new `buildStamp` prop, default false — only the homepage passes `buildStamp={true}`; /version.json is unaffected (reads build-info.ts directly). Fixes 04-10's "near-total asset re-upload" finding: before, all ~60,359 built HTML files carried the commit hash and changed bytes on every commit; after, only 1 (the homepage) does.
+- [Phase ?]: 04-12: verify-edge-headers.mjs's live-article discovery now parses the deployed homepage's first [data-card] link instead of listing the entire KV render manifest (~40k+ keys, past its own documented scaling limit) -- no D1/KV credentials needed for discovery any more, and src/lib/slug.ts is no longer imported anywhere.
+- [Phase ?]: 04-12: tests/integration/url-shapes.test.mjs's /changelog check asserts against CHANGELOG_MIN_EXPECTED=15 (the already owner-approved 04-08 floor), not the plan's stale must_haves text of 18 -- production genuinely serves 15 entries today; the loader's own never-shrink ratchet will raise this automatically once v1 deploys the missing 3.
+- [Phase ?]: 04-12: Phase 4's 04-VALIDATION.md is now wave_0_complete: true and nyquist_compliant: true -- every task across 04-01..04-12 has an automated verify or is a documented owner-checkpoint immediately followed by one; full suite (test:unit/build-gate/regression/tracer) re-run green against the live deployment.
 
 ### Pending Todos
 
@@ -221,6 +270,8 @@ Recent decisions affecting current work:
 - **UPDATED — Phase 1, 01-23 Task 2/3** (supersedes the prior line above). The owner completed the round-2 review and replied **APPROVED**, with spot comments on article/changelog/contact/load-more and two new feature requests (sticky rail, Astro view transitions — both deferred to the Astro build phase, see Pending Todos). Per this plan's own non-negotiable rule (T-01-32/T-01-33, "the executor never writes the owner's sign-off line, and never records an approval on the owner's behalf"), the executor did NOT add the `Approved-by:` line to `01-APPROVAL.md` — that relayed "APPROVED" came through the orchestrator, not the owner's own hand on the file, and the plan requires the literal line to be the owner's own act. **Remaining step (owner-only, not a code blocker):** add `Approved-by: <name> — 2026-09-17` to the "## Owner sign-off" section of `01-APPROVAL.md`, then `pnpm run verify:approval` will exit 0 and a trivial follow-up commit finalizes Task 3.
 - **RESOLVED — Phase 3, 03-01 Task 2.** The Cloudflare token gained `Workers KV Storage:Edit` (D1:Edit and the account id were confirmed intact in the same pass). The `915tldr-render-manifest` KV namespace was created (id `3c92531f94294fcc94006455f433885f`), wired into `wrangler.jsonc` and a gitignored `.dev.vars`. `pnpm build` and `pnpm test:tracer` both pass end-to-end against the real D1 row and the real KV namespace; Phase 1's 43-test suite is unaffected. Three further build-blocking issues were found and fixed in the same session (stale `wrangler.jsonc` `main` field, an unwanted auto-provisioned `SESSION` KV binding, and a bundler bug dropping a frontmatter-local `slugify()` function) — see 03-01-SUMMARY.md for full detail. 03-01 is complete.
 - **RESOLVED — Phase 3, 03-05 (both prior halts).** The owner granted the missing Rulesets/Transform Rules token scope. Resumed from mandatory-ordering Step 2 and completed the plan: the noindex Transform Rule now covers `dev.915tldr.com` AND `admin-dev.915tldr.com` (extended scope, Rule 2 deviation — admin-dev didn't exist when the plan's Task 2 was first scoped); `915tldr-v2` is deployed and live on `dev.915tldr.com` (Custom Domain reassigned from `915tldr-dev`, `workers_dev: false`, stale zone Worker Route deleted after it was found to be out-prioritizing the reassignment); `pnpm verify:edge` (`tools/verify-edge-headers.mjs`) re-proves the whole policy on every future deploy. Two real bugs found and fixed along the way: `session: false` was a no-op in the wrong astro.config.mjs location (03-01's claimed fix never worked), and a stale zone Worker Route silently out-prioritized a correctly-reassigned Custom Domain for 3+ minutes, contrary to Cloudflare's documented precedence. Production (`915tldr.com`/`www.915tldr.com`) and `admin-dev.915tldr.com` verified unaffected throughout. See 03-05-SUMMARY.md for full detail. 03-05 is complete.
+- 04-07: production robots.txt behavior changes on next deploy -- v1's AI-crawler-blocking policy (Content-signal, GPTBot/ClaudeBot/CCBot/etc. Disallow) has never actually been served (v1's static public/robots.txt shadowed its own server route); v2 ships the intended policy, an owner-approved but real change to what's been crawlable. Also flagged: SEO-04 sitemap ordering-determinism unverified across two builds (@astrojs/sitemap documents no stable ordering guarantee) -- see 04-07-SUMMARY.md coverage D4.
+- **RESOLVED — Phase 4, 04-10 Task 2.** The owner chose option (a) and pushed `cc1b050` on 2026-09-30. Builds 3-4 ran on the real Workers Builds platform: Build 3 (flag-on, first toggle) was cold again as 04-09 already documented, 0/60,349 pages restored (expected); Build 4 (flag-on, no toggle) confirmed at least 34,871/~60,349 pages restored via `experimental.incrementalBuild` on a genuinely fresh Workers Builds container, wall time collapsing from 554s to 147s. **Verdict: `WB_REUSE_PROVEN`** — contradicts and supersedes 04-09's local `REUSE_WARM_ONLY` finding; likely explained by Workers Builds restoring both a dependencies cache and a build-output cache from the prior build, which 04-09's local fresh-clone simulation never fully reproduced. A new cost-relevant finding surfaced along the way: Build 3's deploy re-uploaded 60,355/60,355 assets (only 7 deduplicated), root-caused to `src/layouts/Base.astro` unconditionally printing `BUILD_HASH` in every page's footer — reported for 04-11, not fixed (Rule 4). The temporary `incrementalBuild=true` hardcode was reverted (`99795e3`) once both spike builds completed. See `04-10-SUMMARY.md` and `docs/phase-04/build-measurements.md` for full detail. 04-10 is complete.
 
 ## Deferred Items
 
@@ -232,6 +283,6 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-09-23T13:42:31.947Z
-Stopped at: Completed 03-07-PLAN.md — Phase 3 complete
+Last session: 2026-09-30T22:57:25.930Z
+Stopped at: Completed 04-12-PLAN.md
 Resume file: None

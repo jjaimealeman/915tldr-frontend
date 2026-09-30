@@ -1,10 +1,32 @@
 # Render Step Location — D-01 Decision
 
+> **Amended by Phase 4 (D-05), 2026-09-26.** For the static site (this document's subject), the
+> render step itself no longer runs inside the cron Worker — Phase 4 moved `astro build` onto
+> Cloudflare Workers Builds. The cron Worker's role for the static site is now to TRIGGER a
+> Workers Builds build (via a Deploy Hook, D-02, OPS-10) after ingest finishes, only when public
+> articles changed; Workers Builds itself builds and deploys. **This decision's measured-workload
+> conclusions below stand unchanged** — the ~1.2%-at-mean / ~5.1%-at-peak headroom figures, the
+> "no new infrastructure" reasoning, and the rejected-option analysis are still the correct record
+> of why a render step (wherever it now runs) does not need Queues or a from-scratch CI pipeline.
+> What changed is only WHERE that step executes and under what per-build ceiling (Workers Builds'
+> 20-minute hard limit, not the cron Worker's ~900s wall-time/CPU ceiling this document measured —
+> see `docs/phase-04/build-pipeline-decision.md` for the Workers Builds-specific measurements
+> this amendment rests on: `WB_COLD_FITS`, `WB_REUSE_PROVEN`). **Phase 5's R2 archive
+> re-render may still run inside this cron Worker** — that path is untouched by D-05, which
+> concerns only the static site's `astro build` step. Full pipeline: `docs/phase-04/build-pipeline.md`.
+
 **Decision: the render step runs inside the existing 2-hour cron Worker (Option A) — for both
 the normal steady-state incremental render and the rare full-corpus rebuild**, which runs as the
 same incremental machinery repeated across consecutive cron cycles with staleness forced, not as
 a separate mechanism. No new infrastructure (no Queues, no CI pipeline) is introduced by this
 decision.
+
+**Historical note (pre-Phase-4): this section described the ORIGINAL plan, since superseded by
+the amendment above for the static site.** It is retained below verbatim as the historical
+record of the measured reasoning that ruled OUT Option B (Queues) and Option C (CI) — the same
+reasoning Phase 4's planner relied on rather than re-litigating from scratch. Read every
+"runs inside the cron Worker" statement below as describing the ORIGINAL Option A design, not
+Phase 4's actual as-built pipeline.
 
 Owner decision, 2026-09-23, made from the three measurements this plan exists to put in front of
 them (`docs/phase-03/measurements.md`) plus one additional measurement taken to close a gap this
@@ -72,7 +94,10 @@ assumption about what the workload might be.
   39,827 ÷ 1,223 ≈ 33 cycles) — was explicitly accepted by the owner as a cost worth paying for a
   rare event (initial backfill, a schema migration, or a template change invalidating the whole
   manifest), rather than standing up Queues or CI to shave that to hours for something that
-  happens a handful of times a year at most.
+  happens a handful of times a year at most. **Superseded for the static site by 04-11
+  (`docs/phase-04/build-pipeline-decision.md`): a forced full rebuild now runs as a single
+  Workers Builds build (`ARTICLES_FORCE_COLD=1`), not a multi-day chained-cron-cycle sequence —
+  `WB_COLD_FITS` confirmed a cold build fits well inside Workers Builds' 20-minute ceiling.**
 
 ## Why each rejected option lost
 
@@ -158,9 +183,13 @@ precision note on which ceiling mechanism governs, not a correction to either nu
 
 ## What this decides / does not decide
 
-**Decides:** where the render step executes (inside the existing 2-hour cron Worker), for both
-the steady-state incremental case and the full-rebuild case (via chained cron cycles, not a
-separate mechanism).
+**Decides (as originally written, 2026-09-23 — see the amendment at the top of this document for
+what actually shipped):** where the render step executes (inside the existing 2-hour cron
+Worker), for both the steady-state incremental case and the full-rebuild case (via chained cron
+cycles, not a separate mechanism). **As amended by Phase 4 (D-05):** the render step (`astro
+build`) itself runs on Cloudflare Workers Builds; the cron Worker's role is reduced to triggering
+it. The full-rebuild case also moved off chained cron cycles onto a single Workers Builds build
+(04-11, option-a) — see `docs/phase-04/build-pipeline-decision.md`.
 
 **Does not decide:**
 - The incremental-render mechanism itself (which rows are considered stale, how the manifest's
@@ -180,10 +209,14 @@ measured capacity. Concretely, reopen it if any of the following becomes true:
   per-invocation figure (~600 articles/cycle), the safety margin this decision relies on
   (currently ~20x at the observed weekly peak) has eroded by an order of magnitude and the
   decision should be re-measured, not assumed to still hold.
-- **Full rebuilds become frequent rather than rare.** This decision accepts a ~2.7-day wall-clock
-  window for a full rebuild on the premise that a full rebuild is an occasional event (initial
-  backfill, a schema migration, a template change). If full rebuilds become a routine operational
-  need, the cost calculus shifts toward Option B (Queues) or Option C (CI).
+- **Full rebuilds become frequent rather than rare.** This decision (as originally written)
+  accepted a ~2.7-day wall-clock window for a full rebuild on the premise that a full rebuild is
+  an occasional event (initial backfill, a schema migration, a template change). If full rebuilds
+  become a routine operational need, the cost calculus shifts toward Option B (Queues) or Option C
+  (CI). **As amended, the static site's actual full-rebuild path (04-11, a single Workers Builds
+  build) has its own reopening condition — re-measure if the corpus grows enough that a cold
+  Workers Builds build approaches the 20-minute ceiling; see
+  `docs/phase-04/build-pipeline-decision.md`'s "Re-measure when the corpus grows" note.**
 - **The corpus grows toward STATE.md's anticipated 82,000-row bilingual size** and per-cycle
   ingest volume grows proportionally — re-run the trailing-7-day ingest-volume query above against
   the larger corpus before assuming the same ~20x headroom still holds.

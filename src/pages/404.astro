@@ -1,0 +1,160 @@
+---
+// D-10a / SEO-08: the styled, D1-free 404 page. Unlike v1's server/api/404-suggestions.get.ts
+// (drizzle + OpenAI, live per-request), this page ships a static "Recent stories" list (useful
+// with JavaScript off) plus an initially-hidden suggestions section a plain page script fills in
+// client-side from the build-time index at /404-index.json (404-index.json.ts) — no AI call, no
+// D1, no KV, no Worker invocation once the static asset itself is served.
+//
+// Reached via wrangler.jsonc's `assets.not_found_handling: "404-page"` (Task 2): on any
+// unmatched request the Worker's own fetch handler declines (no uuid in the path, or no matching
+// manifest entry), `env.ASSETS.fetch(request)` serves this built file with HTTP status 404.
+import Base from '../layouts/Base.astro';
+import ArticleCard from '../components/ArticleCard.astro';
+import { getCollection } from 'astro:content';
+import { articlePath } from '../lib/article-url';
+
+const RECENT_COUNT = 10;
+
+const entries = await getCollection('articles');
+const articles = entries.map((entry) => entry.data);
+
+// Same inline newest-first/uuid-tiebreak sort as 404-index.json.ts — this page does not import
+// src/lib/listing.ts (04-05's parallel module) per this plan's own instruction.
+const recent = [...articles]
+  .sort((a, b) => {
+    if (b.publishedAt !== a.publishedAt) return b.publishedAt - a.publishedAt;
+    return a.uuid < b.uuid ? -1 : a.uuid > b.uuid ? 1 : 0;
+  })
+  .slice(0, RECENT_COUNT);
+---
+
+<Base page="404" title="Page not found — 915 TLDR" noindex>
+  <h1>Page not found</h1>
+  <p>
+    The page you're looking for doesn't exist, may have moved, or the link may be out of date.
+  </p>
+
+  <section aria-labelledby="recent-stories-heading">
+    <h2 id="recent-stories-heading">Recent stories</h2>
+    <div data-grid>
+      {
+        recent.map((article) => (
+          <ArticleCard
+            uuid={article.uuid}
+            title={article.title}
+            href={articlePath(article.category.slug, article.slug, article.uuid)}
+            categorySlug={article.category.slug}
+            categoryName={article.category.name}
+            sourceName={article.source.name}
+            publishedAt={article.publishedAt}
+            variant="compact"
+          />
+        ))
+      }
+    </div>
+  </section>
+
+  <section data-404-suggestions hidden aria-live="polite">
+    <h2>You might be looking for</h2>
+    <ul></ul>
+  </section>
+</Base>
+
+<script>
+  // D-10a / SEO-08 / T-04-25: a plain page script (ISL-08 forbids a new hydrated island here),
+  // not a Vue component. Fetches the build-time index and matches path tokens client-side; every
+  // rendered element is built with createElement/setAttribute/textContent only — hrefs come from
+  // the fetched index, never from the requested path itself (T-04-25's XSS mitigation) — matching
+  // design/mockups/index.html's load-more script convention (T-01-58).
+  (function () {
+    var section = document.querySelector('[data-404-suggestions]');
+    if (!section) return;
+    var list = section.querySelector('ul');
+    if (!list) return;
+
+    // "4+ char hex fragments" (a uuid segment or the whole uuid) are dropped — they carry no
+    // human-readable signal to score against title/slug words.
+    var HEX_FRAGMENT_RE = /^[0-9a-f]{4,}$/;
+
+    function tokenize(pathname) {
+      var raw = pathname.toLowerCase().split(/[^a-z0-9]+/);
+      var tokens = [];
+      for (var i = 0; i < raw.length; i++) {
+        var token = raw[i];
+        if (token.length < 3) continue;
+        if (HEX_FRAGMENT_RE.test(token)) continue;
+        tokens.push(token);
+      }
+      return tokens;
+    }
+
+    var tokens = tokenize(window.location.pathname);
+    if (tokens.length === 0) return; // No tokens — the static "Recent stories" list stands alone.
+
+    function wordsOf(text) {
+      return text.toLowerCase().split(/[^a-z0-9]+/).filter(function (w) {
+        return w.length > 0;
+      });
+    }
+
+    function scoreEntry(entry, tokens) {
+      var words = wordsOf(entry.p).concat(wordsOf(entry.t));
+      var wordSet = {};
+      for (var i = 0; i < words.length; i++) wordSet[words[i]] = true;
+      var score = 0;
+      for (var j = 0; j < tokens.length; j++) {
+        if (wordSet[tokens[j]]) score++;
+      }
+      return score;
+    }
+
+    function validEntry(entry) {
+      return (
+        !!entry &&
+        typeof entry === 'object' &&
+        typeof entry.t === 'string' &&
+        typeof entry.p === 'string' &&
+        entry.p.charAt(0) === '/'
+      );
+    }
+
+    fetch('/404-index.json')
+      .then(function (response) {
+        if (!response.ok) throw new Error('404-index.json fetch failed');
+        return response.json();
+      })
+      .then(function (index) {
+        if (!Array.isArray(index)) return;
+
+        var scored = [];
+        for (var i = 0; i < index.length; i++) {
+          var entry = index[i];
+          if (!validEntry(entry)) continue;
+          var score = scoreEntry(entry, tokens);
+          if (score >= 1) scored.push({ entry: entry, score: score });
+        }
+
+        if (scored.length === 0) return;
+
+        scored.sort(function (a, b) {
+          return b.score - a.score;
+        });
+
+        var top = scored.slice(0, 5);
+        for (var k = 0; k < top.length; k++) {
+          var li = document.createElement('li');
+          var a = document.createElement('a');
+          a.setAttribute('href', top[k].entry.p);
+          a.textContent = top[k].entry.t;
+          li.appendChild(a);
+          list.appendChild(li);
+        }
+
+        section.removeAttribute('hidden');
+      })
+      .catch(function () {
+        // A fetch or JSON failure leaves the static "Recent stories" list as the result —
+        // the suggestions section simply stays hidden.
+      });
+  })();
+</script>

@@ -1,0 +1,14 @@
+# D-11 / D-12: v1 routes with no v2 equivalent page. Cloudflare Workers Static Assets applies
+# these rules BEFORE the Worker (src/worker.ts) ever runs, so each of these is a zero-Worker,
+# zero-KV, zero-D1 redirect. `/categories` and `/sources` have no v2 page (categories.ts is
+# slug+name only, no listing page of "all categories" beyond the homepage nav itself; `/sources`
+# has no v2 equivalent either) — both redirect to `/`, whose nav lists every category (D-11
+# "homepage/nav" reading). `/new` -> `/` (D-12). `/sitemap.xml` -> the real sitemap this project
+# builds under a different name (04-07, D-11).
+#
+# Deliberately absent, per D-12: `/search` (not built until Phase 9 — falls through to the 404
+# page) and `/stats` (dropped entirely — falls through to the 404 page).
+/categories / 301
+/sources / 301
+/new / 301
+/sitemap.xml /sitemap-index.xml 301

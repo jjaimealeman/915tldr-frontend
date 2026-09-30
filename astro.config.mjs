@@ -17,11 +17,27 @@
 import { defineConfig } from 'astro/config';
 import cloudflare from '@astrojs/cloudflare';
 import vue from '@astrojs/vue';
+import sitemap from '@astrojs/sitemap';
 import { assertNoD1Plugin } from './tools/assert-no-d1.mjs';
 
 export default defineConfig({
   output: 'static',
-  site: 'https://dev.915tldr.com',
+  // Canonicals, RSS and sitemaps must name the PRODUCTION origin, not this build's own deploy
+  // target — dev.915tldr.com stays noindexed by the edge Transform Rule (docs/phase-03/
+  // edge-config.md) regardless of what `site` says here, so a staging build canonicalising to
+  // production is correct, not a bug (owner decision 2026-09-26, ROADMAP Phase 4).
+  site: 'https://915tldr.com',
+  // Owner decision 2026-09-26 (ROADMAP Phase 4): drop the trailing slash. v1 answers `/path`
+  // directly with 200; nine months of indexed URLs are in the no-slash form. The `build.format`
+  // key just below (routes emit `path.html`, not `path/index.html`) is required alongside this
+  // key for Cloudflare's native `auto-trailing-slash` asset handling to produce exactly
+  // `/path` -> 200, `/path/` -> a redirect to `/path`, with zero Worker invocation.
+  // `@astrojs/rss`'s `rss()` helper needs its OWN no-trailing-slash option passed at the call
+  // site — this project-level key does not propagate into that package's item links.
+  trailingSlash: 'never',
+  build: {
+    format: 'file',
+  },
   // This tracer uses no `server:defer` islands and no Astro Sessions API. `session` is
   // Astro's OWN top-level config key (astro/dist/types/public/config.d.ts), not an adapter
   // option — 03-01 originally set this inside the Cloudflare adapter factory call below, where
@@ -43,8 +59,50 @@ export default defineConfig({
     imageService: { build: 'compile', runtime: 'passthrough' },
     prerenderEnvironment: 'node',
   }),
-  integrations: [vue()],
+  integrations: [
+    vue(),
+    // SEO-04: the general crawl-surface sitemap, generated from the build's own route list
+    // (astro:build:done's `pages`), not a hand-maintained URL list. That `pages` list includes
+    // every route under src/pages/ this build produced, including this plan's own non-HTML
+    // endpoints (rss.xml, news-sitemap.xml, version.json, 404-index.json) — a sitemap is a
+    // crawl surface for HTML pages, so those are filtered out below, confirmed against the real
+    // built sitemap output (04-07-PLAN.md Task 3), not assumed. `/404` is also excluded by the
+    // integration's own internal STATUS_CODE_PAGES set; named here too for clarity since this
+    // filter already has to reason about every other non-page route.
+    sitemap({
+      filter: (page) => {
+        if (/\/404$/.test(page)) return false;
+        const { pathname } = new URL(page);
+        // Every real HTML route in this project (home, category, article, tag, source, tags)
+        // is extensionless under trailingSlash:'never' + build.format:'file'; a dotted final
+        // path segment is this project's own reliable "not an HTML page" signal.
+        return !/\.[a-z0-9]+$/i.test(pathname);
+      },
+    }),
+  ],
   vite: {
     plugins: [assertNoD1Plugin()],
+  },
+  // 04-11 (D-05 build-pipeline decision, docs/phase-04/build-pipeline-decision.md): DEFAULT ON.
+  // `WB_REUSE_PROVEN` (04-10, real Workers Builds platform: >=34,871/~60,349 pages restored on a
+  // genuinely fresh container, 147s vs. 554s without reuse) — the owner selected option-a
+  // (Workers Builds does all builds, including forced full rebuilds) on 2026-09-30, which turns
+  // this flag on by default now that the platform has proven it reuses pages correctly.
+  // `ASTRO_INCREMENTAL_BUILD=0` is the documented OFF switch (kept, not removed) if a future
+  // regression is found. When enabled, Astro reuses a previous build's rendered output for any
+  // getStaticPaths() page whose `cacheKey` (see src/pages/[category]/[slug].astro and
+  // src/pages/tag/[slug].astro) is unchanged since the last build, restoring it from `cacheDir`
+  // (`node_modules/.astro` by default — the SAME directory Workers Builds' own build caching
+  // auto-detects and caches for Astro projects, D-06) instead of re-rendering it. Byte-identity
+  // under this flag is enforced by tests/regression/byte-identity.test.mjs. [CITED: Context7
+  // /withastro/docs, reference/experimental-flags/incremental-build.mdx, queried 2026-09-27.]
+  //
+  // 04-09/04-10 history (superseded by the above, kept for provenance): this flag started OFF by
+  // default pending measurement; 04-09's local fresh-clone simulation found REUSE_WARM_ONLY
+  // (zero reuse in a fresh container), later found to be an artifact of that simulation only
+  // reproducing half of Workers Builds' own two-cache restore (build-measurements.md "A real,
+  // measured side-finding" / "Practical implication for 04-11").
+  experimental: {
+    incrementalBuild: process.env.ASTRO_INCREMENTAL_BUILD !== '0',
   },
 });

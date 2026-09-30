@@ -41,6 +41,22 @@
 // mechanism (a spread config object, a re-exported constant, a future Astro API) would be
 // silently exempted rather than checked. Phase 4, which introduces real on-demand pages, should
 // re-examine this before relying on it further.
+//
+// KNOWN LIMITATION #2 (04-06 finding, Rule 2 fix — `test:build-gate` wired into `build`, not
+// fixed here): `src/worker.ts`'s addition to `ENTRYPOINT_EXACT_FILES` below provides NO real
+// coverage from THIS plugin during an actual `astro build`. `@astrojs/cloudflare` 14.3.2 marks
+// the entire entry-Worker build ENVIRONMENT `devOnly` whenever Astro's computed `buildOutput` is
+// fully `'static'` (this project, pre-Phase-8: zero on-demand routes) — REGARDLESS of `main`'s
+// value — and a `devOnly` environment is never actually built by Vite/Rollup, so `src/worker.ts`
+// never becomes a module id this plugin's `buildEnd` hook can see; confirmed empirically (grep
+// of a full build's own log for "worker.ts" finds nothing). The REAL enforcement for this file is
+// `tests/ci-fixtures/assert-no-d1.test.mjs`'s Case 7/8 (`buildRealGraph`), which reads
+// `src/worker.ts`'s ACTUAL current import lines directly off disk on every run — that is why
+// `test:build-gate` (which runs that fixture suite) is now a `build` script step (package.json),
+// not merely a standalone command someone might forget to run. If `src/worker.ts` ever gains a
+// second on-demand sibling that changes `buildOutput` away from `'static'`, re-verify whether
+// this plugin then DOES see the Worker's real module graph live and, if so, whether Case 7/8
+// becomes purely redundant confirmation rather than the sole enforcement.
 
 import fs from 'node:fs';
 
@@ -50,7 +66,10 @@ const FORBIDDEN_TARGET_DIR = 'src/lib/server/';
 // ordinary `.vue`/`.astro` wrapper files into server-rendered endpoints, so a page-only scan
 // would miss them entirely.
 const ENTRYPOINT_DIR_PREFIXES = ['src/pages/', 'src/islands/'];
-const ENTRYPOINT_EXACT_FILES = ['src/middleware.ts'];
+// `src/worker.ts` (04-06, D-08): this project's first Worker entrypoint. Unlike a prerendered
+// page, a Worker's `fetch` handler is always on-demand, deployed code — no prerender exemption
+// applies (matching `src/middleware.ts`'s own treatment below).
+const ENTRYPOINT_EXACT_FILES = ['src/middleware.ts', 'src/worker.ts'];
 const ENTRYPOINT_EXTENSIONS = ['.astro', '.vue', '.ts', '.js'];
 
 // A1 finding (proven against a real Astro 7.3.3 build, 03-01 tracer task): a page under

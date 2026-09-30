@@ -1,10 +1,10 @@
 ---
 schema_version: 1
-open_count: 11
+open_count: 12
 waived_count: 0
 fixed_count: 13
-total_count: 24
-last_updated: 2026-09-21T16:04:15.933Z
+total_count: 25
+last_updated: 2026-09-27T15:56:27.187Z
 ---
 
 # Broken Windows Ledger
@@ -39,6 +39,7 @@ last_updated: 2026-09-21T16:04:15.933Z
 | 22 | 02 | deviation | 915tldr.com2/scripts/september-backfill-execute.mjs |  | manifest.actualCostUsd/estimatedJudgeCostUsd only reflect the LAST completing invocation's judge-call fraction (judgeCallCount is scoped per-invocation, not accumulated across resumes), so the manifest's own reported $4.9932 understates true cumulative spend across a run resumed 4 times (original pass, --rejudge-held, a crashed resume, and the final completing resume). True total estimated spend, computed by hand from the full call count (2703 first-pass + 149 rejudge = 2852 judge calls at $0.0015983/call, plus $1.3465 real batch cost): approximately $5.90 — still well inside the $10.42 ceiling, but the manifest field itself should not be trusted as the authoritative total for a multi-invocation run without this correction. Not fixed in this session (out of scope, cost was within ceiling either way) — flagged for whoever next touches this script's cost accounting. | open |  | 2026-09-21T08:05:13.681Z |  |
 | 23 | 02 | deviation | 915tldr.com2/server/utils/grounding-check.ts |  | CONT-06 gap closure (02-VERIFICATION.md gap 1, found by /gsd-verify-work 2026-09-21): 253/1,830 (13.8%) of the September backfill's clean rows had LENGTH(summary) > LENGTH(content) because the D-07 attribution wrapper counted toward the length ceiling and the 02-08 Option C decoupling let a clean judge verdict clear a length violation the judge never evaluates. FIXED: stripAttributionWrapper() (text-metrics.ts) excludes the wrapper from the length comparison; checkGrounding() carves the length flag out of Option C as an independent hard gate (grounding-check.ts, commit d77e7ef, 915tldr.com2). REMEDIATED: scripts/cont06-remediate.mjs re-evaluated all 253 rows against production D1 (149 real judge calls, ~$0.22-0.44) -- 113 cleared, 140 held with summary/key_points cleared to NULL (commit 579085f, 915tldr.com2). Verified: raw LENGTH(summary)>LENGTH(content) query now returns 113 (all attribution-wrapper cases, by design -- see next entry), and a wrapper-aware query mirroring the code's actual gate returns 0. Calibration recall held 7/7. Full suite 260/260, typecheck (pre-existing unrelated failure only), lint (0 errors) all pass. | open |  | 2026-09-21T16:04:08.654Z |  |
 | 24 | 02 | unmet-truth | 915tldr.com2/server/utils/text-metrics.ts |  | The RAW production query 'SELECT COUNT(*) FROM articles WHERE ... LENGTH(summary) > LENGTH(content)' (used verbatim in 02-VERIFICATION.md and matching roadmap SC1 clause 2's literal wording) still returns 113, not 0, after the CONT-06 fix (see prior entry) -- BY DESIGN, not a residual defect. All 113 rows are exactly the cases where the required D-07 attribution wrapper text ('According to <outlet>, ') itself accounts for the entire excess (confirmed: 0 of the 113 fail to match the wrapper pattern). The code's actual CONT-06 gate (grounding-check.ts) correctly excludes this wrapper via stripAttributionWrapper() and measures 0 violations. Whoever next re-runs the literal roadmap SC1 raw-SQL check will see a nonzero number and should use the wrapper-aware query instead (documented in 02-11-SUMMARY.md), or the roadmap's own success-criterion wording should be updated to state the wrapper-aware definition explicitly so this is not re-investigated from scratch. | open |  | 2026-09-21T16:04:15.933Z |  |
+| 25 | 04 | unmet-truth | astro.config.mjs |  | SEO-04 sitemap ordering-determinism was not verified across two separate builds (@astrojs/sitemap documents no stable ordering guarantee); single-build correctness (URL count, no leaked non-HTML/404 URLs) was proven instead. | open |  | 2026-09-27T15:56:27.187Z |  |
 
 ````json
 [
@@ -328,6 +329,18 @@ last_updated: 2026-09-21T16:04:15.933Z
     "status": "open",
     "reason": "",
     "recorded_at": "2026-09-21T16:04:15.933Z",
+    "resolved_at": null
+  },
+  {
+    "id": 25,
+    "kind": "unmet-truth",
+    "phase": "04",
+    "file": "astro.config.mjs",
+    "line": null,
+    "description": "SEO-04 sitemap ordering-determinism was not verified across two separate builds (@astrojs/sitemap documents no stable ordering guarantee); single-build correctness (URL count, no leaked non-HTML/404 URLs) was proven instead.",
+    "status": "open",
+    "reason": "",
+    "recorded_at": "2026-09-27T15:56:27.187Z",
     "resolved_at": null
   }
 ]

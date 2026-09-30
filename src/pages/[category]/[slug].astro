@@ -1,121 +1,175 @@
 ---
-// D-02 tracer: one real article, read from production D1 at build time, rendered through the
-// approved chrome, with its render-manifest entry written in the same build. Preserves the
-// nine-months-indexed URL shape `/[category]/[slug]-[uuid]` (`.claude/CLAUDE.md` compatibility
-// constraint) — the `[slug]` param itself carries the trailing uuid.
+// D-02/REND-01 (04-01) / IDNT-03/04, SEO-01/02/04, SEO-07 (04-04): the full approved article
+// template — byline, standfirst, summary body, AI disclosure, outlet attribution, tags, the
+// article-relative rail (owner decision 2026-09-26, checkpoint Task 1, option-a) and NewsArticle +
+// BreadcrumbList structured data. `getCollection('articles')` reads from the loader's synced
+// store; manifest writes live in the loader itself (`src/content/loaders/articles-loader.ts`).
+// Preserves the nine-months-indexed URL shape `/[category]/[slug]-[uuid]` (`.claude/CLAUDE.md`
+// compatibility constraint) via the stored `articles.slug` column (D-07), never a title-derived
+// slug.
 //
-// No rail, no related-articles, no tag list here — those are expansion (Phase 4). This is the
-// one path the whole Phase 3 architecture is proven against (D-02).
+// Deterministic rendering (criterion 3 — byte-identical unchanged articles): every date is
+// computed from the article's own `publishedAt` via `src/lib/format.ts` (never a host-zone clock
+// read or convenience formatter), and the rail (`src/lib/rail.ts`) is derived entirely from each
+// article's own position in the collection — never "now" or a build clock.
+//
+// 04-11a: article pages do NOT render Base's footer build-stamp element at all (`buildStamp`
+// defaults to false — see Base.astro) — BUILD_HASH changes on every commit, and printing it
+// unconditionally on every page changed every page's bytes on every deploy, defeating Cloudflare's
+// content-hash asset-upload dedup (docs/phase-04/build-measurements.md's "near-total asset
+// re-upload" finding). `stamp="commit"` is still passed below, kept as the correct value should
+// `buildStamp` ever be turned on for articles again; today it has no visible effect since the
+// element it would gate is never rendered here.
+import { getCollection } from 'astro:content';
 import Base from '../../layouts/Base.astro';
-import { fetchLatestArticle, fetchArticleById } from '../../lib/server/d1-client';
-import { buildManifestEntry, putManifestEntry } from '../../lib/server/kv-manifest';
-import { slugify } from '../../lib/slug';
-import { BUILD_HASH } from '../../lib/build-info';
-// 03-06 Task 2 (D-01 measurement #1 of 3, per-page render cost): harness-mode state, extracted
-// into its own module — see src/lib/render-cost-harness.ts's header comment for why a
-// frontmatter-local declaration here does not survive Astro's bundler. Absent in every normal
-// build; `getStaticPaths` and the component below run EXACTLY as before this task when
-// MEASURE_RENDER_COST is unset.
-import { HARNESS_MODE, harnessSamples, registerHarnessExit } from '../../lib/render-cost-harness';
+import ArticleCard from '../../components/ArticleCard.astro';
+import { articlePath, articleParams } from '../../lib/article-url';
+import { computeRails, railFingerprint, type RailResult } from '../../lib/rail';
+import { splitStandfirst, summaryBodyHtml } from '../../lib/summary';
+import { formatBylineTime, isoWithOffset } from '../../lib/format';
+import { newsArticleNode, breadcrumbNode, SITE_ORIGIN } from '../../lib/structured-data';
+
+const EMPTY_RAIL: RailResult = { more: [], second: [], secondHeading: 'Earlier' };
 
 export async function getStaticPaths() {
-  if (HARNESS_MODE) {
-    registerHarnessExit();
-    const ids = JSON.parse(process.env.MEASURE_RENDER_COST_IDS || '[]');
-    const paths = [];
-    for (const id of ids) {
-      // D1 read, timed alone — the SAME per-article lookup shape the current architecture
-      // already performs once per page (fetchArticleById, one row by uuid), not a synthetic
-      // batch query. This is what "per-page D1 read cost" means under today's design.
-      const d1Start = performance.now();
-      const row = await fetchArticleById(id);
-      const d1ReadMs = performance.now() - d1Start;
-      if (!row) {
-        throw new Error(`[slug].astro harness mode: fetchArticleById(${id}) returned no row`);
-      }
-
-      // Manifest build (SHA-256 hash) and manifest write (network PUT to KV) timed separately —
-      // a hash-dominated cost and a network-dominated cost are different bottlenecks and 03-07
-      // needs to tell them apart.
-      const buildStart = performance.now();
-      const entry = await buildManifestEntry(row, { buildHash: BUILD_HASH });
-      const manifestBuildMs = performance.now() - buildStart;
-
-      const writeStart = performance.now();
-      await putManifestEntry(entry);
-      const manifestWriteMs = performance.now() - writeStart;
-
-      harnessSamples.push({ id: row.id, d1ReadMs, manifestBuildMs, manifestWriteMs, renderMs: null });
-
-      paths.push({
-        params: { category: row.category, slug: `${slugify(row.title)}-${row.id}` },
-        props: { row },
-      });
-    }
-    return paths;
-  }
-
-  // Normal tracer behaviour — unchanged from before this task.
-  const row = await fetchLatestArticle();
-  if (!row) {
-    throw new Error('[slug].astro: fetchLatestArticle() returned no row — cannot build the tracer page');
-  }
-
-  // BUILD_HASH is the one source of truth for the deployed build's identity (03-03, OPS-05/
-  // OPS-06) — this page no longer resolves its own commit hash from `process.env` directly.
-  await putManifestEntry(
-    await buildManifestEntry(row, { buildHash: BUILD_HASH })
-  );
-
-  return [
-    {
-      params: {
-        category: row.category,
-        slug: `${slugify(row.title)}-${row.id}`,
-      },
-      props: { row },
-    },
-  ];
+  const entries = await getCollection('articles');
+  const allArticles = entries.map((entry) => entry.data);
+  const rails = computeRails(allArticles);
+  return entries.map((entry) => {
+    const rail = rails.get(entry.data.uuid) ?? EMPTY_RAIL;
+    return {
+      params: articleParams(entry.data.category.slug, entry.data.slug, entry.id),
+      props: { article: entry.data, rail },
+      // 04-09 (D-06): the page's full render inputs — its own content-layer digest AND its
+      // rail neighbours (a neighbour's title/slug/category changing re-renders THIS page even
+      // though this article's own digest didn't change; railFingerprint's own doc comment
+      // covers exactly this). Only meaningful once experimental.incrementalBuild is on
+      // (astro.config.mjs); harmless when the flag is off.
+      cacheKey: `${entry.digest}|${railFingerprint(rail)}`,
+    };
+  });
 }
 
-const { row } = Astro.props;
-// Render timing (harness mode only): started right after props are available, stopped at the
-// end of this frontmatter block — i.e. it covers this component's own synchronous computation
-// (date formatting below), NOT Astro's own template-to-HTML string compilation, which runs
-// after this script block and is not independently instrumentable from inside it. That
-// exclusion is stated explicitly in the report tools/measure-render-cost.mjs produces.
-const renderStart = HARNESS_MODE ? performance.now() : null;
+const { article, rail } = Astro.props;
 
-// row.published_at is epoch SECONDS (production schema, confirmed against a real row) — not an
-// ISO string, and not epoch milliseconds.
-const publishedDate = new Date(row.published_at * 1000);
-const publishedLabel = publishedDate.toLocaleString('en-US', {
-  month: 'short',
-  day: 'numeric',
-  hour: 'numeric',
-  minute: '2-digit',
+const { standfirst } = splitStandfirst(article.summary);
+const bodyHtml = summaryBodyHtml(article.summary, article.keyPoints);
+const canonicalPath = articlePath(article.category.slug, article.slug, article.uuid);
+const origin = Astro.site?.origin ?? SITE_ORIGIN;
+const bylineDatetime = isoWithOffset(article.publishedAt);
+const bylineText = formatBylineTime(article.publishedAt);
+
+const newsArticle = newsArticleNode({
+  origin,
+  canonicalPath,
+  headline: article.title,
+  description: standfirst,
+  datePublishedIso: bylineDatetime,
+  section: article.category.name,
+  tags: article.tags.map((tag) => tag.name),
+  sourceName: article.source.name,
+  sourceUrl: article.url,
 });
 
-if (HARNESS_MODE && renderStart !== null) {
-  const renderMs = performance.now() - renderStart;
-  const sample = harnessSamples.find((s) => s.id === row.id);
-  if (sample) sample.renderMs = renderMs;
-}
+const breadcrumb = breadcrumbNode(
+  [
+    { name: 'Home', path: '/' },
+    { name: article.category.name, path: `/${article.category.slug}` },
+    { name: article.title, path: canonicalPath },
+  ],
+  origin
+);
+
+const hasMore = rail.more.length > 0;
+const hasSecond = rail.second.length > 0;
+const hasRail = hasMore || hasSecond;
 ---
 
-<Base page="article" title={`915 TLDR — ${row.title}`}>
-  <article data-uuid={row.id} data-category={row.category} data-reading-column>
-    <header data-block data-category={row.category}>
-      <p><a href={`/${row.category}`}>{row.category}</a></p>
-      <p data-byline>
-        <time datetime={publishedDate.toISOString()}>{publishedLabel}</time>
-      </p>
+<Base
+  page="article"
+  title={`${article.title} — 915 TLDR`}
+  description={standfirst}
+  canonicalPath={canonicalPath}
+  jsonLd={[newsArticle, breadcrumb]}
+  activeCategory={article.category.slug}
+  datelineEpoch={article.publishedAt}
+  stamp="commit"
+  layout="with-rail"
+>
+  <article data-uuid={article.uuid} data-category={article.category.slug} data-reading-column>
+    <header data-block data-category={article.category.slug}>
+      <p><a href={`/${article.category.slug}`}>{article.category.name}</a></p>
+      <p data-byline><span data-source>{article.source.name}</span> · <time datetime={bylineDatetime}>{bylineText}</time></p>
     </header>
 
-    <h1>{row.title}</h1>
+    <h1>{article.title}</h1>
 
-    <div data-article-body>
-      <p>{row.summary}</p>
-    </div>
+    <p data-standfirst>{standfirst}</p>
+
+    <div data-article-body set:html={bodyHtml} />
+
+    <p data-ai-disclosure>This summary was written by AI from reporting by {article.source.name}. <a href={article.url} rel="noopener external" target="_blank">It may leave out detail — read the original story.<svg data-new-tab-icon aria-hidden="true" focusable="false" width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.1" stroke-linecap="round" stroke-linejoin="round"><path d="M5 1H1v10h10V7"></path><path d="M7 1h4v4"></path><path d="M11 1 5 7"></path></svg><span data-new-tab-cue data-visually-hidden> (opens in a new tab)</span></a></p>
+
+    <p data-attribution>Original reporting: <a href={article.url} rel="noopener external" target="_blank">{article.source.name}<svg data-new-tab-icon aria-hidden="true" focusable="false" width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.1" stroke-linecap="round" stroke-linejoin="round"><path d="M5 1H1v10h10V7"></path><path d="M7 1h4v4"></path><path d="M11 1 5 7"></path></svg><span data-new-tab-cue data-visually-hidden> (opens in a new tab)</span></a></p>
+
+    {
+      article.tags.length > 0 && (
+        <section data-tags aria-labelledby="tags-heading">
+          <h2 id="tags-heading">Tags</h2>
+          {article.tags.map((tag) => (
+            <a href={`/tag/${tag.slug}`}>{tag.name}</a>
+          ))}
+        </section>
+      )
+    }
   </article>
+
+  {
+    hasRail && (
+      <aside data-rail aria-label="More stories">
+        {hasMore && (
+          <>
+            <h2 id="rail-more-heading" data-grid-heading>
+              More in {article.category.name}
+            </h2>
+            <section data-grid aria-labelledby="rail-more-heading">
+              {rail.more.map((neighbor) => (
+                <ArticleCard
+                  uuid={neighbor.uuid}
+                  title={neighbor.title}
+                  href={articlePath(neighbor.category.slug, neighbor.slug, neighbor.uuid)}
+                  categorySlug={neighbor.category.slug}
+                  categoryName={neighbor.category.name}
+                  sourceName={neighbor.source.name}
+                  publishedAt={neighbor.publishedAt}
+                  variant="compact"
+                />
+              ))}
+            </section>
+          </>
+        )}
+        {hasSecond && (
+          <>
+            <h2 id="rail-second-heading" data-grid-heading>
+              {rail.secondHeading}
+            </h2>
+            <section data-grid aria-labelledby="rail-second-heading">
+              {rail.second.map((neighbor) => (
+                <ArticleCard
+                  uuid={neighbor.uuid}
+                  title={neighbor.title}
+                  href={articlePath(neighbor.category.slug, neighbor.slug, neighbor.uuid)}
+                  categorySlug={neighbor.category.slug}
+                  categoryName={neighbor.category.name}
+                  sourceName={neighbor.source.name}
+                  publishedAt={neighbor.publishedAt}
+                  variant="compact"
+                />
+              ))}
+            </section>
+          </>
+        )}
+      </aside>
+    )
+  }
 </Base>

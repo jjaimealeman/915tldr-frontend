@@ -82,3 +82,56 @@ const resolved = resolveBuildHash();
 
 export const BUILD_HASH: string = resolved.hash;
 export const BUILD_HASH_SOURCE: BuildHashSource = resolved.source;
+
+/**
+ * 04-02 / OPS-06: the deployed commit's own committer date (`YYYY-MM-DD`), as opposed to
+ * `BUILD_TIMESTAMP` (when this build ran, which may be hours after the commit it built). Article
+ * pages switch their footer stamp to this value (`stamp="commit"`) so an unchanged article's
+ * rendered HTML doesn't drift on every rebuild — only its *commit* date, which never changes for
+ * an unchanged article — see `Base.astro`'s `stamp` prop.
+ *
+ * Same resolution-order discipline as `resolveBuildHash`: a shallow CI checkout's `git show` can
+ * name a commit that was never deployed, so the git fallback is refused whenever either CI marker
+ * is present, exactly like `resolveBuildHash`'s own refusal.
+ */
+export function resolveCommitDate(
+  env: Record<string, string | undefined> = process.env,
+  run: typeof execSync = execSync
+): string {
+  const workersCiSha = env.WORKERS_CI_COMMIT_SHA;
+  const inCi = Boolean(env.CI) || Boolean(env.WORKERS_CI);
+
+  if (workersCiSha) {
+    // Validate before interpolating into a shell command — this value is platform-injected, but
+    // `runCommitDate` builds a shell string rather than passing argv directly, so a malformed
+    // value gets refused rather than shelled out verbatim.
+    if (!/^[0-9a-f]{4,40}$/i.test(workersCiSha)) {
+      return 'unknown';
+    }
+    return runCommitDate(run, workersCiSha);
+  }
+
+  if (inCi) {
+    // A CI marker with no commit SHA: same refusal as resolveBuildHash — do not guess.
+    return 'unknown';
+  }
+
+  return runCommitDate(run, 'HEAD');
+}
+
+function runCommitDate(run: typeof execSync, revision: string): string {
+  try {
+    const date = run(`git show -s --format=%cs ${revision}`, {
+      encoding: 'utf8',
+      stdio: ['ignore', 'pipe', 'ignore'],
+    }).trim();
+    if (/^\d{4}-\d{2}-\d{2}$/.test(date)) {
+      return date;
+    }
+    return 'unknown';
+  } catch {
+    return 'unknown';
+  }
+}
+
+export const BUILD_COMMIT_DATE: string = resolveCommitDate();

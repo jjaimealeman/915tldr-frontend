@@ -1,0 +1,152 @@
+# 915 TLDR - El Paso Local News Aggregator
+# https://915tldr.com
+
+# =============================================================================
+# CONTENT SIGNALS (Cloudflare Standard)
+# https://developers.cloudflare.com/bots/concepts/bot/
+# =============================================================================
+# search=yes    → Allow search indexing
+# ai-input=yes  → Allow RAG/citations (ChatGPT can reference us in answers)
+# ai-train=no   → Block training data collection
+
+User-Agent: *
+Content-signal: search=yes,ai-input=yes,ai-train=no
+Allow: /
+Disallow: /admin
+Disallow: /admin/
+Disallow: /api/admin/
+
+# =============================================================================
+# SEARCH ENGINES - ALLOWED
+# These are welcome to index our content for search results
+# =============================================================================
+
+# Google Search
+User-agent: Googlebot
+Allow: /
+
+# Google Images
+User-agent: Googlebot-Image
+Allow: /
+
+# Bing / Microsoft
+User-agent: Bingbot
+Allow: /
+
+# DuckDuckGo
+User-agent: DuckDuckBot
+Allow: /
+
+# Yahoo (uses Bing)
+User-agent: Slurp
+Allow: /
+
+# Brave Search
+User-agent: BraveSearch
+Allow: /
+
+# Yandex
+User-agent: YandexBot
+Allow: /
+
+# Baidu
+User-agent: Baiduspider
+Allow: /
+
+# Qwant
+User-agent: Qwantify
+Allow: /
+
+# Mojeek
+User-agent: MojeekBot
+Allow: /
+
+# =============================================================================
+# AI TRAINING BOTS - BLOCKED
+# These crawl content to train LLMs. We don't consent to training.
+# =============================================================================
+
+# OpenAI - ChatGPT training
+User-agent: GPTBot
+Disallow: /
+
+# Anthropic - Claude training
+User-agent: ClaudeBot
+Disallow: /
+
+User-agent: anthropic-ai
+Disallow: /
+
+# Common Crawl - Dataset for AI training
+User-agent: CCBot
+Disallow: /
+
+# Meta/Facebook - Llama training
+User-agent: meta-externalagent
+Disallow: /
+
+User-agent: FacebookBot
+Disallow: /
+
+# Google - AI training (separate from search)
+User-agent: Google-Extended
+Disallow: /
+
+User-agent: GoogleOther
+Disallow: /
+
+User-agent: Google-CloudVertexBot
+Disallow: /
+
+# Apple - AI training
+User-agent: Applebot-Extended
+Disallow: /
+
+# Amazon - Alexa/AI training
+User-agent: Amazonbot
+Disallow: /
+
+# ByteDance - TikTok/AI
+User-agent: Bytespider
+Disallow: /
+
+User-agent: TikTokSpider
+Disallow: /
+
+# Huawei
+User-agent: PetalBot
+Disallow: /
+
+# Perplexity AI
+User-agent: PerplexityBot
+Disallow: /
+
+# Cohere
+User-agent: cohere-ai
+Disallow: /
+
+# AI21 Labs
+User-agent: AI2Bot
+Disallow: /
+
+# =============================================================================
+# AI ASSISTANTS / RAG - ALLOWED
+# These use real-time retrieval to cite sources. We WANT this traffic.
+# =============================================================================
+
+# ChatGPT browsing/plugins (different from GPTBot training)
+User-agent: ChatGPT-User
+Allow: /
+
+# DuckDuckGo AI assistant
+User-agent: DuckAssistBot
+Allow: /
+
+# =============================================================================
+# SITEMAP
+# =============================================================================
+
+Sitemap: https://915tldr.com/sitemap.xml
+
+# Crawl-delay for polite crawling (respected by some bots)
+Crawl-delay: 1

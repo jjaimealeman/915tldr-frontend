@@ -13,9 +13,12 @@
 
 import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
+import path from 'node:path';
 import {
   MANIFEST_SCHEMA_VERSION,
   KV_BULK_WRITE_MAX_PAIRS,
+  RENDER_MANIFEST_NAMESPACE_ID,
   buildManifestEntry,
   computeContentHash,
   validateManifestEntry,
@@ -23,6 +26,7 @@ import {
   putManifestEntriesBulk,
   getManifestEntry,
 } from '../../src/lib/server/kv-manifest.ts';
+import { stripComments } from '../../tools/check-config-guards.mjs';
 
 // ---------------------------------------------------------------------------
 // Hermetic env — dummy values, restored after this file's tests run.
@@ -55,6 +59,7 @@ function makeRow(overrides = {}) {
     title: 'El Paso faces Level 3 flash flood risk',
     summary: 'Heavy rain is forecast through the weekend.',
     category: 'weather',
+    slug: 'el-paso-faces-level-3-flash-flood-risk',
     published_at: 1790099986,
     tags: 'flooding,weather,el-paso',
     ...overrides,
@@ -123,9 +128,13 @@ test('buildManifestEntry returns all required fields, non-empty, with translatio
     'buildHash',
     'category',
     'publishedAt',
+    'slug',
   ]) {
     assert.ok(Object.prototype.hasOwnProperty.call(entry, field), `missing field "${field}"`);
   }
+
+  // D-08 (04-01): slug is the stored articles.slug column, passed through unchanged.
+  assert.equal(entry.slug, 'el-paso-faces-level-3-flash-flood-risk');
 
   // The prohibited outcome (03-04-PLAN.md): a field that is structurally always null. Assert the
   // VALUE, not merely that the key is present.
@@ -227,6 +236,35 @@ test('putManifestEntry rejects an entry whose language is not "en" or "es"', asy
   assert.equal(fetchImpl.calls.length, 0);
 });
 
+// ---------------------------------------------------------------------------
+// slug (D-08, schema v2): required, and must match ARTICLE_SLUG_RE
+// ---------------------------------------------------------------------------
+
+test('putManifestEntry rejects an entry missing slug, naming "slug"', async () => {
+  const entry = await makeEntry();
+  delete entry.slug;
+  const fetchImpl = makeStubFetch();
+
+  await assert.rejects(() => putManifestEntry(entry, { fetchImpl }), /missing or empty required field "slug"/);
+  assert.equal(fetchImpl.calls.length, 0);
+});
+
+test('putManifestEntry rejects a slug containing an uppercase letter', async () => {
+  const entry = await makeEntry({}, { slug: 'El-Paso-Uppercase' });
+  const fetchImpl = makeStubFetch();
+
+  await assert.rejects(() => putManifestEntry(entry, { fetchImpl }), /"slug"/);
+  assert.equal(fetchImpl.calls.length, 0);
+});
+
+test('putManifestEntry rejects a slug containing a slash', async () => {
+  const entry = await makeEntry({}, { slug: 'el-paso/flood-risk' });
+  const fetchImpl = makeStubFetch();
+
+  await assert.rejects(() => putManifestEntry(entry, { fetchImpl }), /"slug"/);
+  assert.equal(fetchImpl.calls.length, 0);
+});
+
 test('putManifestEntry writes a valid entry exactly once, with no expiration/TTL in the request body', async () => {
   const entry = await makeEntry();
   const fetchImpl = makeStubFetch([okResponse({})]);
@@ -314,6 +352,23 @@ test('MANIFEST_SCHEMA_VERSION is exported and every built entry records it', asy
   assert.ok(MANIFEST_SCHEMA_VERSION.length > 0);
   const entry = await buildManifestEntry(makeRow(), { buildHash: 'abc1234' });
   assert.equal(entry.schemaVersion, MANIFEST_SCHEMA_VERSION);
+});
+
+test('MANIFEST_SCHEMA_VERSION is "2" (D-08: slug bump)', () => {
+  assert.equal(MANIFEST_SCHEMA_VERSION, '2');
+});
+
+// ---------------------------------------------------------------------------
+// Drift guard: RENDER_MANIFEST_NAMESPACE_ID must match wrangler.jsonc's committed binding id
+// ---------------------------------------------------------------------------
+
+test('RENDER_MANIFEST_NAMESPACE_ID matches the RENDER_MANIFEST binding id in wrangler.jsonc', () => {
+  const wranglerPath = path.resolve(import.meta.dirname, '../../wrangler.jsonc');
+  const raw = readFileSync(wranglerPath, 'utf8');
+  const stripped = stripComments(raw);
+  const match = stripped.match(/"binding":\s*"RENDER_MANIFEST"[\s\S]*?"id":\s*"([^"]+)"/);
+  assert.ok(match, 'expected to find a RENDER_MANIFEST kv_namespaces binding in wrangler.jsonc');
+  assert.equal(RENDER_MANIFEST_NAMESPACE_ID, match[1]);
 });
 
 // ---------------------------------------------------------------------------

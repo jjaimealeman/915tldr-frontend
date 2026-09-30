@@ -1,0 +1,88 @@
+{
+  "entries": [
+    {
+      "date": "2026-09-19",
+      "title": "Story Pages Load Faster",
+      "items": [
+        "The \"related stories\" list at the bottom of each article now appears about 15 times faster",
+        "A change we made last week to speed up the homepage accidentally slowed this one part down — it's fixed",
+        "No change to what you see, just how quickly it gets there"
+      ]
+    },
+    {
+      "date": "2026-09-15",
+      "title": "Category and Tag Pages Fixed",
+      "items": [
+        "Category pages like Crime and Politics were quietly showing an old, frozen list of stories — they now show everything, currently 3,803 stories under Crime alone",
+        "Browsing by tag works again",
+        "Fixed our sitemap so search engines can find every story on the site"
+      ]
+    },
+    {
+      "date": "2026-09-14",
+      "title": "Faster Page Loads",
+      "items": [
+        "Article lists, the homepage and category pages now load close to instantly",
+        "Fixed the cause: the site was reading every one of its 37,000+ stories just to show you the newest 20",
+        "Our RSS feed and sitemap got the same fix, so news readers and search engines see updates faster too"
+      ]
+    },
+    {
+      "date": "2026-07-20",
+      "title": "We're Back — Full Restoration Underway",
+      "items": [
+        "Fixed a months-long issue that stopped new AI summaries from being generated behind the scenes",
+        "Reprocessing tens of thousands of backlogged articles now — thousands of new stories are appearing as we catch up",
+        "Sorry for the quiet stretch — we're back, and 915 TLDR is far from abandoned"
+      ]
+    },
+    {
+      "date": "2026-07-20",
+      "title": "Contact Form Fix",
+      "items": [
+        "Fixed an issue where messages sent through the contact form weren't reaching us"
+      ]
+    },
+    {
+      "date": "2025-12-22",
+      "title": "Building in Public Changelog",
+      "items": [
+        "New changelog page shows all site updates and improvements",
+        "Automated update system tracks changes as they happen",
+        "Transparent development - see what's new, what broke, and what's next"
+      ]
+    },
+    {
+      "date": "2025-12-22",
+      "title": "Read Tracking with localStorage",
+      "items": [
+        "Articles you've read now show with reduced opacity and an orange checkmark badge",
+        "New \"Show unread only\" toggle on the /new page to filter articles",
+        "Read count displayed showing progress through daily articles",
+        "Clear reading history button added to site footer",
+        "Reading progress persists across browser sessions"
+      ]
+    },
+    {
+      "date": "2025-12-22",
+      "title": "Navigation Redesign & Mobile UX",
+      "items": [
+        "Redesigned navigation with sticky header and category tabs",
+        "Mobile-optimized hamburger menu with full-screen overlay",
+        "Added \"New\" tab showing latest articles across all categories",
+        "Improved footer with quick links and social media",
+        "Editorial pages updated with new design language"
+      ]
+    },
+    {
+      "date": "2025-12-21",
+      "title": "Admin Automation & About Page Redesign",
+      "items": [
+        "Admin dashboard now shows real-time fetch status and automation health",
+        "About page redesigned with clearer mission statement",
+        "Source management improved with one-click enable/disable",
+        "Added statistics dashboard showing article coverage by category"
+      ]
+    }
+  ]
+}

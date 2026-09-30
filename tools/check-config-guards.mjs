@@ -27,11 +27,21 @@
 // neither `build` (`astro build`) nor `deploy` (`wrangler deploy`) ran it, so a `d1_databases`
 // block added to `wrangler.jsonc` would have deployed successfully as long as nobody happened to
 // run `test:unit` first. Both scripts now run `guard:config` first (see package.json). This file
-// also gained `scanGeneratedWranglerJson`: the auditor noted that `wrangler deploy` actually reads
+// also gained `scanGeneratedWranglerJson`: at the time (pre-04-06), `wrangler deploy` actually read
 // the ADAPTER-GENERATED `dist/client/wrangler.json` (normalizes every key, including
-// `d1_databases: []` when the source omits it entirely), not the hand-written `wrangler.jsonc` —
-// a belt-and-suspenders check of whatever generated file exists from the last build, in addition
-// to (never instead of) the authoritative source-file scan above.
+// `d1_databases: []` when the source omits it entirely) via its own auto-redirect, not the
+// hand-written `wrangler.jsonc` directly.
+//
+// 04-06 correction (D-08, not a reversal of the finding above — a changed fact): once this
+// project's first Worker (`src/worker.ts`) needed a custom `main`, `package.json`'s `deploy`
+// script was changed to `wrangler deploy --config wrangler.jsonc` (see wrangler.jsonc's own
+// comment next to `main` for why: the adapter's redirect silently drops a custom `main` whenever
+// Astro's computed `buildOutput` is fully static). That flag makes `wrangler deploy` read
+// `wrangler.jsonc` DIRECTLY once again, not the generated redirect file — so `scanWranglerForD1
+// Binding` (the source-file scan above) is once more the check that matches what actually gets
+// deployed. `scanGeneratedWranglerForD1Binding` stays as belt-and-suspenders coverage of whatever
+// `dist/client/wrangler.json` a build happens to produce (harmless, never authoritative on its
+// own), in addition to (never instead of) the source-file scan.
 
 import fs from 'node:fs';
 import path from 'node:path';
