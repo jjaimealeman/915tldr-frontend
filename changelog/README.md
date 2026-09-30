@@ -10,6 +10,7 @@ Entries are named `YYYY-MM-DD-HHMM_slug.md` and grouped by month, newest first.
 
 | Date | Entry | Keywords |
 |------|-------|----------|
+| 2026-09-30 | [Real-browser reader journeys verified against deployed dev.915tldr.com (04-12 Task 2)](2026-09-30-1649_browser-journeys-real-chromium-verification.md) | `[TESTING]` `[FRONTEND]` `[SEO]` |
 | 2026-09-30 | [Live URL contracts verified on deployed dev.915tldr.com (04-12 Task 1)](2026-09-30-1646_edge-verify-homepage-discovery-live-url-suite.md) | `[TESTING]` `[DEPLOYMENT]` `[BACKEND]` `[SEO]` |
 | 2026-09-30 | [Phase 4 Plan 11a complete: build-stamp fix documented, state updated](2026-09-30-1618_04-11a-summary-docs-state-complete.md) | `[DOCUMENTATION]` `[PLANNING]` |
 | 2026-09-30 | [Footer build stamp made opt-in, homepage only (04-11a, fixes 04-10 asset-dedup finding)](2026-09-30-1611_footer-build-stamp-opt-in-homepage-only.md) | `[FRONTEND]` `[PERFORMANCE]` `[BUG_FIX]` `[TESTING]` |
