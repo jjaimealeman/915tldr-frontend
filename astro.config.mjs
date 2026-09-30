@@ -83,17 +83,26 @@ export default defineConfig({
   vite: {
     plugins: [assertNoD1Plugin()],
   },
-  // 04-09 (D-06 / RESEARCH Open Question 2): the experimental incremental-build flag seam.
-  // DEFAULT OFF (`ASTRO_INCREMENTAL_BUILD` unset) until 04-11 applies the owner's decision —
-  // this task only proves the flag can be switched on for measurement, it does not decide
-  // whether production should run with it. When enabled, Astro reuses a previous build's
-  // rendered output for any getStaticPaths() page whose `cacheKey` (see
-  // src/pages/[category]/[slug].astro and src/pages/tag/[slug].astro) is unchanged since the
-  // last build, restoring it from `cacheDir` (`node_modules/.astro` by default — the SAME
-  // directory Workers Builds' own build caching auto-detects and caches for Astro projects,
-  // D-06) instead of re-rendering it. [CITED: Context7 /withastro/docs,
-  // reference/experimental-flags/incremental-build.mdx, queried 2026-09-27.]
+  // 04-11 (D-05 build-pipeline decision, docs/phase-04/build-pipeline-decision.md): DEFAULT ON.
+  // `WB_REUSE_PROVEN` (04-10, real Workers Builds platform: >=34,871/~60,349 pages restored on a
+  // genuinely fresh container, 147s vs. 554s without reuse) — the owner selected option-a
+  // (Workers Builds does all builds, including forced full rebuilds) on 2026-09-30, which turns
+  // this flag on by default now that the platform has proven it reuses pages correctly.
+  // `ASTRO_INCREMENTAL_BUILD=0` is the documented OFF switch (kept, not removed) if a future
+  // regression is found. When enabled, Astro reuses a previous build's rendered output for any
+  // getStaticPaths() page whose `cacheKey` (see src/pages/[category]/[slug].astro and
+  // src/pages/tag/[slug].astro) is unchanged since the last build, restoring it from `cacheDir`
+  // (`node_modules/.astro` by default — the SAME directory Workers Builds' own build caching
+  // auto-detects and caches for Astro projects, D-06) instead of re-rendering it. Byte-identity
+  // under this flag is enforced by tests/regression/byte-identity.test.mjs. [CITED: Context7
+  // /withastro/docs, reference/experimental-flags/incremental-build.mdx, queried 2026-09-27.]
+  //
+  // 04-09/04-10 history (superseded by the above, kept for provenance): this flag started OFF by
+  // default pending measurement; 04-09's local fresh-clone simulation found REUSE_WARM_ONLY
+  // (zero reuse in a fresh container), later found to be an artifact of that simulation only
+  // reproducing half of Workers Builds' own two-cache restore (build-measurements.md "A real,
+  // measured side-finding" / "Practical implication for 04-11").
   experimental: {
-    incrementalBuild: process.env.ASTRO_INCREMENTAL_BUILD === '1',
+    incrementalBuild: process.env.ASTRO_INCREMENTAL_BUILD !== '0',
   },
 });
