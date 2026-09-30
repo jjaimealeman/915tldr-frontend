@@ -540,7 +540,69 @@ not a mechanical bug fix — Rule 4 territory, left for 04-11 or a dedicated fol
 
 ### Build 4 — flag-on, no toggle (the real reuse test)
 
-[Recorded once Build 4 completes — see below.]
+Triggered via the `feature/phase-04` Deploy Hook against the SAME tip (`e95a734`, no new commit,
+no further config toggle) immediately after Build 3 — the real test of whether Astro's
+`experimental.incrementalBuild` reuses pages in a genuinely fresh Workers Builds container.
 
-**`WB_REUSE_PROVEN`/`WB_REUSE_ABSENT` verdict: not yet recorded.** This plan (04-10) is not
-complete until one of these two tokens is written here.
+| Field | Value |
+|---|---|
+| Build | `6c35446d-a4d4-4f2c-90e9-caccdf74d498`, commit `e95a734` (unchanged from Build 3) |
+| Trigger (hook POST) → deployed | 2026-09-30T21:18:26.775Z → new version `509fbcee` created 21:20:53.888Z |
+| **Total wall time** | **~147s (2m27s)** |
+| Dependencies cache | Restored (21:18:43) |
+| Build-output cache | Restored (21:18:46) |
+| D1 articles loader | `mode=warm+sweep public=40449 changed=0 removed=0 rowsRead=49503 budget=100000` |
+| Changelog loader | `[d1-changelog] sources=json:9,d1:6 total=15` |
+| **Pages restored (confirmed in the returned log)** | **34,871** |
+| Pages rendered (confirmed, always-render pages: `/404.html`, `/404-index.json`, `/about.html`, `/changelog.html`, `/contact.html`, `/news-sitemap.xml`, `/privacy.html`, `/rss.xml`, 3× `/source/*.html`, `/tags.html`, `/terms.html`, `/version.json`) | 14 |
+| Result | SUCCESS — version `509fbcee` (number 8) |
+
+**CAVEAT — this build's own returned log is truncated a second time.** It ends mid page-list at
+21:20:06 (34,974 lines), before Astro's own "page(s) built" summary line, before the deploy/upload
+phase, and before the closing "Success!" line. **34,871 is therefore a confirmed LOWER BOUND on
+the true restored-page count, not the final total** — out of Build 3's ~60,349 pages, the log
+simply stops recording before the remaining ~25,000+ pages' restore/render status is captured.
+Total wall time above (147s) is independently confirmed via the Workers Versions API's
+`created_on` timestamp, the same substitution method used for Build 2.
+
+### Verdict: `WB_REUSE_PROVEN`
+
+Even as a confirmed lower bound, 34,871 of ~60,349 pages restored (57%+ of the entire site,
+overwhelmingly article pages with an unchanged `cacheKey`) on a **genuinely fresh Workers Builds
+container** — not a warm, same-checkout dev loop — is unambiguous evidence that
+`experimental.incrementalBuild` DOES reuse unchanged pages on the real platform. This is further
+corroborated by the wall-time collapse: Build 4 (147s) vs. Build 3 (554s) — a 3.8x speedup for
+effectively the same page count and an unchanged public-article count (`40449` both builds), with
+the D1 loader itself already warm in both cases (Build 3's D1 loader was `mode=cold` only because
+of the config-toggle reset, not because the cache was actually unavailable). The only plausible
+explanation for that much wall-time collapse, on top of the directly-observed `(restored)` lines,
+is large-scale page reuse.
+
+**This contradicts 04-09's local fresh-clone simulation**, which found ZERO of 59,918 pages
+restored under what was believed to be an equivalent test (a `git clone --local`, a fresh
+`pnpm install --frozen-lockfile`, with only `node_modules/.astro` manually copied in from a prior
+warm build). The likely explanation, not exhaustively proven but grounded in what actually
+differed between the two experiments: **Workers Builds restores TWO separate caches — a
+"dependencies cache" (the full `node_modules` / pnpm store) AND a "build output cache"
+(`node_modules/.astro`) — both written by the SAME prior build (Build 3) and restored together by
+the SAME platform for Build 4.** 04-09's local simulation only ever reproduced the second half:
+it ran a FRESH `pnpm install` (producing a node_modules tree that is functionally equivalent under
+the frozen lockfile, but not byte-identical or cache-lineage-identical to the tree that originally
+produced the copied `node_modules/.astro`) and manually copied in only the build-output side. If
+Astro's `incrementalBuild` cache-validity check depends on anything about the surrounding
+`node_modules` tree being the SAME one that produced the cache (not merely dependency-equivalent),
+a fresh install would invalidate it even with `node_modules/.astro` physically present — exactly
+matching the zero-reuse result 04-09 found. This was not independently verified with a controlled
+diff of the two `node_modules` trees in this session (out of scope for this plan), so it is
+recorded as the leading, evidence-grounded explanation rather than a proven root cause.
+
+**Practical implication for 04-11:** treat `WB_REUSE_PROVEN` as the real Workers Builds behavior,
+not 04-09's local `REUSE_WARM_ONLY` finding — the local fresh-clone simulation understated the
+real platform's reuse capability because it didn't reproduce Workers Builds' own dependencies-cache
+restore, only the build-output half.
+
+### `WB_REUSE_PROVEN` / `WB_REUSE_ABSENT`: **`WB_REUSE_PROVEN`**
+
+This plan's remaining must-have is now satisfied. Both required verdict tokens are on file:
+`WB_COLD_FITS` (Build 1) and `WB_REUSE_PROVEN` (Build 4, with the truncated-log lower-bound
+caveat disclosed above).
