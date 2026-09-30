@@ -4,16 +4,16 @@ milestone: v1.5
 milestone_name: milestone
 current_phase: 04
 current_phase_name: Static Generation, Templates & SEO
-status: executing
-stopped_at: Completed 04-11-PLAN.md
-last_updated: "2026-09-30T22:01:37.703Z"
+status: verifying
+stopped_at: Completed 04-12-PLAN.md
+last_updated: "2026-09-30T22:59:23.283Z"
 last_activity: 2026-09-26
 last_activity_desc: Phase 03 complete, transitioned to Phase 4
 progress:
   total_phases: 4
-  completed_phases: 3
+  completed_phases: 4
   total_plans: 52
-  completed_plans: 51
+  completed_plans: 52
 ---
 
 # Project State
@@ -29,10 +29,10 @@ See: .planning/PROJECT.md (updated 2026-09-16)
 
 Phase: 04 (Static Generation, Templates & SEO) — EXECUTING
 Plan: 12 of 12
-Status: Ready to execute
+Status: Phase complete — ready for verification
 Last activity: 2026-09-26 — Phase 04 execution started
 
-Progress: [██████████] 98%
+Progress: [██████████] 100%
 
 ## Performance Metrics
 
@@ -100,6 +100,7 @@ Progress: [██████████] 98%
 | Phase 04 P09 | ~3h10min | 3 tasks | 10 files |
 | Phase 04 P10 | ~2h45min (active, spanning two sessions) | 2 tasks | 6 files |
 | Phase 04 P11 | ~25min | 3 tasks | 9 files |
+| Phase 04 P12 | ~1h50min | 3 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -227,6 +228,9 @@ Recent decisions affecting current work:
 - [Phase ?]: 04-11: experimental.incrementalBuild flipped from off-by-default to on-by-default in astro.config.mjs, now that WB_REUSE_PROVEN (04-10) is confirmed on the real platform; ASTRO_INCREMENTAL_BUILD=0 remains the documented off switch.
 - [Phase ?]: 04-11: tests/regression/byte-identity.test.mjs tolerates live production D1 drift via a count-based bound (loader's own changed=N x rail fan-out of 9) since the loader logs only a count, not article ids — a disclosed approximation, not a literal per-article check.
 - [Phase ?]: 04-11a (owner-approved quick fix, 2026-09-30): Base.astro's footer build-stamp (`BUILD_HASH`) is now opt-in via a new `buildStamp` prop, default false — only the homepage passes `buildStamp={true}`; /version.json is unaffected (reads build-info.ts directly). Fixes 04-10's "near-total asset re-upload" finding: before, all ~60,359 built HTML files carried the commit hash and changed bytes on every commit; after, only 1 (the homepage) does.
+- [Phase ?]: 04-12: verify-edge-headers.mjs's live-article discovery now parses the deployed homepage's first [data-card] link instead of listing the entire KV render manifest (~40k+ keys, past its own documented scaling limit) -- no D1/KV credentials needed for discovery any more, and src/lib/slug.ts is no longer imported anywhere.
+- [Phase ?]: 04-12: tests/integration/url-shapes.test.mjs's /changelog check asserts against CHANGELOG_MIN_EXPECTED=15 (the already owner-approved 04-08 floor), not the plan's stale must_haves text of 18 -- production genuinely serves 15 entries today; the loader's own never-shrink ratchet will raise this automatically once v1 deploys the missing 3.
+- [Phase ?]: 04-12: Phase 4's 04-VALIDATION.md is now wave_0_complete: true and nyquist_compliant: true -- every task across 04-01..04-12 has an automated verify or is a documented owner-checkpoint immediately followed by one; full suite (test:unit/build-gate/regression/tracer) re-run green against the live deployment.
 
 ### Pending Todos
 
@@ -279,6 +283,6 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-09-30T22:01:37.686Z
-Stopped at: Completed 04-11-PLAN.md
+Last session: 2026-09-30T22:57:25.930Z
+Stopped at: Completed 04-12-PLAN.md
 Resume file: None
