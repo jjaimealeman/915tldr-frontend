@@ -33,11 +33,11 @@
 //      produce and would be invisible in every other check here.
 //
 //   4. No application-level robots meta tag on the dev host's real content — GET whichever
-//      article the LIVE deployment is currently serving (discovered via `discoverLiveArticlePath()`
-//      below — version.json + KV render manifest + D1, not a local build) and assert the served
-//      HTML carries no `<meta name="robots">` tag. OPS-02 specifies the header must come from the
-//      edge, not from the app — this guards against a future app-level workaround masquerading as
-//      a passing edge check.
+//      article the LIVE deployment is currently serving (discovered by parsing the live
+//      homepage — see `discoverLiveArticlePath()` below) and assert the served HTML carries no
+//      `<meta name="robots">` tag. OPS-02 specifies the header must come from the edge, not from
+//      the app — this guards against a future app-level workaround masquerading as a passing
+//      edge check.
 //
 // Exits non-zero if ANY check fails, listing every failure (not just the first). A network
 // error is a FAILURE, not a skip — this script never does `2>/dev/null || echo ok`.
@@ -62,27 +62,28 @@
 // exists locally but 404s on the live host, and reported a failure that was never real — the
 // edge rule (independently confirmed live via direct `curl`) was fine throughout.
 //
-// Fixed by discovering the article from the LIVE deployment instead of the local build.
-// `discoverLiveArticlePath()` below lists the render manifest's article ids (`src/lib/server/
-// kv-manifest.ts`, D-03/D-04), newest `renderedAt` first, resolves each candidate to a full D1
-// row via `fetchArticleById()` (the same D1 module the build itself uses), reconstructs the URL
-// `[slug].astro` would have built for it, and does a real live GET against `devHost` — returning
-// the first candidate that actually responds 200. A live 200 IS the proof; nothing is inferred.
+// Fixed (2026-09-23) by discovering the article from the LIVE deployment instead of the local
+// build: the KV render manifest (`src/lib/server/kv-manifest.ts`) was listed in full, resolved
+// against D1, and each candidate was live-probed until one answered 200.
 //
-// First attempt matched on `buildHash` (the manifest entry's recorded commit) against the
-// deployed commit reported by the live host's own `/version.json`, on the theory that a manifest
-// entry records "what this exact commit rendered". Measured against the real manifest during
-// this hardening and found unreliable: manifest keys are `manifest:<articleId>`, one per article,
-// and Phase 3 runs many local `astro build`s without a deploy after each one (measurement work,
-// tests). When two builds close in time both pick the SAME "latest" article (no newer one was
-// ingested between them), the second build's write overwrites the first's `buildHash` at the same
-// key — silently erasing the record of which commit actually rendered that entry. Of 62 real
-// manifest entries checked live, none carried the currently-deployed commit's `buildHash` for
-// this exact reason. The newest-first live-probe approach above doesn't depend on that history
-// surviving, because it never trusts a stored claim about what's live — it asks the live host.
+// --- 04-12 hardening: discovery no longer lists the KV manifest at all ---
+// `src/lib/server/kv-manifest.ts`'s own list-all-keys helper doc comment says plainly it
+// "will NOT scale once Phase 4 populates the full ~41,000 article corpus" — Phase 4 has now done
+// exactly that (~40k+ manifest keys), and the 2026-09-23 fix above paginates every one of those
+// keys, then reads every entry back individually, before it can even start probing candidates.
+// That is a KV list-keys pass plus tens of thousands of KV value reads for what this check only
+// ever needed one answer from: "what does the live site actually link to right now?"
 //
-// No local build required either way — the check now passes against whatever is actually
-// deployed, redeploy or not.
+// The live homepage already answers that question directly, with zero D1/KV credentials and zero
+// list-then-read fan-out: `discoverLiveArticlePath()` below fetches `https://<devHost>/`, takes
+// the first `[data-card] a[href]` link (a real grid card — `ArticleCard.astro`'s `data-lead`
+// variant is deliberately excluded, matching the plan's own wording, since the homepage's single
+// lead card is a different card shape than the grid this check wants to sample), and returns that
+// href verbatim. A homepage GET that returns a real article link IS the proof — nothing is
+// inferred from manifest bookkeeping that could have drifted from what is actually deployed, and
+// this function no longer imports `src/lib/server/d1-client.ts`, `src/lib/server/kv-manifest.ts`,
+// or `src/lib/slug.ts` at all. No `CLOUDFLARE_ACCOUNT_ID`/`CLOUDFLARE_API_TOKEN`/
+// `RENDER_MANIFEST_KV_NAMESPACE_ID` env vars are read by this script any more.
 //
 // This project shipped exactly this failure mode once already in a different form: Phase 2's
 // CONT-06 defect was 248 passing tests sitting next to 253 production rows violating the very
@@ -91,80 +92,10 @@
 // different road: a human starts ignoring `pnpm verify:edge` failures on principle, and the day
 // the noindex rule is genuinely removed, nobody notices. Fixing the false positive is not
 // cosmetic — it is what keeps this guard worth trusting.
-//
-// Requires CLOUDFLARE_ACCOUNT_ID / CLOUDFLARE_API_TOKEN / RENDER_MANIFEST_KV_NAMESPACE_ID in
-// process.env (same OPS-11 convention as src/lib/server/d1-client.ts and src/lib/server/kv-manifest.ts)
-// — needed only for check 4's live discovery; checks 1-3 make no D1/KV calls.
-//
-// --- .dev.vars auto-load (2026-09-23, follow-up to the hardening above) ---
-// The first hardening pass fixed the false-negative discovery bug but left a second instance of
-// the same failure class: run from a fresh shell with none of the three vars above already
-// exported, check 4 failed with `RENDER_MANIFEST_KV_NAMESPACE_ID is not set in the environment` —
-// correct and clear (unlike the false noindex-violation report it replaced), but OPS-02's whole
-// point is "a command someone actually runs on every deploy," and a command that requires manual
-// `export` first is a command that gets skipped, arriving at the same "guard nobody trusts"
-// destination by a different road. `RENDER_MANIFEST_KV_NAMESPACE_ID` already lives in `.dev.vars`
-// (gitignored, present on disk per wrangler.jsonc's own comment) — `loadDevVars()` below reads it
-// directly so a fresh shell works with zero setup. An already-set `process.env` value always
-// wins and is never overwritten, so CI (or a developer who deliberately exports a different
-// value) can still override without touching this file. A missing or unreadable `.dev.vars` is
-// NOT an error here — `requireEnv()` inside d1-client.ts/kv-manifest.ts (both now under
-// src/lib/server/) still throws its own
-// specific "X is not set" error the moment a genuinely-missing variable is actually used, which
-// is a clearer failure than anything a loader could raise pre-emptively.
-
-import { readFileSync, existsSync } from 'node:fs';
-import path from 'node:path';
-import { fileURLToPath } from 'node:url';
-import { fetchArticleById } from '../src/lib/server/d1-client.ts';
-import { getManifestEntry, listManifestArticleIds } from '../src/lib/server/kv-manifest.ts';
-import { slugify } from '../src/lib/slug.ts';
-
-const PROJECT_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-const DEV_VARS_PATH = path.join(PROJECT_ROOT, '.dev.vars');
-
-/**
- * Loads `.dev.vars` (Wrangler's gitignored local-dev vars file) into `process.env` for any key
- * not already set. Parses plain `KEY=value` lines — the same minimal shape `.dev.vars` already
- * uses — skipping blank lines and `#` comments, and stripping one layer of matching single/double
- * quotes around the value if present. Never throws: an absent or unreadable file is a silent
- * no-op, deferring to `requireEnv()`'s own error at the point a variable is actually used.
- */
-function loadDevVars() {
-  if (!existsSync(DEV_VARS_PATH)) return;
-
-  let contents;
-  try {
-    contents = readFileSync(DEV_VARS_PATH, 'utf8');
-  } catch {
-    return; // unreadable (permissions, race, etc.) — fall through to requireEnv()'s clear error
-  }
-
-  for (const line of contents.split('\n')) {
-    const trimmed = line.trim();
-    if (!trimmed || trimmed.startsWith('#')) continue;
-
-    const eq = trimmed.indexOf('=');
-    if (eq === -1) continue;
-
-    const key = trimmed.slice(0, eq).trim();
-    let value = trimmed.slice(eq + 1).trim();
-    if (
-      (value.startsWith('"') && value.endsWith('"')) ||
-      (value.startsWith("'") && value.endsWith("'"))
-    ) {
-      value = value.slice(1, -1);
-    }
-
-    if (key && !(key in process.env)) {
-      process.env[key] = value;
-    }
-  }
-}
-
-loadDevVars();
 
 const ROBOTS_META_RE = /<meta[^>]+name=["']robots["'][^>]*>/i;
+const ARTICLE_CARD_RE = /<article[^>]*\bdata-card\b[^>]*>([\s\S]*?)<\/article>/;
+const CARD_HREF_RE = /<a\s+href="([^"]+)"/;
 
 function parseArgs(argv) {
   const args = {
@@ -175,8 +106,7 @@ function parseArgs(argv) {
     // Deliberately not a real route on either app — guaranteed to miss the static-asset layer
     // and fall through to admin-dev's Nuxt SSR 404 handler.
     workerNotFoundPath: '/__verify-edge-headers-worker-check__',
-    articlePath: null, // auto-discovered from the live deployment (KV manifest + D1) when not given
-    maxCandidates: DEFAULT_MAX_DISCOVERY_CANDIDATES,
+    articlePath: null, // auto-discovered from the live homepage (discoverLiveArticlePath) when not given
     json: false,
   };
   for (let i = 0; i < argv.length; i++) {
@@ -187,7 +117,6 @@ function parseArgs(argv) {
     if (arg === '--dev-asset-path') { args.devAssetPath = argv[++i]; continue; }
     if (arg === '--worker-not-found-path') { args.workerNotFoundPath = argv[++i]; continue; }
     if (arg === '--article-path') { args.articlePath = argv[++i]; continue; }
-    if (arg === '--max-candidates') { args.maxCandidates = Number(argv[++i]); continue; }
     if (arg === '--json') { args.json = true; continue; }
     if (arg.startsWith('--dev-host=')) { args.devHost = arg.slice('--dev-host='.length); continue; }
     if (arg.startsWith('--admin-host=')) { args.adminHost = arg.slice('--admin-host='.length); continue; }
@@ -195,82 +124,53 @@ function parseArgs(argv) {
     if (arg.startsWith('--dev-asset-path=')) { args.devAssetPath = arg.slice('--dev-asset-path='.length); continue; }
     if (arg.startsWith('--worker-not-found-path=')) { args.workerNotFoundPath = arg.slice('--worker-not-found-path='.length); continue; }
     if (arg.startsWith('--article-path=')) { args.articlePath = arg.slice('--article-path='.length); continue; }
-    if (arg.startsWith('--max-candidates=')) { args.maxCandidates = Number(arg.slice('--max-candidates='.length)); continue; }
   }
   return args;
 }
 
-/** Default cap on how many manifest candidates (newest-`renderedAt`-first) get live-probed
- * before giving up — see the header comment's "OPS-02 hardening" section for why this is a
- * live probe rather than a `buildHash` lookup. Overridable via `--max-candidates` for a stale
- * manifest where the actually-deployed article isn't among the most recent few entries. */
-export const DEFAULT_MAX_DISCOVERY_CANDIDATES = 50;
-
 /**
- * Discovers the article path actually served by the live `devHost` deployment — see the header
- * comment's "OPS-02 hardening" section for the full rationale and the buildHash approach this
- * replaced. Returns `{ path }` on success or `{ error }` with a human-readable reason on any
- * failure (never throws) so the caller can report a normal failing check rather than crashing.
+ * Discovers the article path actually served by the live `devHost` deployment by parsing the
+ * live homepage itself — see the header comment's "04-12 hardening" section for the full
+ * rationale and the KV-listing approach this replaced. Returns `{ path }` on success or
+ * `{ error }` with a human-readable reason on any failure (never throws) so the caller can
+ * report a normal failing check rather than crashing.
  *
- * Lists every render-manifest KV article id, sorts by `renderedAt` descending (most recently
- * built first — the article the live deployment serves was necessarily built by SOME `astro
- * build` run, and recent runs are the likeliest match), and for each candidate: resolves it to a
- * full D1 row via `fetchArticleById()` (the same D1 module `[slug].astro` itself uses),
- * reconstructs the URL `[slug].astro` would have built (`/${category}/${slugify(title)}-${id}/`),
- * and issues a real GET against the live host. The first candidate that responds 200 IS the
- * answer — a live response is verified fact, not an inference from stored metadata that could be
- * stale or overwritten.
+ * Takes the first `[data-card] a[href]` link on the homepage — a real grid card
+ * (`ArticleCard.astro`'s `default`/`compact` variants), deliberately not the single `[data-lead]`
+ * card, which is a different markup shape. A homepage GET that names a real article link IS the
+ * answer; nothing is inferred from build-time bookkeeping that could have drifted from what is
+ * actually deployed.
  */
-export async function discoverLiveArticlePath(devHost, opts = {}) {
-  const maxCandidates = opts.maxCandidates ?? DEFAULT_MAX_DISCOVERY_CANDIDATES;
-
-  let articleIds;
+export async function discoverLiveArticlePath(devHost) {
+  const homeUrl = `https://${devHost}/`;
+  let res;
   try {
-    articleIds = await listManifestArticleIds();
+    res = await fetch(homeUrl, { redirect: 'manual' });
   } catch (err) {
-    return { error: `KV manifest list failed: ${err.message}` };
+    return { error: `network error fetching homepage ${homeUrl}: ${err.message}` };
   }
-  if (articleIds.length === 0) {
-    return { error: 'render manifest is empty — no article has ever been built' };
-  }
-
-  const entries = [];
-  for (const articleId of articleIds) {
-    let entry;
-    try {
-      entry = await getManifestEntry(articleId);
-    } catch (err) {
-      return { error: `KV manifest read for "${articleId}" failed: ${err.message}` };
-    }
-    if (entry) entries.push(entry);
-  }
-  entries.sort((a, b) => (a.renderedAt < b.renderedAt ? 1 : -1));
-
-  const candidates = entries.slice(0, maxCandidates);
-  for (const entry of candidates) {
-    let row;
-    try {
-      row = await fetchArticleById(entry.articleId);
-    } catch (err) {
-      return { error: `D1 lookup for article "${entry.articleId}" failed: ${err.message}` };
-    }
-    if (!row) continue; // manifest entry with no matching D1 row — try the next candidate, don't give up
-
-    const path = `/${row.category}/${slugify(row.title)}-${row.id}/`;
-    let res;
-    try {
-      res = await fetch(`https://${devHost}${path}`, { redirect: 'manual' });
-    } catch (err) {
-      return { error: `network error probing candidate "${path}": ${err.message}` };
-    }
-    if (res.status === 200) {
-      return { path };
-    }
+  if (res.status !== 200) {
+    return { error: `homepage ${homeUrl} responded ${res.status}, expected 200` };
   }
 
-  return {
-    error: `no manifest candidate is actually live on https://${devHost} (probed ${candidates.length} of ${entries.length} manifest entries, newest first) — the manifest and the deployment have diverged; try --max-candidates with a higher value or --article-path with a known-good URL`,
-  };
+  let html;
+  try {
+    html = await res.text();
+  } catch (err) {
+    return { error: `failed reading homepage body: ${err.message}` };
+  }
+
+  const cardMatch = html.match(ARTICLE_CARD_RE);
+  if (!cardMatch) {
+    return { error: `no [data-card] article element found on the live homepage (${homeUrl})` };
+  }
+
+  const hrefMatch = cardMatch[1].match(CARD_HREF_RE);
+  if (!hrefMatch) {
+    return { error: 'found a [data-card] article on the live homepage but no <a href> inside it' };
+  }
+
+  return { path: hrefMatch[1] };
 }
 
 async function fetchHeader(url, headerName) {
@@ -321,14 +221,14 @@ export async function runChecks(args) {
   }
 
   // 4. No application-level robots meta tag on the dev host's real content. Article path is
-  //    discovered from the LIVE deployment (version.json + KV manifest + D1), not a local build —
-  //    see discoverLiveArticlePath()'s doc comment and this file's header comment.
+  //    discovered from the LIVE homepage (discoverLiveArticlePath), not a local build and not a
+  //    KV listing — see discoverLiveArticlePath()'s doc comment and this file's header comment.
   {
     const name = 'no app-level <meta name="robots"> on the dev host (header must come from the edge)';
     let articlePath = args.articlePath;
     let discoveryError = null;
     if (!articlePath) {
-      const discovered = await discoverLiveArticlePath(args.devHost, { maxCandidates: args.maxCandidates });
+      const discovered = await discoverLiveArticlePath(args.devHost);
       articlePath = discovered.path ?? null;
       discoveryError = discovered.error ?? null;
     }
