@@ -469,5 +469,78 @@ reached this point. **Two ready paths, recorded for the owner to choose from (se
   commit to make that obvious later. (a) is the safer default; (b) is faster if the owner is at a
   computer without wanting to touch `git push`.
 
+### Build 3 — flag-on, first toggle (owner pushed `cc1b050` 2026-09-30)
+
+The owner chose option (a): pushed `feature/phase-04` (tip `e95a734`, including the temporary
+`incrementalBuild=true` hardcode). Non-production branch builds are enabled, so the push itself
+auto-triggered this build — no Deploy Hook POST was needed.
+
+| Field | Value |
+|---|---|
+| Build | `f4b05473-ebd4-4883-9d59-293451dbc63f`, commit `e95a734` |
+| Trigger (push) → deployed | 2026-09-30T21:02:56Z → "Success! Build completed" 21:12:10Z |
+| **Total wall time** | **~9m14s (554s)** |
+| Dependencies + build-output cache | Restored (21:03:13/21:03:15) |
+| Changelog loader | `[d1-changelog] sources=json:9,d1:6 total=15` |
+| D1 articles loader | `mode=cold public=40449 changed=40449 removed=0 rowsRead=512125` — **cold again, as documented**: 04-09 already found that any `astro.config.mjs` change (this commit's flag toggle) resets the content-layer store to empty, forcing `storeEmpty` cold-trigger regardless of the flag's own value. Not a new bug. |
+| Astro page-generation | 60,349 pages built in 4m43s |
+| Pages restored (incrementalBuild) | **0 of 60,349** — expected: this is the FIRST build since the flag flipped on, and Astro's own restore mechanism has nothing to restore from (no prior build ran with the flag on) |
+| Deploy (`wrangler versions upload --config wrangler.jsonc`) | `Success! Uploaded 60355 files (7 already uploaded) (131.56 sec)` |
+| Result | SUCCESS — version `b5f423fc` (number 7) |
+
+### Finding: near-total asset re-upload on every commit change (cost-relevant for 04-11)
+
+Build 3's deploy uploaded 60,355 of 60,355 files (only 7 already present) — essentially a full
+re-upload, not the small delta (`40449 − 40176 = 273` new/changed articles, `60355 − 59985 = 370`
+new/changed pages overall) a content-hash-based dedup should have produced if most pages were
+byte-identical to what Build 1/2 already stored.
+
+**Root cause, confirmed directly from source (not fixed in this plan — see below):**
+`src/layouts/Base.astro` (the layout every page in this project renders through) unconditionally
+embeds the build's commit hash in the footer of every single page:
+
+```
+// src/layouts/Base.astro line 152
+<p data-build data-stamp={stamp}>build {BUILD_HASH} · {stampDate}</p>
+```
+
+`stampDate` is correctly stamp-gated (`stamp="commit"` articles use the STABLE
+`BUILD_COMMIT_DATE`, not the per-build `BUILD_TIMESTAMP` — this is exactly what 04-09's SUMMARY
+already documented and this session independently re-confirmed). **But `BUILD_HASH` itself has no
+such gate** — it is printed on every page regardless of `stamp` mode, and
+`src/lib/build-info.ts`'s `resolveBuildHash()` derives it from `WORKERS_CI_COMMIT_SHA` (Workers
+Builds' own injected commit SHA) or a `git rev-parse` fallback. **Any commit change between two
+builds changes `BUILD_HASH`, which changes the raw HTML bytes of literally every page on the
+site — including every article whose actual content, category, tags, and structured data are
+100% unchanged** — defeating Cloudflare's content-hash-based asset-upload deduplication for that
+entire deploy.
+
+**Effect on upload time / build minutes (this build):** the 131.56s upload phase re-sent ~60,000
+files that (content-wise) did not need to change. Compared to a hypothetical dedup-eligible
+deploy uploading only the ~370 genuinely new/changed pages, this is a large, avoidable per-deploy
+cost multiplier on the upload phase specifically (not on the D1-loader/render phase, which is
+governed by the separate cold/warm mechanics already measured above).
+
+**Open question this plan does not resolve:** whether this only bites on an actual code push (a
+new commit, as happened here — Build 1/2 vs Build 3 differ by commit) or ALSO on a same-commit
+steady-state rebuild (the D-02 ingest-cron-triggered case, which redeploys without a new commit).
+If `WORKERS_CI_COMMIT_SHA` stays constant across two builds of the identical commit,
+`BUILD_HASH` would also stay constant and unchanged articles should dedupe normally in that
+scenario — meaning this finding would apply only to actual code deploys, not every 2-hourly cron
+cycle. This was not verified in this session (would require two consecutive same-commit
+Deploy-Hook-triggered builds, which risks conflating with the flag-toggle-cold-reset variable
+already at play here) and is flagged as follow-up verification before 04-11 finalizes its cost
+model.
+
+**Not fixed in this plan** — per the coordinator's explicit instruction, this is a real,
+diagnosed finding for 04-11's cost picture, not an in-scope fix. A fix (e.g., gating `BUILD_HASH`
+in the footer the same way `stampDate` already is, or omitting it from `stamp="commit"` pages
+entirely) is a product/design decision about what the footer should show on an unchanged article,
+not a mechanical bug fix — Rule 4 territory, left for 04-11 or a dedicated follow-up.
+
+### Build 4 — flag-on, no toggle (the real reuse test)
+
+[Recorded once Build 4 completes — see below.]
+
 **`WB_REUSE_PROVEN`/`WB_REUSE_ABSENT` verdict: not yet recorded.** This plan (04-10) is not
 complete until one of these two tokens is written here.

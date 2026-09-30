@@ -10,6 +10,7 @@ Entries are named `YYYY-MM-DD-HHMM_slug.md` and grouped by month, newest first.
 
 | Date | Entry | Keywords |
 |------|-------|----------|
+| 2026-09-30 | [Build 3 measurements plus a new asset-dedup finding for 04-11](2026-09-30-1517_build3-measurements-and-asset-dedup-finding.md) | `[DOCUMENTATION]` `[CI_CD]` `[PERFORMANCE]` `[DEPLOYMENT]` |
 | 2026-09-27 | [Record overnight blocker: 04-10 Task 2 paused pending owner's morning input](2026-09-27-2348_state-blocker-04-10-overnight.md) | `[DOCUMENTATION]` `[PLANNING]` |
 | 2026-09-27 | [Real Workers Builds spike measurements: cold/warm builds, D-15 drill, account limits](2026-09-27-2345_workers-builds-spike-measurements.md) | `[DOCUMENTATION]` `[CI_CD]` `[PERFORMANCE]` `[DEPLOYMENT]` |
 | 2026-09-27 | [TEMPORARY: hardcode incrementalBuild=true for the 04-10 Workers Builds reuse spike](2026-09-27-2341_temp-hardcode-incremental-build-flag.md) | `[CONFIG]` `[CI_CD]` `[DEPLOYMENT]` |
