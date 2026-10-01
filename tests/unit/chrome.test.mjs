@@ -122,6 +122,43 @@ test('chrome: a [data-dateline] element is present', { skip: !DIST_BUILT && SKIP
 });
 
 test(
+  // 04-followups (task 1): owner-requested credit link, present in Base.astro's footer on
+  // every page — asserted here on a real built article page, and separately on the homepage
+  // below, to prove it survives the `buildStamp`-gated footer split (04-11a) unaffected.
+  'chrome: footer credits 915website.com on an article page',
+  { skip: !DIST_BUILT && SKIP_REASON },
+  () => {
+    const html = readSampleArticleHtml();
+    const footerMatch = html.match(/<footer>([\s\S]*?)<\/footer>/);
+    assert.ok(footerMatch, 'expected a <footer> block');
+    const footerHtml = footerMatch[1];
+    assert.match(footerHtml, /data-credit/, 'expected a [data-credit] element in the footer');
+    assert.match(
+      footerHtml,
+      /<a href="https:\/\/915website\.com\/"[^>]*>915website\.com/,
+      'expected the credit link text "915website.com" to link to https://915website.com/'
+    );
+  }
+);
+
+test(
+  'chrome: footer credits 915website.com on the homepage',
+  { skip: !DIST_BUILT && SKIP_REASON },
+  () => {
+    const homeHtml = readFileSync(path.join(DIST_CLIENT, 'index.html'), 'utf8');
+    const footerMatch = homeHtml.match(/<footer>([\s\S]*?)<\/footer>/);
+    assert.ok(footerMatch, 'expected a <footer> block on the homepage');
+    const footerHtml = footerMatch[1];
+    assert.match(footerHtml, /data-credit/, 'expected a [data-credit] element in the footer');
+    assert.match(
+      footerHtml,
+      /<a href="https:\/\/915website\.com\/"[^>]*>915website\.com/,
+      'expected the credit link text "915website.com" to link to https://915website.com/'
+    );
+  }
+);
+
+test(
   // 04-11a: the footer's commit-hash/build-stamp line is opt-in (Base.astro's `buildStamp` prop,
   // default false) so an unchanged article's rendered bytes don't change on every commit —
   // see docs/phase-04/build-measurements.md's "near-total asset re-upload" finding. Article
