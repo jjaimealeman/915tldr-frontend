@@ -31,7 +31,7 @@ affects: ["05-10 (forced full re-upload at corpus scale, same production host)",
 actuals:
   tokens: 6600
   tasks: 3
-  commits: 6
+  commits: 7
 
 tech-stack:
   added: []
@@ -275,8 +275,8 @@ status: complete
    `docs/phase-05/archive-architecture.md`, `.planning/STATE.md`, a new changelog entry,
    `changelog/README.md` (this SUMMARY itself was also corrected in this commit)
 4. **Task 3 follow-up #2 (self-reference hash fix):** `239f775` (docs) — this SUMMARY only
-5. **Task 3 follow-up #3 (REND-11 wrangler asset-count reconciliation):** `[this commit — see
-   completion report for hash]` (docs) — `docs/phase-05/evidence/first-prod-deploy/
+5. **Task 3 follow-up #3 (REND-11 wrangler asset-count reconciliation):** `596cf4f` (docs) —
+   `docs/phase-05/evidence/first-prod-deploy/
    build-241c97e1-wrangler-window.log`, `docs/phase-05/evidence/first-prod-deploy/
    rend-11-reconciliation.md`, `tools/assert-file-count.mjs` (doc comment only),
    `docs/phase-05/archive-architecture.md`, `.planning/STATE.md`, `.planning/REQUIREMENTS.md`,
@@ -413,7 +413,7 @@ reading**
   `docs/phase-05/archive-architecture.md`
 - **Verification:** `29,966 - 4 = 29,962` matches wrangler's own reported total exactly; the
   12-directory gap reproduced locally with the identical count and named directories.
-- **Committed in:** `[this commit — see completion report for hash]`
+- **Committed in:** `596cf4f`
 
 ---
 
@@ -469,5 +469,5 @@ build-241c97e1-wrangler-window.log`, and `docs/phase-05/evidence/first-prod-depl
 rend-11-reconciliation.md` all confirmed present on disk (`grep -c ARCHIVE_TIER_LIVE` -> 1; log
 files match the orchestrator-supplied content byte for byte). `node --test
 tests/unit/file-count.test.mjs` confirmed 14/14 still passing after the doc-comment-only edit to
-`tools/assert-file-count.mjs`. Commits `f9f3e0d`, `941602f`, and `239f775` confirmed present in
-`git log --oneline --all`; this commit's own hash is confirmed in the completion report.
+`tools/assert-file-count.mjs`. Commits `f9f3e0d`, `941602f`, `239f775`, and `596cf4f` all
+confirmed present in `git log --oneline --all`.
