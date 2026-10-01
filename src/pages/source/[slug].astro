@@ -6,7 +6,7 @@
 import { getCollection } from 'astro:content';
 import Base from '../../layouts/Base.astro';
 import ArticleCard from '../../components/ArticleCard.astro';
-import { articlePath } from '../../lib/article-url';
+import { articlePath, SOURCE_SLUG_RE } from '../../lib/article-url';
 import { groupBySource, SOURCE_PAGE_COUNT } from '../../lib/listing';
 import { breadcrumbNode } from '../../lib/structured-data';
 
@@ -15,14 +15,21 @@ export async function getStaticPaths() {
   const allArticles = entries.map((entry) => entry.data);
   const grouped = groupBySource(allArticles);
 
-  return [...grouped.entries()].map(([slug, entry]) => ({
-    params: { slug },
-    props: {
-      slug,
-      source: entry.source,
-      articles: entry.articles.slice(0, SOURCE_PAGE_COUNT),
-    },
-  }));
+  return [...grouped.entries()].map(([slug, entry]) => {
+    // 04-followups (WR-01): the same tampering guard tag/[slug].astro already applies — a source
+    // slug becomes a static file path and must be validated before ever reaching one.
+    if (!SOURCE_SLUG_RE.test(slug)) {
+      throw new Error(`source/[slug]: invalid source slug "${slug}" — must match ${SOURCE_SLUG_RE}`);
+    }
+    return {
+      params: { slug },
+      props: {
+        slug,
+        source: entry.source,
+        articles: entry.articles.slice(0, SOURCE_PAGE_COUNT),
+      },
+    };
+  });
 }
 
 const { slug, source, articles } = Astro.props;

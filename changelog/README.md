@@ -10,6 +10,7 @@ Entries are named `YYYY-MM-DD-HHMM_slug.md` and grouped by month, newest first.
 
 | Date | Entry | Keywords |
 |------|-------|----------|
+| 2026-09-30 | [Source slug validation guard (04-REVIEW WR-01)](2026-09-30-1812_source-slug-guard-wr-01.md) | `[SECURITY]` `[BACKEND]` `[TESTING]` |
 | 2026-09-30 | [isBasedOn JSON-LD node changed from NewsArticle to CreativeWork](2026-09-30-1811_isbasedon-creativework-type.md) | `[SEO]` `[TESTING]` `[BUG_FIX]` |
 | 2026-09-30 | [Footer credit link to 915website.com](2026-09-30-1810_footer-credit-link-915website.md) | `[FRONTEND]` `[SEO]` `[TESTING]` |
 | 2026-09-30 | [Phase 4 reviewed and verified: 5/5 must-haves, 4 checks left for the owner](2026-09-30-1717_phase-4-review-verification-uat.md) | `[DOCUMENTATION]` `[TESTING]` `[SECURITY]` |
