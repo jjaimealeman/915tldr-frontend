@@ -10,6 +10,7 @@ Entries are named `YYYY-MM-DD-HHMM_slug.md` and grouped by month, newest first.
 
 | Date | Entry | Keywords |
 |------|-------|----------|
+| 2026-10-01 | [hot-window.json regenerated with corrected coverage; owner keeps 202 days](2026-10-01-0037_hot-window-coverage-fix-regenerated-owner-keeps-202.md) | `[BACKEND]` `[BUG_FIX]` `[DOCUMENTATION]` `[PLANNING]` |
 | 2026-10-01 | [Fix achievedCoverage to reflect the capped cutoff, not the pre-cap figure (GREEN)](2026-10-01-0024_achieved-coverage-capped-bug-fix-green.md) | `[BACKEND]` `[BUG_FIX]` `[TESTING]` |
 | 2026-10-01 | [Pin the achievedCoverage-after-cap defect with a failing test (RED)](2026-10-01-0023_achieved-coverage-capped-bug-test-red.md) | `[TESTING]` `[BACKEND]` `[BUG_FIX]` |
 | 2026-10-01 | [Plan 05-05 complete: hot window derived live from real traffic](2026-10-01-0018_05-05-complete-hot-window-derivation-plan.md) | `[DOCUMENTATION]` `[PLANNING]` `[ARCHITECTURE]` `[TESTING]` |

@@ -31,9 +31,9 @@ affects: ["05-06+ (any plan projecting the post-archive static file count now se
 
 # Actuals (#2632)
 actuals:
-  tokens: 29600
+  tokens: 33000
   tasks: 3
-  commits: 2
+  commits: 5
 
 tech-stack:
   added: []
@@ -76,6 +76,19 @@ key-decisions:
     cap (projected Phase 6 total 70,600 > 60,000). hot-window.json records both
     cappedByFileBudget: true and uncappedDays: 234 so this trade-off is visible on disk, not just
     in the doc."
+  - "POST-COMPLETION CORRECTION (2026-10-01, caught by coordinator review): the first write of
+    hot-window.json mislabeled achievedCoverage — it reported 0.9509870221878723 (the coverage AT
+    the UNCAPPED 234-day cutoff) under the CAPPED days:202 value. Fixed via a genuine RED/GREEN
+    TDD pair in tools/derive-hot-window.mjs (new coverageAtDays helper, recomputed after
+    applyStaticCap runs) and a live re-derivation against the same 30-day window. The real
+    achievedCoverage AT 202 days is 0.9266415483206132 (92.7%); the pre-cap figure is now recorded
+    separately as uncappedCoverage. See Post-Completion Correction section below."
+  - "OWNER DECISION (2026-10-01 00:25 MDT): KEEP the 202-day hot window as-is, with the corrected
+    92.7% coverage figure known. 202 is already the largest window the 60,000-file budget allows,
+    so it already minimises reads served from the archive tier (R2); a shorter window would only
+    send more readers there. Revisit only if 05-09's deployed R2 get() measurement shows cold p95
+    > ~300ms, and even then the remedy is archive-side (longer edge-cache TTL / post-build cache
+    warming), not a shorter window. Coverage item D6 is now resolved."
 
 requirements-completed: [REND-10]
 
@@ -140,16 +153,25 @@ coverage:
         status: pass
     human_judgment: false
   - id: D6
-    description: "Owner review of a genuinely surprising derivation result: the long-tail finding
-      (95% coverage needs 234 days, far beyond the 30-day measurement window) and the 202-day
-      capped launch cutoff"
-    verification: []
+    description: "RESOLVED (owner decision, 2026-10-01 00:25 MDT): owner reviewed the long-tail
+      finding (95.1% coverage needs 234 days, far beyond the 30-day measurement window, uncapped)
+      and the 202-day capped launch cutoff — whose own real achieved coverage is 92.7%, not the
+      95.1% an earlier version of this record mislabeled it as (see Post-Completion Correction
+      below) — and decided to KEEP 202 days unchanged."
+    verification:
+      - kind: other
+        ref: "Owner decision recorded in .planning/STATE.md (state.add-decision, 2026-10-01) and
+          docs/phase-05/hot-window-derivation.md's \"Owner decision: keep 202 days\" note: KEEP
+          202 days; revisit only if 05-09's deployed R2 get() measurement shows cold p95 > ~300ms"
+        status: pass
     human_judgment: true
-    rationale: "This is a disclosed finding that contradicts the informal 30-day expectation in
-      05-CONTEXT.md's own framing of D-05 — automated verification can confirm the arithmetic is
-      correct (and it was, independently cross-checked against tools/tier-report.mjs at several
-      candidate N values), but whether a 202-day hot window is an acceptable product/cost
-      trade-off is the owner's call, not something a test can pass or fail."
+    rationale: "This was a disclosed finding that contradicts the informal 30-day expectation in
+      05-CONTEXT.md's own framing of D-05 — automated verification confirmed the arithmetic is
+      correct (cross-checked against tools/tier-report.mjs at several candidate N values, and
+      re-confirmed after the achievedCoverage fix below), but whether a 202-day hot window is an
+      acceptable product/cost trade-off was the owner's call, not something a test could pass or
+      fail. The owner has now made that call (keep 202 days); human_judgment stays true because
+      the decision itself was a human act, not an automated check."
 
 duration: ~45min
 completed: 2026-10-01
@@ -159,9 +181,10 @@ status: complete
 # Phase 5 Plan 5: Live Traffic-Derived Hot Window Summary
 
 **The hot-article cutoff now comes from a live 30-day query of v1's real reader traffic (31,053
-matched human article requests), not a guess — and the derivation surfaced a genuine long-tail
-finding (95% coverage needs 234 days of article age, not 30) that the 60,000-file post-Phase-6
-budget caps down to a 202-day launch cutoff.**
+matched human article requests), not a guess — the derivation surfaced a genuine long-tail
+finding (reaching 95.1% coverage needs 234 days of article age, not 30), and the 60,000-file
+post-Phase-6 budget caps the launch cutoff to 202 days, whose own real achieved coverage is
+92.7% (owner-reviewed and kept as-is after a post-completion coverage-labeling fix — see below).**
 
 ## Performance
 
@@ -185,7 +208,9 @@ budget caps down to a 202-day launch cutoff.**
   with `userAgent` token exclusions as a documented floor.
 - The full 30-day derivation ran live and wrote `src/lib/archive/hot-window.json`:
   `status: "derived"`, `provisional: false`, **202 days** (capped from an uncapped 234 by the
-  60,000-file Phase-6 budget), 95.1% achieved coverage, 31,053 matched human article requests.
+  60,000-file Phase-6 budget), **92.7% achieved coverage at that capped cutoff** (the uncapped
+  234-day cutoff separately achieves 95.1%, now recorded as `uncappedCoverage` — see
+  Post-Completion Correction below), 31,053 matched human article requests.
 - `docs/phase-05/hot-window-derivation.md` documents the method, the coverage curve (80/90/95/99%:
   83/147/234/262 days), a top-20-articles sanity table, the cap arithmetic at five candidate N
   values, the tag-traffic share (98.9% of matched tag traffic already lands on static tags under
@@ -202,8 +227,16 @@ budget caps down to a 202-day launch cutoff.**
 2. **Task 3:** `8430217` (feat) — `src/lib/archive/hot-window.json`,
    `docs/phase-05/hot-window-derivation.md`, `docs/phase-05/evidence/hot-window/day-*.json` (30
    files), and a fix to `tests/unit/tier-facts.test.mjs` (Rule 1, see below).
+3. **Metadata commit (original):** `8ad8f5e` (docs) — this SUMMARY's first write, STATE.md,
+   ROADMAP.md.
+4. **Post-completion correction, RED:** `6329ea2` (test) — failing test pinning the
+   achievedCoverage-after-cap defect.
+5. **Post-completion correction, GREEN:** `9bd2424` (fix) — `coverageAtDays`, recomputed
+   `achievedCoverage`, new `uncappedCoverage` field.
+6. **Post-completion correction, regeneration + docs:** committed next (this SUMMARY's own
+   revision, plus the re-derived `hot-window.json` and corrected `hot-window-derivation.md`).
 
-**Plan metadata:** this SUMMARY's own commit (next).
+**Plan metadata (this revision):** this SUMMARY's own commit (next).
 
 ## Files Created/Modified
 
@@ -277,17 +310,60 @@ reason.
 
 ## Issues Encountered
 
-- The derivation's own long-tail finding (95% coverage needs 234 days of article age, far beyond
-  the 30-day measurement window) contradicts the informal expectation in 05-CONTEXT.md's framing
-  of D-05. This is not a bug in the tool — it was independently cross-checked against
+- The derivation's own long-tail finding (95.1% coverage needs 234 days of article age, far
+  beyond the 30-day measurement window) contradicts the informal expectation in 05-CONTEXT.md's
+  framing of D-05. This is not a bug in the tool — it was independently cross-checked against
   `tools/tier-report.mjs --days <N>` at several candidate N values and the arithmetic matches
-  exactly. It is reported plainly in `docs/phase-05/hot-window-derivation.md` for owner review
-  (coverage item D6, `human_judgment: true`) rather than silently adjusted to look closer to the
-  30-day expectation.
+  exactly. It was reported in `docs/phase-05/hot-window-derivation.md` for owner review (coverage
+  item D6) and is now RESOLVED — see Post-Completion Correction below.
 - `botScoreBucketBy10` is schema-visible via introspection but access-denied at actual query time
   on this Free-plan zone — introspection alone could not reveal this; it took a real failing query
   during the live probe to discover. Documented in the module header comment and the derived
   record's own `botFilter` field so a future re-derivation doesn't have to rediscover it.
+- **Real defect, caught by coordinator review after this plan was first reported complete:**
+  `achievedCoverage` in the first written `hot-window.json` reported `0.9509870221878723` under
+  `days: 202` — that figure is actually the coverage AT THE UNCAPPED 234-day cutoff, mislabeled
+  under the capped value. See Post-Completion Correction below for the full fix.
+
+## Post-Completion Correction (2026-10-01, same session)
+
+A coordinator review caught a real defect after this plan's original three tasks were committed
+and this SUMMARY was first written: `achievedCoverage` was computed from `coverageCurve`'s
+95%-target entry (the UNCAPPED 234-day cutoff's own coverage) and never recomputed after
+`applyStaticCap` lowered the shipped `days` to 202 — so the record described two different
+cutoffs under one set of numbers.
+
+**Fix, TDD-style:**
+1. **RED** (`6329ea2`, `test(05-05)`): added `coverageAtDays` to the test file's import list
+   (not yet exported — deliberately failing), plus a `cappingFixtureDeps` helper building a
+   deterministic `{0:50,1:30,2:10,3:5,10:5}` histogram and a test asserting `achievedCoverage`
+   must reflect the capped cutoff (`< coverageTarget`) with a new `uncappedCoverage` field
+   keeping the pre-cap figure. Confirmed genuinely RED (`SyntaxError` on the missing export).
+2. **GREEN** (`9bd2424`, `fix(05-05)`): added `coverageAtDays(histogram, days)`;
+   `coverageCurve` now delegates to it; `deriveHotWindow` computes `uncappedCoverage` BEFORE
+   `applyStaticCap` runs, then recomputes `achievedCoverage` from `coverageAtDays` AFTER capping,
+   using the final `capResult.days`. 29/29 unit tests pass; `pnpm run test:fast` 585/585.
+3. **Regeneration:** the committed evidence (`docs/phase-05/evidence/hot-window/day-*.json`)
+   turned out to only hold per-day aggregate totals, not the per-article age histogram needed to
+   recompute coverage at an arbitrary day count — `hot-window.json`'s own `coverageCurve` only has
+   4 fixed points (83/147/234/262 days), none of which is 202. Recomputing purely from committed
+   evidence was genuinely not possible, so the live derivation was re-run (read-only, $0, same
+   2026-09-01..2026-09-30 window since "yesterday" was still 2026-09-30 at re-run time) —
+   confirmed deterministic: every evidence day file is byte-identical to the first run; only
+   `hot-window.json` changed (`achievedCoverage` corrected, `uncappedCoverage` added, `derivedAt`
+   updated). `days` stayed 202, unchanged by the fix.
+4. **Real corrected figures:** `achievedCoverage: 0.9266415483206132` (92.7%) at `days: 202`;
+   `uncappedCoverage: 0.9509870221878723` (95.1%) at `uncappedDays: 234`.
+5. **Owner decision (2026-10-01 00:25 MDT):** KEEP the 202-day window as-is. 202 is already the
+   largest window the 60,000-file budget allows, so it already minimises reads served from R2; a
+   shorter window would only send more readers there. Revisit only if 05-09's deployed R2
+   `get()` measurement shows cold p95 > ~300ms — and even then the remedy is archive-side (a
+   longer edge-cache TTL or post-build cache warming), not a shorter window.
+
+**Additional commits this correction added:**
+6. `6329ea2` (test) — RED test pinning the defect
+7. `9bd2424` (fix) — GREEN implementation
+8. (hot-window.json regeneration + doc corrections — see commit list below)
 
 ## User Setup Required
 
@@ -304,13 +380,13 @@ plan started per 05-CONTEXT.md D-07b) — no new permission grant was needed thi
   reading articles for months, not weeks) may shift materially once Phase 6 roughly doubles the
   corpus. The re-run procedure in `docs/phase-05/hot-window-derivation.md` should be exercised
   again before or shortly after that phase's rollout, not assumed stable from this one measurement.
-- **Flagged for owner review (not a code blocker):** the 202-day capped cutoff versus the
-  234-day uncapped 95%-coverage cutoff is a real product/cost trade-off this plan surfaced but
-  cannot itself decide — see coverage item D6 and the "Cap arithmetic" table in
-  `docs/phase-05/hot-window-derivation.md`.
-- `pnpm run test:fast` (581/581), `pnpm run test:build-gate` (9/9), `pnpm run test:regression`
+- **RESOLVED (owner review, 2026-10-01 00:25 MDT):** the 202-day capped cutoff versus the
+  234-day uncapped cutoff trade-off — coverage item D6 — is decided: KEEP 202 days. See the
+  Post-Completion Correction section above and `docs/phase-05/hot-window-derivation.md`'s "Owner
+  decision: keep 202 days" note for the full rationale and revisit trigger.
+- `pnpm run test:fast` (585/585), `pnpm run test:build-gate` (9/9), `pnpm run test:regression`
   (5/5), `pnpm run test:tracer` (4/4 + 1 unrelated pre-existing skip), and `pnpm run guard:config`
-  all pass clean after this plan's changes. No blockers.
+  all pass clean after this plan's changes (including the post-completion fix). No blockers.
 
 ---
 *Phase: 05-hybrid-archive-zero-reads-proof*
@@ -318,5 +394,6 @@ plan started per 05-CONTEXT.md D-07b) — no new permission grant was needed thi
 
 ## Self-Check: PASSED
 
-All 9 key files confirmed present on disk; both cited task commit hashes (`6c21533`, `8430217`)
-confirmed present in `git log --oneline --all`.
+All 9 key files confirmed present on disk; all 5 cited commit hashes (`6c21533`, `8430217`,
+`8ad8f5e`, `6329ea2`, `9bd2424`) confirmed present in `git log --oneline --all` (plus this
+revision's own forthcoming commit).

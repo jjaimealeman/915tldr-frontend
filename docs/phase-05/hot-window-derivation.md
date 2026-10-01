@@ -1,11 +1,30 @@
 # Hot-window derivation (REND-10, D-04/D-05/D-06/D-07/D-07b)
 
-**Verdict:** `HOT_WINDOW_DERIVED | 202 days, 95.1% coverage | node tools/derive-hot-window.mjs --write`
+**Verdict:** `HOT_WINDOW_DERIVED | 202 days, 92.7% coverage (capped from 234 days / 95.1%) | node tools/derive-hot-window.mjs --write`
 
 `src/lib/archive/hot-window.json` now carries `"status": "derived"`, replacing the D-07
 bootstrap age fallback (90 days, `fallback-provisional`) this plan started with. REND-10 is met:
 the cutoff a real build uses is derived from measured human-reader traffic, not a guess, and the
 method below is reproducible on demand.
+
+> **Correction (2026-10-01, post-coordinator-review):** an earlier version of this doc and
+> `hot-window.json` reported `achievedCoverage: 0.951` at `days: 202` — that 0.951 figure was
+> actually the coverage at the UNCAPPED 234-day cutoff, mislabeled under the capped 202-day
+> value. Fixed in `tools/derive-hot-window.mjs` (new `coverageAtDays` helper, recomputed after
+> `applyStaticCap` runs) and verified with a dedicated RED/GREEN test pair
+> (`tests/unit/derive-hot-window.test.mjs`). The real coverage AT 202 days is **92.7%**
+> (`0.9266415483206132`); the file now also carries `uncappedCoverage: 0.9509870221878723` for
+> the 234-day figure under its own, correctly-labeled name. `days` itself did not change — see
+> "Owner decision: keep 202 days" below.
+
+> **Owner decision (2026-10-01 00:25 MDT): KEEP the 202-day hot window.** 202 is the largest
+> window the 60,000-file post-Phase-6 budget allows, so it already minimises how many reads get
+> served from the archive tier (R2) rather than static — a shorter window would only send more
+> readers to R2, not fewer. The corrected 92.7% achieved-coverage figure (down from the
+> mislabeled 95.1%) does not change this: the cap, not the coverage target, is still the binding
+> constraint at 202 days. **Revisit only if 05-09's deployed R2 `get()` measurement shows cold
+> p95 > ~300ms**, and even then the remedy is archive-side (a longer edge-cache TTL or
+> post-build cache warming), not a shorter hot window.
 
 ## Decisions this derivation satisfies
 
@@ -91,24 +110,33 @@ and the user-agent floor are both doing real, measurable work here, not a formal
 
 ## Coverage curve
 
+The curve below shows what the COVERAGE TARGET alone would pick, before the file-budget cap is
+applied — these are `coverageCurve`'s own fixed 80/90/95/99% points, each independently the
+smallest N meeting that target. The 202-day row is a DIFFERENT number: it's what the cap
+actually leaves after stepping 234 down, and its own achieved coverage (92.7%) is lower than the
+95% target because the cap — not the coverage math — is what bound it.
+
 | Target coverage | Cutoff (days) | Achieved coverage |
 |---|---|---|
 | 80% | 83 | 80.3% |
 | 90% | 147 | 90.0% |
-| **95% (chosen target)** | **234 (uncapped)** | **95.1%** |
+| 95% (uncapped target) | 234 | 95.1% |
 | 99% | 262 | 99.1% |
+| **202 (actual launch cutoff, capped)** | **202** | **92.7%** (`coverageAtDays`, not a target-driven point on the curve above) |
 
 **This is the single most important finding of this derivation, and it contradicts the informal
 30-day expectation in 05-CONTEXT.md's own framing of D-05.** Real human reads of 915tldr.com have
 a long tail: even reaching 80% coverage of matched human article requests needs articles up to 83
-days old; 95% needs 234 days. The 30-day figure in D-05 is the TRAFFIC SAMPLE window (how many
-days of reader behavior to measure), not the resulting age cutoff — the two are independent
-numbers, and this derivation's own result is that readers keep reading articles for months, not
-weeks. The most likely explanation (not independently confirmed beyond this derivation's own
-data): a local news aggregator's traffic is heavily organic/search-driven to specific
-evergreen-ish stories, not recency-driven homepage browsing — several of the top-20 articles below
-are read steadily at ages of 17-22 days deep into the sample window, and one (a screwworm/USDA
-story) is still being read at a measured median age of 136.5 days.
+days old; 95% needs 234 days (uncapped). The 60,000-file post-Phase-6 budget caps the LAUNCH
+cutoff to 202 days, which only achieves 92.7% coverage, not 95% — a real, disclosed shortfall
+against the coverage target, not a rounding difference. The 30-day figure in D-05 is the TRAFFIC
+SAMPLE window (how many days of reader behavior to measure), not the resulting age cutoff — the
+two are independent numbers, and this derivation's own result is that readers keep reading
+articles for months, not weeks. The most likely explanation (not independently confirmed beyond
+this derivation's own data): a local news aggregator's traffic is heavily organic/search-driven
+to specific evergreen-ish stories, not recency-driven homepage browsing — several of the top-20
+articles below are read steadily at ages of 17-22 days deep into the sample window, and one (a
+screwworm/USDA story) is still being read at a measured median age of 136.5 days.
 
 ## Top 20 most-requested articles in the window
 
@@ -156,8 +184,17 @@ build this derivation ran against: `60,414 total - 40,487 article facts - 19,891
 
 `applyStaticCap` stepped the uncapped N (234, from the 95% coverage target alone) down one day at
 a time until the Phase 6 projection fit the 60,000 cap, landing at **202 days** (projected Phase 6
-total: 59,836 — 164 files of headroom). `hot-window.json` records `cappedByFileBudget: true` and
-`uncappedDays: 234` so this trade-off is visible to anyone reading the file, not just this doc.
+total: 59,836 — 164 files of headroom), at an **achieved coverage of 92.7%** (not 95.1% — that
+figure belongs to the uncapped 234-day cutoff). `hot-window.json` records `cappedByFileBudget:
+true`, `uncappedDays: 234`, `achievedCoverage: 0.9266415483206132` (at 202 days) and
+`uncappedCoverage: 0.9509870221878723` (at 234 days) so this trade-off is visible to anyone
+reading the file, not just this doc.
+
+**Owner decision: keep 202 days.** Recorded 2026-10-01 00:25 MDT, after this coverage correction
+was surfaced: 202 is already the largest window the budget allows, so it already minimises R2-
+served reads; shrinking it further to chase a higher coverage number would be backwards (the cap,
+not coverage, is the binding constraint here). No change to `days` was made as a result of the
+achievedCoverage fix. See the re-run/revisit trigger at the top of this doc.
 
 ## Tag traffic (informational only — does not change D-08)
 
