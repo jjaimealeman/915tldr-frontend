@@ -3,7 +3,7 @@ phase: 4
 slug: static-generation-templates-seo
 # status lifecycle: draft (seeded by plan-phase) → validated (set by validate-phase §6)
 # audit-milestone §5.5 distinguishes NOT-VALIDATED (draft) from PARTIAL (validated + nyquist_compliant: false) (#2117)
-status: draft
+status: validated
 nyquist_compliant: true
 wave_0_complete: true
 created: 2026-09-26
@@ -87,6 +87,12 @@ below for the aggregate run).*
 | 04-12 | T1 — Edge-verify homepage discovery, deploy, live URL-contract suite | SEO-04, SEO-06, SEO-08, FIX-04, FIX-05 | e2e (live) | `pnpm run verify:edge && node --test tests/integration/url-shapes.test.mjs` | ✅ | ✅ pass (4/4 + 57/57) |
 | 04-12 | T2 — Real-browser reader journeys | SEO-04, SEO-08, IDNT-03, IDNT-04 | e2e (live, real Chromium) | `node --test tests/integration/browser-journeys.test.mjs` | ✅ | ✅ pass (6/6) |
 | 04-12 | T3 — Validation map + full-suite run (this task) | all (aggregate) | other | `pnpm run test:unit && pnpm run test:build-gate && pnpm run test:regression && TRACER_LIVE_ORIGIN=https://dev.915tldr.com pnpm run test:tracer` | ✅ | ✅ pass |
+| 04-followups | Footer credit link to 915website.com | N/A (owner request) | unit | `node --test tests/unit/chrome.test.mjs` | ✅ | ✅ pass |
+| 04-followups | isBasedOn `@type` → CreativeWork | SEO-01, SEO-02 | unit + manual | `node --test tests/unit/structured-data.test.mjs`; owner Rich Results Test (UAT 1) | ✅ | ✅ pass |
+| 04-followups | WR-01 `SOURCE_SLUG_RE` guard on source pages | REND-04 | unit | `node --test tests/unit/listing-pages.test.mjs` | ✅ | ✅ pass |
+| 04-followups | WR-03 tsconfig + `typecheck` script | N/A (review finding) | other | `pnpm run typecheck` → `Result (48 files): 0 errors` (process exit 1 is the documented, unrelated assert-no-d1 interaction) | ✅ | ✅ pass |
+| 04-followups | WR-02 manifest schema-stale flag clears only on cold pass | REND-01, SEO-04 | unit | `node --test tests/unit/articles-loader.test.mjs` | ✅ | ✅ pass |
+| 04-followups | WR-04 deploy-hook test fetch-mock type (915tldr.com2) | OPS-10 | unit (other repo) | `node --test tests/unit/frontend-deploy-hook.test.ts` (915tldr.com2) | ✅ (other repo) | ✅ pass (per 04-followups-SUMMARY; not re-run 2026-09-30 validate pass) |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky — every row above is ✅ as of 2026-09-30 (this
 session re-ran every automated command listed, plus the aggregate full-suite chain — see "Full
@@ -185,3 +191,36 @@ dominate the full-suite cost).
 file's own lifecycle comment — `validated` is set by a separate `/gsd-validate-phase` pass if the
 owner runs one; this plan's own scope is filling the map and the Wave 0/Nyquist flags, not
 changing that field.
+**Validated:** `/gsd-validate-phase 4`, 2026-09-30 — `status: validated` (see audit below).
+
+---
+
+## Validation Audit 2026-09-30
+
+`/gsd-validate-phase 4` (State A — audit existing). Re-checked the map against code that landed
+after 04-12 wrote it (04-followups: `articles-loader.ts`, `404.astro`, `[category]/[slug].astro`,
+`source/[slug].astro`, `structured-data.ts`, `Base.astro`). The security pass (`e9c0c19`) changed
+docs only. Added six 04-followups rows above.
+
+Requirement coverage: all 18 Phase 4 IDs (REND-01..05, SEO-01..08, IDNT-03, IDNT-04, OPS-10,
+FIX-04, FIX-05) map to at least one automated row. **COVERED: 18 · PARTIAL: 0 · MISSING: 0.**
+
+Re-ran the full suite fresh in this pass rather than relying on the 04-12 result:
+
+```
+pnpm run test:unit          -> 390/390 pass (warm build + tests, 44s; +5 tests from 04-followups)
+pnpm run test:build-gate    -> 8/8 pass
+pnpm run test:regression    -> 5/5 pass (byte-identity two-build replay included, 112s)
+TRACER_LIVE_ORIGIN=https://dev.915tldr.com pnpm run test:tracer -> 5/5 pass
+pnpm run typecheck          -> astro check: 0 errors (48 files)
+```
+
+Not re-run in this pass: the live `tests/integration/url-shapes.test.mjs` and
+`browser-journeys.test.mjs` suites (last green 2026-09-30 in 04-12), and 915tldr.com2's
+frontend-deploy-hook test (last green in 04-followups).
+
+| Metric | Count |
+|--------|-------|
+| Gaps found | 0 |
+| Resolved | 0 |
+| Escalated | 0 |
