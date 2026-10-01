@@ -15,6 +15,24 @@
 > re-render may still run inside this cron Worker** — that path is untouched by D-05, which
 > concerns only the static site's `astro build` step. Full pipeline: `docs/phase-04/build-pipeline.md`.
 
+> **Phase 5 note, 2026-10-01 (05-08) — resolves the open question the amendment above left
+> standing.** The archive tier's rendering does NOT run inside the 2-hour cron Worker. There is no
+> separate render step for archived pages at all: `astro build` (on Workers Builds, per the
+> amendment above) renders every page — hot and archive-tier — the same way in one pass;
+> `tools/partition-archive.mjs` then relocates the archive-tier subset of that SAME output into
+> `dist/archive`, and `tools/archive-sync.mjs` (invoked from `tools/ci-build.mjs`'s deploy step,
+> also on Workers Builds) uploads it to R2. The cron Worker's role for the archive tier is
+> identical to its role for the static site described above: it only TRIGGERS a Workers Builds
+> build; it never renders or uploads anything itself. **The chained-cron full-rebuild mechanism
+> this document's historical section describes below was explicitly considered for the archive
+> tier and not adopted** — Phase 3's own measurement put a chained-cron full rebuild at
+> ~26-33 cycles (~2.7 days wall-clock), ~2.7x over D-10's 24-hour SLA before the archive tier even
+> adds R2-write time on top; the archive tier instead uses `tools/archive-sync.mjs`'s own
+> deadline-bounded `pre`/`post` phases (840s/1020s) inside the SAME Workers Builds build that
+> already ships the static site, with backlog carry-forward (alerted past 20h) for whatever a
+> single build's deadline doesn't finish. Full detail, measurements, and the cost/ceiling
+> reasoning: `docs/phase-05/archive-architecture.md` ("Which ceiling governs REND-12").
+
 **Decision: the render step runs inside the existing 2-hour cron Worker (Option A) — for both
 the normal steady-state incremental render and the rare full-corpus rebuild**, which runs as the
 same incremental machinery repeated across consecutive cron cycles with staleness forced, not as
