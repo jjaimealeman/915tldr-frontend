@@ -10,6 +10,7 @@ Entries are named `YYYY-MM-DD-HHMM_slug.md` and grouped by month, newest first.
 
 | Date | Entry | Keywords |
 |------|-------|----------|
+| 2026-10-01 | [Phase 5 verification: zero-reads premise proven, 3 gaps to close](2026-10-01-1615_phase-5-verification-gaps-found.md) | `[TESTING]` `[ARCHITECTURE]` `[PLANNING]` |
 | 2026-10-01 | [Phase 5 code review: 3 blockers, 9 warnings, 10 info](2026-10-01-1600_phase-5-code-review.md) | `[REVIEW]` `[ARCHITECTURE]` `[TESTING]` |
 | 2026-10-01 | [Phase 5 complete: ARCH-01 ZERO_READS_PROVEN, the project's core premise verified](2026-10-01-1544_05-12-phase-5-complete-zero-reads-proven.md) | `[DOCUMENTATION]` `[ARCHITECTURE]` `[PERFORMANCE]` `[PLANNING]` `[CRITICAL]` |
 | 2026-10-01 | [Phase 5's validation contract closed: nyquist_compliant, full suite green live](2026-10-01-1612_05-12-phase-5-validation-map-closed.md) | `[DOCUMENTATION]` `[TESTING]` `[ARCHITECTURE]` |

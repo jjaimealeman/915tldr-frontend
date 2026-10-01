@@ -7,14 +7,14 @@
 
 ### Architecture & Read Budget
 
-- [x] **ARCH-01**: A public page request completes with zero D1 row reads, verified against Cloudflare D1 analytics
+- [ ] **ARCH-01**: A public page request completes with zero D1 row reads, verified against Cloudflare D1 analytics
 - [x] **ARCH-02**: The build fails if any public route, island component, middleware, or endpoint can reach the D1 binding
 - [x] **ARCH-03**: The D1-import assertion scans island component files and `/_server-islands/*` paths, not only `.astro` pages
 - [x] **ARCH-04**: Bindings are accessed via `import { env } from 'cloudflare:workers'`; no use of the removed `Astro.locals.runtime.env`
 - [x] **ARCH-05**: Astro config uses `output: 'static'` with per-route `export const prerender = false`; `'hybrid'` appears nowhere
 - [x] **ARCH-06**: `imageService` is set explicitly to `{ build: 'compile', runtime: 'passthrough' }` rather than inheriting the `cloudflare-binding` default
 - [ ] **ARCH-07**: Total D1 reads per day stay under 2,000,000 for 7 consecutive days
-- [x] **ARCH-08**: A public request performs at most 1 KV read and under 5ms Worker CPU — *caveat (05-12, 2026-10-01): KV reads and CPU p99 (2.846ms) confirmed within budget on the deployed Worker, but a single real request in the live measurement window spiked to 49.966ms CPU, over the 20ms hard-fail ceiling (disclosed, not hidden — see `docs/phase-05/zero-reads-gate.md` and `.planning/WINDOWS.md` #26; tracked for `/gsd-verify-work`, not a project halt)*
+- [ ] **ARCH-08**: A public request performs at most 1 KV read and under 5ms Worker CPU — *caveat (05-12, 2026-10-01): KV reads and CPU p99 (2.846ms) confirmed within budget on the deployed Worker, but a single real request in the live measurement window spiked to 49.966ms CPU, over the 20ms hard-fail ceiling (disclosed, not hidden — see `docs/phase-05/zero-reads-gate.md` and `.planning/WINDOWS.md` #26; tracked for `/gsd-verify-work`, not a project halt)*
 
 ### Content Loading & Render
 
@@ -24,12 +24,12 @@
 - [x] **REND-04**: Homepage, category pages, tag indexes and static pages regenerate on each cron cycle via a new Worker deployment
 - [x] **REND-05**: Only new and changed articles re-render; unchanged articles are not recomputed
 - [x] **REND-06**: A render manifest in KV records what has been rendered and at which version
-- [x] **REND-07**: Articles outside the hot window are rendered once to R2 and served from there
-- [x] **REND-08**: A request for an archived article falls through the static-asset layer to the Worker and is served from R2
-- [x] **REND-09**: Tag pages default to the archive tier; only top-N tags by article count are promoted to hot static
-- [x] **REND-10**: The hot-content cutoff is derived from measured request traffic, not a fixed guess
-- [x] **REND-11**: Total deployed static-asset file count is reported daily and alarms before 100,000
-- [x] **REND-12**: A full archive re-render completes without exceeding Worker CPU limits
+- [ ] **REND-07**: Articles outside the hot window are rendered once to R2 and served from there
+- [ ] **REND-08**: A request for an archived article falls through the static-asset layer to the Worker and is served from R2
+- [ ] **REND-09**: Tag pages default to the archive tier; only top-N tags by article count are promoted to hot static
+- [ ] **REND-10**: The hot-content cutoff is derived from measured request traffic, not a fixed guess
+- [ ] **REND-11**: Total deployed static-asset file count is reported daily and alarms before 100,000
+- [ ] **REND-12**: A full archive re-render completes without exceeding Worker CPU limits
 
 ### Content Quality
 
@@ -248,7 +248,7 @@ Deferred. Tracked, not in this roadmap.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| ARCH-01 | Phase 5 | Complete |
+| ARCH-01 | Phase 5 | Gaps Found |
 | ARCH-02 | Phase 3 | Complete |
 | ARCH-03 | Phase 3 | Complete |
 | ARCH-04 | Phase 3 | Complete |
@@ -262,12 +262,12 @@ Deferred. Tracked, not in this roadmap.
 | REND-04 | Phase 4 | Complete |
 | REND-05 | Phase 4 | Complete |
 | REND-06 | Phase 3 | Complete |
-| REND-07 | Phase 5 | Complete |
-| REND-08 | Phase 5 | Complete |
-| REND-09 | Phase 5 | Complete |
-| REND-10 | Phase 5 | Complete |
-| REND-11 | Phase 5 | Complete |
-| REND-12 | Phase 5 | Complete |
+| REND-07 | Phase 5 | Gaps Found |
+| REND-08 | Phase 5 | Gaps Found |
+| REND-09 | Phase 5 | Gaps Found |
+| REND-10 | Phase 5 | Gaps Found |
+| REND-11 | Phase 5 | Gaps Found |
+| REND-12 | Phase 5 | Gaps Found |
 | CONT-01 | Phase 2 | Complete |
 | CONT-02 | Phase 2 | Complete |
 | CONT-03 | Phase 2 | Complete |
