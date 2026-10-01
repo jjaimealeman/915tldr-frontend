@@ -317,7 +317,7 @@ Plans:
   4. Tag pages default to the R2 archive tier with only a measured top-N by article count promoted to hot static; total deployed static-asset file count is reported daily, the current count is recorded against the 100,000 ceiling, and the build fails at an 80,000-file safety margin.
   5. The hot-content cutoff is derived from measured request traffic over a stated window — not a fixed guess — and a full archive re-render completes with no single Worker invocation exceeding the 300 s CPU ceiling.
 
-**Plans**: 9/12 plans executed in 7 waves
+**Plans**: 10/12 plans executed in 7 waves
 
 Plans:
 **Wave 1**
@@ -347,7 +347,7 @@ Plans:
 **Wave 6** *(blocked on Wave 5 completion)*
 
 - [ ] 05-10-PLAN.md — REND-12: forced full re-upload through the real pipeline; verdict with the criterion-5 (300 s) reinterpretation (wave 6)
-- [ ] 05-11-PLAN.md — Live URL contract and real-browser journeys for archived pages; R2 latency p50/p95 and archived LCP vs 1.5 s (wave 6)
+- [x] 05-11-PLAN.md — Live URL contract and real-browser journeys for archived pages; R2 latency p50/p95 and archived LCP vs 1.5 s (wave 6)
 
 **Wave 7** *(blocked on Wave 6 completion)*
 

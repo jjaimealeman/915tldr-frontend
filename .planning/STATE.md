@@ -5,15 +5,15 @@ milestone_name: milestone
 current_phase: 05
 current_phase_name: Hybrid Archive & Zero-Reads Proof
 status: executing
-stopped_at: Completed 05-09-PLAN.md
-last_updated: "2026-10-01T15:58:17.085Z"
-last_activity: 2026-09-30
-last_activity_desc: Phase 05 plan 01 executed (tag tiering, hot window, build-time tier facts)
+stopped_at: Completed 05-11-PLAN.md
+last_updated: "2026-10-01T17:15:00.000Z"
+last_activity: 2026-10-01
+last_activity_desc: Phase 05 plan 11 executed (live URL contract + real-browser journeys for archived pages; R2 latency and archived-page LCP measured — R2_LATENCY_EXCEEDS_LCP, flagged for owner review)
 progress:
   total_phases: 5
   completed_phases: 4
   total_plans: 64
-  completed_plans: 61
+  completed_plans: 62
 ---
 
 # Project State
@@ -28,11 +28,11 @@ See: .planning/PROJECT.md (updated 2026-09-16)
 ## Current Position
 
 Phase: 05 (Hybrid Archive & Zero-Reads Proof) — EXECUTING
-Plan: 10 of 12
-Status: Ready to execute
-Last activity: 2026-09-30 — Phase 05 plan 01 executed (tag tiering, hot window, tier facts)
+Plan: 12 of 12 (05-10 still pending; 05-11 complete out of order per orchestrator wave sequencing)
+Status: Ready to execute (05-10 or 05-12 next)
+Last activity: 2026-10-01 — Phase 05 plan 11 executed (live URL contract + browser journeys for archived pages; R2/LCP measured)
 
-Progress: [██████████] 95%
+Progress: [██████████] 97%
 
 ## Performance Metrics
 
@@ -110,6 +110,7 @@ Progress: [██████████] 95%
 | Phase 05 P07 | ~40min | 3 tasks | 5 files |
 | Phase 05 P08 | ~55min | 3 tasks | 7 files |
 | Phase 05 P09 | ~90min | 3 tasks | 1 files |
+| Phase 05 P11 | ~110min | 3 tasks | 14 files |
 
 ## Accumulated Context
 
@@ -268,6 +269,9 @@ Recent decisions affecting current work:
 - [Phase ?]: 05-09: Owner selected option-a (merge to main) at Task 1's checkpoint, 2026-10-01 ~09:07 MDT; merge/push executed ~09:14 MDT (57c4b05 -> 57dfa94), triggering the real Workers Builds production deploy this plan observed.
 - [Phase ?]: 05-09: Archive tier confirmed live on dev.915tldr.com production (build 241c97e1, commit 57dfa94); cold R2 p95=215ms / KV p95=188ms, both under the ~300ms hot-window revisit threshold -> 202-day window kept as-is.
 - [Phase ?]: 05-09: REND-07 and REND-11 both marked Complete, confirmed by the real production build log's own lines (orchestrator-supplied, this executor's own token returns 403/12004 against the Builds API). REND-11's three-way count mismatch (gate 29,966 vs wrangler's "Read N files" 29,978 vs wrangler's own upload accounting 29,962) is fully reconciled file by file: the 12-file gap is wrangler's own console line counting top-level directories alongside files (reproduced locally, not a real asset-count discrepancy); the 4-file gap is four root control files (.assetsignore, _headers, _redirects, wrangler.json) the gate correctly counts but wrangler correctly never serves. No code fix was needed -- assert-file-count.mjs's conservative-superset design was already correct; see docs/phase-05/evidence/first-prod-deploy/rend-11-reconciliation.md.
+- [Phase ?]: 05-11: dev.915tldr.com's deployed commit had drifted from local HEAD (a scheduled/ingest-triggered Workers Builds rebuild reports the literal branch name "main", not a sha, for a non-push-triggered build; plus 05-09's own post-deploy doc commits were unmerged) -- redeployed directly from local HEAD via `pnpm run deploy:ci` (`node tools/ci-build.mjs deploy`, idempotent, $0 cost) three times across this plan's three task commits to keep /version.json matching HEAD exactly for the T-04-48 stale-deploy guard; the guard itself was widened to accept an ancestor relationship in either direction with zero diff on guarded paths (not just "HEAD ancestor of deployed"), matching this project's real per-phase-branch workflow.
+- [Phase ?]: 05-11: Live proof complete -- 81/81 tests pass (url-shapes.test.mjs 71, browser-journeys.test.mjs 10) against the real deployed site, verify:edge 5/5 (new check 5: archived-page noindex), real-Chromium clicks into both an archived article and an archived tag with no extra redirects.
+- [Phase ?]: 05-11: Criterion 2 measured, NOT met on the canonical run -- `R2_LATENCY_EXCEEDS_LCP` (archived p95 LCP 1,788ms vs the 1,500ms budget; 200-sample R2 get() p95=172ms, KV p95=155ms, both small and well within budget). Four back-to-back runs on the operator machine showed real variance (archived p95 LCP 1200/1212/2108/1788ms) -- the archive tier's own R2/KV cost is NOT the bottleneck; hot (never-archived) pages also sit close to the 1.5s line (p95 1,484ms) in this lab proxy, pointing at general page-weight/render cost as the real lever, not the archive-serving mechanism. Flagged for owner review in docs/phase-05/archive-latency.md; field LCP at mobile p75 (PROJECT.md's actual release gate) is unaffected and still pending Phase 11. Also corrects ROADMAP.md Phase 5 criterion 2's "~30 KB objects" assumption -- measured archived-article objects are ~13KB (median 13,070 bytes), not ~30KB.
 
 ### Pending Todos
 
@@ -310,6 +314,7 @@ Recent decisions affecting current work:
 - 04-07: production robots.txt behavior changes on next deploy -- v1's AI-crawler-blocking policy (Content-signal, GPTBot/ClaudeBot/CCBot/etc. Disallow) has never actually been served (v1's static public/robots.txt shadowed its own server route); v2 ships the intended policy, an owner-approved but real change to what's been crawlable. Also flagged: SEO-04 sitemap ordering-determinism unverified across two builds (@astrojs/sitemap documents no stable ordering guarantee) -- see 04-07-SUMMARY.md coverage D4.
 - **RESOLVED — Phase 4, 04-10 Task 2.** The owner chose option (a) and pushed `cc1b050` on 2026-09-30. Builds 3-4 ran on the real Workers Builds platform: Build 3 (flag-on, first toggle) was cold again as 04-09 already documented, 0/60,349 pages restored (expected); Build 4 (flag-on, no toggle) confirmed at least 34,871/~60,349 pages restored via `experimental.incrementalBuild` on a genuinely fresh Workers Builds container, wall time collapsing from 554s to 147s. **Verdict: `WB_REUSE_PROVEN`** — contradicts and supersedes 04-09's local `REUSE_WARM_ONLY` finding; likely explained by Workers Builds restoring both a dependencies cache and a build-output cache from the prior build, which 04-09's local fresh-clone simulation never fully reproduced. A new cost-relevant finding surfaced along the way: Build 3's deploy re-uploaded 60,355/60,355 assets (only 7 deduplicated), root-caused to `src/layouts/Base.astro` unconditionally printing `BUILD_HASH` in every page's footer — reported for 04-11, not fixed (Rule 4). The temporary `incrementalBuild=true` hardcode was reverted (`99795e3`) once both spike builds completed. See `04-10-SUMMARY.md` and `docs/phase-04/build-measurements.md` for full detail. 04-10 is complete.
 - STATE.md frontmatter current_phase was stale at 04 despite Phase 5 context/research/plan already existing on disk (05-CONTEXT.md, 05-RESEARCH.md, 12 PLAN.md files) — corrected to 05 during 05-01 execution; the body Current Position section had the same staleness and was corrected alongside it.
+- **OPEN — Phase 5, 05-11 (owner review needed before Phase 11, not blocking 05-10/05-12).** Criterion 2's lab LCP measurement returned `R2_LATENCY_EXCEEDS_LCP` on its canonical run (archived p95 LCP 1,788ms > 1,500ms budget), with real run-to-run variance across four runs on the operator machine (1200-2108ms). The archive tier's own R2/KV cost is small and not the cause (p95 ~172ms/155ms); hot pages also sit close to the 1.5s line in this lab proxy (p95 1,484ms), pointing at general page-weight/render cost, not the archive-serving mechanism. See `docs/phase-05/archive-latency.md` for full analysis. Does not block 05-10/05-12 (neither depends on this verdict); flagged for owner attention before Phase 11's real field-LCP release gate.
 - **RESOLVED (scope clarified) — 05-09.** The Cloudflare Workers Builds API (GET /accounts/{id}/builds/workers/{tag}/builds) returns 403 Forbidden/12004 for both CLOUDFLARE_API_TOKEN and CF_API_TOKEN *as configured for the executor*. This is an executor-token-scope issue, not a platform-wide block: the orchestrator's own Cloudflare API access reached the same build's logs successfully and supplied the real production build's ARCHIVE_SYNC_RESULT lines (pre: uploaded 19/failed 0; post: uploaded 22/deleted 3/backlog 0), now committed as evidence at docs/phase-05/evidence/first-prod-deploy/build-241c97e1-archive-lines.log. **For 05-10/05-12: ask the orchestrator for build-log lines rather than treating this as a blocker on those plans.** Re-granting the executor's own token's Workers Builds read scope remains a convenience (so a future executor session doesn't need to ask), not a requirement.
 
 ## Deferred Items
@@ -322,6 +327,6 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-10-01T15:58:11.466Z
-Stopped at: Completed 05-09-PLAN.md
+Last session: 2026-10-01T17:15:00.000Z
+Stopped at: Completed 05-11-PLAN.md
 Resume file: None
