@@ -314,7 +314,10 @@ export function articlesLoader(deps: ArticlesLoaderDeps = {}): Loader {
         }
         store.clear();
         for (const article of publicArticles) {
-          const parsed = (await parseData({ id: article.uuid, data: article })) as ArticleData;
+          const parsed = (await parseData({
+            id: article.uuid,
+            data: article as unknown as Record<string, unknown>,
+          })) as ArticleData;
           const digest = generateDigest(parsed as unknown as Record<string, unknown>);
           store.set({ id: article.uuid, data: parsed, digest });
           allParsed.push(parsed);
@@ -324,7 +327,10 @@ export function articlesLoader(deps: ArticlesLoaderDeps = {}): Loader {
         }
       } else {
         for (const article of publicArticles) {
-          const parsed = (await parseData({ id: article.uuid, data: article })) as ArticleData;
+          const parsed = (await parseData({
+            id: article.uuid,
+            data: article as unknown as Record<string, unknown>,
+          })) as ArticleData;
           const digest = generateDigest(parsed as unknown as Record<string, unknown>);
           const changed = store.set({ id: article.uuid, data: parsed, digest });
           allParsed.push(parsed);

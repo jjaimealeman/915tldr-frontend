@@ -67,16 +67,25 @@ const recent = [...articles]
   // the fetched index, never from the requested path itself (T-04-25's XSS mitigation) — matching
   // design/mockups/index.html's load-more script convention (T-01-58).
   (function () {
+    // 04-followups (WR-03): type annotations added below (tsconfig.json's `astro check` pass) —
+    // behavior is unchanged, every DOM write is still createElement/setAttribute/textContent only
+    // (T-04-25). `section`/`list` are `const`, not `var`, specifically so TypeScript's narrowing
+    // (from the `if (!section) return;` / `if (!list) return;` guards) survives into the
+    // `.then()` closure below — a `var` loses that narrowing across a function boundary.
+    type IndexEntry = { t: string; p: string };
+
     var section = document.querySelector('[data-404-suggestions]');
     if (!section) return;
+    const safeSection = section;
     var list = section.querySelector('ul');
     if (!list) return;
+    const safeList = list;
 
     // "4+ char hex fragments" (a uuid segment or the whole uuid) are dropped — they carry no
     // human-readable signal to score against title/slug words.
     var HEX_FRAGMENT_RE = /^[0-9a-f]{4,}$/;
 
-    function tokenize(pathname) {
+    function tokenize(pathname: string): string[] {
       var raw = pathname.toLowerCase().split(/[^a-z0-9]+/);
       var tokens = [];
       for (var i = 0; i < raw.length; i++) {
@@ -91,15 +100,15 @@ const recent = [...articles]
     var tokens = tokenize(window.location.pathname);
     if (tokens.length === 0) return; // No tokens — the static "Recent stories" list stands alone.
 
-    function wordsOf(text) {
-      return text.toLowerCase().split(/[^a-z0-9]+/).filter(function (w) {
+    function wordsOf(text: string): string[] {
+      return text.toLowerCase().split(/[^a-z0-9]+/).filter(function (w: string) {
         return w.length > 0;
       });
     }
 
-    function scoreEntry(entry, tokens) {
+    function scoreEntry(entry: IndexEntry, tokens: string[]): number {
       var words = wordsOf(entry.p).concat(wordsOf(entry.t));
-      var wordSet = {};
+      var wordSet: Record<string, boolean> = {};
       for (var i = 0; i < words.length; i++) wordSet[words[i]] = true;
       var score = 0;
       for (var j = 0; j < tokens.length; j++) {
@@ -108,13 +117,14 @@ const recent = [...articles]
       return score;
     }
 
-    function validEntry(entry) {
+    function validEntry(entry: unknown): entry is IndexEntry {
+      const e = entry as Record<string, unknown>;
       return (
         !!entry &&
         typeof entry === 'object' &&
-        typeof entry.t === 'string' &&
-        typeof entry.p === 'string' &&
-        entry.p.charAt(0) === '/'
+        typeof e.t === 'string' &&
+        typeof e.p === 'string' &&
+        (e.p as string).charAt(0) === '/'
       );
     }
 
@@ -147,10 +157,10 @@ const recent = [...articles]
           a.setAttribute('href', top[k].entry.p);
           a.textContent = top[k].entry.t;
           li.appendChild(a);
-          list.appendChild(li);
+          safeList.appendChild(li);
         }
 
-        section.removeAttribute('hidden');
+        safeSection.removeAttribute('hidden');
       })
       .catch(function () {
         // A fetch or JSON failure leaves the static "Recent stories" list as the result —

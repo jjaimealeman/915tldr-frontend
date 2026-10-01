@@ -20,7 +20,7 @@
 // re-upload" finding). `stamp="commit"` is still passed below, kept as the correct value should
 // `buildStamp` ever be turned on for articles again; today it has no visible effect since the
 // element it would gate is never rendered here.
-import { getCollection } from 'astro:content';
+import { getCollection, type CollectionEntry } from 'astro:content';
 import Base from '../../layouts/Base.astro';
 import ArticleCard from '../../components/ArticleCard.astro';
 import { articlePath, articleParams } from '../../lib/article-url';
@@ -30,6 +30,15 @@ import { formatBylineTime, isoWithOffset } from '../../lib/format';
 import { newsArticleNode, breadcrumbNode, SITE_ORIGIN } from '../../lib/structured-data';
 
 const EMPTY_RAIL: RailResult = { more: [], second: [], secondHeading: 'Earlier' };
+
+// 04-followups (WR-03): `astro:content`'s own CollectionEntry helper, not an import from
+// `src/content/loaders/articles-loader.ts` — that module also exports D1-fetch functions, and
+// this project's `tools/assert-no-d1.mjs` build-time guard exists specifically to keep anything
+// reachable from `src/pages/**` from ever importing a D1-touching module, even a type-only one.
+export interface Props {
+  article: CollectionEntry<'articles'>['data'];
+  rail: RailResult;
+}
 
 export async function getStaticPaths() {
   const entries = await getCollection('articles');
@@ -66,7 +75,7 @@ const newsArticle = newsArticleNode({
   description: standfirst,
   datePublishedIso: bylineDatetime,
   section: article.category.name,
-  tags: article.tags.map((tag) => tag.name),
+  tags: article.tags.map((tag: { slug: string; name: string }) => tag.name),
   sourceName: article.source.name,
   sourceUrl: article.url,
 });
@@ -116,7 +125,7 @@ const hasRail = hasMore || hasSecond;
       article.tags.length > 0 && (
         <section data-tags aria-labelledby="tags-heading">
           <h2 id="tags-heading">Tags</h2>
-          {article.tags.map((tag) => (
+          {article.tags.map((tag: { slug: string; name: string }) => (
             <a href={`/tag/${tag.slug}`}>{tag.name}</a>
           ))}
         </section>

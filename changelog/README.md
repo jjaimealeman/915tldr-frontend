@@ -10,6 +10,7 @@ Entries are named `YYYY-MM-DD-HHMM_slug.md` and grouped by month, newest first.
 
 | Date | Entry | Keywords |
 |------|-------|----------|
+| 2026-09-30 | [Add tsconfig.json and a typecheck script, fix the 14 real type errors found (04-REVIEW WR-03)](2026-09-30-1814_tsconfig-typecheck-wr-03.md) | `[BACKEND]` `[FRONTEND]` `[TESTING]` `[CONFIG]` |
 | 2026-09-30 | [Source slug validation guard (04-REVIEW WR-01)](2026-09-30-1812_source-slug-guard-wr-01.md) | `[SECURITY]` `[BACKEND]` `[TESTING]` |
 | 2026-09-30 | [isBasedOn JSON-LD node changed from NewsArticle to CreativeWork](2026-09-30-1811_isbasedon-creativework-type.md) | `[SEO]` `[TESTING]` `[BUG_FIX]` |
 | 2026-09-30 | [Footer credit link to 915website.com](2026-09-30-1810_footer-credit-link-915website.md) | `[FRONTEND]` `[SEO]` `[TESTING]` |
