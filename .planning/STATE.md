@@ -5,15 +5,15 @@ milestone_name: milestone
 current_phase: 05
 current_phase_name: Hybrid Archive & Zero-Reads Proof
 status: executing
-stopped_at: Completed 05-11-PLAN.md
-last_updated: "2026-10-01T17:15:00.000Z"
+stopped_at: Completed 05-10-PLAN.md
+last_updated: "2026-10-01T18:34:05.545Z"
 last_activity: 2026-10-01
 last_activity_desc: Phase 05 plan 11 executed (live URL contract + real-browser journeys for archived pages; R2 latency and archived-page LCP measured — R2_LATENCY_EXCEEDS_LCP, flagged for owner review)
 progress:
   total_phases: 5
   completed_phases: 4
   total_plans: 64
-  completed_plans: 62
+  completed_plans: 63
 ---
 
 # Project State
@@ -32,7 +32,7 @@ Plan: 12 of 12 (05-10 still pending; 05-11 complete out of order per orchestrato
 Status: Ready to execute (05-10 or 05-12 next)
 Last activity: 2026-10-01 — Phase 05 plan 11 executed (live URL contract + browser journeys for archived pages; R2/LCP measured)
 
-Progress: [██████████] 97%
+Progress: [██████████] 98%
 
 ## Performance Metrics
 
@@ -111,6 +111,7 @@ Progress: [██████████] 97%
 | Phase 05 P08 | ~55min | 3 tasks | 7 files |
 | Phase 05 P09 | ~90min | 3 tasks | 1 files |
 | Phase 05 P11 | ~110min | 3 tasks | 14 files |
+| Phase 05 P10 | ~76min | 2 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -272,6 +273,8 @@ Recent decisions affecting current work:
 - [Phase ?]: 05-11: dev.915tldr.com's deployed commit had drifted from local HEAD (a scheduled/ingest-triggered Workers Builds rebuild reports the literal branch name "main", not a sha, for a non-push-triggered build; plus 05-09's own post-deploy doc commits were unmerged) -- redeployed directly from local HEAD via `pnpm run deploy:ci` (`node tools/ci-build.mjs deploy`, idempotent, $0 cost) three times across this plan's three task commits to keep /version.json matching HEAD exactly for the T-04-48 stale-deploy guard; the guard itself was widened to accept an ancestor relationship in either direction with zero diff on guarded paths (not just "HEAD ancestor of deployed"), matching this project's real per-phase-branch workflow.
 - [Phase ?]: 05-11: Live proof complete -- 81/81 tests pass (url-shapes.test.mjs 71, browser-journeys.test.mjs 10) against the real deployed site, verify:edge 5/5 (new check 5: archived-page noindex), real-Chromium clicks into both an archived article and an archived tag with no extra redirects.
 - [Phase ?]: 05-11: Criterion 2 measured, NOT met on the canonical run -- `R2_LATENCY_EXCEEDS_LCP` (archived p95 LCP 1,788ms vs the 1,500ms budget; 200-sample R2 get() p95=172ms, KV p95=155ms, both small and well within budget). Four back-to-back runs on the operator machine showed real variance (archived p95 LCP 1200/1212/2108/1788ms) -- the archive tier's own R2/KV cost is NOT the bottleneck; hot (never-archived) pages also sit close to the 1.5s line (p95 1,484ms) in this lab proxy, pointing at general page-weight/render cost as the real lever, not the archive-serving mechanism. Flagged for owner review in docs/phase-05/archive-latency.md; field LCP at mobile p75 (PROJECT.md's actual release gate) is unaffected and still pending Phase 11. Also corrects ROADMAP.md Phase 5 criterion 2's "~30 KB objects" assumption -- measured archived-article objects are ~13KB (median 13,070 bytes), not ~30KB.
+- [Phase ?]: 05-10: REND-12 marked Complete -- forced full re-upload (30,501 pages) measured live on Workers Builds at 54.64 obj/s; worst-case arithmetic computed against a genuinely cold render (Phase 4's 649s), not this run's own warm-cache render, converges in 2 builds (4h) against the 24h D-10 promise.
+- [Phase ?]: 05-10: Phase 6 projection flagged, not fixed -- at ~2x today's archived-page count, cold render time alone may already exceed the 20-minute Workers Builds hard ceiling; needs a real re-measurement before Phase 6 ships.
 
 ### Pending Todos
 
@@ -316,6 +319,7 @@ Recent decisions affecting current work:
 - STATE.md frontmatter current_phase was stale at 04 despite Phase 5 context/research/plan already existing on disk (05-CONTEXT.md, 05-RESEARCH.md, 12 PLAN.md files) — corrected to 05 during 05-01 execution; the body Current Position section had the same staleness and was corrected alongside it.
 - **OPEN — Phase 5, 05-11 (owner review needed before Phase 11, not blocking 05-10/05-12).** Criterion 2's lab LCP measurement returned `R2_LATENCY_EXCEEDS_LCP` on its canonical run (archived p95 LCP 1,788ms > 1,500ms budget), with real run-to-run variance across four runs on the operator machine (1200-2108ms). The archive tier's own R2/KV cost is small and not the cause (p95 ~172ms/155ms); hot pages also sit close to the 1.5s line in this lab proxy (p95 1,484ms), pointing at general page-weight/render cost, not the archive-serving mechanism. See `docs/phase-05/archive-latency.md` for full analysis. Does not block 05-10/05-12 (neither depends on this verdict); flagged for owner attention before Phase 11's real field-LCP release gate.
 - **RESOLVED (scope clarified) — 05-09.** The Cloudflare Workers Builds API (GET /accounts/{id}/builds/workers/{tag}/builds) returns 403 Forbidden/12004 for both CLOUDFLARE_API_TOKEN and CF_API_TOKEN *as configured for the executor*. This is an executor-token-scope issue, not a platform-wide block: the orchestrator's own Cloudflare API access reached the same build's logs successfully and supplied the real production build's ARCHIVE_SYNC_RESULT lines (pre: uploaded 19/failed 0; post: uploaded 22/deleted 3/backlog 0), now committed as evidence at docs/phase-05/evidence/first-prod-deploy/build-241c97e1-archive-lines.log. **For 05-10/05-12: ask the orchestrator for build-log lines rather than treating this as a blocker on those plans.** Re-granting the executor's own token's Workers Builds read scope remains a convenience (so a future executor session doesn't need to ask), not a requirement.
+- OPEN -- Phase 6 planning. 05-10's linear-scaling projection (archived pages ~2x, cold render scaled by the same ratio) shows render time ALONE (~1,298s) may already exceed the 20-minute Workers Builds hard ceiling once the corpus roughly doubles -- a different, more structural concern than REND-12's own (converged) upload-side chaining. Does not block 05-12 or Phase 5 completion; flagged for Phase 6 to re-measure a real cold build against its actual corpus size before relying on the current 2-hourly chained-build convergence mechanism. See docs/phase-05/archive-architecture.md's '05-10 -- forced full re-upload (REND-12)' section.
 
 ## Deferred Items
 
@@ -327,6 +331,6 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-10-01T17:15:00.000Z
-Stopped at: Completed 05-11-PLAN.md
+Last session: 2026-10-01T18:33:57.167Z
+Stopped at: Completed 05-10-PLAN.md
 Resume file: None

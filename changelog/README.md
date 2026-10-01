@@ -10,6 +10,7 @@ Entries are named `YYYY-MM-DD-HHMM_slug.md` and grouped by month, newest first.
 
 | Date | Entry | Keywords |
 |------|-------|----------|
+| 2026-10-01 | [Plan 05-10 complete: REND-12 forced full re-upload measured and verified](2026-10-01-1332_05-10-complete-rend-12-forced-full-reupload-plan.md) | `[DOCUMENTATION]` `[PLANNING]` `[ARCHITECTURE]` `[PERFORMANCE]` |
 | 2026-10-01 | [REND-12 verdict computed honestly: ARCHIVE_RERENDER_CONVERGES (today), Phase 6 flagged](2026-10-01-1245_05-10-rend-12-verdict-archive-rerender-converges.md) | `[DOCUMENTATION]` `[ARCHITECTURE]` `[PERFORMANCE]` `[DEPLOYMENT]` |
 | 2026-10-01 | [Forced full archive re-upload observed on the real production platform](2026-10-01-1230_05-10-forced-full-reupload-build-log-evidence.md) | `[DOCUMENTATION]` `[DEPLOYMENT]` `[INFRA]` |
 | 2026-10-01 | [Plan 05-11 complete: live archive-page proof, R2_LATENCY_EXCEEDS_LCP flagged](2026-10-01-1115_05-11-complete-live-archive-proof-plan.md) | `[DOCUMENTATION]` `[PLANNING]` `[TESTING]` `[PERFORMANCE]` |
