@@ -5,15 +5,15 @@ milestone_name: milestone
 current_phase: 05
 current_phase_name: Hybrid Archive & Zero-Reads Proof
 status: executing
-stopped_at: Completed 05-05-PLAN.md
-last_updated: "2026-10-01T06:34:26.995Z"
+stopped_at: Completed 05-06-PLAN.md
+last_updated: "2026-10-01T06:58:42.628Z"
 last_activity: 2026-09-30
 last_activity_desc: Phase 05 plan 01 executed (tag tiering, hot window, build-time tier facts)
 progress:
   total_phases: 5
   completed_phases: 4
   total_plans: 64
-  completed_plans: 57
+  completed_plans: 58
 ---
 
 # Project State
@@ -28,11 +28,11 @@ See: .planning/PROJECT.md (updated 2026-09-16)
 ## Current Position
 
 Phase: 05 (Hybrid Archive & Zero-Reads Proof) — EXECUTING
-Plan: 6 of 12
+Plan: 7 of 12
 Status: Ready to execute
 Last activity: 2026-09-30 — Phase 05 plan 01 executed (tag tiering, hot window, tier facts)
 
-Progress: [█████████░] 89%
+Progress: [█████████░] 91%
 
 ## Performance Metrics
 
@@ -106,6 +106,7 @@ Progress: [█████████░] 89%
 | Phase 05 P04 | ~75min | 3 tasks | 14 files |
 | Phase 05 P02 | 12min | 4 tasks | 11 files |
 | Phase 05 P05 | ~45min | 3 tasks | 36 files |
+| Phase 05 P06 | ~40min | 3 tasks | 12 files |
 
 ## Accumulated Context
 
@@ -252,6 +253,9 @@ Recent decisions affecting current work:
 - [Phase ?]: 05-05: The live derivation's long-tail finding -- 95% coverage of human article reads needs 234 days of article age, far beyond the 30-day measurement window -- is capped to 202 days by the 60,000-file post-Phase-6 budget. hot-window.json records both days:202 and uncappedDays:234/cappedByFileBudget:true. Flagged for owner review and for re-check before Phase 6 doubles the corpus.
 - [Phase ?]: 05-05: Tasks 1-2 (tracer + math) were implemented, tested and committed together in one commit rather than two separate TDD RED/GREEN cycles -- the live Cloudflare schema (query-time field access, GraphQL filter AND-array shape) had to be discovered via real probe queries before a meaningful test could be written, matching 05-04's own disclosed precedent.
 - [Phase ?]: 05-05: Owner decision (2026-10-01 00:25 MDT): KEEP the 202-day hot window as-is -- 202 is the largest window the 60,000-file post-Phase-6 budget allows, so it already minimises reads served from the archive tier (R2); a shorter window would only send more readers there. Fixed achievedCoverage (0.9266 at 202 days, not the previously mislabeled 0.9509 which was actually the coverage at the uncapped 234-day cutoff, now recorded separately as uncappedCoverage) does not change this decision. Revisit only if 05-09's deployed R2 get() measurement shows cold p95 > ~300ms, and even then the remedy is archive-side (longer edge-cache TTL / post-build cache warming), not a shorter window.
+- [Phase ?]: 05-06: staticFileCount counts dist/client/static-budget.json itself (preWriteCount+1), recounted after write to confirm the directory matches exactly — no off-by-one against find dist/client -type f | wc -l
+- [Phase ?]: 05-06: tests/unit/news-sitemap.test.mjs broke after partitioning though it wasn't in this plan's file list (Rule 1) — the sitemap plugin runs before partition, so it still lists archived URLs; fixed to expect static+archived counts
+- [Phase ?]: 05-06: REND-07 and REND-11 deliberately left Pending in REQUIREMENTS.md — this plan proves partition (REND-07's render-once half) and the per-build gate (REND-11's measurement half), but R2 upload (05-07) and daily reporting (05-08) are not yet done
 
 ### Pending Todos
 
@@ -305,6 +309,6 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-10-01T06:18:10.915Z
-Stopped at: Completed 05-05-PLAN.md
+Last session: 2026-10-01T06:58:42.609Z
+Stopped at: Completed 05-06-PLAN.md
 Resume file: None
