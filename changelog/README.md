@@ -10,6 +10,7 @@ Entries are named `YYYY-MM-DD-HHMM_slug.md` and grouped by month, newest first.
 
 | Date | Entry | Keywords |
 |------|-------|----------|
+| 2026-09-30 | [Phase 4 follow-ups complete: SUMMARY written](2026-09-30-1825_phase4-followups-summary.md) | `[DOCUMENTATION]` `[PLANNING]` `[TESTING]` |
 | 2026-09-30 | [UAT tests 1 and 2 marked PASS](2026-09-30-1819_uat-tests-1-2-passed.md) | `[DOCUMENTATION]` `[TESTING]` `[SEO]` |
 | 2026-09-30 | [Manifest schema-stale flag only clears after a cold pass (04-REVIEW WR-02)](2026-09-30-1816_manifest-schema-stale-flag-wr-02.md) | `[BACKEND]` `[BUG_FIX]` `[TESTING]` |
 | 2026-09-30 | [Add tsconfig.json and a typecheck script, fix the 14 real type errors found (04-REVIEW WR-03)](2026-09-30-1814_tsconfig-typecheck-wr-03.md) | `[BACKEND]` `[FRONTEND]` `[TESTING]` `[CONFIG]` |
