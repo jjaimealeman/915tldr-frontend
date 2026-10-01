@@ -5,15 +5,15 @@ milestone_name: milestone
 current_phase: 05
 current_phase_name: Hybrid Archive & Zero-Reads Proof
 status: executing
-stopped_at: Completed 05-03-PLAN.md
-last_updated: "2026-10-01T04:58:37.904Z"
+stopped_at: Completed 05-04-PLAN.md
+last_updated: "2026-10-01T05:22:42.267Z"
 last_activity: 2026-09-30
 last_activity_desc: Phase 05 plan 01 executed (tag tiering, hot window, build-time tier facts)
 progress:
   total_phases: 5
   completed_phases: 4
   total_plans: 64
-  completed_plans: 54
+  completed_plans: 55
 ---
 
 # Project State
@@ -28,11 +28,11 @@ See: .planning/PROJECT.md (updated 2026-09-16)
 ## Current Position
 
 Phase: 05 (Hybrid Archive & Zero-Reads Proof) — EXECUTING
-Plan: 3 of 12
+Plan: 4 of 12
 Status: Ready to execute
 Last activity: 2026-09-30 — Phase 05 plan 01 executed (tag tiering, hot window, tier facts)
 
-Progress: [████████░░] 84%
+Progress: [█████████░] 86%
 
 ## Performance Metrics
 
@@ -103,6 +103,7 @@ Progress: [████████░░] 84%
 | Phase 04 P12 | ~1h50min | 3 tasks | 5 files |
 | Phase 05 P01 | 25min | 3 tasks | 10 files |
 | Phase 05 P03 | ~35min | 3 tasks | 8 files |
+| Phase 05 P04 | ~75min | 3 tasks | 14 files |
 
 ## Accumulated Context
 
@@ -238,6 +239,9 @@ Recent decisions affecting current work:
 - [Phase ?]: 05-03: R2 keys for archived pages are derived fresh from the validated articleId/slug on every request (articleArchiveKey/tagArchiveKey), not stored in a v3 render-manifest field — race-free across both hot->archive and archive->hot transitions; avoids a schema bump mid-build.
 - [Phase ?]: 05-03 Task 2: measured dev.915tldr.com live and found static HTML Content-Type is exactly 'text/html' (no charset param) and Cache-Control is 'public, max-age=0, must-revalidate'; archived responses now match exactly (Task 1's placeholder Content-Type with a charset param was corrected here).
 - [Phase ?]: 05-03 Task 2: tag-suffix redirect (/tag/<slug>/ and /tag/<slug>.html) status measured live as 307, matching the project's existing trailing-slash convention, not 301.
+- [Phase ?]: 05-04: Live schema introspection confirmed D1 analytics has no scriptName/workerName dimension — leg 2 of ARCH-01's gate is a databaseId-filtered delta measurement, not an attribution query; detection floor at v1's real baseline noise is ~40 rows/request even at the 20,000-request cap, not 1 — structural legs (1/1b) remain load-bearing.
+- [Phase ?]: 05-04: measure-worker-kv-cpu.mjs is a measurement/reporting tool, not a go/no-go gate — its CLI always exits 0 on a successful run; the real 24h measurement shows CPU well within budget (p99 1.88ms) but KV reads (102) mildly exceed invocations (94), likely dataset-bucketing skew between two independently-aggregated GraphQL datasets, disclosed in docs/phase-05/zero-reads-gate.md rather than hidden.
+- [Phase ?]: 05-04: ARCH-01 is intentionally left Pending in REQUIREMENTS.md despite being listed in this plan's frontmatter requirements — this plan builds and calibrates the zero-reads gate INSTRUMENT (live-proved --baseline-only), but the actual requirement (a public request measured with zero D1 reads) is only verified by the full gate run at 05-12, after the archive tier is serving (D-03). Marking it complete now would be premature.
 
 ### Pending Todos
 
@@ -291,6 +295,6 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-10-01T04:57:08.663Z
-Stopped at: Completed 05-03-PLAN.md
+Last session: 2026-10-01T05:22:42.247Z
+Stopped at: Completed 05-04-PLAN.md
 Resume file: None
