@@ -10,6 +10,7 @@ Entries are named `YYYY-MM-DD-HHMM_slug.md` and grouped by month, newest first.
 
 | Date | Entry | Keywords |
 |------|-------|----------|
+| 2026-09-30 | [Phase 5 context captured: zero-reads gate, hot window, tag tiering, archive freshness](2026-09-30-2030_phase-5-context-captured.md) | `[PLANNING]` `[DOCUMENTATION]` `[ARCHITECTURE]` |
 | 2026-09-30 | [Phase 4 Nyquist validation: 18/18 requirements covered, 0 gaps](2026-09-30-1942_phase-4-nyquist-validated.md) | `[TESTING]` `[DOCUMENTATION]` `[PLANNING]` |
 | 2026-09-30 | [Phase 4 security verified: 50 threats closed, build-token scope guidance added](2026-09-30-1932_phase-4-security-verification.md) | `[SECURITY]` `[DOCUMENTATION]` `[PLANNING]` |
 | 2026-09-30 | [Phase 4 follow-ups complete: SUMMARY written](2026-09-30-1825_phase4-followups-summary.md) | `[DOCUMENTATION]` `[PLANNING]` `[TESTING]` |
