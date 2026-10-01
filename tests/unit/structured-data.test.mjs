@@ -79,7 +79,10 @@ test('newsArticleNode: isBasedOn carries the original article url and outlet nam
   const node = newsArticleNode(baseArticleInput());
   assert.equal(node.isBasedOn.url, 'https://www.ktsm.com/news/usps-operation-santa');
   assert.equal(node.isBasedOn.publisher.name, 'KTSM');
-  assert.equal(node.isBasedOn['@type'], 'NewsArticle');
+  // 04-followups (task 2): 'CreativeWork', not 'NewsArticle' — Google's Rich Results Test
+  // reported the latter as a separate, incomplete "Unnamed item" NewsArticle (missing
+  // image/author/headline of its own). isBasedOn only needs to identify the source work.
+  assert.equal(node.isBasedOn['@type'], 'CreativeWork');
 });
 
 test('newsArticleNode: omits keywords when tags are empty', () => {

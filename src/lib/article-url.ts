@@ -24,6 +24,13 @@ export const CATEGORY_SLUG_RE = /^[a-z0-9-]+$/;
  * `slugify()` deviation and this project's own `src/lib/slug.ts` fix for the same class of bug). */
 export const TAG_SLUG_RE = /^[a-z0-9-]+$/;
 
+/** Source slugs (D1's `sources.slug` column) — a source slug becomes a `dist/client/source/*.html`
+ * file name (04-followups, WR-01: `.planning/phases/04-static-generation-templates-seo/
+ * 04-REVIEW.md`), the same tampering surface `TAG_SLUG_RE` already guards for tag slugs. Exported
+ * from this shared module rather than declared inline in `source/[slug].astro`'s frontmatter for
+ * the same bundler-safety reason documented on `TAG_SLUG_RE` above. */
+export const SOURCE_SLUG_RE = /^[a-z0-9-]+$/;
+
 function assertMatches(value: string, re: RegExp, label: string): void {
   if (typeof value !== 'string' || !re.test(value)) {
     throw new Error(`article-url: invalid ${label}: ${JSON.stringify(value)}`);

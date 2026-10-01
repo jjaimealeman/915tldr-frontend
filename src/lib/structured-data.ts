@@ -116,7 +116,7 @@ export interface NewsArticleNode {
   author: { '@id': string };
   publisher: { '@id': string };
   isBasedOn: {
-    '@type': 'NewsArticle';
+    '@type': 'CreativeWork';
     url: string;
     publisher: { '@type': 'Organization'; name: string };
   };
@@ -157,7 +157,12 @@ export function newsArticleNode(input: NewsArticleNodeInput): NewsArticleNode {
     author: { '@id': `${origin}/#organization` },
     publisher: { '@id': `${origin}/#organization` },
     isBasedOn: {
-      '@type': 'NewsArticle',
+      // 04-followups (task 2): Google's Rich Results Test flagged the original `'NewsArticle'`
+      // type here as a separate, incomplete NewsArticle ("Unnamed item" — no image/author/
+      // headline of its own; that data belongs to the outlet's own page, not ours). `isBasedOn`
+      // only needs to identify the source work and its publisher, which `CreativeWork` covers
+      // without implying we're asserting NewsArticle-specific fields about someone else's page.
+      '@type': 'CreativeWork',
       url: sourceUrl,
       publisher: { '@type': 'Organization', name: sourceName },
     },
