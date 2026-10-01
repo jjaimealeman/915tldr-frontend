@@ -150,6 +150,38 @@ export function pickArchivedTags(plan, n, { maxCount = 5, tagFactsPath = DEFAULT
 }
 
 /**
+ * Returns a `Set` of every archived article's uuid (all of `plan.entries` where `kind ===
+ * 'article'`). `tests/integration/browser-journeys.test.mjs` uses this to confirm a tag page's
+ * listed article card actually lands on archived content before clicking it — a small/old tag
+ * does not guarantee every article carrying it is itself archived (tag archival is driven by the
+ * tag's total lifetime article count, article archival by the article's own publish date).
+ */
+export function archivedArticleUuids(plan) {
+  if (!plan || !Array.isArray(plan.entries)) fail('archivedArticleUuids requires a loaded plan');
+  const uuids = new Set();
+  for (const entry of plan.entries) {
+    if (entry.kind !== 'article') continue;
+    const match = ARTICLE_KEY_UUID_RE.exec(entry.key);
+    if (match) uuids.add(match[1]);
+  }
+  return uuids;
+}
+
+/**
+ * Returns a `Set` of every archived tag's slug (all of `plan.entries` where `kind === 'tag'` —
+ * the plan file only ever lists the archived subset, by construction). `tests/integration/
+ * browser-journeys.test.mjs` uses this to find a HOT article that happens to carry at least one
+ * archived tag, by intersecting this set against a real article page's own rendered tag links —
+ * cheap and reusable since it's a pure read of data this module already validated.
+ */
+export function archivedTagSlugs(plan) {
+  if (!plan || !Array.isArray(plan.entries)) fail('archivedTagSlugs requires a loaded plan');
+  return new Set(
+    plan.entries.filter((entry) => entry.kind === 'tag').map((entry) => entry.path.replace(/^\/tag\//, ''))
+  );
+}
+
+/**
  * Picks one STATIC (hot, never archived) tag with at least `minCount` articles — the counterpart
  * `url-shapes.test.mjs` needs to compare an archived tag's `/`-suffix and `.html`-suffix redirect
  * shape against a known-static tag's own. A tag qualifies when it has a real article count (from
