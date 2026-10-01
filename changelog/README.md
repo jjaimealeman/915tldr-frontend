@@ -10,6 +10,7 @@ Entries are named `YYYY-MM-DD-HHMM_slug.md` and grouped by month, newest first.
 
 | Date | Entry | Keywords |
 |------|-------|----------|
+| 2026-10-01 | [Plan 05-08 complete: archive tier wired into the real deploy pipeline](2026-10-01-0152_05-08-complete-archive-tier-deploy-pipeline-plan.md) | `[DOCUMENTATION]` `[PLANNING]` `[ARCHITECTURE]` `[TESTING]` |
 | 2026-10-01 | [Phase 3/4 pipeline docs brought in line with the archive tier](2026-10-01-0148_05-08-task3-pipeline-docs-phase5-amendment.md) | `[DOCUMENTATION]` `[ARCHITECTURE]` `[INFRA]` |
 | 2026-10-01 | [Hot-window production guard, archive alerts, file-count alarm, daily report](2026-10-01-0146_05-08-task2-hot-window-guard-alerts-daily-report.md) | `[BACKEND]` `[DEPLOYMENT]` `[INFRA]` `[TESTING]` `[SECURITY]` `[BUG_FIX]` `[FEATURE]` |
 | 2026-10-01 | [Archive tier wired into the real deploy pipeline (tracer)](2026-10-01-0138_05-08-task1-ci-build-deploy-pipeline-tracer.md) | `[BACKEND]` `[DEPLOYMENT]` `[INFRA]` `[TESTING]` `[FEATURE]` |

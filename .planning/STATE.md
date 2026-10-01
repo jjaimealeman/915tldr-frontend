@@ -5,15 +5,15 @@ milestone_name: milestone
 current_phase: 05
 current_phase_name: Hybrid Archive & Zero-Reads Proof
 status: executing
-stopped_at: Completed 05-07-PLAN.md
-last_updated: "2026-10-01T07:25:29.103Z"
+stopped_at: Completed 05-08-PLAN.md
+last_updated: "2026-10-01T07:52:10.600Z"
 last_activity: 2026-09-30
 last_activity_desc: Phase 05 plan 01 executed (tag tiering, hot window, build-time tier facts)
 progress:
   total_phases: 5
   completed_phases: 4
   total_plans: 64
-  completed_plans: 59
+  completed_plans: 60
 ---
 
 # Project State
@@ -28,11 +28,11 @@ See: .planning/PROJECT.md (updated 2026-09-16)
 ## Current Position
 
 Phase: 05 (Hybrid Archive & Zero-Reads Proof) — EXECUTING
-Plan: 8 of 12
+Plan: 9 of 12
 Status: Ready to execute
 Last activity: 2026-09-30 — Phase 05 plan 01 executed (tag tiering, hot window, tier facts)
 
-Progress: [█████████░] 92%
+Progress: [█████████░] 94%
 
 ## Performance Metrics
 
@@ -108,6 +108,7 @@ Progress: [█████████░] 92%
 | Phase 05 P05 | ~45min | 3 tasks | 36 files |
 | Phase 05 P06 | ~40min | 3 tasks | 12 files |
 | Phase 05 P07 | ~40min | 3 tasks | 5 files |
+| Phase 05 P08 | ~55min | 3 tasks | 7 files |
 
 ## Accumulated Context
 
@@ -260,6 +261,9 @@ Recent decisions affecting current work:
 - [Phase ?]: 05-07: The R2-write branch guard lives at archive-sync.mjs's own store-wrapping boundary (wrapStoreForBranchGuard), not only as an early return in runPreSync/runPostSync -- a caller reaching for the store directly still can't write on a non-main Workers CI branch, even with valid credentials present (the leaked-secret scenario 05-02 flagged).
 - [Phase ?]: 05-07: Found and fixed a real index-safety bug before any live run touched it -- runPostSync was dropping an index entry for every orphan key it attempted to delete, regardless of whether R2's deleteObjects actually confirmed the deletion; fixed to only drop entries deleteObjects itself confirmed.
 - [Phase ?]: 05-07: REND-07 and REND-12 are intentionally left Pending in REQUIREMENTS.md, matching this phase's own established precedent (05-02/05-04/05-05/05-06) -- both halves of REND-07 are now proven live against the real bucket but only for ~100 of ~30,478 archive-tier pages; REND-12's governing ceiling is resolved and deadline-bounded phases are built, but the full re-render hasn't run at corpus scale yet. Full-corpus upload is 05-08/05-09's job; the full-re-render measurement is 05-10's job.
+- [Phase ?]: 05-08: isProductionDeploy(env) in tools/ci-build.mjs is deliberately the exact inverse of archive-sync.mjs's own isR2WriteBlocked predicate, kept in sync so the two guards never disagree about what counts as production.
+- [Phase ?]: 05-08: found and fixed a real bug in tools/assert-file-count.mjs (not in this plan's file list) — the gate's own +1-for-static-budget.json assumption breaks the second time it runs in one build, which is this plan's own Task 1 requirement; fixed, pinned with a regression test, re-verified live.
+- [Phase ?]: 05-08: REND-07, REND-11 and REND-12 are intentionally left Pending in REQUIREMENTS.md — the full archive sequence is proven live at full corpus scale (30,478 entries) but through a CI_BUILD_DEPLOY_DRY_RUN=1 run, not a real production deploy through Workers Builds CI; that is 05-09's job.
 
 ### Pending Todos
 
@@ -313,6 +317,6 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-10-01T07:25:29.080Z
-Stopped at: Completed 05-07-PLAN.md
+Last session: 2026-10-01T07:52:10.580Z
+Stopped at: Completed 05-08-PLAN.md
 Resume file: None
