@@ -415,9 +415,162 @@ separately-accessible endpoint — `wrangler deployments list`, `GET .../workers
 versions/{id}`) remains reachable with this executor's own token and confirmed the deploy's
 existence and exact timing independently, but carries no asset-count or archive-sync-log field.
 
-### 05-10 — forced full re-upload
-*(to be filled by 05-10 — `request-full` end-to-end wall-clock time, backlog convergence time
-across however many cycles it takes, actual re-upload PUT count)*
+### 05-10 — forced full re-upload (REND-12)
+
+**`ARCHIVE_RERENDER_CONVERGES | measured: 30,501 pages re-uploaded in 558.2s (54.64 obj/s), converged in 1 build | worst case (649s cold render + 21.0s deploy + re-upload): 19,121 objects fit in the first build's remaining 350.0s post-deadline budget; the ~11,380-object remainder clears in build 2's own 350.0s budget in 208.3s — 2 builds total, 2 x 2h = 4h <= the 24h D-10 promise, 20h of margin | node tools/archive-sync.mjs request-full --reason "..."`**
+
+#### Task 1 — the forced run, observed on the real platform
+
+**Route: option-a** (05-09's own choice — the archive tier serves persistently; 05-10 runs against
+the next real production build rather than racing a 2-hourly rebuild).
+
+**Before state** (this session, 2026-10-01T17:17Z, read directly off the real `915tldr-archive`
+bucket before writing the marker): archive index held **30,498 entries**; 3 sampled keys'
+`headObject` sha256 — `articles/0000e250-e1d1-431c-b2dc-bad7dc7404ce.html` →
+`36d60a0c1807…b31e6`, `tags/operation-metro-surge.html` → `4edd2e72b6c2…7fd9b9`,
+`tags/school-conditions.html` → `09abfd2bf4e9…836991`; `_meta/archive-state.json` reported
+`backlogCount: 0` (converged); no force-full marker present.
+
+**Marker written:** `set -a; . ./.dev.vars; set +a; node tools/archive-sync.mjs request-full
+--reason "REND-12 measurement (05-10)"` at **2026-10-01T17:17:49.235Z** — well inside the 17:55
+UTC deadline for the next production build to pick it up (v1's ingest cron runs on even UTC
+hours and only POSTs the deploy hook if public articles changed).
+
+**The forced build:** Workers Builds production build `2a6f02f5-972e-4959-b2a4-e814090bb5a1`
+(branch `main`, trigger `deploy_hook`), log pulled by the orchestrator (this executor's own
+token still returns `403`/`12004` against the Workers Builds log API — retried live this
+session, same gap 05-09 disclosed, not yet closed) and committed as evidence at
+[`docs/phase-05/evidence/forced-full-reupload/build-2a6f02f5-forced-full.log`](./evidence/forced-full-reupload/build-2a6f02f5-forced-full.log):
+
+```
+created   2026-10-01T18:06:11.972Z
+stopped   2026-10-01T18:18:19.949Z   -> total wall time 727.977s (12m08s)
+
+[archive] partition: 12912 articles and 17589 tags archived; 27612 articles and 2328 tags static
+[archive] static files: 29977 / 100000 (fail at 80000)
+ARCHIVE_SYNC_RESULT {"phase":"pre","uploaded":3,"failed":0,"deferred":0,"movedBack":0,"deleted":0,"backlog":null,...}
+Current Version ID: c7bec43a-a15b-40a4-8232-1253d515c736
+ARCHIVE_SYNC_RESULT {"phase":"post","uploaded":30501,"failed":0,"deferred":0,"movedBack":0,"deleted":0,"backlog":{"count":0,"since":null},"alerts":[],"dailyReport":{"due":false},"disabled":false}
+```
+
+**Phase breakdown (derived from the log's own epoch-ms timestamps):**
+
+| Phase | Window | Duration |
+|---|---|---|
+| Render (`astro build` + partition; build cache **restored**, so this was a *warm*-cache render, not a cold one) | `ci-build build` start (18:06:45.895Z) -> `Build command completed` (18:08:29.987Z) | 104.09s |
+| Deploy (archive-sync `pre`, 3 new-to-archive uploads, + `wrangler deploy`, 41/29,989 changed files) | deploy step start (18:08:30.687Z) -> `Current Version ID` (18:08:52.468Z) | 21.78s |
+| **Forced re-upload (archive-sync `post`, force-full)** | `Current Version ID` (18:08:52.468Z) -> `ARCHIVE_SYNC_RESULT(post)` (18:18:10.673Z) | **558.2s**, **30,501 uploaded, 0 failed, 0 deferred, 0 deleted** |
+| Total | created -> stopped | 727.98s (well under the 20-min/1200s hard ceiling; the 1020s *post* deadline governs only the forced-re-upload phase, measured from the build's own start, and this run finished at 558.2s into a window that had the full 1020s available since render was warm this time) |
+
+**Throughput:** 30,501 / 558.205s = **54.64 objects/sec**.
+
+**Convergence:** confirmed directly via R2 (independent cross-check, matching the build log
+exactly): the force-full marker was cleared and `_meta/archive-state.json` reported
+`backlogCount: 0` at **2026-10-01T18:18:09.487Z** — within 1.2s of the build log's own `post`
+result line. **Converged within the single observed build — no second build was needed for
+THIS run** (today's corpus fit inside the available budget only because this particular build's
+render was warm, leaving the full 1020s post-deadline window open to the re-upload; see the
+worst-case arithmetic below for what happens when render is cold).
+
+**No-404-window held throughout:** `/tag/raf` (a previously-cached archived page) answered 200
+mid-re-upload (18:11:17Z). Two never-recently-requested archived pages, re-checked after
+convergence, both answered 200 via a genuine R2 read (not edge cache): `/tag/outlets` ->
+`Server-Timing: archive;desc=r2, r2;dur=139`; `/tag/carrington-event` -> `r2;dur=131`.
+
+**Byte-identity:** the same 3 sampled keys, re-checked after convergence, reported **identical**
+sha256/size to the before-state (`36d60a0c1807…b31e6`, `4edd2e72b6c2…7fd9b9`,
+`09abfd2bf4e9…836991`) — the forced re-upload re-sent the same bytes, as expected (nothing in
+this build's own content actually changed for those 3 pages; the index grew from 30,498 to
+30,501 entries from ordinary ingest drift, not from the force-full itself).
+
+#### Task 2 — the REND-12 verdict, computed honestly against the real ceilings
+
+**This run's own render was warm (build-cache restored), NOT the cold case REND-12 has to survive.**
+The worst case the must_haves ask for is a **cold** render (when the archive tier's content
+genuinely changes — e.g. a template/redesign ship, D-10's own trigger for `request-full`) landing
+on the SAME build as the forced re-upload. Using this run's own 558.2s/54.64 obj/s number as if it
+proved the cold case fits would be exactly the premise error CLAUDE.md warns against — a warm
+render leaves the *entire* 1020s post-deadline window open to the re-upload; a cold render eats
+most of it first.
+
+**Worst-case arithmetic (today's corpus, 30,501 archived pages):**
+
+| Term | Value | Source |
+|---|---|---|
+| Cold render | **649s** | Phase 4 Build 1 (`docs/phase-04/build-measurements.md`), `WB_COLD_FITS` — the hook-POST-to-deployed-version total for a genuinely cold, first-ever build; carried forward as this project's own established "cold build" figure (also cited this way in "Which ceiling governs REND-12" above) |
+| Deploy | **21.04s** | 05-09's own build `241c97e1` — archive-sync `pre` + `wrangler deploy` combined (`Build command completed` 1790868166538 -> `Current Version ID` 1790868187581), post-archive-split and post-04-11a `BUILD_HASH` fix, so representative of today's static-deploy cost, not Phase 4's inflated pre-fix figure |
+| Full re-upload throughput | **54.64 obj/s** | this plan's own measured `post` result above (30,501 / 558.205s) |
+
+Remaining post-deadline budget once render + deploy are paid: `1020 - 649 - 21.04 = 349.96s`.
+Objects uploadable in that window: `54.64 x 349.96 = ~19,121`.
+
+**30,501 > 19,121 -> the whole re-upload does NOT fit in one build -> the single-build "fits" outcome is ruled out.**
+
+Builds to convergence (worst case — every build in the chain pays the SAME cold-render + deploy
+cost, the pessimistic assumption the must_haves ask for): `ceil(30,501 / 19,121) = 2`.
+- **Build 1:** 649 + 21.04 + 349.96 (post runs to its own deadline, uploading 19,121) = **1020.0s**
+  total — 180s of margin under the 1200s hard ceiling.
+- **Build 2:** remaining `30,501 - 19,121 = 11,380` objects; time needed = `11,380 / 54.64 =
+  208.3s`, well inside the same 349.96s budget — converges without hitting the deadline a second
+  time. Total build 2 time: `649 + 21.04 + 208.3 = 878.3s` — 321.7s of margin.
+
+**Every build in the chain stays under the 20-minute (1200s) hard ceiling. `2 builds x 2h
+(D-02's ingest-cron interval) = 4h <= the 24h D-10 promise`, with 20 hours of margin.**
+
+**Verdict: converges within the 24h D-10 promise (full verdict line above).**
+
+**Disclosed simplification:** Phase 4's 649s "cold render" figure is itself that build's own
+hook-POST-to-deployed-version total, which historically bundled a deploy sub-phase of its own
+(226s, inflated by the since-fixed `BUILD_HASH`-on-every-page bug, 04-11a). Adding 05-09's
+*separate*, post-fix 21.04s deploy figure on top of 649s risks a small double-count of "deploy"
+time. This is the literal formula the plan specifies (`649s cold render + deploy time from 05-09
++ full re-upload`), and it is the CONSERVATIVE direction (over-estimating total time makes the
+verdict harder to reach, not easier) — so it is used as given and disclosed here rather than
+silently adjusted. Re-measuring a real cold build against today's split-archive, post-fix
+codebase (not reusing Phase 4's pre-archive-tier figure) would sharpen this further; left as a
+follow-up, not blocking this verdict.
+
+#### Phase 6 projection (archived pages ~2x, same throughput) — flagged for owner review, not this plan's verdict
+
+Per the must_haves, the same arithmetic is run with archived pages doubled (`30,501 x 2 =
+61,002`) and the cold render scaled by the same corpus ratio (`649 x 2 = 1,298s`), throughput
+held at today's measured 54.64 obj/s (no basis yet to assume otherwise):
+
+- Cold render (**1,298s**) + deploy (21.04s) = **1,319.04s** — **this ALONE already exceeds the
+  1200s/20-minute Workers Builds hard ceiling**, before the re-upload phase even gets a chance to
+  run. A build whose render time alone exceeds the platform's hard timeout cannot complete at
+  all; Workers Builds would kill it mid-render.
+- Full re-upload at the same throughput: `61,002 / 54.64 = 1,116.2s`. Total single-build worst
+  case: `1,298 + 21.04 + 1,116.2 = 2,435.2s` (~40.6 min) — more than double the hard ceiling.
+
+**This is a provisional, linearly-scaled projection (the must_haves' own instruction: "cold
+render scaled by the corpus ratio"), not a verified re-measurement** — real cold-render time is
+dominated by D1 row count and page count, which may not scale 1:1 with the archived-page ratio
+alone. But even as a rough proxy, it says something today's measurement cannot: **the mechanism
+that lets today's corpus converge in 2 builds (chaining the ARCHIVE-SYNC re-upload across
+builds) does nothing to help if the RENDER step itself can no longer complete within one build's
+20-minute ceiling** — that is a different, more structural problem than REND-12 as scoped for
+this phase, and this plan does not attempt to solve it. **Flagged for owner review before Phase
+6 ships**, same disclosure pattern as 05-05's hot-window file-budget cap and 05-11's LCP finding:
+measure a real cold build against Phase 6's actual corpus size before relying on the current
+2-hourly-chained-build mechanism to still converge within 24 hours.
+
+#### Criterion 5 reinterpretation
+
+ROADMAP.md's Phase 5 success criterion 5 reads "no single Worker invocation exceeding the 300s
+CPU ceiling." That figure is the HTTP Worker's `limits.cpu_ms` maximum
+(`docs/phase-03/measurements.md` §3) — the ceiling on a single deployed-Worker *request*, not on
+a build. **The archive re-render this plan measures involves no Worker invocation at all**: it
+runs entirely inside the Workers Builds build container (`tools/archive-sync.mjs`, a Node CLI
+step in the same build that already renders the static site), governed instead by that
+container's own 20-minute wall-clock hard ceiling, with `PRE_DEADLINE_SECONDS`/
+`POST_DEADLINE_SECONDS` (840s/1020s) keeping every individual build comfortably inside it
+(confirmed again by this plan's own measured build: 727.98s total, 558.2s of that inside the
+post-deadline window). The chained-cron mechanism Phase 3 originally measured (~26-33 cycles,
+~2.7 days) is explicitly NOT what REND-12 relies on (RESEARCH Pitfall 2) — the archive re-render
+chains across Workers Builds BUILDS (2-hourly, per D-02's ingest cron), not cron-Worker
+invocations, and the convergence verdict above is the measured answer to criterion 5's
+intent under that corrected reading, not its literal (stale) wording.
 
 ---
 

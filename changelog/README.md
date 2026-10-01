@@ -10,6 +10,7 @@ Entries are named `YYYY-MM-DD-HHMM_slug.md` and grouped by month, newest first.
 
 | Date | Entry | Keywords |
 |------|-------|----------|
+| 2026-10-01 | [REND-12 verdict computed honestly: ARCHIVE_RERENDER_CONVERGES (today), Phase 6 flagged](2026-10-01-1245_05-10-rend-12-verdict-archive-rerender-converges.md) | `[DOCUMENTATION]` `[ARCHITECTURE]` `[PERFORMANCE]` `[DEPLOYMENT]` |
 | 2026-10-01 | [Forced full archive re-upload observed on the real production platform](2026-10-01-1230_05-10-forced-full-reupload-build-log-evidence.md) | `[DOCUMENTATION]` `[DEPLOYMENT]` `[INFRA]` |
 | 2026-10-01 | [Plan 05-11 complete: live archive-page proof, R2_LATENCY_EXCEEDS_LCP flagged](2026-10-01-1115_05-11-complete-live-archive-proof-plan.md) | `[DOCUMENTATION]` `[PLANNING]` `[TESTING]` `[PERFORMANCE]` |
 | 2026-10-01 | [R2 latency and archived-page LCP measured against the 1.5s budget](2026-10-01-1110_05-11-r2-latency-and-archived-lcp-measured.md) | `[PERFORMANCE]` `[TESTING]` `[DOCUMENTATION]` |
