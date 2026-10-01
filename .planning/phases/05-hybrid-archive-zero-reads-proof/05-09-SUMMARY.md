@@ -29,7 +29,7 @@ affects: ["05-10 (forced full re-upload at corpus scale, same production host)",
 actuals:
   tokens: 5200
   tasks: 3
-  commits: 3
+  commits: 4
 
 tech-stack:
   added: []
@@ -236,9 +236,10 @@ status: complete
 2. **Task 3 (tracer):** `f9f3e0d` (docs) — `docs/phase-05/archive-architecture.md`,
    `changelog/2026-10-01-0953_05-09-first-production-archive-deploy-measured.md`,
    `changelog/README.md`
-3. **Task 3 follow-up (real build-log reconciliation):** `[pending — see completion report for
-   hash]` (docs) — `docs/phase-05/evidence/first-prod-deploy/build-241c97e1-archive-lines.log`,
-   `docs/phase-05/archive-architecture.md`, a new changelog entry, `changelog/README.md`
+3. **Task 3 follow-up (real build-log reconciliation):** `941602f` (docs) —
+   `docs/phase-05/evidence/first-prod-deploy/build-241c97e1-archive-lines.log`,
+   `docs/phase-05/archive-architecture.md`, `.planning/STATE.md`, a new changelog entry,
+   `changelog/README.md` (this SUMMARY itself was also corrected in this commit)
 
 **Plan metadata:** pending (this SUMMARY's own commit, via `/jja-commit`).
 
@@ -305,8 +306,8 @@ executor's own token**
   independent R2-bucket cross-check exactly on the `post` phase (`uploaded: 22, failed: 0`), and
   explain the earlier `pre`-phase discrepancy (19 real vs. 3 local) as local `dist/archive`
   staleness, not a production defect.
-- **Committed in:** `f9f3e0d` (initial disclosure), follow-up commit (resolution — see
-  completion report for hash)
+- **Committed in:** `f9f3e0d` (initial disclosure), `941602f` (resolution against the real
+  build log)
 
 **2. [Rule 1 - Bug] Own throwaway latency-measurement script's Server-Timing parser was wrong**
 - **Found during:** Task 3's own cold-latency sampling, first two runs
@@ -383,6 +384,5 @@ covers the need (see the updated STATE.md blocker).
 
 `docs/phase-05/archive-architecture.md` and `docs/phase-05/evidence/first-prod-deploy/
 build-241c97e1-archive-lines.log` both confirmed present on disk (`grep -c ARCHIVE_TIER_LIVE` ->
-1; log file matches the orchestrator-supplied content byte for byte). Commit `f9f3e0d` confirmed
-present in `git log --oneline --all`; the follow-up commit is confirmed in the completion report
-below.
+1; log file matches the orchestrator-supplied content byte for byte). Commits `f9f3e0d` and
+`941602f` both confirmed present in `git log --oneline --all`.
