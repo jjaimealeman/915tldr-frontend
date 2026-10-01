@@ -10,6 +10,8 @@ Entries are named `YYYY-MM-DD-HHMM_slug.md` and grouped by month, newest first.
 
 | Date | Entry | Keywords |
 |------|-------|----------|
+| 2026-09-30 | [Phase 4 UAT 3 passes: one ingest cycle, one production build](2026-09-30-2240_phase-4-uat-3-production-rebuild-trigger-pass.md) | `[DOCS]` `[TESTING]` `[DEPLOY]` |
+| 2026-09-30 | [Plan 05-01 complete: tag tiering, hot window and tier facts](2026-09-30-2236_05-01-complete-tag-tiering-hot-window-and-tier-fac.md) | `[DOCUMENTATION]` `[PLANNING]` `[ARCHITECTURE]` |
 | 2026-09-30 | [Log the hot window during every build; prove facts match the built pages](2026-09-30-2229_hot-window-build-log-and-tier-facts-cross-checks.md) | `[BACKEND]` `[TESTING]` `[ARCHITECTURE]` |
 | 2026-09-30 | [Complete tiering/hot-window validation (GREEN)](2026-09-30-2225_tiering-hot-window-validation-green.md) | `[BACKEND]` `[ARCHITECTURE]` `[PLANNING]` |
 | 2026-09-30 | [Pin tiering/hot-window boundaries with tests (RED)](2026-09-30-2223_tiering-hot-window-boundary-tests-red.md) | `[TESTING]` `[BACKEND]` `[PLANNING]` |
