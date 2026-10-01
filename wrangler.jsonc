@@ -97,6 +97,20 @@
       "id": "3c92531f94294fcc94006455f433885f",
     },
   ],
+  // R2 bucket — REND-07/REND-08, Phase 5 plan 03. The Worker only ever READS this bucket, on a
+  // static-asset miss for an already-validated canonical article path or tag path (05-03's
+  // archive-serving branch in src/worker.ts); it never writes or deletes through this binding.
+  // The build writes archived pages into this bucket separately, through the S3-compatible API
+  // with a bucket-scoped credential (05-02), not through this binding — build-time Node has no
+  // live Workers binding, same reasoning this file already documents for D1's absence below.
+  // The bucket is private: no r2.dev public URL, no custom domain — archived pages are reachable
+  // only through this Worker.
+  "r2_buckets": [
+    {
+      "binding": "ARCHIVE_BUCKET",
+      "bucket_name": "915tldr-archive",
+    },
+  ],
   "observability": {
     "enabled": true,
   },

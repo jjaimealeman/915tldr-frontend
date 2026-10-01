@@ -1,29 +1,39 @@
 // D-08: this project's first Worker. Runs ONLY when the static asset layer misses a request —
 // Workers Static Assets serves an asset hit directly without ever invoking this handler
 // (`run_worker_first` stays unset in wrangler.jsonc). Turns any URL carrying a known article uuid
-// into one 301 to the canonical path (one KV read, zero D1 reads); anything else falls through to
-// `env.ASSETS.fetch`, which — with `not_found_handling: "404-page"` set — serves the styled,
-// build-time 404 page (404.astro) with status 404.
+// into one 301 to the canonical path (one KV read, zero D1 reads); a canonical-path miss is tried
+// against the R2 archive tier (05-03, REND-08, still that same one KV read); anything else falls
+// through to `env.ASSETS.fetch`, which — with `not_found_handling: "404-page"` set — serves the
+// styled, build-time 404 page (404.astro) with status 404.
 //
 // Kept deliberately tiny: this is the request path PROJECT.md caps at 5ms Worker CPU. All
 // decision logic (uuid extraction, redirect validation, the open-redirect mitigation) lives in
-// `./lib/article-redirect.ts`, independently unit-tested — this file only wires the one KV read
-// and builds the actual `Response`.
+// `./lib/article-redirect.ts`, and the R2 key derivation lives in `./lib/archive/archive-route.ts`
+// — both independently unit-tested; this file only wires the one KV read, the R2 read, and builds
+// the actual `Response`.
 //
-// Imports only `./lib/article-redirect.ts` (which imports only `./lib/article-url.ts`) — this
-// file is in `tools/assert-no-d1.mjs`'s `ENTRYPOINT_EXACT_FILES` (Task 2), so a transitive reach
-// into the D1/KV chokepoint directory that guard forbids would fail the build.
+// Imports only `./lib/article-redirect.ts` (which imports only `./lib/article-url.ts`) and
+// `./lib/archive/archive-route.ts` (same import boundary) — this file is in
+// `tools/assert-no-d1.mjs`'s `ENTRYPOINT_EXACT_FILES` (Task 2), so a transitive reach into the
+// D1/KV chokepoint directory (`src/lib/server/`) that guard forbids would fail the build.
 import { extractArticleUuid, resolveRedirect } from './lib/article-redirect.ts';
+import { articleArchiveKey } from './lib/archive/archive-route.ts';
 
 /**
  * Minimal local binding shapes — this project has no `@cloudflare/workers-types` dependency
  * (confirmed: not present in `node_modules`), and the plan's own instruction is to add a local
- * interface rather than a new package for this alone. `ASSETS`/`RENDER_MANIFEST` mirror exactly
- * the two bindings `wrangler.jsonc` declares (Task 2) — no more, no less.
+ * interface rather than a new package for this alone. `ASSETS`/`RENDER_MANIFEST`/`ARCHIVE_BUCKET`
+ * mirror exactly the three bindings `wrangler.jsonc` declares — no more, no less. `ARCHIVE_BUCKET`
+ * only needs `get`/`head` shapes: this Worker never writes or deletes through this binding
+ * (05-03's wrangler.jsonc comment).
  */
 export interface Env {
   ASSETS: { fetch(request: Request): Promise<Response> };
   RENDER_MANIFEST: { get(key: string, type: 'json'): Promise<unknown> };
+  ARCHIVE_BUCKET: {
+    get(key: string): Promise<{ body: ReadableStream } | null>;
+    head(key: string): Promise<{} | null>;
+  };
 }
 
 export default {
@@ -57,6 +67,20 @@ export default {
     const decision = resolveRedirect(url.pathname, entry);
     if (decision.type === 'not-found') {
       return env.ASSETS.fetch(request);
+    }
+
+    if (decision.type === 'canonical') {
+      // REND-08: a canonical-path static-asset miss with a valid manifest entry means "possibly
+      // archived" — try R2 before falling through to the 404 page. No second KV read: the
+      // articleId came from the one RENDER_MANIFEST read above.
+      const object = await env.ARCHIVE_BUCKET.get(articleArchiveKey(decision.articleId));
+      if (!object) {
+        return env.ASSETS.fetch(request);
+      }
+      return new Response(object.body, {
+        status: 200,
+        headers: { 'Content-Type': 'text/html; charset=utf-8' },
+      });
     }
 
     return new Response(null, {
