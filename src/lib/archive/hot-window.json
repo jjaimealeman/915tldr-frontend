@@ -1,0 +1,9 @@
+{
+  "status": "fallback-provisional",
+  "provisional": true,
+  "days": 90,
+  "basis": "age-fallback",
+  "decision": "D-07",
+  "reason": "bootstrap until 05-05 derives the window from 30 days of human traffic (D-07b)",
+  "decidedAt": "2026-09-30"
+}

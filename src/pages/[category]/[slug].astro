@@ -25,6 +25,7 @@ import Base from '../../layouts/Base.astro';
 import ArticleCard from '../../components/ArticleCard.astro';
 import { articlePath, articleParams } from '../../lib/article-url';
 import { computeRails, railFingerprint, type RailResult } from '../../lib/rail';
+import { writeArticleFacts } from '../../lib/archive/tier-facts';
 import { splitStandfirst, summaryBodyHtml } from '../../lib/summary';
 import { formatBylineTime, isoWithOffset } from '../../lib/format';
 import { newsArticleNode, breadcrumbNode, SITE_ORIGIN } from '../../lib/structured-data';
@@ -44,6 +45,17 @@ export async function getStaticPaths() {
   const entries = await getCollection('articles');
   const allArticles = entries.map((entry) => entry.data);
   const rails = computeRails(allArticles);
+
+  // 05-01 (Task 1): one tier fact per public article, read back by tools/tier-report.mjs and
+  // later archive-tiering plans so no second D1 read is ever needed to decide hot vs. archive.
+  writeArticleFacts(
+    entries.map((entry) => ({
+      uuid: entry.data.uuid,
+      path: articlePath(entry.data.category.slug, entry.data.slug, entry.data.uuid),
+      publishedAt: entry.data.publishedAt,
+    }))
+  );
+
   return entries.map((entry) => {
     const rail = rails.get(entry.data.uuid) ?? EMPTY_RAIL;
     return {
