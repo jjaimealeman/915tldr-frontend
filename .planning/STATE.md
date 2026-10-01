@@ -5,15 +5,15 @@ milestone_name: milestone
 current_phase: 05
 current_phase_name: Hybrid Archive & Zero-Reads Proof
 status: executing
-stopped_at: Completed 05-10-PLAN.md
-last_updated: "2026-10-01T18:34:05.545Z"
+stopped_at: Completed 05-12-PLAN.md -- Phase 5 complete, ARCH-01 ZERO_READS_PROVEN
+last_updated: "2026-10-01T21:43:29.232Z"
 last_activity: 2026-10-01
 last_activity_desc: Phase 05 plan 11 executed (live URL contract + real-browser journeys for archived pages; R2 latency and archived-page LCP measured — R2_LATENCY_EXCEEDS_LCP, flagged for owner review)
 progress:
   total_phases: 5
-  completed_phases: 4
+  completed_phases: 5
   total_plans: 64
-  completed_plans: 63
+  completed_plans: 64
 ---
 
 # Project State
@@ -32,7 +32,7 @@ Plan: 12 of 12 (05-10 still pending; 05-11 complete out of order per orchestrato
 Status: Ready to execute (05-10 or 05-12 next)
 Last activity: 2026-10-01 — Phase 05 plan 11 executed (live URL contract + browser journeys for archived pages; R2/LCP measured)
 
-Progress: [██████████] 98%
+Progress: [██████████] 100%
 
 ## Performance Metrics
 
@@ -112,6 +112,7 @@ Progress: [██████████] 98%
 | Phase 05 P09 | ~90min | 3 tasks | 1 files |
 | Phase 05 P11 | ~110min | 3 tasks | 14 files |
 | Phase 05 P10 | ~76min | 2 tasks | 3 files |
+| Phase 05 P12 | ~3h10min | 3 tasks | 11 files |
 
 ## Accumulated Context
 
@@ -275,6 +276,9 @@ Recent decisions affecting current work:
 - [Phase ?]: 05-11: Criterion 2 measured, NOT met on the canonical run -- `R2_LATENCY_EXCEEDS_LCP` (archived p95 LCP 1,788ms vs the 1,500ms budget; 200-sample R2 get() p95=172ms, KV p95=155ms, both small and well within budget). Four back-to-back runs on the operator machine showed real variance (archived p95 LCP 1200/1212/2108/1788ms) -- the archive tier's own R2/KV cost is NOT the bottleneck; hot (never-archived) pages also sit close to the 1.5s line (p95 1,484ms) in this lab proxy, pointing at general page-weight/render cost as the real lever, not the archive-serving mechanism. Flagged for owner review in docs/phase-05/archive-latency.md; field LCP at mobile p75 (PROJECT.md's actual release gate) is unaffected and still pending Phase 11. Also corrects ROADMAP.md Phase 5 criterion 2's "~30 KB objects" assumption -- measured archived-article objects are ~13KB (median 13,070 bytes), not ~30KB.
 - [Phase ?]: 05-10: REND-12 marked Complete -- forced full re-upload (30,501 pages) measured live on Workers Builds at 54.64 obj/s; worst-case arithmetic computed against a genuinely cold render (Phase 4's 649s), not this run's own warm-cache render, converges in 2 builds (4h) against the 24h D-10 promise.
 - [Phase ?]: 05-10: Phase 6 projection flagged, not fixed -- at ~2x today's archived-page count, cold render time alone may already exceed the 20-minute Workers Builds hard ceiling; needs a real re-measurement before Phase 6 ships.
+- [Phase ?]: 05-12: ARCH-01 verdict ZERO_READS_PROVEN -- a real 20,000-request pass against the deployed Worker measured load-window rowsRead (1,684,090) within v1's own 7-day background (z=-1.0011), and the deployed Worker carries no D1 binding. Phase 5's core premise is proven, not assumed; Phase 6 may proceed per D-02.
+- [Phase ?]: 05-12: Found and fixed two real, pre-existing bugs in load-test-zero-reads.mjs (05-04's own gate instrument) before the real gate could run: the documented analytics catch-up wait was dead code on the live CLI path, and --archive-plan was parsed but never used to build a request mix -- the documented CLI usage had never actually worked, on any invocation, before 05-12.
+- [Phase ?]: 05-12: ARCH-08 measured on the deployed Worker over the gate's own window -- KV reads within budget (202/8464 invocations), CPU p50/p99 excellent (0.764ms/2.846ms), but a single real request spiked to 49.966ms, over the 20ms hard-fail ceiling. Disclosed, not hidden; recorded as a failed requirement for /gsd-verify-work, not a project halt (D-02 applies only to the ZERO_READS_* verdict). Logged to WINDOWS.md #26.
 
 ### Pending Todos
 
@@ -331,6 +335,6 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-10-01T18:33:57.167Z
-Stopped at: Completed 05-10-PLAN.md
+Last session: 2026-10-01T21:43:29.087Z
+Stopped at: Completed 05-12-PLAN.md -- Phase 5 complete, ARCH-01 ZERO_READS_PROVEN
 Resume file: None
