@@ -14,6 +14,7 @@ import {
   WINDOW_DAYS,
   HOT_COVERAGE_TARGET,
   HOT_WINDOW_STATIC_CAP,
+  SECONDS_PER_DAY,
   parseArticleRequestPath,
   classifyPayloadPath,
   parseTagRequestPath,
@@ -21,6 +22,7 @@ import {
   requestAgeHistogram,
   summarizeDayRows,
   pickCutoffDays,
+  coverageAtDays,
   coverageCurve,
   applyStaticCap,
   deriveHotWindow,
@@ -212,6 +214,22 @@ test('coverageCurve: returns N and achieved coverage for 80/90/95/99%', () => {
 });
 
 // ---------------------------------------------------------------------------
+// coverageAtDays
+// ---------------------------------------------------------------------------
+
+test('coverageAtDays: the real share of the total with age <= days, independent of any target', () => {
+  const histogram = { 0: 50, 1: 30, 2: 10, 3: 5, 10: 5 };
+  assert.equal(coverageAtDays(histogram, 0), 0.5);
+  assert.equal(coverageAtDays(histogram, 1), 0.8);
+  assert.equal(coverageAtDays(histogram, 3), 0.95);
+  assert.equal(coverageAtDays(histogram, 10), 1);
+});
+
+test('coverageAtDays: throws on an empty histogram', () => {
+  assert.throws(() => coverageAtDays({}, 5), /^Error: derive-hot-window: no matched human article requests$/);
+});
+
+// ---------------------------------------------------------------------------
 // applyStaticCap
 // ---------------------------------------------------------------------------
 
@@ -292,6 +310,92 @@ test('deriveHotWindow: throws when a day is flagged saturated', async () => {
     () => deriveHotWindow({ days: 30, coverage: 0.95, now: Date.UTC(2026, 9, 1), deps: fixtureDeps({ saturateOnDay: 10 }) }),
     /saturated/
   );
+});
+
+// ---------------------------------------------------------------------------
+// deriveHotWindow — achievedCoverage must reflect the CAPPED days, not the pre-cap figure
+// (regression: a prior build reported the uncapped-cutoff's coverage under the capped `days`
+// value, e.g. "202 days, 95.1% coverage" when 95.1% was actually the coverage AT 234 days).
+// ---------------------------------------------------------------------------
+
+/** Deterministic histogram {0:50, 1:30, 2:10, 3:5, 10:5} (total 100) — the same fixture
+ * `pickCutoffDays`/`coverageCurve` already pin elsewhere, built here by injecting 5 synthetic
+ * articles whose uuid/publishedAt pair makes `requestAgeDays` land on exactly ages 0/1/2/3/10 on
+ * the window's first day, with every other day returning no rows. */
+function cappingFixtureDeps({ staticCapPhase6PerDay = 200, staticCap = 300 } = {}) {
+  const windowStartDay = Date.UTC(2026, 8, 1) / 1000; // 2026-09-01, day-floored
+  const ageCounts = { 0: 50, 1: 30, 2: 10, 3: 5, 10: 5 };
+  const articles = Object.entries(ageCounts).map(([age, count], index) => {
+    const uuid = `2222222${index}-2222-2222-2222-22222222222${index}`;
+    const publishedAt = windowStartDay - Number(age) * SECONDS_PER_DAY + 3600; // mid-day, same age
+    return { uuid, publishedAt, count: Number(count) };
+  });
+  let dayIndex = -1;
+  return {
+    fetchDay: async () => {
+      dayIndex += 1;
+      if (dayIndex !== 0) {
+        return { eyeballTotal: 0, humanTotal: 0, articleRows: [], tagRows: [] };
+      }
+      return {
+        eyeballTotal: 100,
+        humanTotal: 100,
+        articleRows: articles.map((a) => ({ path: `/crime/x-${a.uuid}`, count: a.count })),
+        tagRows: [],
+      };
+    },
+    readTierFacts: () => ({
+      articles: articles.map(({ uuid, publishedAt }) => ({ uuid, path: `/crime/x-${uuid}`, publishedAt })),
+      tags: [],
+    }),
+    // uncapped chosenDays (3, for coverage 0.95) projects over the cap; days 1 is the first that
+    // fits — matches applyStaticCap's own already-tested step-down behavior.
+    projectStaticCount: ({ days }) => ({ phase6Total: days * staticCapPhase6PerDay }),
+    staticCap,
+    otherFiles: 0,
+    sleep: async () => {},
+    pacingMs: 0,
+  };
+}
+
+test('deriveHotWindow: when the file-budget cap lowers the cutoff, achievedCoverage reflects the CAPPED days (< target), and uncappedCoverage keeps the pre-cap figure', async () => {
+  const now = Date.UTC(2026, 9, 1); // 2026-10-01 — window 2026-09-01..2026-09-30
+  const record = await deriveHotWindow({ days: 30, coverage: 0.95, now, deps: cappingFixtureDeps() });
+
+  assert.equal(record.cappedByFileBudget, true);
+  assert.equal(record.uncappedDays, 3); // pickCutoffDays({0:50,1:30,2:10,3:5,10:5}, 0.95) === 3
+  assert.equal(record.days, 1); // applyStaticCap steps 3 -> 1 against the fixture's cap
+
+  // The bug this test guards against: achievedCoverage must be the coverage AT record.days (the
+  // capped cutoff actually shipped), never the pre-cap figure relabeled under the new days value.
+  assert.equal(record.achievedCoverage, 0.8); // coverage at days=1: (50+30)/100
+  assert.ok(
+    record.achievedCoverage < record.coverageTarget,
+    `achievedCoverage (${record.achievedCoverage}) must be < coverageTarget (${record.coverageTarget}) once the cap has lowered the cutoff below what the target alone would have chosen`
+  );
+
+  // The pre-cap figure (what `coverage` alone achieved at the uncapped cutoff) must still be
+  // recorded somewhere — under its own name, not reused as `achievedCoverage`.
+  assert.equal(record.uncappedCoverage, 0.95); // coverage at days=3: (50+30+10+5)/100
+  assert.ok(record.uncappedCoverage >= record.coverageTarget);
+
+  // The record must still validate against the schema with these corrected values.
+  const parsed = parseHotWindow(record);
+  assert.equal(parsed.achievedCoverage, 0.8);
+});
+
+test('deriveHotWindow: when the uncapped cutoff already fits the budget, achievedCoverage and uncappedCoverage are identical', async () => {
+  const now = Date.UTC(2026, 9, 1);
+  const record = await deriveHotWindow({
+    days: 30,
+    coverage: 0.95,
+    now,
+    deps: cappingFixtureDeps({ staticCap: 1_000_000 }), // cap never binds
+  });
+  assert.equal(record.cappedByFileBudget, false);
+  assert.equal(record.days, record.uncappedDays);
+  assert.equal(record.achievedCoverage, record.uncappedCoverage);
+  assert.equal(record.achievedCoverage, 0.95);
 });
 
 // ---------------------------------------------------------------------------
