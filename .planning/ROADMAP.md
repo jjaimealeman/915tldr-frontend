@@ -317,7 +317,41 @@ Plans:
   4. Tag pages default to the R2 archive tier with only a measured top-N by article count promoted to hot static; total deployed static-asset file count is reported daily, the current count is recorded against the 100,000 ceiling, and the build fails at an 80,000-file safety margin.
   5. The hot-content cutoff is derived from measured request traffic over a stated window — not a fixed guess — and a full archive re-render completes with no single Worker invocation exceeding the 300 s CPU ceiling.
 
-**Plans**: TBD
+**Plans**: 12 plans in 7 waves
+
+Plans:
+**Wave 1**
+
+- [ ] 05-01-PLAN.md — Tiering rules (D-08 tag threshold, inclusive age cutoff), hot-window config (bootstrap D-07 fallback), build-time tier facts, tier-report (wave 1)
+- [ ] 05-02-PLAN.md — Package-legitimacy checkpoint, owner creates private R2 bucket + bucket-scoped credential, build-time R2 client with live round trip and build-gate case (wave 1)
+- [ ] 05-03-PLAN.md — Worker serves archived articles (one KV read) and tags (zero KV) from R2, static-parity headers, 503 on R2 error, edge cache, Server-Timing (wave 1)
+- [ ] 05-04-PLAN.md — Zero-reads load test (leg 1b + leg 2 delta vs v1 background) and ARCH-08 KV/CPU tool, TDD'd and baseline-proven live (wave 1)
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
+- [ ] 05-05-PLAN.md — Derive the hot window from 30 days of live human-only traffic (D-04..D-07b), capped by the file budget; REND-10 met in-phase (wave 2)
+- [ ] 05-06-PLAN.md — Post-build partition of archive-tier pages, 80,000-file build gate, /static-budget.json, tests across both tiers (wave 2)
+
+**Wave 3** *(blocked on Wave 2 completion)*
+
+- [ ] 05-07-PLAN.md — Archive sync: pre-deploy upload with move-back, post-deploy re-upload/orphans/backlog, deadlines, D-09..D-12, architecture record (wave 3)
+
+**Wave 4** *(blocked on Wave 3 completion)*
+
+- [ ] 05-08-PLAN.md — Wire archive sync and the count gate into the Workers Builds wrapper; alerts, 70,000 alarm, daily file-count report, fallback guard; pipeline docs (wave 4)
+
+**Wave 5** *(blocked on Wave 4 completion)*
+
+- [ ] 05-09-PLAN.md — Owner decides the route to dev.915tldr.com (costly decision: merge to main vs local deploy); first archive-tier deploy observed and live-checked (wave 5)
+
+**Wave 6** *(blocked on Wave 5 completion)*
+
+- [ ] 05-10-PLAN.md — REND-12: forced full re-upload through the real pipeline; verdict with the criterion-5 (300 s) reinterpretation (wave 6)
+- [ ] 05-11-PLAN.md — Live URL contract and real-browser journeys for archived pages; R2 latency p50/p95 and archived LCP vs 1.5 s (wave 6)
+
+**Wave 7** *(blocked on Wave 6 completion)*
+
+- [ ] 05-12-PLAN.md — The zero-reads gate (D-01..D-03, halt on failure) and ARCH-08 on the deployed Worker; validation map closed (wave 7)
 
 ### Phase 6: Bilingual
 

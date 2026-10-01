@@ -58,6 +58,38 @@ Requirements: ARCH-01, ARCH-08, REND-07, REND-08, REND-09, REND-10, REND-11, REN
   margin). It must be **visibly flagged as provisional** wherever it is recorded, and re-derived
   from traffic once a 30-day window exists. How much per-URL history the platform retains, and on
   which plan, is unverified and is the researcher's first check.
+- **D-07b (2026-09-30 evening, SUPERSEDES D-07a below):** The owner granted the API token
+  **Zone Analytics: Read** (all zones in the account). A live measurement then showed **31 days**
+  of retention, not 7. `httpRequestsAdaptiveGroups` for zone `70a6176e850ecde50ab6f41d56ffddb4`
+  returns per-URL data at day −31, and at day −35 the API itself errors with *"cannot request data
+  older than 4w3d"*. The research's 7-day figure came from the Security Analytics doc page and does
+  not apply to this dataset. Consequences:
+  1. **D-04/D-05/D-06 are met directly in Phase 5.** The hot cutoff is derived from a real 30-day,
+     human-only (`requestSource: "eyeball"`, bot traffic excluded) per-URL window queried live.
+     REND-10 is fully verifiable at phase end, not provisional.
+  2. **The daily collector from D-07a is dropped** because its premise no longer holds.
+     Re-deriving the cutoff later means re-running the same derivation against the then-current
+     31-day window.
+  3. **D-07's age-based fallback** stays only as a documented fallback if the query fails at
+     derivation time. It is not the launch mechanism.
+  4. Observed noise to filter when deriving: non-article paths dominate raw counts (`/cdn-cgi/rum`,
+     `/_payload.json`, `/api/_nuxt_icon/*`, `/_nuxt/*`). Only article URL shapes
+     (`/[category]/[slug]-[uuid]`) count toward the article hot window, and only `/tag/*` toward
+     tags.
+- **D-07a (added 2026-09-30, after research — SUPERSEDED by D-07b above, kept for the record):** Research confirmed that `915tldr.com` is on the
+  **Free plan**, which keeps per-URL request data for only about **7 days** (31 days needs
+  Business, about $200/mo, which was rejected on budget). The owner chose to **collect our own 30
+  days**:
+  1. Phase 5 **launches with D-07's provisional age cutoff**, flagged as provisional.
+  2. A small **daily collector** saves each day's human-only per-URL request counts (D-06) for
+     915tldr.com to project-owned storage before Cloudflare's ~7-day window drops them.
+  3. Once 30 consecutive days exist (around early November 2026), the cutoff is **re-derived from
+     the collected data**, which satisfies D-04/D-05/REND-10.
+  Owner action: grant the existing API token **Zone Analytics: Read** (read-only, no cost). The
+  collector must not broaden the Workers Builds build token beyond its current scopes (Phase 4
+  T-04-41). Where the collector runs and where it stores data is Claude's discretion, at $0 cost.
+  The plan must state how REND-10 is verified while the 30-day window is still filling
+  (provisional at phase end, final once re-derived).
 
 ### Tag tiering (REND-09)
 - **D-08:** A tag stays **static only if it has 10 or more articles** (about 2,325 tags today).
