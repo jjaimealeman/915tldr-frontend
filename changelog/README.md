@@ -10,6 +10,7 @@ Entries are named `YYYY-MM-DD-HHMM_slug.md` and grouped by month, newest first.
 
 | Date | Entry | Keywords |
 |------|-------|----------|
+| 2026-10-01 | [Phase 5's validation contract closed: nyquist_compliant, full suite green live](2026-10-01-1612_05-12-phase-5-validation-map-closed.md) | `[DOCUMENTATION]` `[TESTING]` `[ARCHITECTURE]` |
 | 2026-10-01 | [ARCH-01 verdict computed and recorded: ZERO_READS_PROVEN](2026-10-01-1534_05-12-zero-reads-verdict-proven.md) | `[DOCUMENTATION]` `[ARCHITECTURE]` `[PERFORMANCE]` `[CRITICAL]` |
 | 2026-10-01 | [Zero-reads gate + ARCH-08 evidence captured against the real deployed Worker](2026-10-01-1531_05-12-zero-reads-gate-evidence-captured.md) | `[TESTING]` `[PERFORMANCE]` `[DOCUMENTATION]` `[CRITICAL]` |
 | 2026-10-01 | [Fix: the zero-reads gate's --archive-plan CLI flag was parsed but never used](2026-10-01-1433_05-12-fix-archive-plan-wiring-never-connected.md) | `[BUG_FIX]` `[TESTING]` `[CRITICAL]` |
