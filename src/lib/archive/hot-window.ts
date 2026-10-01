@@ -26,9 +26,53 @@ function fail(message: string): never {
   throw new Error(`hot-window: ${message}`);
 }
 
-/** Validates the fields every status shares. Task 2 extends this with derived-window-only field
- * validation (`window.from`/`to`, `coverageTarget`, `achievedCoverage`,
- * `articleRequestsCounted`, `derivedAt`). */
+const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
+
+/** Validates a number lies in (0, 1] — `coverageTarget`/`achievedCoverage` are fractions, never
+ * a percentage or an out-of-range value. */
+function assertCoverageFraction(value: unknown, label: string): void {
+  if (typeof value !== 'number' || !Number.isFinite(value) || value <= 0 || value > 1) {
+    fail(`${label} must be a number in (0,1], got ${JSON.stringify(value)}`);
+  }
+}
+
+/** Validates the derived-window-only fields (D-04/D-05/D-06/D-07b, the fields 05-05 writes):
+ * `window.from`/`window.to` (YYYY-MM-DD), `coverageTarget`/`achievedCoverage` (fractions in
+ * (0,1]), `articleRequestsCounted` (non-negative integer), `derivedAt` (ISO string). Additional
+ * fields (e.g. `cappedByFileBudget`, `uncappedDays`, `botFilter`, `reason`) are allowed and
+ * passed through unchanged by the caller. */
+function assertDerivedFields(candidate: Record<string, unknown>): void {
+  const window = candidate.window;
+  if (!window || typeof window !== 'object' || Array.isArray(window)) {
+    fail('a derived window requires a window.from/window.to object');
+  }
+  const w = window as Record<string, unknown>;
+  if (typeof w.from !== 'string' || !DATE_RE.test(w.from)) {
+    fail(`window.from must be a YYYY-MM-DD date, got ${JSON.stringify(w.from)}`);
+  }
+  if (typeof w.to !== 'string' || !DATE_RE.test(w.to)) {
+    fail(`window.to must be a YYYY-MM-DD date, got ${JSON.stringify(w.to)}`);
+  }
+  assertCoverageFraction(candidate.coverageTarget, 'coverageTarget');
+  assertCoverageFraction(candidate.achievedCoverage, 'achievedCoverage');
+  if (
+    typeof candidate.articleRequestsCounted !== 'number' ||
+    !Number.isInteger(candidate.articleRequestsCounted) ||
+    candidate.articleRequestsCounted < 0
+  ) {
+    fail(
+      `articleRequestsCounted must be a non-negative integer, got ${JSON.stringify(candidate.articleRequestsCounted)}`
+    );
+  }
+  if (typeof candidate.derivedAt !== 'string' || Number.isNaN(Date.parse(candidate.derivedAt))) {
+    fail(`derivedAt must be an ISO date string, got ${JSON.stringify(candidate.derivedAt)}`);
+  }
+}
+
+/** Validates every field of a hot-window config: the fields every status shares (`status`,
+ * `provisional`, `days`, `basis`, `decision`), plus (for a `derived` window) the fields 05-05
+ * writes (`window.from`/`to`, `coverageTarget`, `achievedCoverage`, `articleRequestsCounted`,
+ * `derivedAt`). Additional fields are passed through unchanged. */
 export function parseHotWindow(raw: unknown): HotWindow {
   if (!raw || typeof raw !== 'object' || Array.isArray(raw)) {
     fail(`expected an object, got ${JSON.stringify(raw)}`);
@@ -49,6 +93,9 @@ export function parseHotWindow(raw: unknown): HotWindow {
   if (status === 'fallback-provisional' && candidate.provisional !== true) {
     fail('a fallback-provisional window must have provisional: true');
   }
+  if (status === 'derived' && candidate.provisional !== false) {
+    fail('a derived window must have provisional: false');
+  }
 
   if (typeof candidate.days !== 'number' || !Number.isInteger(candidate.days) || candidate.days <= 0) {
     fail(`days must be a positive integer, got ${JSON.stringify(candidate.days)}`);
@@ -58,6 +105,10 @@ export function parseHotWindow(raw: unknown): HotWindow {
   }
   if (typeof candidate.decision !== 'string' || candidate.decision.length === 0) {
     fail(`decision must be a non-empty string, got ${JSON.stringify(candidate.decision)}`);
+  }
+
+  if (status === 'derived') {
+    assertDerivedFields(candidate);
   }
 
   return candidate as HotWindow;
