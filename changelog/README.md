@@ -10,6 +10,7 @@ Entries are named `YYYY-MM-DD-HHMM_slug.md` and grouped by month, newest first.
 
 | Date | Entry | Keywords |
 |------|-------|----------|
+| 2026-09-30 | [Pin tiering/hot-window boundaries with tests (RED)](2026-09-30-2223_tiering-hot-window-boundary-tests-red.md) | `[TESTING]` `[BACKEND]` `[PLANNING]` |
 | 2026-09-30 | [Implement tier facts, hot window, and tiering rules end to end (GREEN)](2026-09-30-2222_tier-facts-tracer-implementation-green.md) | `[BACKEND]` `[ARCHITECTURE]` `[PLANNING]` |
 | 2026-09-30 | [Add the tier-facts tracer test (RED)](2026-09-30-2221_tier-facts-tracer-test-red.md) | `[TESTING]` `[BACKEND]` `[PLANNING]` |
 | 2026-09-30 | [Phase 5 planned: research, 12 plans in 7 waves, checker passed](2026-09-30-2206_phase-5-planned.md) | `[PLANNING]` `[DOCUMENTATION]` `[ARCHITECTURE]` |
