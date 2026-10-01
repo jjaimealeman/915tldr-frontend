@@ -9,6 +9,7 @@ import { readFileSync, readdirSync, statSync, existsSync } from 'node:fs';
 import path from 'node:path';
 import { CATEGORIES } from '../../src/lib/categories.ts';
 import { HOME_FEED_COUNT, CATEGORY_PAGE_COUNT, SOURCE_PAGE_COUNT, TAGS_INDEX_COUNT } from '../../src/lib/listing.ts';
+import { SOURCE_SLUG_RE } from '../../src/lib/article-url.ts';
 
 const REPO_ROOT = path.resolve(import.meta.dirname, '../..');
 const DIST_CLIENT = path.join(REPO_ROOT, 'dist', 'client');
@@ -209,3 +210,29 @@ test('listing-pages: dist/client/source/ holds exactly 3 files', { skip: !DIST_B
     assert.equal(extractCanonical(html), `https://915tldr.com/source/${expectedSlug}`);
   }
 });
+
+// 04-followups (WR-01): `source/[slug].astro`'s getStaticPaths now validates every source slug
+// against SOURCE_SLUG_RE before it becomes a file name — the same discipline TAG_SLUG_RE already
+// applies to tag pages (`.planning/phases/04-static-generation-templates-seo/04-REVIEW.md`).
+test('SOURCE_SLUG_RE: accepts lowercase-hyphen-digit slugs, rejects path-traversal and uppercase', () => {
+  assert.match('ktsm', SOURCE_SLUG_RE);
+  assert.match('el-paso-matters', SOURCE_SLUG_RE);
+  assert.doesNotMatch('KTSM', SOURCE_SLUG_RE, 'uppercase must not match');
+  assert.doesNotMatch('../etc/passwd', SOURCE_SLUG_RE, 'path traversal must not match');
+  assert.doesNotMatch('source/slug', SOURCE_SLUG_RE, 'a slash must not match');
+  assert.doesNotMatch('', SOURCE_SLUG_RE, 'empty string must not match');
+});
+
+test(
+  'listing-pages: every built dist/client/source/*.html file name satisfies SOURCE_SLUG_RE (WR-01 guard proven against the real build)',
+  { skip: !DIST_BUILT && SKIP_REASON },
+  () => {
+    const sourceDir = path.join(DIST_CLIENT, 'source');
+    const sourceFiles = readdirSync(sourceDir).filter((f) => f.endsWith('.html'));
+    assert.ok(sourceFiles.length > 0, 'expected at least one built source page to check');
+    for (const file of sourceFiles) {
+      const slug = file.replace(/\.html$/, '');
+      assert.match(slug, SOURCE_SLUG_RE, `built source page file name "${file}" must satisfy SOURCE_SLUG_RE`);
+    }
+  }
+);
