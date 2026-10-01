@@ -317,7 +317,7 @@ Plans:
   4. Tag pages default to the R2 archive tier with only a measured top-N by article count promoted to hot static; total deployed static-asset file count is reported daily, the current count is recorded against the 100,000 ceiling, and the build fails at an 80,000-file safety margin.
   5. The hot-content cutoff is derived from measured request traffic over a stated window — not a fixed guess — and a full archive re-render completes with no single Worker invocation exceeding the 300 s CPU ceiling.
 
-**Plans**: 8/12 plans executed in 7 waves
+**Plans**: 9/12 plans executed in 7 waves
 
 Plans:
 **Wave 1**
@@ -342,7 +342,7 @@ Plans:
 
 **Wave 5** *(blocked on Wave 4 completion)*
 
-- [ ] 05-09-PLAN.md — Owner decides the route to dev.915tldr.com (costly decision: merge to main vs local deploy); first archive-tier deploy observed and live-checked (wave 5)
+- [x] 05-09-PLAN.md — Owner decides the route to dev.915tldr.com (costly decision: merge to main vs local deploy); first archive-tier deploy observed and live-checked (wave 5)
 
 **Wave 6** *(blocked on Wave 5 completion)*
 
@@ -482,7 +482,7 @@ Phase 3 and may run alongside Phases 5-7.
 | 2. Content Quality & Grounding | 11/10 | Complete    | 2026-09-21 |
 | 3. Foundation & Read-Budget Guardrails | 7/7 | Complete    | 2026-09-26 |
 | 4. Static Generation, Templates & SEO | 12/12 | In Progress|  |
-| 5. Hybrid Archive & Zero-Reads Proof | 8/12 | In Progress|  |
+| 5. Hybrid Archive & Zero-Reads Proof | 9/12 | In Progress|  |
 | 6. Bilingual | 0/TBD | Not started | - |
 | 7. Imagery & Share Cards | 0/TBD | Not started | - |
 | 8. Server Islands & Interactivity | 0/TBD | Not started | - |

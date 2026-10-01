@@ -5,15 +5,15 @@ milestone_name: milestone
 current_phase: 05
 current_phase_name: Hybrid Archive & Zero-Reads Proof
 status: executing
-stopped_at: Completed 05-08-PLAN.md
-last_updated: "2026-10-01T07:52:10.600Z"
+stopped_at: Completed 05-09-PLAN.md
+last_updated: "2026-10-01T15:58:17.085Z"
 last_activity: 2026-09-30
 last_activity_desc: Phase 05 plan 01 executed (tag tiering, hot window, build-time tier facts)
 progress:
   total_phases: 5
   completed_phases: 4
   total_plans: 64
-  completed_plans: 60
+  completed_plans: 61
 ---
 
 # Project State
@@ -28,11 +28,11 @@ See: .planning/PROJECT.md (updated 2026-09-16)
 ## Current Position
 
 Phase: 05 (Hybrid Archive & Zero-Reads Proof) — EXECUTING
-Plan: 9 of 12
+Plan: 10 of 12
 Status: Ready to execute
 Last activity: 2026-09-30 — Phase 05 plan 01 executed (tag tiering, hot window, tier facts)
 
-Progress: [█████████░] 94%
+Progress: [██████████] 95%
 
 ## Performance Metrics
 
@@ -109,6 +109,7 @@ Progress: [█████████░] 94%
 | Phase 05 P06 | ~40min | 3 tasks | 12 files |
 | Phase 05 P07 | ~40min | 3 tasks | 5 files |
 | Phase 05 P08 | ~55min | 3 tasks | 7 files |
+| Phase 05 P09 | ~90min | 3 tasks | 1 files |
 
 ## Accumulated Context
 
@@ -264,6 +265,9 @@ Recent decisions affecting current work:
 - [Phase ?]: 05-08: isProductionDeploy(env) in tools/ci-build.mjs is deliberately the exact inverse of archive-sync.mjs's own isR2WriteBlocked predicate, kept in sync so the two guards never disagree about what counts as production.
 - [Phase ?]: 05-08: found and fixed a real bug in tools/assert-file-count.mjs (not in this plan's file list) — the gate's own +1-for-static-budget.json assumption breaks the second time it runs in one build, which is this plan's own Task 1 requirement; fixed, pinned with a regression test, re-verified live.
 - [Phase ?]: 05-08: REND-07, REND-11 and REND-12 are intentionally left Pending in REQUIREMENTS.md — the full archive sequence is proven live at full corpus scale (30,478 entries) but through a CI_BUILD_DEPLOY_DRY_RUN=1 run, not a real production deploy through Workers Builds CI; that is 05-09's job.
+- [Phase ?]: 05-09: Owner selected option-a (merge to main) at Task 1's checkpoint, 2026-10-01 ~09:07 MDT; merge/push executed ~09:14 MDT (57c4b05 -> 57dfa94), triggering the real Workers Builds production deploy this plan observed.
+- [Phase ?]: 05-09: Archive tier confirmed live on dev.915tldr.com production (build 241c97e1, commit 57dfa94); cold R2 p95=215ms / KV p95=188ms, both under the ~300ms hot-window revisit threshold -> 202-day window kept as-is.
+- [Phase ?]: 05-09: REND-07 marked Complete (proven live on the real production deploy); REND-11 left Pending -- the Cloudflare Workers Builds API returned 403 Forbidden for both available tokens, blocking literal real-build wrangler log reconciliation; a direct cross-check against the real R2 bucket confirmed convergence as a disclosed substitute, not a completion.
 
 ### Pending Todos
 
@@ -306,6 +310,7 @@ Recent decisions affecting current work:
 - 04-07: production robots.txt behavior changes on next deploy -- v1's AI-crawler-blocking policy (Content-signal, GPTBot/ClaudeBot/CCBot/etc. Disallow) has never actually been served (v1's static public/robots.txt shadowed its own server route); v2 ships the intended policy, an owner-approved but real change to what's been crawlable. Also flagged: SEO-04 sitemap ordering-determinism unverified across two builds (@astrojs/sitemap documents no stable ordering guarantee) -- see 04-07-SUMMARY.md coverage D4.
 - **RESOLVED — Phase 4, 04-10 Task 2.** The owner chose option (a) and pushed `cc1b050` on 2026-09-30. Builds 3-4 ran on the real Workers Builds platform: Build 3 (flag-on, first toggle) was cold again as 04-09 already documented, 0/60,349 pages restored (expected); Build 4 (flag-on, no toggle) confirmed at least 34,871/~60,349 pages restored via `experimental.incrementalBuild` on a genuinely fresh Workers Builds container, wall time collapsing from 554s to 147s. **Verdict: `WB_REUSE_PROVEN`** — contradicts and supersedes 04-09's local `REUSE_WARM_ONLY` finding; likely explained by Workers Builds restoring both a dependencies cache and a build-output cache from the prior build, which 04-09's local fresh-clone simulation never fully reproduced. A new cost-relevant finding surfaced along the way: Build 3's deploy re-uploaded 60,355/60,355 assets (only 7 deduplicated), root-caused to `src/layouts/Base.astro` unconditionally printing `BUILD_HASH` in every page's footer — reported for 04-11, not fixed (Rule 4). The temporary `incrementalBuild=true` hardcode was reverted (`99795e3`) once both spike builds completed. See `04-10-SUMMARY.md` and `docs/phase-04/build-measurements.md` for full detail. 04-10 is complete.
 - STATE.md frontmatter current_phase was stale at 04 despite Phase 5 context/research/plan already existing on disk (05-CONTEXT.md, 05-RESEARCH.md, 12 PLAN.md files) — corrected to 05 during 05-01 execution; the body Current Position section had the same staleness and was corrected alongside it.
+- 05-09: Cloudflare Workers Builds API (GET /accounts/{id}/builds/workers/{tag}/builds) returns 403 Forbidden/12004 for both CLOUDFLARE_API_TOKEN and CF_API_TOKEN -- re-grant the token's Workers Builds read scope before 05-10/05-12 if those plans need the literal per-build archive-sync/wrangler log lines; not blocking 05-09 itself (live HTTP checks + a direct R2-bucket cross-check corroborated convergence instead).
 
 ## Deferred Items
 
@@ -317,6 +322,6 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-10-01T07:52:10.580Z
-Stopped at: Completed 05-08-PLAN.md
+Last session: 2026-10-01T15:58:11.466Z
+Stopped at: Completed 05-09-PLAN.md
 Resume file: None

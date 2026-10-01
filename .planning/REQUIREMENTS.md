@@ -24,7 +24,7 @@
 - [x] **REND-04**: Homepage, category pages, tag indexes and static pages regenerate on each cron cycle via a new Worker deployment
 - [x] **REND-05**: Only new and changed articles re-render; unchanged articles are not recomputed
 - [x] **REND-06**: A render manifest in KV records what has been rendered and at which version
-- [ ] **REND-07**: Articles outside the hot window are rendered once to R2 and served from there
+- [x] **REND-07**: Articles outside the hot window are rendered once to R2 and served from there
 - [x] **REND-08**: A request for an archived article falls through the static-asset layer to the Worker and is served from R2
 - [x] **REND-09**: Tag pages default to the archive tier; only top-N tags by article count are promoted to hot static
 - [x] **REND-10**: The hot-content cutoff is derived from measured request traffic, not a fixed guess
@@ -262,7 +262,7 @@ Deferred. Tracked, not in this roadmap.
 | REND-04 | Phase 4 | Complete |
 | REND-05 | Phase 4 | Complete |
 | REND-06 | Phase 3 | Complete |
-| REND-07 | Phase 5 | Pending |
+| REND-07 | Phase 5 | Complete |
 | REND-08 | Phase 5 | Complete |
 | REND-09 | Phase 5 | Complete |
 | REND-10 | Phase 5 | Complete |
