@@ -444,3 +444,192 @@ test('worker: KV get count matrix — every request shape performs 0 or 1 KV get
     assert.equal(kvCalls.length, shape.expectedKv, `${shape.name}: expected exactly ${shape.expectedKv} KV call(s)`);
   }
 });
+
+// ---------------------------------------------------------------------------
+// 05-03 Task 3: edge cache for archived GETs
+// ---------------------------------------------------------------------------
+
+function makeFakeCache() {
+  const store = new Map();
+  const matchCalls = [];
+  const putCalls = [];
+  return {
+    matchCalls,
+    putCalls,
+    store,
+    cache: {
+      match: async (req) => {
+        matchCalls.push(req.url);
+        return store.get(req.url);
+      },
+      put: async (req, res) => {
+        putCalls.push(req.url);
+        store.set(req.url, res);
+      },
+    },
+  };
+}
+
+function makeCtx() {
+  const waits = [];
+  return { waits, ctx: { waitUntil: (p) => waits.push(p) } };
+}
+
+let originalCaches;
+let hadCaches;
+
+test.beforeEach(() => {
+  hadCaches = 'caches' in globalThis;
+  originalCaches = hadCaches ? globalThis.caches : undefined;
+});
+
+test.afterEach(() => {
+  if (hadCaches) {
+    globalThis.caches = originalCaches;
+  } else {
+    delete globalThis.caches;
+  }
+});
+
+test('worker: first GET for an archived article is a cache miss — KV + R2 run, response is cached via ctx.waitUntil with max-age=300, client response keeps the static-parity Cache-Control', async () => {
+  const { cache, putCalls, store } = makeFakeCache();
+  globalThis.caches = { default: cache };
+  const { waits, ctx } = makeCtx();
+  const { env, kvCalls, r2GetCalls } = makeEnv({
+    kvValue: { schemaVersion: '2', articleId: UUID, category: 'crime', slug: 'new-title' },
+    r2GetValue: makeArchiveBody('archived body'),
+  });
+
+  const request = new Request(`https://dev.915tldr.com/crime/new-title-${UUID}`, { method: 'GET' });
+  const response = await worker.fetch(request, env, ctx);
+  await Promise.all(waits);
+
+  assert.equal(response.status, 200);
+  assert.equal(await response.text(), 'archived body');
+  assert.equal(response.headers.get('Cache-Control'), LIVE_CACHE_CONTROL);
+  assert.equal(kvCalls.length, 1);
+  assert.equal(r2GetCalls.length, 1);
+  assert.equal(putCalls.length, 1);
+
+  const [storedKey] = store.keys();
+  const stored = store.get(storedKey);
+  assert.equal(stored.headers.get('Cache-Control'), 'public, max-age=300');
+});
+
+test('worker: a second GET for the same archived article path (different query string) is served from the cache with zero KV and zero R2 calls, Server-Timing names edge-cache, Cache-Control rewritten to static-parity', async () => {
+  const { cache, putCalls } = makeFakeCache();
+  globalThis.caches = { default: cache };
+  const { waits, ctx } = makeCtx();
+  const { env, kvCalls, r2GetCalls } = makeEnv({
+    kvValue: { schemaVersion: '2', articleId: UUID, category: 'crime', slug: 'new-title' },
+    r2GetValue: makeArchiveBody('archived body'),
+  });
+
+  const firstRequest = new Request(`https://dev.915tldr.com/crime/new-title-${UUID}?a=1`, { method: 'GET' });
+  await worker.fetch(firstRequest, env, ctx);
+  await Promise.all(waits);
+  assert.equal(putCalls.length, 1);
+
+  const secondRequest = new Request(`https://dev.915tldr.com/crime/new-title-${UUID}?a=2`, { method: 'GET' });
+  const response = await worker.fetch(secondRequest, env, ctx);
+
+  assert.equal(response.status, 200);
+  assert.equal(await response.text(), 'archived body');
+  assert.equal(kvCalls.length, 1, 'no additional KV call on the cache hit');
+  assert.equal(r2GetCalls.length, 1, 'no additional R2 call on the cache hit');
+  assert.equal(response.headers.get('Cache-Control'), LIVE_CACHE_CONTROL);
+  const timing = response.headers.get('Server-Timing');
+  assert.ok(timing.includes('archive;desc=edge-cache'), timing);
+});
+
+test('worker: the same archived tag path is cached and re-served the same way as an article', async () => {
+  const { cache, putCalls } = makeFakeCache();
+  globalThis.caches = { default: cache };
+  const { waits, ctx } = makeCtx();
+  const { env, r2GetCalls } = makeEnv({ r2GetValue: makeArchiveBody('tag body') });
+
+  await worker.fetch(new Request('https://dev.915tldr.com/tag/el-paso', { method: 'GET' }), env, ctx);
+  await Promise.all(waits);
+  assert.equal(putCalls.length, 1);
+
+  const response = await worker.fetch(
+    new Request('https://dev.915tldr.com/tag/el-paso?p=2', { method: 'GET' }),
+    env,
+    ctx
+  );
+  assert.equal(response.status, 200);
+  assert.equal(r2GetCalls.length, 1, 'no additional R2 call on the cache hit');
+  const timing = response.headers.get('Server-Timing');
+  assert.ok(timing.includes('archive;desc=edge-cache'), timing);
+});
+
+test('worker: HEAD never reads or writes the cache', async () => {
+  const { cache, matchCalls, putCalls } = makeFakeCache();
+  globalThis.caches = { default: cache };
+  const { ctx } = makeCtx();
+  const { env } = makeEnv({
+    kvValue: { schemaVersion: '2', articleId: UUID, category: 'crime', slug: 'new-title' },
+    r2HeadValue: { httpEtag: 'W/"x"' },
+  });
+
+  const request = new Request(`https://dev.915tldr.com/crime/new-title-${UUID}`, { method: 'HEAD' });
+  await worker.fetch(request, env, ctx);
+
+  assert.equal(matchCalls.length, 0);
+  assert.equal(putCalls.length, 0);
+});
+
+test('worker: a 301 redirect, a 404 fallthrough and a 503 are never cached', async () => {
+  const { cache, putCalls } = makeFakeCache();
+  globalThis.caches = { default: cache };
+  const { ctx } = makeCtx();
+
+  // 301 (non-canonical redirect)
+  {
+    const { env } = makeEnv({
+      kvValue: { schemaVersion: '2', articleId: UUID, category: 'crime', slug: 'new-title' },
+    });
+    const request = new Request(`https://dev.915tldr.com/politics/old-title-${UUID}`, { method: 'GET' });
+    const response = await worker.fetch(request, env, ctx);
+    assert.equal(response.status, 301);
+  }
+
+  // 404 fallthrough (canonical article, missing R2 object)
+  {
+    const { env } = makeEnv({
+      kvValue: { schemaVersion: '2', articleId: UUID, category: 'crime', slug: 'new-title' },
+      r2GetValue: null,
+    });
+    const request = new Request(`https://dev.915tldr.com/crime/new-title-${UUID}`, { method: 'GET' });
+    const response = await worker.fetch(request, env, ctx);
+    assert.equal(response, SENTINEL_404);
+  }
+
+  // 503 (R2 throws)
+  {
+    const { env } = makeEnv({
+      kvValue: { schemaVersion: '2', articleId: UUID, category: 'crime', slug: 'new-title' },
+      r2GetThrows: true,
+    });
+    const request = new Request(`https://dev.915tldr.com/crime/new-title-${UUID}`, { method: 'GET' });
+    const response = await worker.fetch(request, env, ctx);
+    assert.equal(response.status, 503);
+  }
+
+  assert.equal(putCalls.length, 0);
+});
+
+test('worker: with globalThis.caches undefined, archived GETs still serve from R2 with no throw', async () => {
+  delete globalThis.caches;
+  const { env, r2GetCalls } = makeEnv({
+    kvValue: { schemaVersion: '2', articleId: UUID, category: 'crime', slug: 'new-title' },
+    r2GetValue: makeArchiveBody('archived body'),
+  });
+
+  const request = new Request(`https://dev.915tldr.com/crime/new-title-${UUID}`, { method: 'GET' });
+  const response = await worker.fetch(request, env);
+
+  assert.equal(response.status, 200);
+  assert.equal(await response.text(), 'archived body');
+  assert.equal(r2GetCalls.length, 1);
+});

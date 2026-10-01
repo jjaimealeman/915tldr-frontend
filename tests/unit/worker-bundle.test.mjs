@@ -59,6 +59,19 @@ function makeEnv({ kvValue, r2Body } = {}) {
   };
 }
 
+function makeFakeCache() {
+  const store = new Map();
+  return {
+    match: async (req) => store.get(req.url),
+    put: async (req, res) => store.set(req.url, res),
+  };
+}
+
+function makeCtx() {
+  const waits = [];
+  return { waits, ctx: { waitUntil: (p) => waits.push(p) } };
+}
+
 test(
   'worker-bundle: a GET for an archived article canonical path is served from R2 with one KV get, one R2 get, zero ASSETS calls',
   { skip: BUNDLE_EXISTS ? false : 'dry-run bundle not found — run the dry-run build first' },
@@ -75,7 +88,8 @@ test(
 
     assert.equal(response.status, 200);
     assert.equal(await response.text(), ARTICLE_HTML);
-    assert.equal(response.headers.get('Content-Type'), 'text/html; charset=utf-8');
+    // 05-03 Task 2 fixed this to match the live static layer exactly (measured: no charset param).
+    assert.equal(response.headers.get('Content-Type'), 'text/html');
     assert.equal(kvCalls.length, 1);
     assert.equal(kvCalls[0], `manifest:${UUID}`);
     assert.equal(r2Calls.length, 1);
@@ -99,5 +113,42 @@ test(
 
     assert.equal(response.status, 404);
     assert.equal(assetsCalls.length, 1);
+  }
+);
+
+test(
+  'worker-bundle: an archived tag path — first GET misses the edge cache (R2 serves it, gets cached); second GET is served from the cache with zero R2 calls (05-03 Task 3)',
+  { skip: BUNDLE_EXISTS ? false : 'dry-run bundle not found — run the dry-run build first' },
+  async () => {
+    const { default: worker } = await import(DRY_RUN_WORKER_JS);
+
+    const cache = makeFakeCache();
+    const originalCaches = globalThis.caches;
+    globalThis.caches = { default: cache };
+    try {
+      const { waits, ctx } = makeCtx();
+      const { env, r2Calls } = makeEnv({ r2Body: '<!doctype html><body>archived tag</body>' });
+
+      const first = await worker.fetch(
+        new Request('https://dev.915tldr.com/tag/el-paso', { method: 'GET' }),
+        env,
+        ctx
+      );
+      await Promise.all(waits);
+      assert.equal(first.status, 200);
+      assert.equal(r2Calls.length, 1);
+
+      const second = await worker.fetch(
+        new Request('https://dev.915tldr.com/tag/el-paso?p=2', { method: 'GET' }),
+        env,
+        ctx
+      );
+      assert.equal(second.status, 200);
+      assert.equal(await second.text(), '<!doctype html><body>archived tag</body>');
+      assert.equal(r2Calls.length, 1, 'no additional R2 call on the cache hit');
+      assert.ok(second.headers.get('Server-Timing').includes('archive;desc=edge-cache'));
+    } finally {
+      globalThis.caches = originalCaches;
+    }
   }
 );

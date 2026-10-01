@@ -21,12 +21,34 @@
 // chokepoint directory (`src/lib/server/`) that guard forbids would fail the build.
 import { extractArticleUuid, resolveRedirect } from './lib/article-redirect.ts';
 import {
+  ARCHIVE_EDGE_CACHE_TTL_SECONDS,
   articleArchiveKey,
   formatServerTiming,
   matchTagPath,
   tagArchiveKey,
   type ServerTimingMetric,
 } from './lib/archive/archive-route.ts';
+
+/** Minimal local shape for the Workers `ExecutionContext` passed as `fetch`'s third argument —
+ * same "no @cloudflare/workers-types dependency" reasoning as `Env` above. */
+export interface Ctx {
+  waitUntil(promise: Promise<unknown>): void;
+}
+
+/** Minimal local shape for the Workers Cache API (`caches.default`) — read via
+ * `getDefaultCache()` so this file degrades to direct R2 serving (no cache) on any runtime where
+ * the global is absent, per 05-03 Task 3's own requirement. No `@cloudflare/workers-types`
+ * dependency; `globalThis.caches` is read through an `unknown` cast since this project declares
+ * no ambient `caches` global. */
+interface WorkerCache {
+  match(request: Request): Promise<Response | undefined>;
+  put(request: Request, response: Response): Promise<void>;
+}
+
+function getDefaultCache(): WorkerCache | undefined {
+  const caches = (globalThis as unknown as { caches?: { default: WorkerCache } }).caches;
+  return caches?.default;
+}
 
 /**
  * Minimal local binding shapes — this project has no `@cloudflare/workers-types` dependency
@@ -56,6 +78,13 @@ const LIVE_HTML_CACHE_CONTROL = 'public, max-age=0, must-revalidate';
 // suffixes redirect with status 307 to the bare canonical tag path.
 const TAG_SUFFIX_REDIRECT_STATUS = 307;
 
+/** Builds the edge-cache key: origin + pathname, method GET — the request's query string and
+ * headers are deliberately excluded (05-03 Task 3's own requirement), so every query-string
+ * variant of one archived path shares one cache entry. */
+function buildCacheKey(url: URL): Request {
+  return new Request(`${url.origin}${url.pathname}`, { method: 'GET' });
+}
+
 /**
  * Serves an archived GET/HEAD from R2 at `key`, or falls through to `env.ASSETS.fetch` when the
  * object is missing. `kind` distinguishes the two call sites only for logging: a missing
@@ -63,14 +92,24 @@ const TAG_SUFFIX_REDIRECT_STATUS = 307;
  * is logged; a missing TAG object is the normal "this tag isn't archived" case and is silent.
  * `priorTimings` carries any Server-Timing metrics already measured before this call (the KV
  * read, for the article path) so the response's `Server-Timing` header covers the whole request.
+ *
+ * Caching (05-03 Task 3): the caller has already checked the edge cache and found a miss before
+ * calling this function — this function only ever WRITES to the cache, on a GET that gets a real
+ * 200 from R2. HEAD never touches the cache (`cache`/`cacheKey` are `undefined` for HEAD calls by
+ * construction — see `fetch()` below). The stored copy's `Cache-Control` is rewritten to the
+ * archive TTL; the response returned to THIS caller keeps the static-parity `Cache-Control` —
+ * cloning before mutating headers keeps the two independent.
  */
 async function serveArchived(
   request: Request,
   env: Env,
+  ctx: Ctx | undefined,
   key: string,
   kind: 'article' | 'tag',
   identifier: string,
-  priorTimings: ServerTimingMetric[]
+  priorTimings: ServerTimingMetric[],
+  cache: WorkerCache | undefined,
+  cacheKey: Request | undefined
 ): Promise<Response> {
   const isHead = request.method === 'HEAD';
   const r2Start = Date.now();
@@ -112,11 +151,35 @@ async function serveArchived(
   });
   if (object.httpEtag) headers.set('ETag', object.httpEtag);
 
-  return new Response(isHead ? null : (object.body ?? null), { status: 200, headers });
+  const clientResponse = new Response(isHead ? null : (object.body ?? null), {
+    status: 200,
+    headers,
+  });
+
+  if (!isHead && cache && cacheKey) {
+    // Only R2-sourced 200s for canonical archived paths are ever stored (never 301/404/503) —
+    // clone before the client ever reads the body, so cache.put() gets its own untouched stream.
+    const storedResponse = clientResponse.clone();
+    storedResponse.headers.set('Cache-Control', `public, max-age=${ARCHIVE_EDGE_CACHE_TTL_SECONDS}`);
+    ctx?.waitUntil(cache.put(cacheKey, storedResponse));
+  }
+
+  return clientResponse;
+}
+
+/** Rebuilds a cache-hit `Response` for the client: rewrites `Cache-Control` back to the
+ * static-parity value (the stored copy carries the archive-TTL value instead) and overwrites
+ * `Server-Timing` to report `archive;desc=edge-cache` — a hit never did a fresh KV or R2 read, so
+ * the per-read `kv;dur`/`r2;dur` metrics from the original write no longer apply. */
+function fromCacheHit(cached: Response): Response {
+  const headers = new Headers(cached.headers);
+  headers.set('Cache-Control', LIVE_HTML_CACHE_CONTROL);
+  headers.set('Server-Timing', formatServerTiming([{ name: 'archive', desc: 'edge-cache' }]));
+  return new Response(cached.body, { status: cached.status, headers });
 }
 
 export default {
-  async fetch(request: Request, env: Env): Promise<Response> {
+  async fetch(request: Request, env: Env, ctx?: Ctx): Promise<Response> {
     // Only GET/HEAD navigations can ever carry a redirectable article URL or a tag path; every
     // other method (POST, etc.) falls straight through with zero KV calls.
     if (request.method !== 'GET' && request.method !== 'HEAD') {
@@ -124,6 +187,11 @@ export default {
     }
 
     const url = new URL(request.url);
+    const isGet = request.method === 'GET';
+    // `undefined` on any runtime without the Cache API (or for a HEAD request, which never
+    // touches the cache) — every cache-aware call below degrades to direct R2 serving.
+    const cache = isGet ? getDefaultCache() : undefined;
+    const cacheKey = cache ? buildCacheKey(url) : undefined;
 
     // Tag branch runs BEFORE uuid extraction (05-03 Task 2): a tag-shaped path never reaches the
     // KV read at all, archived or not.
@@ -135,12 +203,26 @@ export default {
           headers: { Location: `/tag/${tagMatch.slug}${url.search}` },
         });
       }
-      return serveArchived(request, env, tagArchiveKey(tagMatch.slug), 'tag', tagMatch.slug, []);
+      // 05-03 Task 3: a GET checks the edge cache before the R2 read — only R2-sourced 200s for
+      // this exact canonical tag path are ever stored, so a hit implies it was verified archived.
+      if (cache && cacheKey) {
+        const cached = await cache.match(cacheKey);
+        if (cached) return fromCacheHit(cached);
+      }
+      return serveArchived(request, env, ctx, tagArchiveKey(tagMatch.slug), 'tag', tagMatch.slug, [], cache, cacheKey);
     }
 
     const uuid = extractArticleUuid(url.pathname);
     if (!uuid) {
       return env.ASSETS.fetch(request);
+    }
+
+    // 05-03 Task 3: a GET checks the edge cache before the KV read. A cache hit can only exist
+    // for a path previously stored as a canonical, archived article — a non-canonical path never
+    // populates this key, so a miss here falls straight through to the normal KV flow below.
+    if (cache && cacheKey) {
+      const cached = await cache.match(cacheKey);
+      if (cached) return fromCacheHit(cached);
     }
 
     let entry: unknown;
@@ -171,10 +253,13 @@ export default {
       return serveArchived(
         request,
         env,
+        ctx,
         articleArchiveKey(decision.articleId),
         'article',
         decision.articleId,
-        [{ name: 'kv', dur: kvDur }]
+        [{ name: 'kv', dur: kvDur }],
+        cache,
+        cacheKey
       );
     }
 
