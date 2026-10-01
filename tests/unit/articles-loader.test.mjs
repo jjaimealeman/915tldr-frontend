@@ -567,7 +567,7 @@ test('manifest: changed entries are bulk-written as v2; removed uuids are bulk-d
   assert.deepEqual(deleteManifestCalls[0], [removed.uuid]);
 });
 
-test('manifest: a manifestSchemaVersion mismatch writes every public entry once and updates the meta key', async () => {
+test('manifest: a manifestSchemaVersion mismatch writes every FETCHED public entry on a WARM build, but leaves the meta key stale (04-followups WR-02)', async () => {
   const a = makeArticle();
   const b = makeArticle({ uuid: '22222222-2222-2222-2222-222222222222', slug: 'second-article' });
   const writeManifestCalls = [];
@@ -588,8 +588,37 @@ test('manifest: a manifestSchemaVersion mismatch writes every public entry once 
   await run(loader, { store, meta });
 
   assert.equal(writeManifestCalls.length, 1);
-  assert.equal(writeManifestCalls[0].length, 2, 'both public entries must be written, not just the changed one');
-  assert.equal(meta.get('manifestSchemaVersion'), '2');
+  assert.equal(writeManifestCalls[0].length, 2, 'both public entries fetched by this warm window must be written, not just the changed one');
+  // WR-02 fix: a WARM build only ever sees its own sync window (here, exactly {a, b} via the
+  // fetchWindow mock) — not the full public corpus — so clearing the stale flag here would wrongly
+  // report every OTHER un-fetched article as migrated too. The flag must stay stale until a cold
+  // pass has actually rewritten the entire corpus (see the next test).
+  assert.equal(meta.get('manifestSchemaVersion'), '1', 'a warm build must NOT clear the stale schema-version flag');
+});
+
+test('manifest: a manifestSchemaVersion mismatch writes every public entry and clears the meta key ONLY on a COLD build (04-followups WR-02)', async () => {
+  const a = makeArticle();
+  const b = makeArticle({ uuid: '22222222-2222-2222-2222-222222222222', slug: 'second-article' });
+  const writeManifestCalls = [];
+  const loader = articlesLoader(
+    baseDeps({
+      env: { ARTICLES_FORCE_COLD: '1' },
+      fetchAll: async () => ({ publicArticles: [a, b], nonPublic: [], rowsRead: 2, requestCount: 1 }),
+      writeManifest: async (entries) => writeManifestCalls.push(entries),
+    })
+  );
+  const store = makeStore([storeEntry(a)]);
+  const meta = makeMeta({
+    stateVersion: LOADER_STATE_VERSION,
+    lastCold: String(NOW),
+    lastSweep: String(NOW),
+    manifestSchemaVersion: '1', // stale — current is MANIFEST_SCHEMA_VERSION ('2')
+  });
+  await run(loader, { store, meta });
+
+  assert.equal(writeManifestCalls.length, 1);
+  assert.equal(writeManifestCalls[0].length, 2, 'a cold build writes the full public corpus');
+  assert.equal(meta.get('manifestSchemaVersion'), '2', 'a cold build (full-corpus fetch) is the one pass allowed to clear the stale flag');
 });
 
 // ---------------------------------------------------------------------------

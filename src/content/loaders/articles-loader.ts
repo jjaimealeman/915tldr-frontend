@@ -354,7 +354,19 @@ export function articlesLoader(deps: ArticlesLoaderDeps = {}): Loader {
         articlesForManifest.map((article) => buildManifestEntry(toManifestSourceRow(article), { buildHash: BUILD_HASH }))
       );
       await writeManifest(manifestEntries);
-      if (manifestSchemaStale) {
+      // 04-followups (WR-02): only clear the stale flag once a COLD pass has actually rewritten
+      // every public article's manifest entry. `allParsed` is the full public corpus only in
+      // `mode === 'cold'` — in warm/warm+sweep mode it's just the sync window plus whatever the
+      // sweep additionally pulled in. Clearing the flag on a warm run (the prior behavior) made a
+      // schema bump look fully migrated after the very first warm build, leaving every
+      // un-touched older article on its previous-schema manifest entry until the next cold pass
+      // (up to COLD_RESYNC_INTERVAL_SECONDS = 7 days) — during which `resolveRedirect` 404s
+      // instead of 301-ing those articles' old URLs (`.claude/CLAUDE.md`'s nine-months-indexed-
+      // URLs compatibility constraint). Leaving the flag stale across warm builds costs nothing
+      // extra: `articlesForManifest` above already rewrites every fetched article on every stale
+      // build regardless of mode, so the next cold pass (forced or scheduled) is still the one
+      // and only pass that needs to clear the flag.
+      if (manifestSchemaStale && mode === 'cold') {
         meta.set('manifestSchemaVersion', MANIFEST_SCHEMA_VERSION);
       }
 
