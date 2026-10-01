@@ -2,18 +2,18 @@
 gsd_state_version: 1.0
 milestone: v1.5
 milestone_name: milestone
-current_phase: 04
-current_phase_name: Static Generation, Templates & SEO
+current_phase: 05
+current_phase_name: Hybrid Archive & Zero-Reads Proof
 status: executing
-stopped_at: Phase 5 context gathered
-last_updated: "2026-10-01T04:05:59.640Z"
-last_activity: 2026-09-26
-last_activity_desc: Phase 03 complete, transitioned to Phase 4
+stopped_at: Completed 05-08-PLAN.md
+last_updated: "2026-10-01T07:52:10.600Z"
+last_activity: 2026-09-30
+last_activity_desc: Phase 05 plan 01 executed (tag tiering, hot window, build-time tier facts)
 progress:
   total_phases: 5
   completed_phases: 4
   total_plans: 64
-  completed_plans: 52
+  completed_plans: 60
 ---
 
 # Project State
@@ -23,16 +23,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-09-16)
 
 **Core value:** Zero D1 reads on the public request path — architecturally zero, enforced structurally at build time.
-**Current focus:** Phase 04 — Static Generation, Templates & SEO
+**Current focus:** Phase 05 — Hybrid Archive & Zero-Reads Proof
 
 ## Current Position
 
-Phase: 04 (Static Generation, Templates & SEO) — EXECUTING
-Plan: 12 of 12
+Phase: 05 (Hybrid Archive & Zero-Reads Proof) — EXECUTING
+Plan: 9 of 12
 Status: Ready to execute
-Last activity: 2026-09-26 — Phase 04 execution started
+Last activity: 2026-09-30 — Phase 05 plan 01 executed (tag tiering, hot window, tier facts)
 
-Progress: [██████████] 100%
+Progress: [█████████░] 94%
 
 ## Performance Metrics
 
@@ -101,6 +101,14 @@ Progress: [██████████] 100%
 | Phase 04 P10 | ~2h45min (active, spanning two sessions) | 2 tasks | 6 files |
 | Phase 04 P11 | ~25min | 3 tasks | 9 files |
 | Phase 04 P12 | ~1h50min | 3 tasks | 5 files |
+| Phase 05 P01 | 25min | 3 tasks | 10 files |
+| Phase 05 P03 | ~35min | 3 tasks | 8 files |
+| Phase 05 P04 | ~75min | 3 tasks | 14 files |
+| Phase 05 P02 | 12min | 4 tasks | 11 files |
+| Phase 05 P05 | ~45min | 3 tasks | 36 files |
+| Phase 05 P06 | ~40min | 3 tasks | 12 files |
+| Phase 05 P07 | ~40min | 3 tasks | 5 files |
+| Phase 05 P08 | ~55min | 3 tasks | 7 files |
 
 ## Accumulated Context
 
@@ -231,6 +239,31 @@ Recent decisions affecting current work:
 - [Phase ?]: 04-12: verify-edge-headers.mjs's live-article discovery now parses the deployed homepage's first [data-card] link instead of listing the entire KV render manifest (~40k+ keys, past its own documented scaling limit) -- no D1/KV credentials needed for discovery any more, and src/lib/slug.ts is no longer imported anywhere.
 - [Phase ?]: 04-12: tests/integration/url-shapes.test.mjs's /changelog check asserts against CHANGELOG_MIN_EXPECTED=15 (the already owner-approved 04-08 floor), not the plan's stale must_haves text of 18 -- production genuinely serves 15 entries today; the loader's own never-shrink ratchet will raise this automatically once v1 deploys the missing 3.
 - [Phase ?]: 04-12: Phase 4's 04-VALIDATION.md is now wave_0_complete: true and nyquist_compliant: true -- every task across 04-01..04-12 has an automated verify or is a documented owner-checkpoint immediately followed by one; full suite (test:unit/build-gate/regression/tracer) re-run green against the live deployment.
+- [Phase ?]: 05-01: Task 1's tiering.ts/hot-window.ts kept deliberately minimal so Task 2's RED/GREEN cycle was genuine (confirmed 6 real failures before any GREEN code).
+- [Phase ?]: 05-01: tier-facts.ts placed under src/lib/archive/, not src/lib/server/ — no credentials/D1/KV access, confirmed via grep that it never imports from the chokepoint directory.
+- [Phase ?]: 05-03: R2 keys for archived pages are derived fresh from the validated articleId/slug on every request (articleArchiveKey/tagArchiveKey), not stored in a v3 render-manifest field — race-free across both hot->archive and archive->hot transitions; avoids a schema bump mid-build.
+- [Phase ?]: 05-03 Task 2: measured dev.915tldr.com live and found static HTML Content-Type is exactly 'text/html' (no charset param) and Cache-Control is 'public, max-age=0, must-revalidate'; archived responses now match exactly (Task 1's placeholder Content-Type with a charset param was corrected here).
+- [Phase ?]: 05-03 Task 2: tag-suffix redirect (/tag/<slug>/ and /tag/<slug>.html) status measured live as 307, matching the project's existing trailing-slash convention, not 301.
+- [Phase ?]: 05-04: Live schema introspection confirmed D1 analytics has no scriptName/workerName dimension — leg 2 of ARCH-01's gate is a databaseId-filtered delta measurement, not an attribution query; detection floor at v1's real baseline noise is ~40 rows/request even at the 20,000-request cap, not 1 — structural legs (1/1b) remain load-bearing.
+- [Phase ?]: 05-04: measure-worker-kv-cpu.mjs is a measurement/reporting tool, not a go/no-go gate — its CLI always exits 0 on a successful run; the real 24h measurement shows CPU well within budget (p99 1.88ms) but KV reads (102) mildly exceed invocations (94), likely dataset-bucketing skew between two independently-aggregated GraphQL datasets, disclosed in docs/phase-05/zero-reads-gate.md rather than hidden.
+- [Phase ?]: 05-04: ARCH-01 is intentionally left Pending in REQUIREMENTS.md despite being listed in this plan's frontmatter requirements — this plan builds and calibrates the zero-reads gate INSTRUMENT (live-proved --baseline-only), but the actual requirement (a public request measured with zero D1 reads) is only verified by the full gate run at 05-12, after the archive tier is serving (D-03). Marking it complete now would be premature.
+- [Phase ?]: 05-02: r2-client.ts placed at src/lib/server/r2-client.ts (the enforced D1/KV chokepoint directory), not src/lib/archive/ as 05-RESEARCH.md originally proposed, so the existing build-gate guard covers it with zero new guard code.
+- [Phase ?]: 05-02: live round trip against the real private 915tldr-archive bucket succeeded (put/head/get/delete/head-after-delete); bucket confirmed to have no public r2.dev URL and no custom domain.
+- [Phase ?]: 05-02: Task 4's TDD RED/GREEN discipline was not genuinely sequenced — r2-client.ts was already fully implemented in Task 3 (the tracer, which itself required a live-proved implementation), so Task 4's 26 tests passed immediately on first run. Disclosed, same pattern as 05-04.
+- [Phase ?]: 05-02: REND-07 is intentionally left Pending in REQUIREMENTS.md despite being listed in this plan's frontmatter requirements — this plan builds and live-proves the R2 WRITE INSTRUMENT (storage + credential + client), not the actual render-once-to-R2 step for real archived articles (that is 05-07's job). Marking it complete now would be premature, matching 05-04's own precedent for ARCH-01.
+- [Phase ?]: 05-05: Chosen bot filter is requestSource:eyeball AND verifiedBotCategory:"" AND userAgent token exclusions as a floor -- botScore/botScoreBucketBy10 are access-denied at query time on this Free-plan zone (no Bot Management), confirmed by a live query error, not assumed from the schema listing.
+- [Phase ?]: 05-05: The live derivation's long-tail finding -- 95% coverage of human article reads needs 234 days of article age, far beyond the 30-day measurement window -- is capped to 202 days by the 60,000-file post-Phase-6 budget. hot-window.json records both days:202 and uncappedDays:234/cappedByFileBudget:true. Flagged for owner review and for re-check before Phase 6 doubles the corpus.
+- [Phase ?]: 05-05: Tasks 1-2 (tracer + math) were implemented, tested and committed together in one commit rather than two separate TDD RED/GREEN cycles -- the live Cloudflare schema (query-time field access, GraphQL filter AND-array shape) had to be discovered via real probe queries before a meaningful test could be written, matching 05-04's own disclosed precedent.
+- [Phase ?]: 05-05: Owner decision (2026-10-01 00:25 MDT): KEEP the 202-day hot window as-is -- 202 is the largest window the 60,000-file post-Phase-6 budget allows, so it already minimises reads served from the archive tier (R2); a shorter window would only send more readers there. Fixed achievedCoverage (0.9266 at 202 days, not the previously mislabeled 0.9509 which was actually the coverage at the uncapped 234-day cutoff, now recorded separately as uncappedCoverage) does not change this decision. Revisit only if 05-09's deployed R2 get() measurement shows cold p95 > ~300ms, and even then the remedy is archive-side (longer edge-cache TTL / post-build cache warming), not a shorter window.
+- [Phase ?]: 05-06: staticFileCount counts dist/client/static-budget.json itself (preWriteCount+1), recounted after write to confirm the directory matches exactly — no off-by-one against find dist/client -type f | wc -l
+- [Phase ?]: 05-06: tests/unit/news-sitemap.test.mjs broke after partitioning though it wasn't in this plan's file list (Rule 1) — the sitemap plugin runs before partition, so it still lists archived URLs; fixed to expect static+archived counts
+- [Phase ?]: 05-06: REND-07 and REND-11 deliberately left Pending in REQUIREMENTS.md — this plan proves partition (REND-07's render-once half) and the per-build gate (REND-11's measurement half), but R2 upload (05-07) and daily reporting (05-08) are not yet done
+- [Phase ?]: 05-07: The R2-write branch guard lives at archive-sync.mjs's own store-wrapping boundary (wrapStoreForBranchGuard), not only as an early return in runPreSync/runPostSync -- a caller reaching for the store directly still can't write on a non-main Workers CI branch, even with valid credentials present (the leaked-secret scenario 05-02 flagged).
+- [Phase ?]: 05-07: Found and fixed a real index-safety bug before any live run touched it -- runPostSync was dropping an index entry for every orphan key it attempted to delete, regardless of whether R2's deleteObjects actually confirmed the deletion; fixed to only drop entries deleteObjects itself confirmed.
+- [Phase ?]: 05-07: REND-07 and REND-12 are intentionally left Pending in REQUIREMENTS.md, matching this phase's own established precedent (05-02/05-04/05-05/05-06) -- both halves of REND-07 are now proven live against the real bucket but only for ~100 of ~30,478 archive-tier pages; REND-12's governing ceiling is resolved and deadline-bounded phases are built, but the full re-render hasn't run at corpus scale yet. Full-corpus upload is 05-08/05-09's job; the full-re-render measurement is 05-10's job.
+- [Phase ?]: 05-08: isProductionDeploy(env) in tools/ci-build.mjs is deliberately the exact inverse of archive-sync.mjs's own isR2WriteBlocked predicate, kept in sync so the two guards never disagree about what counts as production.
+- [Phase ?]: 05-08: found and fixed a real bug in tools/assert-file-count.mjs (not in this plan's file list) — the gate's own +1-for-static-budget.json assumption breaks the second time it runs in one build, which is this plan's own Task 1 requirement; fixed, pinned with a regression test, re-verified live.
+- [Phase ?]: 05-08: REND-07, REND-11 and REND-12 are intentionally left Pending in REQUIREMENTS.md — the full archive sequence is proven live at full corpus scale (30,478 entries) but through a CI_BUILD_DEPLOY_DRY_RUN=1 run, not a real production deploy through Workers Builds CI; that is 05-09's job.
 
 ### Pending Todos
 
@@ -272,6 +305,7 @@ Recent decisions affecting current work:
 - **RESOLVED — Phase 3, 03-05 (both prior halts).** The owner granted the missing Rulesets/Transform Rules token scope. Resumed from mandatory-ordering Step 2 and completed the plan: the noindex Transform Rule now covers `dev.915tldr.com` AND `admin-dev.915tldr.com` (extended scope, Rule 2 deviation — admin-dev didn't exist when the plan's Task 2 was first scoped); `915tldr-v2` is deployed and live on `dev.915tldr.com` (Custom Domain reassigned from `915tldr-dev`, `workers_dev: false`, stale zone Worker Route deleted after it was found to be out-prioritizing the reassignment); `pnpm verify:edge` (`tools/verify-edge-headers.mjs`) re-proves the whole policy on every future deploy. Two real bugs found and fixed along the way: `session: false` was a no-op in the wrong astro.config.mjs location (03-01's claimed fix never worked), and a stale zone Worker Route silently out-prioritized a correctly-reassigned Custom Domain for 3+ minutes, contrary to Cloudflare's documented precedence. Production (`915tldr.com`/`www.915tldr.com`) and `admin-dev.915tldr.com` verified unaffected throughout. See 03-05-SUMMARY.md for full detail. 03-05 is complete.
 - 04-07: production robots.txt behavior changes on next deploy -- v1's AI-crawler-blocking policy (Content-signal, GPTBot/ClaudeBot/CCBot/etc. Disallow) has never actually been served (v1's static public/robots.txt shadowed its own server route); v2 ships the intended policy, an owner-approved but real change to what's been crawlable. Also flagged: SEO-04 sitemap ordering-determinism unverified across two builds (@astrojs/sitemap documents no stable ordering guarantee) -- see 04-07-SUMMARY.md coverage D4.
 - **RESOLVED — Phase 4, 04-10 Task 2.** The owner chose option (a) and pushed `cc1b050` on 2026-09-30. Builds 3-4 ran on the real Workers Builds platform: Build 3 (flag-on, first toggle) was cold again as 04-09 already documented, 0/60,349 pages restored (expected); Build 4 (flag-on, no toggle) confirmed at least 34,871/~60,349 pages restored via `experimental.incrementalBuild` on a genuinely fresh Workers Builds container, wall time collapsing from 554s to 147s. **Verdict: `WB_REUSE_PROVEN`** — contradicts and supersedes 04-09's local `REUSE_WARM_ONLY` finding; likely explained by Workers Builds restoring both a dependencies cache and a build-output cache from the prior build, which 04-09's local fresh-clone simulation never fully reproduced. A new cost-relevant finding surfaced along the way: Build 3's deploy re-uploaded 60,355/60,355 assets (only 7 deduplicated), root-caused to `src/layouts/Base.astro` unconditionally printing `BUILD_HASH` in every page's footer — reported for 04-11, not fixed (Rule 4). The temporary `incrementalBuild=true` hardcode was reverted (`99795e3`) once both spike builds completed. See `04-10-SUMMARY.md` and `docs/phase-04/build-measurements.md` for full detail. 04-10 is complete.
+- STATE.md frontmatter current_phase was stale at 04 despite Phase 5 context/research/plan already existing on disk (05-CONTEXT.md, 05-RESEARCH.md, 12 PLAN.md files) — corrected to 05 during 05-01 execution; the body Current Position section had the same staleness and was corrected alongside it.
 
 ## Deferred Items
 
@@ -283,6 +317,6 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-10-01T02:30:05.471Z
-Stopped at: Phase 5 context gathered
-Resume file: .planning/phases/05-hybrid-archive-zero-reads-proof/05-CONTEXT.md
+Last session: 2026-10-01T07:52:10.580Z
+Stopped at: Completed 05-08-PLAN.md
+Resume file: None

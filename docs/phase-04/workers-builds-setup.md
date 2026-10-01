@@ -128,5 +128,27 @@ and flag back to the owner if 360 builds/month would approach or exceed either l
 
 ---
 
+## Phase 5 build variables (05-08)
+
+Cloudflare dashboard → the same Worker → **Settings** → **Build** → **Variables**, same screen as
+section 3 above:
+
+| Variable | Type | Scope | Purpose |
+|---|---|---|---|
+| `R2_ACCESS_KEY_ID` | **Secret** | **`main` (production) branch ONLY** | R2 S3-compatible API credential, bucket-scoped **Object Read & Write** on `915tldr-archive` only — never account-wide. Read by `src/lib/server/r2-client.ts`'s `createArchiveStore()`. **Never set on a non-production branch scope** — a preview build must never be able to write the archive bucket even if it somehow tried to (`archive-sync.mjs`'s own write-boundary guard is defense in depth, not a substitute for simply not handing the credential to non-production builds at all). |
+| `R2_SECRET_ACCESS_KEY` | **Secret** | **`main` (production) branch ONLY** | Paired secret for `R2_ACCESS_KEY_ID` above. Same bucket-scoped, production-only rule. |
+| `ALLOW_FALLBACK_HOT_WINDOW` | Plain | **`main`, set ONLY for the one build that needs it** | `1` lets a production deploy ship a `fallback-provisional` hot window (D-07) instead of refusing to deploy (D-07b's guard in `tools/ci-build.mjs`). This exists for the rare case the owner deliberately wants to ship the fallback before a derived window exists — set it for that one build, then **remove it immediately afterward**. Leaving it set permanently defeats the guard's entire purpose (silently shipping a fallback window forever, never prompting a return to a properly derived one). |
+
+**Confirming the Workers Builds build token's permissions are unchanged (T-04-41):** the archive
+tier's reads/writes go through the two secrets above, entirely separate from the
+Workers-deploy/D1-read/KV-edit token section 4 already describes. **No change to that token's
+scope was needed or made for Phase 5** — do not add D1/KV/R2 account-wide permissions to the
+build token to support the archive tier; the bucket-scoped secrets above are sufficient and
+narrower. If anyone is ever tempted to "just widen the build token" instead of adding a
+bucket-scoped secret, that is the wrong fix — this repo is public and every build runs with
+whatever the build token can do.
+
+---
+
 **Status:** This document is the runbook only. No Cloudflare dashboard setting was changed and
 no repository was connected by this plan (04-09) — that is 04-10's job, a human checkpoint.

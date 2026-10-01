@@ -14,7 +14,7 @@
 - [x] **ARCH-05**: Astro config uses `output: 'static'` with per-route `export const prerender = false`; `'hybrid'` appears nowhere
 - [x] **ARCH-06**: `imageService` is set explicitly to `{ build: 'compile', runtime: 'passthrough' }` rather than inheriting the `cloudflare-binding` default
 - [ ] **ARCH-07**: Total D1 reads per day stay under 2,000,000 for 7 consecutive days
-- [ ] **ARCH-08**: A public request performs at most 1 KV read and under 5ms Worker CPU
+- [x] **ARCH-08**: A public request performs at most 1 KV read and under 5ms Worker CPU
 
 ### Content Loading & Render
 
@@ -25,9 +25,9 @@
 - [x] **REND-05**: Only new and changed articles re-render; unchanged articles are not recomputed
 - [x] **REND-06**: A render manifest in KV records what has been rendered and at which version
 - [ ] **REND-07**: Articles outside the hot window are rendered once to R2 and served from there
-- [ ] **REND-08**: A request for an archived article falls through the static-asset layer to the Worker and is served from R2
-- [ ] **REND-09**: Tag pages default to the archive tier; only top-N tags by article count are promoted to hot static
-- [ ] **REND-10**: The hot-content cutoff is derived from measured request traffic, not a fixed guess
+- [x] **REND-08**: A request for an archived article falls through the static-asset layer to the Worker and is served from R2
+- [x] **REND-09**: Tag pages default to the archive tier; only top-N tags by article count are promoted to hot static
+- [x] **REND-10**: The hot-content cutoff is derived from measured request traffic, not a fixed guess
 - [ ] **REND-11**: Total deployed static-asset file count is reported daily and alarms before 100,000
 - [ ] **REND-12**: A full archive re-render completes without exceeding Worker CPU limits
 
@@ -255,7 +255,7 @@ Deferred. Tracked, not in this roadmap.
 | ARCH-05 | Phase 3 | Complete |
 | ARCH-06 | Phase 3 | Complete |
 | ARCH-07 | Phase 12 | Pending |
-| ARCH-08 | Phase 5 | Pending |
+| ARCH-08 | Phase 5 | Complete |
 | REND-01 | Phase 4 | Complete |
 | REND-02 | Phase 4 | Complete |
 | REND-03 | Phase 4 | Complete |
@@ -263,9 +263,9 @@ Deferred. Tracked, not in this roadmap.
 | REND-05 | Phase 4 | Complete |
 | REND-06 | Phase 3 | Complete |
 | REND-07 | Phase 5 | Pending |
-| REND-08 | Phase 5 | Pending |
-| REND-09 | Phase 5 | Pending |
-| REND-10 | Phase 5 | Pending |
+| REND-08 | Phase 5 | Complete |
+| REND-09 | Phase 5 | Complete |
+| REND-10 | Phase 5 | Complete |
 | REND-11 | Phase 5 | Pending |
 | REND-12 | Phase 5 | Pending |
 | CONT-01 | Phase 2 | Complete |

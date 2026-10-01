@@ -3,3 +3,4 @@ allowBuilds:
   workerd: true
 minimumReleaseAgeExclude:
   - wrangler@4.136.3
+  - '@aws-sdk/client-s3@3.1144.0'

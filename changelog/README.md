@@ -6,10 +6,51 @@ Entries are named `YYYY-MM-DD-HHMM_slug.md` and grouped by month, newest first.
 
 ---
 
+## October 2026
+
+| Date | Entry | Keywords |
+|------|-------|----------|
+| 2026-10-01 | [Plan 05-08 complete: archive tier wired into the real deploy pipeline](2026-10-01-0152_05-08-complete-archive-tier-deploy-pipeline-plan.md) | `[DOCUMENTATION]` `[PLANNING]` `[ARCHITECTURE]` `[TESTING]` |
+| 2026-10-01 | [Phase 3/4 pipeline docs brought in line with the archive tier](2026-10-01-0148_05-08-task3-pipeline-docs-phase5-amendment.md) | `[DOCUMENTATION]` `[ARCHITECTURE]` `[INFRA]` |
+| 2026-10-01 | [Hot-window production guard, archive alerts, file-count alarm, daily report](2026-10-01-0146_05-08-task2-hot-window-guard-alerts-daily-report.md) | `[BACKEND]` `[DEPLOYMENT]` `[INFRA]` `[TESTING]` `[SECURITY]` `[BUG_FIX]` `[FEATURE]` |
+| 2026-10-01 | [Archive tier wired into the real deploy pipeline (tracer)](2026-10-01-0138_05-08-task1-ci-build-deploy-pipeline-tracer.md) | `[BACKEND]` `[DEPLOYMENT]` `[INFRA]` `[TESTING]` `[FEATURE]` |
+| 2026-10-01 | [Plan 05-07 complete: archive tier R2 sync (pre/post deploy)](2026-10-01-0150_05-07-complete-archive-sync-plan.md) | `[DOCUMENTATION]` `[PLANNING]` `[ARCHITECTURE]` `[TESTING]` |
+| 2026-10-01 | [Post-sync proven live against R2; archive architecture written down](2026-10-01-0145_05-07-task3-post-sync-live-proof-and-architecture-doc.md) | `[DOCUMENTATION]` `[BACKEND]` `[ARCHITECTURE]` `[TESTING]` |
+| 2026-10-01 | [Post-sync behavior suite: changed pages, orphans, backlog, force-full, daily report](2026-10-01-0120_05-07-task2-post-sync-tests-changed-orphans-backlog.md) | `[TESTING]` `[BACKEND]` `[SECURITY]` |
+| 2026-10-01 | [Deadline-aware task pool and the archive pre-sync tracer, proven live against R2](2026-10-01-0115_05-07-task1-run-pool-and-pre-sync-tracer.md) | `[BACKEND]` `[INFRA]` `[FEATURE]` `[TESTING]` `[SECURITY]` |
+| 2026-10-01 | [Plan 05-06 complete: archive-tier partition + 80,000-file build gate](2026-10-01-0058_05-06-complete-partition-archive-file-count-gate.md) | `[DOCUMENTATION]` `[PLANNING]` `[ARCHITECTURE]` `[TESTING]` |
+| 2026-10-01 | [Existing build-output tests and the byte-identity regression now cover both tiers](2026-10-01-0055_05-06-task3-existing-tests-cover-both-tiers.md) | `[TESTING]` `[BUG_FIX]` `[BACKEND]` |
+| 2026-10-01 | [Unit tests pinning the file-count gate boundaries and the partition's path safety](2026-10-01-0054_05-06-task2-partition-and-file-count-unit-tests.md) | `[TESTING]` `[BACKEND]` `[SECURITY]` |
+| 2026-10-01 | [Partition archive-tier pages out of the static build, gate the remaining file count](2026-10-01-0053_05-06-task1-partition-archive-and-file-count-gate.md) | `[BACKEND]` `[PERFORMANCE]` `[CONFIG]` `[ARCHITECTURE]` |
+| 2026-10-01 | [hot-window.json regenerated with corrected coverage; owner keeps 202 days](2026-10-01-0037_hot-window-coverage-fix-regenerated-owner-keeps-202.md) | `[BACKEND]` `[BUG_FIX]` `[DOCUMENTATION]` `[PLANNING]` |
+| 2026-10-01 | [Fix achievedCoverage to reflect the capped cutoff, not the pre-cap figure (GREEN)](2026-10-01-0024_achieved-coverage-capped-bug-fix-green.md) | `[BACKEND]` `[BUG_FIX]` `[TESTING]` |
+| 2026-10-01 | [Pin the achievedCoverage-after-cap defect with a failing test (RED)](2026-10-01-0023_achieved-coverage-capped-bug-test-red.md) | `[TESTING]` `[BACKEND]` `[BUG_FIX]` |
+| 2026-10-01 | [Plan 05-05 complete: hot window derived live from real traffic](2026-10-01-0018_05-05-complete-hot-window-derivation-plan.md) | `[DOCUMENTATION]` `[PLANNING]` `[ARCHITECTURE]` `[TESTING]` |
+| 2026-10-01 | [Hot window derived live from 30 days of real reader traffic (REND-10)](2026-10-01-0014_hot-window-derived-from-30-days-of-real-traffic.md) | `[BACKEND]` `[ARCHITECTURE]` `[TESTING]` `[DOCUMENTATION]` |
+
 ## September 2026
 
 | Date | Entry | Keywords |
 |------|-------|----------|
+| 2026-09-30 | [derive-hot-window tracer: live human-traffic parsers, age math, proved against real traffic](2026-09-30-2349_derive-hot-window-tracer-live-human-traffic-parsers.md) | `[BACKEND]` `[INFRA]` `[TESTING]` `[PLANNING]` |
+| 2026-09-30 | [Plan 05-02 complete: build-time R2 client for the archive tier](2026-09-30-2334_05-02-complete-r2-client-plan.md) | `[DOCUMENTATION]` `[PLANNING]` `[ARCHITECTURE]` `[TESTING]` |
+| 2026-09-30 | [Unit tests for r2-client.ts key discipline/secret hygiene, plus a build-gate case proving the Worker guard covers it](2026-09-30-2340_r2-client-unit-tests-and-build-gate-case.md) | `[BACKEND]` `[TESTING]` `[SECURITY]` `[ARCHITECTURE]` |
+| 2026-09-30 | [R2 build-time client installed, live round trip proven against the private archive bucket](2026-09-30-2328_r2-client-install-sdk-live-roundtrip.md) | `[BACKEND]` `[DEPENDENCIES]` `[SECURITY]` `[TESTING]` `[ARCHITECTURE]` |
+| 2026-09-30 | [Plan 05-04 complete: zero-reads gate + ARCH-08 measurement instruments documented and marked done](2026-09-30-2330_05-04-complete-zero-reads-gate-arch-08-instruments.md) | `[DOCUMENTATION]` `[PLANNING]` `[ARCHITECTURE]` `[TESTING]` |
+| 2026-09-30 | [ARCH-08 live measurement: KV reads and Worker CPU time off the deployed Worker](2026-09-30-2322_arch-08-worker-kv-cpu-measurement.md) | `[BACKEND]` `[TESTING]` `[PERFORMANCE]` |
+| 2026-09-30 | [ARCH-01 zero-reads gate instrument: D1 baseline, deployed-binding check, request mix + verdict](2026-09-30-2318_arch-01-zero-reads-gate-instrument.md) | `[BACKEND]` `[TESTING]` `[SECURITY]` `[FEATURE]` |
+| 2026-09-30 | [Rewrote an auto-generated changelog placeholder with a real entry](2026-09-30-2259_fix-auto-generated-changelog-placeholder.md) | `[DOCUMENTATION]` `[CONFIG]` |
+| 2026-09-30 | [Plan 05-03 complete: archive-serving Worker (R2) documented and marked done](2026-09-30-2258_05-03-complete-archive-serving-worker-plan.md) | `[DOCUMENTATION]` `[PLANNING]` `[ARCHITECTURE]` |
+| 2026-09-30 | [Edge cache for archived GETs, proven through the real wrangler bundle](2026-09-30-2255_archive-edge-cache.md) | `[BACKEND]` `[ARCHITECTURE]` `[PERFORMANCE]` `[TESTING]` |
+| 2026-09-30 | [Archived tags, HEAD, 503 handling and Server-Timing for the archive branch](2026-09-30-2249_archive-tag-serving-head-503-server-timing.md) | `[BACKEND]` `[ARCHITECTURE]` `[TESTING]` `[SECURITY]` |
+| 2026-09-30 | [Archived articles now served from R2 on a canonical-path miss (tracer)](2026-09-30-2243_archive-article-serving-r2-tracer.md) | `[BACKEND]` `[ARCHITECTURE]` `[TESTING]` `[CONFIG]` |
+| 2026-09-30 | [Phase 4 UAT 3 passes: one ingest cycle, one production build](2026-09-30-2240_phase-4-uat-3-production-rebuild-trigger-pass.md) | `[DOCS]` `[TESTING]` `[DEPLOY]` |
+| 2026-09-30 | [Plan 05-01 complete: tag tiering, hot window and tier facts](2026-09-30-2236_05-01-complete-tag-tiering-hot-window-and-tier-fac.md) | `[DOCUMENTATION]` `[PLANNING]` `[ARCHITECTURE]` |
+| 2026-09-30 | [Log the hot window during every build; prove facts match the built pages](2026-09-30-2229_hot-window-build-log-and-tier-facts-cross-checks.md) | `[BACKEND]` `[TESTING]` `[ARCHITECTURE]` |
+| 2026-09-30 | [Complete tiering/hot-window validation (GREEN)](2026-09-30-2225_tiering-hot-window-validation-green.md) | `[BACKEND]` `[ARCHITECTURE]` `[PLANNING]` |
+| 2026-09-30 | [Pin tiering/hot-window boundaries with tests (RED)](2026-09-30-2223_tiering-hot-window-boundary-tests-red.md) | `[TESTING]` `[BACKEND]` `[PLANNING]` |
+| 2026-09-30 | [Implement tier facts, hot window, and tiering rules end to end (GREEN)](2026-09-30-2222_tier-facts-tracer-implementation-green.md) | `[BACKEND]` `[ARCHITECTURE]` `[PLANNING]` |
+| 2026-09-30 | [Add the tier-facts tracer test (RED)](2026-09-30-2221_tier-facts-tracer-test-red.md) | `[TESTING]` `[BACKEND]` `[PLANNING]` |
 | 2026-09-30 | [Phase 5 planned: research, 12 plans in 7 waves, checker passed](2026-09-30-2206_phase-5-planned.md) | `[PLANNING]` `[DOCUMENTATION]` `[ARCHITECTURE]` |
 | 2026-09-30 | [Phase 5 context captured: zero-reads gate, hot window, tag tiering, archive freshness](2026-09-30-2030_phase-5-context-captured.md) | `[PLANNING]` `[DOCUMENTATION]` `[ARCHITECTURE]` |
 | 2026-09-30 | [Phase 4 Nyquist validation: 18/18 requirements covered, 0 gaps](2026-09-30-1942_phase-4-nyquist-validated.md) | `[TESTING]` `[DOCUMENTATION]` `[PLANNING]` |

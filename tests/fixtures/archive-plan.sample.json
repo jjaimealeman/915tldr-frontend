@@ -1,0 +1,227 @@
+{
+  "version": 1,
+  "generatedAt": "2026-09-30T00:00:00.000Z",
+  "hotWindow": {
+    "status": "fallback-provisional",
+    "days": 90
+  },
+  "cutoffEpoch": 1751328000,
+  "counts": {
+    "hotArticles": 40050,
+    "archivedArticles": 20,
+    "hotTags": 2325,
+    "archivedTags": 10
+  },
+  "entries": [
+    {
+      "kind": "article",
+      "key": "articles/00000000-0000-4000-8000-000000000000.html",
+      "path": "/crime/sample-archived-article-0-00000000-0000-4000-8000-000000000000",
+      "sha256": "2059d6e51384d549648d5a7227b681dd4bc20be12e83cdeb44ca969624e312fb",
+      "bytes": 12000
+    },
+    {
+      "kind": "article",
+      "key": "articles/00000000-0000-4000-8000-000000000001.html",
+      "path": "/crime/sample-archived-article-1-00000000-0000-4000-8000-000000000001",
+      "sha256": "55850fe8b3c444e83739a54853cf983a1f1e8b4e9da409f1e011fd59223f4254",
+      "bytes": 12001
+    },
+    {
+      "kind": "article",
+      "key": "articles/00000000-0000-4000-8000-000000000002.html",
+      "path": "/crime/sample-archived-article-2-00000000-0000-4000-8000-000000000002",
+      "sha256": "6df25f515b2baa0c62eced193019b0e659d0e9bbf419dae75c1d6522f1b27352",
+      "bytes": 12002
+    },
+    {
+      "kind": "article",
+      "key": "articles/00000000-0000-4000-8000-000000000003.html",
+      "path": "/crime/sample-archived-article-3-00000000-0000-4000-8000-000000000003",
+      "sha256": "d707920903a0a9aaf18df1bd4de22ff86769d458bda920754c4eab77779440c6",
+      "bytes": 12003
+    },
+    {
+      "kind": "article",
+      "key": "articles/00000000-0000-4000-8000-000000000004.html",
+      "path": "/crime/sample-archived-article-4-00000000-0000-4000-8000-000000000004",
+      "sha256": "e19125471b25bc9854088b7fb88fd6c9663e8034ba9193aeeff50f270550a6e6",
+      "bytes": 12004
+    },
+    {
+      "kind": "article",
+      "key": "articles/00000000-0000-4000-8000-000000000005.html",
+      "path": "/crime/sample-archived-article-5-00000000-0000-4000-8000-000000000005",
+      "sha256": "56f6fc5c9e7308660e256c143f7ed9d499be0319f6aca0c470d1c0027e849834",
+      "bytes": 12005
+    },
+    {
+      "kind": "article",
+      "key": "articles/00000000-0000-4000-8000-000000000006.html",
+      "path": "/crime/sample-archived-article-6-00000000-0000-4000-8000-000000000006",
+      "sha256": "1283831f7eba694be27105cff80850f551cc9b095ed628839ff3c0a538c3a0ae",
+      "bytes": 12006
+    },
+    {
+      "kind": "article",
+      "key": "articles/00000000-0000-4000-8000-000000000007.html",
+      "path": "/crime/sample-archived-article-7-00000000-0000-4000-8000-000000000007",
+      "sha256": "3431eb927ba585fbcb8b3812cc328e994746e378f2387a7e0400f2c803bad252",
+      "bytes": 12007
+    },
+    {
+      "kind": "article",
+      "key": "articles/00000000-0000-4000-8000-000000000008.html",
+      "path": "/crime/sample-archived-article-8-00000000-0000-4000-8000-000000000008",
+      "sha256": "88d82de8df490c49b0447dd7791575c0642f73bc6f5d41ceec76695bc7e87376",
+      "bytes": 12008
+    },
+    {
+      "kind": "article",
+      "key": "articles/00000000-0000-4000-8000-000000000009.html",
+      "path": "/crime/sample-archived-article-9-00000000-0000-4000-8000-000000000009",
+      "sha256": "3b502f21ab076d25fd377fc42817797c2456b139a9c1288aabd238a77a5163f4",
+      "bytes": 12009
+    },
+    {
+      "kind": "article",
+      "key": "articles/00000000-0000-4000-8000-000000000010.html",
+      "path": "/crime/sample-archived-article-10-00000000-0000-4000-8000-000000000010",
+      "sha256": "40937ae5fbfd4bb809a8426d72c2cc5ebf0c2e08196f4e4e0fd7f1eae468f9f8",
+      "bytes": 12010
+    },
+    {
+      "kind": "article",
+      "key": "articles/00000000-0000-4000-8000-000000000011.html",
+      "path": "/crime/sample-archived-article-11-00000000-0000-4000-8000-000000000011",
+      "sha256": "f414ba76702bb8298eb78a3dfed47252962859fb7160b88e660555d388b82093",
+      "bytes": 12011
+    },
+    {
+      "kind": "article",
+      "key": "articles/00000000-0000-4000-8000-000000000012.html",
+      "path": "/crime/sample-archived-article-12-00000000-0000-4000-8000-000000000012",
+      "sha256": "0084a0c91b27bcb26dc4cd6a5184f774451fba9dc735c53e91946fc420ef3914",
+      "bytes": 12012
+    },
+    {
+      "kind": "article",
+      "key": "articles/00000000-0000-4000-8000-000000000013.html",
+      "path": "/crime/sample-archived-article-13-00000000-0000-4000-8000-000000000013",
+      "sha256": "9f49b7f56aeddf00a5851e8fdbbc98c52a5c05ab80570795d486089fac93783d",
+      "bytes": 12013
+    },
+    {
+      "kind": "article",
+      "key": "articles/00000000-0000-4000-8000-000000000014.html",
+      "path": "/crime/sample-archived-article-14-00000000-0000-4000-8000-000000000014",
+      "sha256": "3ecd18a11f3ab928f9f78dd73df50797cd515f7c8be1947fa45ffc8d171dc766",
+      "bytes": 12014
+    },
+    {
+      "kind": "article",
+      "key": "articles/00000000-0000-4000-8000-000000000015.html",
+      "path": "/crime/sample-archived-article-15-00000000-0000-4000-8000-000000000015",
+      "sha256": "8c13c7eac8eafe450b4bb05c62222c8048cab33fca7645fb47da39e5a9fb219e",
+      "bytes": 12015
+    },
+    {
+      "kind": "article",
+      "key": "articles/00000000-0000-4000-8000-000000000016.html",
+      "path": "/crime/sample-archived-article-16-00000000-0000-4000-8000-000000000016",
+      "sha256": "2ce9dbf4db6a2b03fa3578b7e4135bc34216edc0d2edd3a50eaf7592912ddc52",
+      "bytes": 12016
+    },
+    {
+      "kind": "article",
+      "key": "articles/00000000-0000-4000-8000-000000000017.html",
+      "path": "/crime/sample-archived-article-17-00000000-0000-4000-8000-000000000017",
+      "sha256": "16b05e15e59a64f9917e7899604174901c9b13f2c89c4fe262dfb6469a3fc0b4",
+      "bytes": 12017
+    },
+    {
+      "kind": "article",
+      "key": "articles/00000000-0000-4000-8000-000000000018.html",
+      "path": "/crime/sample-archived-article-18-00000000-0000-4000-8000-000000000018",
+      "sha256": "53202e700cace65d73a8d034ef24d2f4625cae4baba99b703059571d8469957f",
+      "bytes": 12018
+    },
+    {
+      "kind": "article",
+      "key": "articles/00000000-0000-4000-8000-000000000019.html",
+      "path": "/crime/sample-archived-article-19-00000000-0000-4000-8000-000000000019",
+      "sha256": "7713cf421ed56bd860eee3cae4034e983951154f8950242e288e9fce703e2fbe",
+      "bytes": 12019
+    },
+    {
+      "kind": "tag",
+      "key": "tags/sample-archived-tag-0.html",
+      "path": "/tag/sample-archived-tag-0",
+      "sha256": "8e45c8ecacf398166561e2aee0a0c3f7be441d4507915cd7bee4f30fe9be92c1",
+      "bytes": 8000
+    },
+    {
+      "kind": "tag",
+      "key": "tags/sample-archived-tag-1.html",
+      "path": "/tag/sample-archived-tag-1",
+      "sha256": "9ac3c56f17e102db9cc334eb0516f3deae2c5b020ceefb7c21043d4c12014e94",
+      "bytes": 8001
+    },
+    {
+      "kind": "tag",
+      "key": "tags/sample-archived-tag-2.html",
+      "path": "/tag/sample-archived-tag-2",
+      "sha256": "48840fade3325327e6c5b7fbde30a1eb04ce3c707402d47c6ce24530672c9075",
+      "bytes": 8002
+    },
+    {
+      "kind": "tag",
+      "key": "tags/sample-archived-tag-3.html",
+      "path": "/tag/sample-archived-tag-3",
+      "sha256": "69a4a95f6c5baae04dba624a3f59a9f2e8dcae4d2316360b69d7a8ab2773664a",
+      "bytes": 8003
+    },
+    {
+      "kind": "tag",
+      "key": "tags/sample-archived-tag-4.html",
+      "path": "/tag/sample-archived-tag-4",
+      "sha256": "9245601ee05a0dff86663b69e8676237f7da900309d1d2a1531d009e989b5da4",
+      "bytes": 8004
+    },
+    {
+      "kind": "tag",
+      "key": "tags/sample-archived-tag-5.html",
+      "path": "/tag/sample-archived-tag-5",
+      "sha256": "993f0ac3116e855f65a017ff30b24eaca92b57ac0c5eb46c0b009f71e49eed62",
+      "bytes": 8005
+    },
+    {
+      "kind": "tag",
+      "key": "tags/sample-archived-tag-6.html",
+      "path": "/tag/sample-archived-tag-6",
+      "sha256": "d74e475b560eb6bf090802e8edcc99cf89c3f5f1a68e1fc269b0a928ee08b711",
+      "bytes": 8006
+    },
+    {
+      "kind": "tag",
+      "key": "tags/sample-archived-tag-7.html",
+      "path": "/tag/sample-archived-tag-7",
+      "sha256": "0a8d555a6cd4ade8e69870d67a1a7a31224885c8730040f03b5c1ee975efde4b",
+      "bytes": 8007
+    },
+    {
+      "kind": "tag",
+      "key": "tags/sample-archived-tag-8.html",
+      "path": "/tag/sample-archived-tag-8",
+      "sha256": "d66900395010446628d4969db906b773056681f66b0258bf4dfb07288f8ee9a3",
+      "bytes": 8008
+    },
+    {
+      "kind": "tag",
+      "key": "tags/sample-archived-tag-9.html",
+      "path": "/tag/sample-archived-tag-9",
+      "sha256": "240b115b658e70938bae0d845436577857541bce190a3842c3503dcaf39bb19b",
+      "bytes": 8009
+    }
+  ]
+}

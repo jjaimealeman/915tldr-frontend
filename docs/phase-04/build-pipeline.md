@@ -37,6 +37,79 @@ Cloudflare Workers Builds (915tldr-frontend repo -> 915tldr-v2 Worker)
 `pnpm exec wrangler versions upload --config wrangler.jsonc` instead of `deploy:ci` — this never
 calls `commitLastGood`, so a preview build can never advance the production never-shrink baseline.
 
+## Phase 5 amendment (05-08) — the archive tier in the real deploy path
+
+Phase 5 adds a hybrid hot/archive tier (REND-07/REND-09) on top of this same pipeline, without
+replacing any of the above. Full design record: `docs/phase-05/archive-architecture.md`.
+
+**Updated pipeline (build step, every branch, unchanged command: `pnpm run build:ci`):**
+
+```
+BUILD step
+  1. write .astro/ci-build-started-at (epoch seconds) — both archive-sync deadlines below
+     measure from here
+  2. node tools/partition-archive.mjs --clean        — clears stale tier-facts/dist/archive/plan
+  3. astro build                                      — renders every page (hot AND archive-tier)
+  4. node tools/partition-archive.mjs                  — moves archive-tier pages OUT of
+                                                          dist/client into dist/archive, writes
+                                                          dist/archive-plan.json
+  5. node tools/assert-file-count.mjs                  — fails the build at 80,000 dist/client
+                                                          files, warns at 70,000 (D-13/REND-11)
+```
+
+**Updated pipeline (deploy step, production branch ONLY — `pnpm run deploy:ci`, i.e.
+`tools/ci-build.mjs deploy`):**
+
+```
+DEPLOY step
+  0. hot-window guard — a fallback-provisional hot window (D-07) refuses to ship without
+     ALLOW_FALLBACK_HOT_WINDOW=1; checked before anything below is spawned
+  1. node tools/archive-sync.mjs pre                  — uploads NEW-to-archive pages; anything
+                                                          that fails/times out/sits beyond a limit
+                                                          is moved BACK into dist/client first
+  2. node tools/assert-file-count.mjs (re-run)         — on the FINAL dist/client, after any
+                                                          move-back in step 1
+  3. wrangler deploy --config wrangler.jsonc           — ships dist/client (every page confirmed
+                                                          static OR confirmed in R2)
+  4. commitLastGood                                    — only after a REAL, successful deploy
+                                                          (unchanged from 04-09)
+  5. node tools/archive-sync.mjs post                  — re-uploads CHANGED archived pages,
+                                                          deletes orphans, tracks backlog, reports
+                                                          once/day; NEVER alters the deploy's own
+                                                          exit code (D-10/D-12)
+  6. ntfy alerts/daily report — every archive outcome from steps 1-5 (failed uploads, a disabled
+     tier, a backlog older than 20h, the file-count warn alarm, the once-daily REND-11 report)
+     reaches the owner exactly once, sent AFTER the deploy itself succeeds — never gating it
+```
+
+**Deadlines:** `PRE_DEADLINE_SECONDS` 840 (14 min), `POST_DEADLINE_SECONDS` 1020 (17 min), both
+measured from `.astro/ci-build-started-at` — comfortably inside Workers Builds' 20-minute hard
+ceiling alongside `astro build`/partition/the file-count gate/`wrangler deploy` itself. A backlog
+older than 20h (`BACKLOG_ALERT_HOURS`) alerts every run until it clears (D-10).
+
+**What non-production (preview) branches do:** the build step (steps 1-5 above) runs
+unconditionally on every branch — partitioning and the file-count gate both run on a preview
+build too. **The deploy step's archive-sync phases never run on a preview build at all** —
+non-production branches deploy via the "Version command"
+(`pnpm exec wrangler versions upload --config wrangler.jsonc`, unchanged from the table above),
+never `tools/ci-build.mjs deploy`, so `archive-sync.mjs` is never spawned and R2 is never
+touched. (Independently, `archive-sync.mjs` also carries its own write-boundary guard that
+refuses R2 writes on any non-`main` Workers CI branch even if it were somehow invoked — defense
+in depth, not the primary mechanism.)
+
+**Forced-full-rebuild runbook, archive-tier addendum (extends the section below):**
+
+- **A template/redesign change needs no extra step for the archive tier.** The build step
+  re-renders every page as usual; `post`'s own `changed`-key diff (sha256 comparison) picks up
+  every archived page whose rendered bytes changed and re-uploads it automatically, bounded by
+  `POST_DEADLINE_SECONDS` per run with backlog carry-forward (alerted past 20h) — no
+  `ARTICLES_FORCE_COLD`-style flag needed for this tier.
+- **To force a full re-upload of every already-archived page regardless of whether its content
+  changed** (e.g. after changing `ARCHIVE_CONTENT_TYPE` or another upload-side property that
+  `post`'s sha256 diff would never notice), run
+  `node tools/archive-sync.mjs request-full --reason "..."` — the next production `post` run
+  treats every indexed key as `changed` until the backlog clears.
+
 ## The decision this pipeline runs under
 
 **Workers Builds does all builds, including forced full rebuilds (option-a).**

@@ -9,9 +9,23 @@
 
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { runCi, classifyFailure, redact, toHeaderSafe } from '../../tools/ci-build.mjs';
+import {
+  runCi,
+  classifyFailure,
+  redact,
+  toHeaderSafe,
+  parseArchiveSyncResult,
+} from '../../tools/ci-build.mjs';
 
 const EIGHTEEN_MINUTES_MS = 18 * 60 * 1000;
+
+// A always-'derived' hot window, injected into deploy/all tests below that don't care about the
+// 05-08 Task 2 hot-window guard — keeps those tests hermetic (no real fs read of
+// src/lib/archive/hot-window.json) and immune to that file's own status changing later.
+const DERIVED_HOT_WINDOW = { status: 'derived', provisional: false, days: 202, basis: 'test', decision: 'test' };
+async function fakeLoadHotWindow() {
+  return DERIVED_HOT_WINDOW;
+}
 
 function noopTimer() {
   return 'timer-handle';
@@ -55,6 +69,18 @@ test('classifyFailure: falls back to "astro build exited <code>" when nothing ma
 test('classifyFailure: falls back cleanly on empty/undefined output', () => {
   assert.equal(classifyFailure('', 137), 'astro build exited 137');
   assert.equal(classifyFailure(undefined, 1), 'astro build exited 1');
+});
+
+test('classifyFailure (05-08 Task 2): picks the first line naming a known archive-tier check, for every new pattern', () => {
+  const checks = ['archive-sync', 'partition-archive', 'assert-file-count', 'hot-window', 'tiering', 'tier-facts', 'r2-client'];
+  for (const check of checks) {
+    const tail = `some earlier noise\n${check}: something went wrong\nmore noise after`;
+    assert.equal(
+      classifyFailure(tail, 1),
+      `${check}: something went wrong`,
+      `expected the line naming "${check}" to be picked`
+    );
+  }
 });
 
 test('classifyFailure: a real build\'s benign command-echo/passing-test lines that merely MENTION a check name must not be picked over the actual failing check (04-10 regression, D-15 real Workers Builds drill)', () => {
@@ -110,6 +136,16 @@ test('redact: removes any 40+ character token-like run even without a matching e
 test('redact: leaves ordinary short text untouched', () => {
   const out = redact('build failed: mode=warm rowsRead=5911', {});
   assert.equal(out, 'build failed: mode=warm rowsRead=5911');
+});
+
+test('redact (05-08 Task 2): removes R2_ACCESS_KEY_ID and R2_SECRET_ACCESS_KEY values', () => {
+  const env = { R2_ACCESS_KEY_ID: 'r2-key-abc-value', R2_SECRET_ACCESS_KEY: 'r2-secret-xyz-value' };
+  const text = 'key=r2-key-abc-value secret=r2-secret-xyz-value fine=hello';
+  const out = redact(text, env);
+  assert.ok(!out.includes('r2-key-abc-value'));
+  assert.ok(!out.includes('r2-secret-xyz-value'));
+  assert.match(out, /\[REDACTED\]/);
+  assert.match(out, /fine=hello/);
 });
 
 // ---------------------------------------------------------------------------
@@ -449,10 +485,541 @@ test('runCi step=build and step=all: the build is spawned with BUILD_STATE_REQUI
       env: {},
       spawnImpl,
       commitImpl: async () => {},
+      loadHotWindowImpl: fakeLoadHotWindow,
       setTimer: noopTimer,
       clearTimer: noopClear,
       log: noopLog,
     });
     assert.equal(firstCallEnv?.BUILD_STATE_REQUIRE_BASELINE, '1', `step=${step}`);
   }
+});
+
+// ---------------------------------------------------------------------------
+// parseArchiveSyncResult (05-08 Task 1)
+// ---------------------------------------------------------------------------
+
+test('parseArchiveSyncResult: parses the ARCHIVE_SYNC_RESULT JSON line out of a noisy tail', () => {
+  const tail = [
+    '[archive-sync] pre: uploaded=50 failed=0 movedBack=30428 disabled=false',
+    'ARCHIVE_SYNC_RESULT {"phase":"pre","uploaded":50,"failed":0,"deferred":0,"movedBack":30428,"deleted":0,"backlog":null,"alerts":[],"dailyReport":null,"disabled":false}',
+  ].join('\n');
+  const result = parseArchiveSyncResult(tail);
+  assert.equal(result.phase, 'pre');
+  assert.equal(result.uploaded, 50);
+  assert.equal(result.movedBack, 30428);
+});
+
+test('parseArchiveSyncResult: returns null when no result line is present', () => {
+  assert.equal(parseArchiveSyncResult('nothing relevant here\nno result line at all'), null);
+});
+
+test('parseArchiveSyncResult: returns null (not throws) on a malformed JSON tail', () => {
+  assert.equal(parseArchiveSyncResult('ARCHIVE_SYNC_RESULT {not valid json'), null);
+});
+
+test('parseArchiveSyncResult: returns null on empty/undefined input', () => {
+  assert.equal(parseArchiveSyncResult(''), null);
+  assert.equal(parseArchiveSyncResult(undefined), null);
+});
+
+// ---------------------------------------------------------------------------
+// runCi — deploy step: the archive-sync/file-count/wrangler/commit/archive-sync sequence
+// (05-08 Task 1 tracer)
+// ---------------------------------------------------------------------------
+
+function fakeArchiveSyncTail(phase, overrides = {}) {
+  const base = {
+    phase,
+    uploaded: 0,
+    failed: 0,
+    deferred: 0,
+    movedBack: 0,
+    deleted: 0,
+    backlog: phase === 'post' ? { count: 0, since: null } : null,
+    alerts: [],
+    dailyReport: phase === 'post' ? { due: false } : null,
+    disabled: false,
+    ...overrides,
+  };
+  return `[archive-sync] ${phase}: ok\nARCHIVE_SYNC_RESULT ${JSON.stringify(base)}`;
+}
+
+test('runCi step=deploy: writes the build-start marker is NOT part of the deploy step (build-only), and spawns archive-sync pre, assert-file-count, wrangler deploy, commitImpl, then archive-sync post, in that order', async () => {
+  const calls = [];
+  const spawnImpl = async (cmd, args) => {
+    calls.push({ cmd, args: [...args] });
+    if (args.includes('pre')) return { code: 0, tail: fakeArchiveSyncTail('pre') };
+    if (args.some((a) => String(a).includes('assert-file-count.mjs'))) {
+      return { code: 0, tail: '{"count":100,"ceiling":100000,"failAt":80000,"status":"ok"}' };
+    }
+    if (cmd === 'pnpm' && args.includes('wrangler')) return { code: 0, tail: '' };
+    if (args.includes('post')) return { code: 0, tail: fakeArchiveSyncTail('post') };
+    return { code: 0, tail: '' };
+  };
+  const commitCalls = [];
+  const code = await runCi({
+    step: 'deploy',
+    env: {},
+    spawnImpl,
+    notifyImpl: async () => {},
+    commitImpl: async (a) => commitCalls.push(a),
+    loadHotWindowImpl: fakeLoadHotWindow,
+    setTimer: noopTimer,
+    clearTimer: noopClear,
+    log: noopLog,
+  });
+
+  assert.equal(code, 0);
+  assert.equal(calls.length, 4, 'expected exactly 4 spawn calls: archive-sync pre, assert-file-count, wrangler deploy, archive-sync post');
+  assert.ok(calls[0].args.some((a) => String(a).includes('archive-sync.mjs')) && calls[0].args.includes('pre'));
+  assert.ok(calls[1].args.some((a) => String(a).includes('assert-file-count.mjs')));
+  assert.ok(calls[2].cmd === 'pnpm' && calls[2].args.includes('wrangler'));
+  assert.ok(calls[3].args.some((a) => String(a).includes('archive-sync.mjs')) && calls[3].args.includes('post'));
+  assert.equal(commitCalls.length, 1, 'commitImpl must be called exactly once, after a real deploy');
+});
+
+test('runCi step=deploy: CI_BUILD_DEPLOY_DRY_RUN=1 runs wrangler deploy --dry-run with --outdir and never calls commitImpl', async () => {
+  let wranglerArgs;
+  const spawnImpl = async (cmd, args) => {
+    if (args.includes('pre')) return { code: 0, tail: fakeArchiveSyncTail('pre') };
+    if (args.some((a) => String(a).includes('assert-file-count.mjs'))) {
+      return { code: 0, tail: '{"count":100,"ceiling":100000,"failAt":80000,"status":"ok"}' };
+    }
+    if (cmd === 'pnpm' && args.includes('wrangler')) {
+      wranglerArgs = [...args];
+      return { code: 0, tail: '' };
+    }
+    if (args.includes('post')) return { code: 0, tail: fakeArchiveSyncTail('post') };
+    return { code: 0, tail: '' };
+  };
+  const commitCalls = [];
+  const code = await runCi({
+    step: 'deploy',
+    env: { CI_BUILD_DEPLOY_DRY_RUN: '1' },
+    spawnImpl,
+    notifyImpl: async () => {},
+    commitImpl: async (a) => commitCalls.push(a),
+    loadHotWindowImpl: fakeLoadHotWindow,
+    setTimer: noopTimer,
+    clearTimer: noopClear,
+    log: noopLog,
+  });
+
+  assert.equal(code, 0);
+  assert.ok(wranglerArgs, 'wrangler deploy should still be spawned in a dry run');
+  assert.ok(wranglerArgs.includes('--dry-run'));
+  assert.ok(wranglerArgs.includes('--config'));
+  assert.ok(wranglerArgs.includes('wrangler.jsonc'));
+  assert.ok(wranglerArgs.includes('--outdir'));
+  assert.ok(wranglerArgs.includes('.wrangler/ci-dry-run'));
+  assert.equal(commitCalls.length, 0, 'commitImpl must never be called in a dry run — no real deploy happened');
+});
+
+test('runCi step=deploy: archive-sync pre exiting 1 aborts before wrangler/commitImpl, notifies exactly once with a title naming archive-sync', async () => {
+  const calls = [];
+  const notifyCalls = [];
+  const commitCalls = [];
+  const spawnImpl = async (cmd, args) => {
+    calls.push({ cmd, args: [...args] });
+    if (args.includes('pre')) return { code: 1, tail: 'archive-sync: archive index unreadable — boom' };
+    return { code: 0, tail: '' };
+  };
+  const code = await runCi({
+    step: 'deploy',
+    env: { NTFY_TOPIC: 'test-topic' },
+    spawnImpl,
+    notifyImpl: async (a) => notifyCalls.push(a),
+    commitImpl: async (a) => commitCalls.push(a),
+    loadHotWindowImpl: fakeLoadHotWindow,
+    setTimer: noopTimer,
+    clearTimer: noopClear,
+    log: noopLog,
+  });
+
+  assert.notEqual(code, 0);
+  assert.equal(calls.length, 1, 'only the archive-sync pre spawn should have happened');
+  assert.ok(
+    !calls.some((c) => (c.args ?? []).some((a) => String(a).includes('wrangler')) || String(c.cmd).includes('wrangler')),
+    'no wrangler process should ever be spawned after a failing archive-sync pre'
+  );
+  assert.equal(commitCalls.length, 0);
+  assert.equal(notifyCalls.length, 1);
+  assert.match(notifyCalls[0].title, /archive-sync/);
+});
+
+// ---------------------------------------------------------------------------
+// runCi — build step: writes the build-start marker before spawning the build
+// (05-08 Task 1)
+// ---------------------------------------------------------------------------
+
+test('runCi step=build: calls markBuildStart before spawning the build', async () => {
+  const events = [];
+  const spawnImpl = async () => {
+    events.push('spawn');
+    return { code: 0, tail: '' };
+  };
+  const markBuildStart = () => {
+    events.push('mark');
+  };
+  const code = await runCi({
+    step: 'build',
+    env: {},
+    spawnImpl,
+    markBuildStart,
+    setTimer: noopTimer,
+    clearTimer: noopClear,
+    log: noopLog,
+  });
+  assert.equal(code, 0);
+  assert.deepEqual(events, ['mark', 'spawn']);
+});
+
+test('runCi step=all: also calls markBuildStart before spawning the build', async () => {
+  const events = [];
+  const spawnImpl = async () => {
+    events.push('spawn');
+    return { code: 0, tail: '' };
+  };
+  const markBuildStart = () => {
+    events.push('mark');
+  };
+  await runCi({
+    step: 'all',
+    env: {},
+    spawnImpl,
+    markBuildStart,
+    commitImpl: async () => {},
+    loadHotWindowImpl: fakeLoadHotWindow,
+    setTimer: noopTimer,
+    clearTimer: noopClear,
+    log: noopLog,
+  });
+  assert.equal(events[0], 'mark');
+  assert.equal(events[1], 'spawn');
+});
+
+// ---------------------------------------------------------------------------
+// runCi — deploy step: hot-window production guard, archive alerts, the
+// 70,000 file-count alarm, and the daily report (05-08 Task 2)
+// ---------------------------------------------------------------------------
+
+function fakeDeploySpawnImpl({ preOverrides, countTail, wranglerResult, postOverrides, postResult } = {}) {
+  return async (cmd, args) => {
+    if (args.includes('pre')) return { code: 0, tail: fakeArchiveSyncTail('pre', preOverrides ?? {}) };
+    if (args.some((a) => String(a).includes('assert-file-count.mjs'))) {
+      return { code: 0, tail: countTail ?? '{"count":100,"ceiling":100000,"failAt":80000,"status":"ok"}' };
+    }
+    if (cmd === 'pnpm' && args.includes('wrangler')) return wranglerResult ?? { code: 0, tail: '' };
+    if (args.includes('post')) {
+      if (postResult) return postResult;
+      return { code: 0, tail: fakeArchiveSyncTail('post', postOverrides ?? {}) };
+    }
+    return { code: 0, tail: '' };
+  };
+}
+
+test('runCi step=deploy (production, local run): a fallback-provisional hot window with no ALLOW_FALLBACK_HOT_WINDOW blocks before any spawn, notifies once with a check starting "hot-window:"', async () => {
+  const spawnCalls = [];
+  const notifyCalls = [];
+  const code = await runCi({
+    step: 'deploy',
+    env: { NTFY_TOPIC: 'test-topic' },
+    spawnImpl: async (cmd, args) => {
+      spawnCalls.push({ cmd, args });
+      return { code: 0, tail: '' };
+    },
+    notifyImpl: async (a) => notifyCalls.push(a),
+    commitImpl: async () => {
+      throw new Error('commitImpl must never be called when the hot-window guard blocks');
+    },
+    loadHotWindowImpl: async () => ({
+      status: 'fallback-provisional',
+      provisional: true,
+      days: 30,
+      basis: 'test',
+      decision: 'test',
+    }),
+    setTimer: noopTimer,
+    clearTimer: noopClear,
+    log: noopLog,
+  });
+
+  assert.notEqual(code, 0);
+  assert.equal(spawnCalls.length, 0, 'nothing should be spawned once the hot-window guard blocks');
+  assert.equal(notifyCalls.length, 1);
+  assert.match(notifyCalls[0].title, /hot-window:/);
+});
+
+test('runCi step=deploy: ALLOW_FALLBACK_HOT_WINDOW=1 lets a fallback-provisional hot window proceed, and the daily report body says PROVISIONAL', async () => {
+  const notifyCalls = [];
+  const spawnImpl = fakeDeploySpawnImpl({
+    postOverrides: {
+      dailyReport: {
+        due: true,
+        body: {
+          staticFileCount: 29937,
+          ceiling: 100000,
+          failAt: 80000,
+          archivedCount: 30478,
+          hotWindowStatus: 'fallback-provisional',
+          hotWindowDays: 30,
+          backlog: 0,
+        },
+      },
+    },
+  });
+  const code = await runCi({
+    step: 'deploy',
+    env: { NTFY_TOPIC: 'test-topic', ALLOW_FALLBACK_HOT_WINDOW: '1' },
+    spawnImpl,
+    notifyImpl: async (a) => notifyCalls.push(a),
+    commitImpl: async () => {},
+    loadHotWindowImpl: async () => ({
+      status: 'fallback-provisional',
+      provisional: true,
+      days: 30,
+      basis: 'test',
+      decision: 'test',
+    }),
+    setTimer: noopTimer,
+    clearTimer: noopClear,
+    log: noopLog,
+  });
+
+  assert.equal(code, 0);
+  const report = notifyCalls.find((c) => /daily report/i.test(c.title));
+  assert.ok(report, 'expected a daily report notification');
+  assert.match(report.body, /PROVISIONAL/);
+  assert.equal(report.priority, 'low');
+});
+
+test('runCi step=deploy: a non-production CI build (WORKERS_CI=1, branch != main) skips the hot-window guard entirely', async () => {
+  const spawnImpl = fakeDeploySpawnImpl({});
+  const code = await runCi({
+    step: 'deploy',
+    env: { NTFY_TOPIC: 'test-topic', WORKERS_CI: '1', WORKERS_CI_BRANCH: 'feature/phase-05' },
+    spawnImpl,
+    notifyImpl: async () => {},
+    commitImpl: async () => {},
+    loadHotWindowImpl: async () => {
+      throw new Error('loadHotWindowImpl must not be called for a non-production build');
+    },
+    setTimer: noopTimer,
+    clearTimer: noopClear,
+    log: noopLog,
+  });
+  assert.equal(code, 0);
+});
+
+test('runCi step=deploy: a pre result with failed pages sends exactly one ntfy naming the count and that previous copies are still serving, after a successful deploy', async () => {
+  const notifyCalls = [];
+  const spawnImpl = fakeDeploySpawnImpl({
+    preOverrides: {
+      failed: 3,
+      alerts: ['archive-sync: 3 page(s) failed to upload — previous state (static) still serving'],
+    },
+  });
+  const code = await runCi({
+    step: 'deploy',
+    env: { NTFY_TOPIC: 'test-topic' },
+    spawnImpl,
+    notifyImpl: async (a) => notifyCalls.push(a),
+    commitImpl: async () => {},
+    loadHotWindowImpl: fakeLoadHotWindow,
+    setTimer: noopTimer,
+    clearTimer: noopClear,
+    log: noopLog,
+  });
+
+  assert.equal(code, 0);
+  assert.equal(notifyCalls.length, 1, 'exactly one notification for this run');
+  assert.match(notifyCalls[0].body, /3 page\(s\) failed/);
+  assert.match(notifyCalls[0].body, /still serving/);
+});
+
+test('runCi step=deploy: a post result with failed pages sends exactly one ntfy naming the count and that previous copies are still serving', async () => {
+  const notifyCalls = [];
+  const spawnImpl = fakeDeploySpawnImpl({
+    postOverrides: {
+      failed: 2,
+      alerts: ['archive-sync: 2 page(s) failed to re-upload — previous copies still serving'],
+    },
+  });
+  const code = await runCi({
+    step: 'deploy',
+    env: { NTFY_TOPIC: 'test-topic' },
+    spawnImpl,
+    notifyImpl: async (a) => notifyCalls.push(a),
+    commitImpl: async () => {},
+    loadHotWindowImpl: fakeLoadHotWindow,
+    setTimer: noopTimer,
+    clearTimer: noopClear,
+    log: noopLog,
+  });
+
+  assert.equal(code, 0);
+  assert.equal(notifyCalls.length, 1);
+  assert.match(notifyCalls[0].body, /2 page\(s\) failed/);
+  assert.match(notifyCalls[0].body, /still serving/);
+});
+
+test('runCi step=deploy: a post backlog alert older than 20h sends one ntfy (D-10)', async () => {
+  const notifyCalls = [];
+  const spawnImpl = fakeDeploySpawnImpl({
+    postOverrides: {
+      alerts: ['archive-sync: archive re-render backlog older than 20h (D-10)'],
+    },
+  });
+  const code = await runCi({
+    step: 'deploy',
+    env: { NTFY_TOPIC: 'test-topic' },
+    spawnImpl,
+    notifyImpl: async (a) => notifyCalls.push(a),
+    commitImpl: async () => {},
+    loadHotWindowImpl: fakeLoadHotWindow,
+    setTimer: noopTimer,
+    clearTimer: noopClear,
+    log: noopLog,
+  });
+
+  assert.equal(code, 0);
+  assert.equal(notifyCalls.length, 1);
+  assert.match(notifyCalls[0].body, /backlog older than 20h/);
+});
+
+test('runCi step=deploy: a pre result with disabled:true lets the deploy proceed and sends one ntfy saying the archive tier is disabled', async () => {
+  const notifyCalls = [];
+  const spawnImpl = fakeDeploySpawnImpl({
+    preOverrides: {
+      disabled: true,
+      alerts: ['archive-sync: archive tier disabled for this build — R2 credentials are not set in the environment'],
+    },
+  });
+  const code = await runCi({
+    step: 'deploy',
+    env: { NTFY_TOPIC: 'test-topic' },
+    spawnImpl,
+    notifyImpl: async (a) => notifyCalls.push(a),
+    commitImpl: async () => {},
+    loadHotWindowImpl: fakeLoadHotWindow,
+    setTimer: noopTimer,
+    clearTimer: noopClear,
+    log: noopLog,
+  });
+
+  assert.equal(code, 0);
+  assert.equal(notifyCalls.length, 1);
+  assert.match(notifyCalls[0].body, /disabled/i);
+});
+
+test('runCi step=deploy: assert-file-count status "warn" sends one high-priority ntfy naming the count against 100,000, and the deploy proceeds', async () => {
+  const notifyCalls = [];
+  const spawnImpl = fakeDeploySpawnImpl({
+    countTail: '{"count":72000,"ceiling":100000,"failAt":80000,"status":"warn"}',
+  });
+  const code = await runCi({
+    step: 'deploy',
+    env: { NTFY_TOPIC: 'test-topic' },
+    spawnImpl,
+    notifyImpl: async (a) => notifyCalls.push(a),
+    commitImpl: async () => {},
+    loadHotWindowImpl: fakeLoadHotWindow,
+    setTimer: noopTimer,
+    clearTimer: noopClear,
+    log: noopLog,
+  });
+
+  assert.equal(code, 0);
+  const alarm = notifyCalls.find((c) => /72000/.test(c.body));
+  assert.ok(alarm, 'expected an alarm naming the count');
+  assert.match(alarm.body, /100000|100,000/);
+  assert.equal(alarm.priority, 'high');
+});
+
+test('runCi step=deploy: assert-file-count exiting non-zero aborts the deploy with a failure notification (D-13)', async () => {
+  const notifyCalls = [];
+  const calls = [];
+  const spawnImpl = async (cmd, args) => {
+    calls.push({ cmd, args });
+    if (args.includes('pre')) return { code: 0, tail: fakeArchiveSyncTail('pre') };
+    if (args.some((a) => String(a).includes('assert-file-count.mjs'))) {
+      return { code: 1, tail: '[assert-file-count] FAIL: count 85000 >= fail threshold 80000' };
+    }
+    return { code: 0, tail: '' };
+  };
+  const code = await runCi({
+    step: 'deploy',
+    env: { NTFY_TOPIC: 'test-topic' },
+    spawnImpl,
+    notifyImpl: async (a) => notifyCalls.push(a),
+    commitImpl: async () => {
+      throw new Error('commitImpl must never be called');
+    },
+    loadHotWindowImpl: fakeLoadHotWindow,
+    setTimer: noopTimer,
+    clearTimer: noopClear,
+    log: noopLog,
+  });
+
+  assert.notEqual(code, 0);
+  assert.equal(notifyCalls.length, 1);
+  assert.match(notifyCalls[0].title, /assert-file-count/);
+  assert.ok(!calls.some((c) => String(c.cmd).includes('wrangler') || (c.args ?? []).some((a) => String(a).includes('wrangler'))));
+});
+
+test('runCi step=deploy: dailyReport.due false sends no daily report notification', async () => {
+  const notifyCalls = [];
+  const spawnImpl = fakeDeploySpawnImpl({ postOverrides: { dailyReport: { due: false } } });
+  const code = await runCi({
+    step: 'deploy',
+    env: { NTFY_TOPIC: 'test-topic' },
+    spawnImpl,
+    notifyImpl: async (a) => notifyCalls.push(a),
+    commitImpl: async () => {},
+    loadHotWindowImpl: fakeLoadHotWindow,
+    setTimer: noopTimer,
+    clearTimer: noopClear,
+    log: noopLog,
+  });
+
+  assert.equal(code, 0);
+  assert.ok(!notifyCalls.some((c) => /daily report/i.test(c.title)));
+});
+
+test('runCi step=deploy: a post spawn that exits non-zero sends one alert ntfy but the deploy step still returns 0', async () => {
+  const notifyCalls = [];
+  const spawnImpl = fakeDeploySpawnImpl({ postResult: { code: 1, tail: 'archive-sync: boom' } });
+  const code = await runCi({
+    step: 'deploy',
+    env: { NTFY_TOPIC: 'test-topic' },
+    spawnImpl,
+    notifyImpl: async (a) => notifyCalls.push(a),
+    commitImpl: async () => {},
+    loadHotWindowImpl: fakeLoadHotWindow,
+    setTimer: noopTimer,
+    clearTimer: noopClear,
+    log: noopLog,
+  });
+
+  assert.equal(code, 0, 'the deploy already succeeded before post ran — post can never fail it');
+  assert.equal(notifyCalls.length, 1);
+});
+
+test('runCi step=deploy: a post spawn that omits the ARCHIVE_SYNC_RESULT line sends one alert ntfy but the deploy step still returns 0', async () => {
+  const notifyCalls = [];
+  const spawnImpl = fakeDeploySpawnImpl({ postResult: { code: 0, tail: '[archive-sync] post: ok, but no result line' } });
+  const code = await runCi({
+    step: 'deploy',
+    env: { NTFY_TOPIC: 'test-topic' },
+    spawnImpl,
+    notifyImpl: async (a) => notifyCalls.push(a),
+    commitImpl: async () => {},
+    loadHotWindowImpl: fakeLoadHotWindow,
+    setTimer: noopTimer,
+    clearTimer: noopClear,
+    log: noopLog,
+  });
+
+  assert.equal(code, 0);
+  assert.equal(notifyCalls.length, 1);
 });

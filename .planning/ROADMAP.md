@@ -317,28 +317,28 @@ Plans:
   4. Tag pages default to the R2 archive tier with only a measured top-N by article count promoted to hot static; total deployed static-asset file count is reported daily, the current count is recorded against the 100,000 ceiling, and the build fails at an 80,000-file safety margin.
   5. The hot-content cutoff is derived from measured request traffic over a stated window — not a fixed guess — and a full archive re-render completes with no single Worker invocation exceeding the 300 s CPU ceiling.
 
-**Plans**: 12 plans in 7 waves
+**Plans**: 8/12 plans executed in 7 waves
 
 Plans:
 **Wave 1**
 
-- [ ] 05-01-PLAN.md — Tiering rules (D-08 tag threshold, inclusive age cutoff), hot-window config (bootstrap D-07 fallback), build-time tier facts, tier-report (wave 1)
-- [ ] 05-02-PLAN.md — Package-legitimacy checkpoint, owner creates private R2 bucket + bucket-scoped credential, build-time R2 client with live round trip and build-gate case (wave 1)
-- [ ] 05-03-PLAN.md — Worker serves archived articles (one KV read) and tags (zero KV) from R2, static-parity headers, 503 on R2 error, edge cache, Server-Timing (wave 1)
-- [ ] 05-04-PLAN.md — Zero-reads load test (leg 1b + leg 2 delta vs v1 background) and ARCH-08 KV/CPU tool, TDD'd and baseline-proven live (wave 1)
+- [x] 05-01-PLAN.md — Tiering rules (D-08 tag threshold, inclusive age cutoff), hot-window config (bootstrap D-07 fallback), build-time tier facts, tier-report (wave 1)
+- [x] 05-02-PLAN.md — Package-legitimacy checkpoint, owner creates private R2 bucket + bucket-scoped credential, build-time R2 client with live round trip and build-gate case (wave 1)
+- [x] 05-03-PLAN.md — Worker serves archived articles (one KV read) and tags (zero KV) from R2, static-parity headers, 503 on R2 error, edge cache, Server-Timing (wave 1)
+- [x] 05-04-PLAN.md — Zero-reads load test (leg 1b + leg 2 delta vs v1 background) and ARCH-08 KV/CPU tool, TDD'd and baseline-proven live (wave 1)
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
-- [ ] 05-05-PLAN.md — Derive the hot window from 30 days of live human-only traffic (D-04..D-07b), capped by the file budget; REND-10 met in-phase (wave 2)
-- [ ] 05-06-PLAN.md — Post-build partition of archive-tier pages, 80,000-file build gate, /static-budget.json, tests across both tiers (wave 2)
+- [x] 05-05-PLAN.md — Derive the hot window from 30 days of live human-only traffic (D-04..D-07b), capped by the file budget; REND-10 met in-phase (wave 2)
+- [x] 05-06-PLAN.md — Post-build partition of archive-tier pages, 80,000-file build gate, /static-budget.json, tests across both tiers (wave 2)
 
 **Wave 3** *(blocked on Wave 2 completion)*
 
-- [ ] 05-07-PLAN.md — Archive sync: pre-deploy upload with move-back, post-deploy re-upload/orphans/backlog, deadlines, D-09..D-12, architecture record (wave 3)
+- [x] 05-07-PLAN.md — Archive sync: pre-deploy upload with move-back, post-deploy re-upload/orphans/backlog, deadlines, D-09..D-12, architecture record (wave 3)
 
 **Wave 4** *(blocked on Wave 3 completion)*
 
-- [ ] 05-08-PLAN.md — Wire archive sync and the count gate into the Workers Builds wrapper; alerts, 70,000 alarm, daily file-count report, fallback guard; pipeline docs (wave 4)
+- [x] 05-08-PLAN.md — Wire archive sync and the count gate into the Workers Builds wrapper; alerts, 70,000 alarm, daily file-count report, fallback guard; pipeline docs (wave 4)
 
 **Wave 5** *(blocked on Wave 4 completion)*
 
@@ -482,7 +482,7 @@ Phase 3 and may run alongside Phases 5-7.
 | 2. Content Quality & Grounding | 11/10 | Complete    | 2026-09-21 |
 | 3. Foundation & Read-Budget Guardrails | 7/7 | Complete    | 2026-09-26 |
 | 4. Static Generation, Templates & SEO | 12/12 | In Progress|  |
-| 5. Hybrid Archive & Zero-Reads Proof | 0/TBD | Not started | - |
+| 5. Hybrid Archive & Zero-Reads Proof | 8/12 | In Progress|  |
 | 6. Bilingual | 0/TBD | Not started | - |
 | 7. Imagery & Share Cards | 0/TBD | Not started | - |
 | 8. Server Islands & Interactivity | 0/TBD | Not started | - |

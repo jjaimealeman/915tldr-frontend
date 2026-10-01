@@ -1,0 +1,138 @@
+{
+  "_comment": "Recorded shape of a d1AnalyticsAdaptiveGroups response (tools/load-test-zero-reads.mjs fetchD1RowsRead), captured live against this account 2026-10-01 and trimmed to the response envelope only. No account identifier appears in this dataset's own response fields (accountTag is a request variable, never echoed back) — nothing to replace with a dummy value here.",
+  "windows": [
+    {
+      "window": { "start": "2026-09-24T04:05:00.000Z", "end": "2026-09-24T04:15:00.000Z" },
+      "response": {
+        "data": {
+          "viewer": {
+            "accounts": [
+              {
+                "d1AnalyticsAdaptiveGroups": [
+                  { "dimensions": { "databaseId": "552ba1d1-024a-4dee-bdaa-3ffd4bdb1f77", "datetimeFiveMinutes": "2026-09-24T04:05:00Z" }, "sum": { "rowsRead": 1462266 } },
+                  { "dimensions": { "databaseId": "552ba1d1-024a-4dee-bdaa-3ffd4bdb1f77", "datetimeFiveMinutes": "2026-09-24T04:10:00Z" }, "sum": { "rowsRead": 234213 } }
+                ]
+              }
+            ]
+          }
+        },
+        "errors": null
+      },
+      "totalRowsRead": 1696479
+    },
+    {
+      "window": { "start": "2026-09-25T04:05:00.000Z", "end": "2026-09-25T04:15:00.000Z" },
+      "response": {
+        "data": {
+          "viewer": {
+            "accounts": [
+              {
+                "d1AnalyticsAdaptiveGroups": [
+                  { "dimensions": { "databaseId": "552ba1d1-024a-4dee-bdaa-3ffd4bdb1f77", "datetimeFiveMinutes": "2026-09-25T04:05:00Z" }, "sum": { "rowsRead": 573192 } },
+                  { "dimensions": { "databaseId": "552ba1d1-024a-4dee-bdaa-3ffd4bdb1f77", "datetimeFiveMinutes": "2026-09-25T04:10:00Z" }, "sum": { "rowsRead": 172769 } }
+                ]
+              }
+            ]
+          }
+        },
+        "errors": null
+      },
+      "totalRowsRead": 745961
+    },
+    {
+      "window": { "start": "2026-09-26T04:05:00.000Z", "end": "2026-09-26T04:15:00.000Z" },
+      "response": {
+        "data": {
+          "viewer": {
+            "accounts": [
+              {
+                "d1AnalyticsAdaptiveGroups": [
+                  { "dimensions": { "databaseId": "552ba1d1-024a-4dee-bdaa-3ffd4bdb1f77", "datetimeFiveMinutes": "2026-09-26T04:05:00Z" }, "sum": { "rowsRead": 429935 } },
+                  { "dimensions": { "databaseId": "552ba1d1-024a-4dee-bdaa-3ffd4bdb1f77", "datetimeFiveMinutes": "2026-09-26T04:10:00Z" }, "sum": { "rowsRead": 318402 } }
+                ]
+              }
+            ]
+          }
+        },
+        "errors": null
+      },
+      "totalRowsRead": 748337
+    },
+    {
+      "window": { "start": "2026-09-27T04:05:00.000Z", "end": "2026-09-27T04:15:00.000Z" },
+      "response": {
+        "data": {
+          "viewer": {
+            "accounts": [
+              {
+                "d1AnalyticsAdaptiveGroups": [
+                  { "dimensions": { "databaseId": "552ba1d1-024a-4dee-bdaa-3ffd4bdb1f77", "datetimeFiveMinutes": "2026-09-27T04:05:00Z" }, "sum": { "rowsRead": 611204 } },
+                  { "dimensions": { "databaseId": "552ba1d1-024a-4dee-bdaa-3ffd4bdb1f77", "datetimeFiveMinutes": "2026-09-27T04:10:00Z" }, "sum": { "rowsRead": 290117 } }
+                ]
+              }
+            ]
+          }
+        },
+        "errors": null
+      },
+      "totalRowsRead": 901321
+    },
+    {
+      "window": { "start": "2026-09-28T04:05:00.000Z", "end": "2026-09-28T04:15:00.000Z" },
+      "response": {
+        "data": {
+          "viewer": {
+            "accounts": [
+              {
+                "d1AnalyticsAdaptiveGroups": [
+                  { "dimensions": { "databaseId": "552ba1d1-024a-4dee-bdaa-3ffd4bdb1f77", "datetimeFiveMinutes": "2026-09-28T04:05:00Z" }, "sum": { "rowsRead": 820556 } },
+                  { "dimensions": { "databaseId": "552ba1d1-024a-4dee-bdaa-3ffd4bdb1f77", "datetimeFiveMinutes": "2026-09-28T04:10:00Z" }, "sum": { "rowsRead": 190884 } }
+                ]
+              }
+            ]
+          }
+        },
+        "errors": null
+      },
+      "totalRowsRead": 1011440
+    },
+    {
+      "window": { "start": "2026-09-29T04:05:00.000Z", "end": "2026-09-29T04:15:00.000Z" },
+      "response": {
+        "data": {
+          "viewer": {
+            "accounts": [
+              {
+                "d1AnalyticsAdaptiveGroups": [
+                  { "dimensions": { "databaseId": "552ba1d1-024a-4dee-bdaa-3ffd4bdb1f77", "datetimeFiveMinutes": "2026-09-29T04:05:00Z" }, "sum": { "rowsRead": 355012 } },
+                  { "dimensions": { "databaseId": "552ba1d1-024a-4dee-bdaa-3ffd4bdb1f77", "datetimeFiveMinutes": "2026-09-29T04:10:00Z" }, "sum": { "rowsRead": 402218 } }
+                ]
+              }
+            ]
+          }
+        },
+        "errors": null
+      },
+      "totalRowsRead": 757230
+    },
+    {
+      "window": { "start": "2026-09-30T04:05:00.000Z", "end": "2026-09-30T04:15:00.000Z" },
+      "response": {
+        "data": {
+          "viewer": {
+            "accounts": [
+              {
+                "d1AnalyticsAdaptiveGroups": [
+                  { "dimensions": { "databaseId": "552ba1d1-024a-4dee-bdaa-3ffd4bdb1f77", "datetimeFiveMinutes": "2026-09-30T04:05:00Z" }, "sum": { "rowsRead": 702911 } },
+                  { "dimensions": { "databaseId": "552ba1d1-024a-4dee-bdaa-3ffd4bdb1f77", "datetimeFiveMinutes": "2026-09-30T04:10:00Z" }, "sum": { "rowsRead": 198765 } }
+                ]
+              }
+            ]
+          }
+        },
+        "errors": null
+      },
+      "totalRowsRead": 901676
+    }
+  ]
+}

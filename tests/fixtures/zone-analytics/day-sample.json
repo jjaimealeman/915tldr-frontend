@@ -1,0 +1,590 @@
+{
+  "_comment": "Recorded shape of httpRequestsAdaptiveGroups rows for one real day (2026-09-30 UTC, zone 915tldr.com) under the /crime/ path prefix, with the chosen bot filter already applied (requestSource:eyeball AND verifiedBotCategory:\"\" AND userAgent exclusions) — captured live this session via tools/derive-hot-window.mjs's own query shape. No account or zone identifier appears in this response body (the query is zone-scoped via a request variable, never echoed back) — nothing to replace with a dummy value here, per this project's own cf-graphql.mjs convention. Drives derive-hot-window.test.mjs's fixture-driven day-pipeline test: summarizeDayRows() over these rows against this build's real tier facts reproduces the exact matched/unmatched/payload counts the live --probe-day run printed for /crime/ that day (matched=174, unmatched=0, payload=33).",
+  "dayEpoch": 1790726400,
+  "window": {
+    "start": "2026-09-30T00:00:00.000Z",
+    "end": "2026-10-01T00:00:00.000Z"
+  },
+  "rows": [
+    {
+      "path": "/crime/trial-of-caleb-flynn-highlights-affair-and-missing-murder-weapon-c8bee947-3219-4eb2-8805-6e5eb82bc1a2",
+      "count": 5
+    },
+    {
+      "path": "/crime/71-year-old-exonerated-after-decades-on-death-row-in-utah-82b672aa-6c50-4466-a0bd-758f02f1189f/_payload.json",
+      "count": 1
+    },
+    {
+      "path": "/crime/former-splc-cfo-arrested-for-alleged-fraud-linked-to-hate-group-payments-b0288c62-bc63-4df9-861a-409c063986d1",
+      "count": 1
+    },
+    {
+      "path": "/crime/two-arrested-after-emerging-from-manhole-near-hotel-hosting-netanyahu-48484e10-17e0-4b1f-ae29-7fb6ab102ce4/_payload.json",
+      "count": 2
+    },
+    {
+      "path": "/crime/trial-begins-for-lindsay-clancy-mother-charged-with-killing-her-three-children-c2899489-9dc5-4f65-8e84-da1571850225",
+      "count": 1
+    },
+    {
+      "path": "/crime/former-michigan-nurse-faces-charges-after-infant-injuries-come-to-light-26863240-8dc3-46d5-831f-90f050352fba",
+      "count": 2
+    },
+    {
+      "path": "/crime/investigation-launched-after-discovery-of-decomposing-bodies-in-chicago-funeral-home-53de6dc4-cc03-448f-ad5e-c8e0f4fac415",
+      "count": 1
+    },
+    {
+      "path": "/crime/81-year-old-actor-james-handy-notable-for-top-gun-maverick-murdered-a2dca838-aef8-424b-a6a9-6736125f25e9",
+      "count": 1
+    },
+    {
+      "path": "/crime/two-arrested-after-fleeing-from-el-paso-deputies-during-traffic-stop-3f24f2ea-6481-4c57-bcf8-2de007a87cb4",
+      "count": 1
+    },
+    {
+      "path": "/crime/five-men-detained-near-us-air-base-on-terrorism-suspicions-7c93990a-948d-43e0-9af0-edff32739110",
+      "count": 2
+    },
+    {
+      "path": "/crime/fbi-probes-data-breach-after-hackers-claim-to-access-agent-information-5ff0a939-242f-4b05-b260-ee9d6b1900c9/_payload.json",
+      "count": 2
+    },
+    {
+      "path": "/crime/tragic-home-invasion-pediatrician-killed-wife-injured-in-pittsburgh-attack-29b72e83-09c5-4a97-bc93-de5c67840e7f",
+      "count": 3
+    },
+    {
+      "path": "/crime/arrest-made-in-murder-of-spanish-student-claudia-tacoronte-aguilera-72ae84c9-4c0d-483b-8257-31d665038507",
+      "count": 1
+    },
+    {
+      "path": "/crime/new-mexico-lawsuit-intensifies-scrutiny-on-epsteins-ranch-investigations-504c6d54-2219-4bd9-abf7-5cb8bf051436",
+      "count": 1
+    },
+    {
+      "path": "/crime/fugitive-wanted-for-child-sexual-assault-captured-in-west-el-paso-standoff-a483f356-3d0c-4e7c-ba20-b19843339b39",
+      "count": 1
+    },
+    {
+      "path": "/crime/recent-911-calls-reveal-violence-and-riots-at-camp-east-montana-7f4a1f61-e2c5-4cba-a80f-7d2b7acd0cdd/_payload.json",
+      "count": 1
+    },
+    {
+      "path": "/crime/convicted-doctor-seeks-new-trial-amid-jury-confusion-claims-583db5e6-3b1d-4c3b-b523-356e8dfd6c98",
+      "count": 1
+    },
+    {
+      "path": "/crime/investigacin-sobre-agresin-sexual-en-cornell-se-reabre-tras-nueva-demanda-19ad3f1a-ae49-4df7-b74f-c15ff3ef6191/_payload.json",
+      "count": 1
+    },
+    {
+      "path": "/crime/socorro-woman-faces-charges-for-dwi-and-vehicle-assaults-aafb6982-8422-4498-aab7-0a41f2ee4df5/_payload.json",
+      "count": 2
+    },
+    {
+      "path": "/crime/supreme-court-upholds-conviction-in-1979-etan-patz-murder-case-73bec8f2-d24b-4502-8a46-959d16b35e3c",
+      "count": 1
+    },
+    {
+      "path": "/crime/fbi-issues-1m-reward-for-most-wanted-criminal-satinderjeet-singh-e88e6ebc-d984-456b-b4a2-87e1fe459cf6",
+      "count": 2
+    },
+    {
+      "path": "/crime/multiple-arrests-made-near-uk-air-base-amid-explosives-investigation-84f34d21-dd4e-4a12-b640-4aaea1a8db61",
+      "count": 3
+    },
+    {
+      "path": "/crime/shooting-in-west-el-paso-leaves-man-hospitalized-with-severe-injuries-bd84b39d-d5cb-4e86-8ac8-538c595d13cd",
+      "count": 1
+    },
+    {
+      "path": "/crime/el-paso-police-seek-public-help-in-east-side-convenience-store-burglary-15c64834-e04f-4f90-86e7-c9ca3330dd2d",
+      "count": 1
+    },
+    {
+      "path": "/crime/judge-dismisses-vandalism-case-against-former-olympian-david-hearn-ba217a64-7bba-437e-841e-4f6c6c6b9d42",
+      "count": 1
+    },
+    {
+      "path": "/crime/suspect-in-double-homicide-found-dead-after-police-pursuit-c18bb0a4-478d-475d-b353-def509f2a53f",
+      "count": 1
+    },
+    {
+      "path": "/crime/horizon-city-traffic-stop-leads-to-drug-related-arrest-of-local-man-6cdf1d8c-e2b7-48d8-94bc-40dbdf8b1a2d",
+      "count": 1
+    },
+    {
+      "path": "/crime/lone-juror-in-clancy-case-stands-firm-on-evidence-amid-controversy-d02ebf0b-009d-4224-a4f1-7b7c75c8ed7c/_payload.json",
+      "count": 1
+    },
+    {
+      "path": "/crime/suspect-arrested-in-2025-el-paso-hit-and-run-after-yearlong-manhunt-b64e35ca-b7a4-4139-9682-ddb4e6647856/_payload.json",
+      "count": 1
+    },
+    {
+      "path": "/crime/cuban-national-arrested-for-illegal-re-entry-near-el-paso-border-fb3361f7-d400-4c72-8f25-a3f12871c8a7",
+      "count": 2
+    },
+    {
+      "path": "/crime/el-paso-sheriffs-office-captures-wanted-sex-offender-in-san-elizario-ca6cbb7a-de1f-4fdb-8b60-e88b32f2bca8",
+      "count": 1
+    },
+    {
+      "path": "/crime/arrest-made-in-tragic-death-of-infant-discovered-in-la-dumpster-1ec696ed-500f-460b-9ba2-5ef2a39d3407",
+      "count": 3
+    },
+    {
+      "path": "/crime/arrest-made-in-murder-of-spanish-student-claudia-tacoronte-aguilera-72ae84c9-4c0d-483b-8257-31d665038507/_payload.json",
+      "count": 1
+    },
+    {
+      "path": "/crime/socorro-isd-trustee-faces-assault-charge-after-july-incident-a759de6c-de16-4056-8a95-66f56af8985a",
+      "count": 1
+    },
+    {
+      "path": "/crime/el-paso-man-charged-with-murdering-mother-in-disturbing-incident-d48e5e0d-d699-44d4-b084-d33e4620ed5c",
+      "count": 1
+    },
+    {
+      "path": "/crime/pastor-caleb-flynn-convicted-on-nine-charges-potential-prison-time-ahead-5457d791-c1f8-449d-a082-a8e064fc06cf",
+      "count": 1
+    },
+    {
+      "path": "/crime/daniel-kinahan-extradited-to-ireland-after-arrest-in-dubai-b8ff669a-bd9b-497d-9742-566d3cd29b1b",
+      "count": 1
+    },
+    {
+      "path": "/crime/el-paso-man-arrested-for-robbery-during-facebook-marketplace-transaction-0d69e390-75d4-428f-9283-54858b5572cd",
+      "count": 1
+    },
+    {
+      "path": "/crime/71-year-old-exonerated-after-decades-on-death-row-in-utah-82b672aa-6c50-4466-a0bd-758f02f1189f",
+      "count": 2
+    },
+    {
+      "path": "/crime/trinidad-police-department-loses-licenses-ceases-operations-due-to-non-compliance-0fc5ff1f-7d1a-41d5-a85d-6a70f3c74227/_payload.json",
+      "count": 1
+    },
+    {
+      "path": "/crime/trinidad-police-department-loses-licenses-ceases-operations-due-to-non-compliance-0fc5ff1f-7d1a-41d5-a85d-6a70f3c74227",
+      "count": 1
+    },
+    {
+      "path": "/crime/fbi-investigates-possible-legitimacy-of-nancy-guthrie-ransom-notes-4f290615-c13c-4e87-b92d-d594fe692ea5",
+      "count": 1
+    },
+    {
+      "path": "/crime/el-paso-constables-utilize-technology-to-apprehend-fugitive-again-127b82a1-74eb-4156-9334-d7e0e11951c0",
+      "count": 1
+    },
+    {
+      "path": "/crime/five-arrested-near-uk-air-base-on-terrorism-suspicions-fd365708-e3b9-4511-a755-df4638ca0935",
+      "count": 3
+    },
+    {
+      "path": "/crime/tragic-shooting-at-in-n-out-in-twin-falls-leaves-multiple-casualties-1d3f6efe-cfcb-4066-ab49-4bb9b53a8d3a",
+      "count": 1
+    },
+    {
+      "path": "/crime/tragic-daylight-shooting-in-el-paso-involves-family-members-a47e4e09-c6f0-45a6-94bc-7b90670bc67f",
+      "count": 2
+    },
+    {
+      "path": "/crime/_payload.json",
+      "count": 1
+    },
+    {
+      "path": "/crime/socorro-woman-faces-charges-for-dwi-and-vehicle-assaults-aafb6982-8422-4498-aab7-0a41f2ee4df5",
+      "count": 1
+    },
+    {
+      "path": "/crime/arrest-made-in-tragic-death-of-infant-discovered-in-la-dumpster-1ec696ed-500f-460b-9ba2-5ef2a39d3407/_payload.json",
+      "count": 3
+    },
+    {
+      "path": "/crime/accuser-recants-rape-claims-against-jay-z-apologizes-for-false-allegations-0b1b67a9-7bea-4b01-8ccc-43851fe32bc9",
+      "count": 1
+    },
+    {
+      "path": "/crime/police-seek-public-assistance-in-east-el-paso-handgun-theft-case-37e6fba8-b813-4747-b54f-4e9bd9e7ba24",
+      "count": 3
+    },
+    {
+      "path": "/crime/authorities-search-for-suspect-in-disturbing-incident-at-bel-air-middle-school-d0a6dbc9-32bc-4590-aa70-0bd4280389ee",
+      "count": 1
+    },
+    {
+      "path": "/crime/",
+      "count": 3
+    },
+    {
+      "path": "/crime/elizabeth-holmes-to-transition-to-community-reintegration-center-by-2027-e3431691-6d63-4c2a-a4cd-a4299c63122b",
+      "count": 1
+    },
+    {
+      "path": "/crime/angelita-chacon-sentenced-to-30-years-for-fatal-abuse-of-disabled-woman-614e35da-6d76-4fc7-877e-d63e5b2cdeaa",
+      "count": 1
+    },
+    {
+      "path": "/crime/tragic-shooting-claims-life-of-student-near-westbury-high-school-cb89ff1f-5e80-4cb6-8368-c6522cb3d35f",
+      "count": 1
+    },
+    {
+      "path": "/crime/investigation-ongoing-after-arrests-near-us-airbase-in-england-9ed1dcf8-da0d-4555-bf7e-997377990725",
+      "count": 1
+    },
+    {
+      "path": "/crime/investigacin-sobre-agresin-sexual-en-cornell-se-reabre-tras-nueva-demanda-19ad3f1a-ae49-4df7-b74f-c15ff3ef6191",
+      "count": 1
+    },
+    {
+      "path": "/crime/joint-operation-in-las-cruces-leads-to-gun-and-drug-seizures-94c99c94-cb3c-4062-94eb-ba113dcecb86",
+      "count": 1
+    },
+    {
+      "path": "/crime/florida-mother-arrested-for-leaving-four-kids-unattended-during-cruise-71441865-a3a7-4e68-ac96-1963a2d378ea",
+      "count": 3
+    },
+    {
+      "path": "/crime/defendant-in-new-years-day-crash-rejects-plea-deal-and-changes-lawyers-c9f83850-638d-4ad5-b351-f4272074ae1f",
+      "count": 1
+    },
+    {
+      "path": "/crime/tragic-daylight-shooting-in-el-paso-involves-family-members-a47e4e09-c6f0-45a6-94bc-7b90670bc67f/_payload.json",
+      "count": 1
+    },
+    {
+      "path": "/crime/luigi-mangiones-attorneys-explore-plea-deal-in-high-profile-federal-case-d2debdf5-8f3f-4cb4-bb56-b24a23940b50",
+      "count": 1
+    },
+    {
+      "path": "/crime/florida-mother-arrested-for-leaving-four-kids-unattended-during-cruise-71441865-a3a7-4e68-ac96-1963a2d378ea/_payload.json",
+      "count": 2
+    },
+    {
+      "path": "/crime/guatemalan-man-returns-to-us-after-illegal-deportation-before-childs-birth-9886c9c2-3fae-456e-96d4-34106a66fd67",
+      "count": 1
+    },
+    {
+      "path": "/crime/quick-arrest-made-in-juarez-car-dealership-arson-case-61de174f-0dc9-4c1a-b79c-be82d3e75e07",
+      "count": 1
+    },
+    {
+      "path": "/crime/florida-pastor-faces-charges-for-allegedly-assaulting-teen-and-hiding-hiv-status-55db3b5e-f0a1-4b76-ae4c-611a81461f3e",
+      "count": 1
+    },
+    {
+      "path": "/crime/fatal-crash-claims-life-of-72-year-old-in-northeast-el-paso-fd1f2c8f-bc65-4d08-8eb5-622ccde81fea",
+      "count": 2
+    },
+    {
+      "path": "/crime/tupac-murder-trial-key-witnesses-testify-amid-emotional-revelations-a0b474a9-ce08-4ba2-9ef4-578c09f400dd",
+      "count": 1
+    },
+    {
+      "path": "/crime/tennessee-court-delays-historic-execution-of-woman-amid-controversy-82cc51ca-e5cd-4876-b857-af60f51efebf",
+      "count": 1
+    },
+    {
+      "path": "/crime/five-suspects-in-uk-air-base-terror-plot-released-on-bail-amid-ongoing-investigation-1b3df5a1-d96f-49ea-83a4-fc96429d8236",
+      "count": 1
+    },
+    {
+      "path": "/crime/suspect-arrested-in-2025-el-paso-hit-and-run-after-yearlong-manhunt-b64e35ca-b7a4-4139-9682-ddb4e6647856",
+      "count": 1
+    },
+    {
+      "path": "/crime/five-arrested-near-us-air-base-in-uk-amid-terrorism-concerns-33c15b9c-4cba-4e2b-b8b9-25c27a839f4c",
+      "count": 2
+    },
+    {
+      "path": "/crime/twin-brothers-arrested-for-dwi-following-horizon-city-party-incident-cff2f2fa-eda8-4c25-93f9-a1d774c95556",
+      "count": 1
+    },
+    {
+      "path": "/crime/motorcycle-chase-leads-to-arrest-in-horizon-city-80c6a2d4-a184-49d7-95cc-4a7672614c12",
+      "count": 1
+    },
+    {
+      "path": "/crime/defendant-in-new-years-day-crash-rejects-plea-deal-and-changes-lawyers-c9f83850-638d-4ad5-b351-f4272074ae1f/_payload.json",
+      "count": 2
+    },
+    {
+      "path": "/crime/man-arrested-for-allegedly-murdering-mother-in-el-paso-three-years-ago-4238e065-b416-4d8b-811a-9febf0f8e7b8",
+      "count": 1
+    },
+    {
+      "path": "/crime/teen-arrested-for-virginia-state-university-shooting-found-in-closet-1bc9301e-b905-4058-9015-2585aff6d1a7",
+      "count": 1
+    },
+    {
+      "path": "/crime/horizon-city-woman-charged-with-dwi-after-collision-with-parked-cars-530494a0-8281-4852-9293-834d9269afe9/_payload.json",
+      "count": 1
+    },
+    {
+      "path": "/crime/elizabeth-holmes-to-transition-to-community-reintegration-center-by-2027-e3431691-6d63-4c2a-a4cd-a4299c63122b/_payload.json",
+      "count": 2
+    },
+    {
+      "path": "/crime/arson-charges-filed-against-aaron-farinacci-for-old-trails-fire-1dc0c9fb-c617-4a33-84a0-cfd32d5d6862",
+      "count": 1
+    },
+    {
+      "path": "/crime/el-paso-woman-arrested-for-isis-inspired-terror-plot-against-new-york-capitol-e3e04c8c-a565-4e1f-b3c6-a92a46c88abd",
+      "count": 1
+    },
+    {
+      "path": "/crime/east-el-paso-woman-arrested-for-assault-and-interfering-with-police-2d5a2a86-1e07-4fa8-a8be-17d0abb8a9dc",
+      "count": 1
+    },
+    {
+      "path": "/crime/defense-claims-charlie-kirk-shooter-not-eligible-for-death-penalty-dbcdb27c-24a5-4dff-bbbf-be57ecb0536a",
+      "count": 1
+    },
+    {
+      "path": "/crime/ice-agents-mistakenly-detain-us-citizen-leaving-him-injured-in-chicago-suburb-0aba4749-bd14-4f7b-88df-037a84cd2088",
+      "count": 2
+    },
+    {
+      "path": "/crime/south-africa-faces-surge-in-violence-after-deadly-twin-shootings-8a36da58-5160-48cd-9208-99d90e352b54",
+      "count": 2
+    },
+    {
+      "path": "/crime/trial-begins-for-lindsay-clancy-charged-with-killing-her-three-children-a491fc72-bc15-4455-9aa7-59fcf564d967",
+      "count": 1
+    },
+    {
+      "path": "/crime/fatal-car-ramming-and-stabbing-incident-in-northern-israel-claims-two-lives-365cefcf-57e5-4ac5-9ebc-427e2886a16c",
+      "count": 1
+    },
+    {
+      "path": "/crime/bomb-attack-in-crimea-claims-life-of-ukrainian-defector-to-russia-8d6da971-acba-470c-b9cf-0b3f19b1c484",
+      "count": 1
+    },
+    {
+      "path": "/crime/chuco-tango-gang-member-arrested-for-providing-false-identity-at-walmart-ae0d2f80-8fcb-470c-8c72-e4316db9aeea",
+      "count": 1
+    },
+    {
+      "path": "/crime/lindsay-clancys-court-appearance-key-updates-on-her-mistrial-case-2548a3e6-f2fb-4984-b08e-05e01bfc9ca1",
+      "count": 3
+    },
+    {
+      "path": "/crime/fiji-courts-cocaine-evidence-stolen-and-replaced-with-flour-3dd3c2dd-958c-4de9-b71b-44146a1e4053/_payload.json",
+      "count": 1
+    },
+    {
+      "path": "/crime/five-arrested-near-uk-airbase-amid-terrorism-investigation-linked-to-us-forces-91132519-f74b-4eec-8169-25e4eb83010d",
+      "count": 4
+    },
+    {
+      "path": "/crime/inmate-found-dead-at-el-paso-county-detention-facility-under-investigation-8254aa65-86be-46e8-92ea-a47440234390",
+      "count": 1
+    },
+    {
+      "path": "/crime/captain-arrested-after-tragic-boat-capsizing-in-new-york-harbor-e7344882-d516-4f2b-8597-21337b56afab",
+      "count": 1
+    },
+    {
+      "path": "/crime/gulf-cartel-associate-faces-terrorism-charges-for-gruesome-actions-ee59e42f-522c-4728-88a4-f51128bce49e",
+      "count": 1
+    },
+    {
+      "path": "/crime/tragic-kidnapping-and-murder-of-florida-mother-linked-to-deputys-suicide-933aa60c-5244-4554-a649-5a3bee0c7363",
+      "count": 1
+    },
+    {
+      "path": "/crime/trial-for-tupac-shakurs-alleged-killer-set-to-begin-this-monday-43656a50-a09e-4cc8-8b95-7533bc2f37e9",
+      "count": 1
+    },
+    {
+      "path": "/crime/suspected-arsonist-confesses-to-multiple-wildfires-in-spokane-area-b6cdc155-7c5b-41ba-a2d5-23f2f28ad478",
+      "count": 1
+    },
+    {
+      "path": "/crime/colt-gray-faces-sentencing-after-guilty-plea-in-school-shooting-case-42cf7f7d-e7f4-4840-9976-40c3a330fd71",
+      "count": 1
+    },
+    {
+      "path": "/crime/horizon-city-woman-charged-with-dwi-after-collision-with-parked-cars-530494a0-8281-4852-9293-834d9269afe9",
+      "count": 1
+    },
+    {
+      "path": "/crime/gulf-cartel-associate-faces-terrorism-charges-for-gruesome-actions-ee59e42f-522c-4728-88a4-f51128bce49e/_payload.json",
+      "count": 2
+    },
+    {
+      "path": "/crime/woman-recants-rape-allegations-against-jay-z-claims-false-accusations-0a92e6f2-72d4-4d49-a99d-c4cea0c02d71/_payload.json",
+      "count": 1
+    },
+    {
+      "path": "/crime/tragic-home-invasion-claims-life-of-pittsburgh-pediatrician-wife-injured-312c325c-51bb-4cba-91b1-158411e70136/_payload.json",
+      "count": 1
+    },
+    {
+      "path": "/crime/supreme-court-denies-clemency-for-christa-pike-tennessee-prepares-for-historic-execution-81711985-4e1d-4e99-95ce-b850d4307048",
+      "count": 4
+    },
+    {
+      "path": "/crime/five-arrested-near-uk-airbase-amid-terrorism-investigation-linked-to-us-forces-91132519-f74b-4eec-8169-25e4eb83010d/_payload.json",
+      "count": 2
+    },
+    {
+      "path": "/crime/gag-order-temporarily-lifted-in-deshawndre-washingtons-sexual-assault-case-ae5459aa-a308-4d1d-bc8d-74f63cbe074a",
+      "count": 1
+    },
+    {
+      "path": "/crime/horizon-city-woman-faces-charges-for-spitting-on-officer-and-drug-possession-2e8b7d20-6f00-4c9f-ac44-dedd988e9ca2",
+      "count": 1
+    },
+    {
+      "path": "/crime/tragic-home-invasion-claims-life-of-pittsburgh-pediatrician-wife-injured-312c325c-51bb-4cba-91b1-158411e70136",
+      "count": 2
+    },
+    {
+      "path": "/crime/ex-navy-seal-sentenced-for-planning-to-use-explosives-at-protests-e0106b28-9d75-4239-a4c7-3db5b2550f9d",
+      "count": 1
+    },
+    {
+      "path": "/crime/this-page-has-no-uuid-in-it-at-all",
+      "count": 13
+    },
+    {
+      "path": "/crime/northeast-el-paso-sees-arrests-for-illegal-street-racing-incident-7bda7bef-6e34-4ee7-bfc9-0d21bc83e570",
+      "count": 2
+    },
+    {
+      "path": "/crime/lone-juror-in-clancy-case-stands-firm-on-evidence-amid-controversy-d02ebf0b-009d-4224-a4f1-7b7c75c8ed7c",
+      "count": 1
+    },
+    {
+      "path": "/crime/definitely-the-wrong-slug-d57f406e-4886-4c2a-aa2e-c0d2009877d6",
+      "count": 6
+    },
+    {
+      "path": "/crime/mother-of-school-shooter-colt-gray-avoids-charges-despite-controversial-jail-calls-16a14cb7-b453-4fea-8f83-fe843f29454f",
+      "count": 1
+    },
+    {
+      "path": "/crime/speeding-florida-driver-faces-serious-charges-after-traffic-stop-in-el-paso-b8a5502e-d11f-48e9-bbd3-75d50d6876e0",
+      "count": 1
+    },
+    {
+      "path": "/crime/fbi-issues-1m-reward-for-most-wanted-criminal-satinderjeet-singh-e88e6ebc-d984-456b-b4a2-87e1fe459cf6/_payload.json",
+      "count": 2
+    },
+    {
+      "path": "/crime/key-developments-in-lindsay-clancys-murder-trial-this-week-b962acde-a07a-43d8-a569-7aecdf22dc1d",
+      "count": 1
+    },
+    {
+      "path": "/crime/five-uk-nationals-arrested-in-alleged-terror-plot-near-us-airbase-c6c84069-71d1-4bd7-96da-1ecd44b747d1",
+      "count": 2
+    },
+    {
+      "path": "/crime/fbi-probes-data-breach-after-hackers-claim-to-access-agent-information-5ff0a939-242f-4b05-b260-ee9d6b1900c9",
+      "count": 2
+    },
+    {
+      "path": "/crime/arson-charges-filed-against-aaron-farinacci-for-old-trails-fire-1b0a7440-a070-4e9b-abec-33438ae609b3",
+      "count": 1
+    },
+    {
+      "path": "/crime/murder-suspect-d4vds-apple-music-profile-hacked-with-fake-track-08a39cae-b080-4583-95b7-8c54fad0e606",
+      "count": 1
+    },
+    {
+      "path": "/crime/two-arrested-after-emerging-from-manhole-near-hotel-hosting-netanyahu-48484e10-17e0-4b1f-ae29-7fb6ab102ce4",
+      "count": 3
+    },
+    {
+      "path": "/crime/father-taken-into-custody-after-toddlers-distress-call-from-balcony-853b4ba9-5b4c-4b0d-b50a-6b70d1e8148b",
+      "count": 1
+    },
+    {
+      "path": "/crime/jury-selection-for-luigi-mangiones-murder-trial-set-for-september-8-54bcf15c-6dd5-4979-9acf-40f2a21099f4",
+      "count": 1
+    },
+    {
+      "path": "/crime/south-african-police-launch-manhunt-after-deadly-tavern-shooting-0faae06f-aea3-4094-9379-b2e3e7b8241a",
+      "count": 2
+    },
+    {
+      "path": "/crime/el-paso-man-charged-after-fiery-i-10-crash-injures-three-on-christmas-eve-1939214d-488b-4aaf-b27d-1126b18df3a2",
+      "count": 1
+    },
+    {
+      "path": "/crime/el-paso-crime-stoppers-highlights-local-most-wanted-fugitives-0bbd909f-faef-434c-88c6-ebd80d504428",
+      "count": 2
+    },
+    {
+      "path": "/crime/fatal-motorcycle-accident-in-northeast-el-paso-under-investigation-e2e104ef-7012-4f69-92dc-d29b21e61fff",
+      "count": 1
+    },
+    {
+      "path": "/crime/fbi-questions-drowning-of-bay-area-firefighter-linked-to-csam-charges-4c435f58-db13-4012-b2ac-00d9a8aaa33f",
+      "count": 2
+    },
+    {
+      "path": "/crime/man-arrested-for-unauthorized-drone-use-near-border-wall-in-juarez-b67db53a-ce49-4ff2-8453-b3baa3c0f3ff",
+      "count": 1
+    },
+    {
+      "path": "/crime/el-juicio-de-caleb-flynn-se-centra-en-su-relacin-extramarital-y-la-falta-de-evidencia-del-arma-7a513701-9f29-4498-9dde-1bc20df008c6",
+      "count": 4
+    },
+    {
+      "path": "/crime/three-men-admit-guilt-in-las-cruces-school-zone-shooting-incident-5c389dde-756b-4c0d-b3de-fd93285ec101",
+      "count": 1
+    },
+    {
+      "path": "/crime/canadian-woman-caught-with-12-fake-ids-during-florida-traffic-stop-a3308270-f121-40de-98ea-02f46395b374",
+      "count": 1
+    },
+    {
+      "path": "/crime/stolen-ambulance-chase-ends-in-fatal-shooting-in-austin-cb83206d-ad95-4200-a2fa-8250abb1d6f8",
+      "count": 1
+    },
+    {
+      "path": "/crime/el-paso-crime-stoppers-highlights-most-wanted-fugitives-for-june-2026-26ee302b-cc74-4b99-9a10-25e29024f731",
+      "count": 1
+    },
+    {
+      "path": "/crime/police-investigate-unattended-death-incident-on-talbot-avenue-70cac4f7-9e87-49e7-827a-ce680cab0f59",
+      "count": 1
+    },
+    {
+      "path": "/crime/fiji-courts-cocaine-evidence-stolen-and-replaced-with-flour-3dd3c2dd-958c-4de9-b71b-44146a1e4053",
+      "count": 2
+    },
+    {
+      "path": "/crime/el-paso-man-charged-with-murder-after-stabbing-his-mother-780a843d-2ca3-4c35-b785-651b47f21f4f",
+      "count": 1
+    },
+    {
+      "path": "/crime/jurados-seleccionados-para-juicio-de-duane-davis-por-asesinato-de-tupac-shakur-518184aa-9b2f-4c54-81a7-30d8745e0fd6",
+      "count": 1
+    },
+    {
+      "path": "/crime/woman-recants-rape-allegations-against-jay-z-claims-false-accusations-0a92e6f2-72d4-4d49-a99d-c4cea0c02d71",
+      "count": 3
+    },
+    {
+      "path": "/crime/recent-911-calls-reveal-violence-and-riots-at-camp-east-montana-7f4a1f61-e2c5-4cba-a80f-7d2b7acd0cdd",
+      "count": 1
+    },
+    {
+      "path": "/crime/court-dismisses-alex-murdaughs-600k-lawsuit-against-ex-clerk-8c634a01-c534-4dda-861e-26db4fc6d265",
+      "count": 1
+    },
+    {
+      "path": "/crime/dna-analysis-in-nancy-guthrie-case-proves-challenging-for-investigators-ea5de842-3696-4bee-9350-ee7a158b0dbc",
+      "count": 1
+    },
+    {
+      "path": "/crime/norways-crown-princess-son-receives-four-year-sentence-for-rape-charges-6d4312c3-b3d4-4e68-9c29-35f79bdb5f92",
+      "count": 1
+    }
+  ]
+}

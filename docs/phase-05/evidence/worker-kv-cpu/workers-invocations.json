@@ -1,0 +1,12 @@
+{
+  "max": {
+    "cpuTime": 1883
+  },
+  "quantiles": {
+    "cpuTimeP50": 830,
+    "cpuTimeP99": 1883
+  },
+  "sum": {
+    "requests": 94
+  }
+}

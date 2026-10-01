@@ -25,6 +25,8 @@ import Base from '../../layouts/Base.astro';
 import ArticleCard from '../../components/ArticleCard.astro';
 import { articlePath, articleParams } from '../../lib/article-url';
 import { computeRails, railFingerprint, type RailResult } from '../../lib/rail';
+import { writeArticleFacts } from '../../lib/archive/tier-facts';
+import { loadHotWindow, describeHotWindow } from '../../lib/archive/hot-window';
 import { splitStandfirst, summaryBodyHtml } from '../../lib/summary';
 import { formatBylineTime, isoWithOffset } from '../../lib/format';
 import { newsArticleNode, breadcrumbNode, SITE_ORIGIN } from '../../lib/structured-data';
@@ -44,6 +46,23 @@ export async function getStaticPaths() {
   const entries = await getCollection('articles');
   const allArticles = entries.map((entry) => entry.data);
   const rails = computeRails(allArticles);
+
+  // 05-01 (Task 1): one tier fact per public article, read back by tools/tier-report.mjs and
+  // later archive-tiering plans so no second D1 read is ever needed to decide hot vs. archive.
+  writeArticleFacts(
+    entries.map((entry) => ({
+      uuid: entry.data.uuid,
+      path: articlePath(entry.data.category.slug, entry.data.slug, entry.data.uuid),
+      publishedAt: entry.data.publishedAt,
+    }))
+  );
+
+  // 05-01 (Task 3, D-07): states the hot window in force on every build log (local and Workers
+  // Builds), visibly flagged PROVISIONAL while D-07's age-based fallback is in effect. No
+  // try/catch here deliberately — a load/parse error must throw and fail the build, never fall
+  // back to a silent default cutoff (T-05-02).
+  console.log(describeHotWindow(loadHotWindow()));
+
   return entries.map((entry) => {
     const rail = rails.get(entry.data.uuid) ?? EMPTY_RAIL;
     return {
