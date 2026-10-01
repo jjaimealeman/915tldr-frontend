@@ -10,6 +10,7 @@ Entries are named `YYYY-MM-DD-HHMM_slug.md` and grouped by month, newest first.
 
 | Date | Entry | Keywords |
 |------|-------|----------|
+| 2026-09-30 | [derive-hot-window tracer: live human-traffic parsers, age math, proved against real traffic](2026-09-30-2349_derive-hot-window-tracer-live-human-traffic-parsers.md) | `[BACKEND]` `[INFRA]` `[TESTING]` `[PLANNING]` |
 | 2026-09-30 | [Plan 05-02 complete: build-time R2 client for the archive tier](2026-09-30-2334_05-02-complete-r2-client-plan.md) | `[DOCUMENTATION]` `[PLANNING]` `[ARCHITECTURE]` `[TESTING]` |
 | 2026-09-30 | [Unit tests for r2-client.ts key discipline/secret hygiene, plus a build-gate case proving the Worker guard covers it](2026-09-30-2340_r2-client-unit-tests-and-build-gate-case.md) | `[BACKEND]` `[TESTING]` `[SECURITY]` `[ARCHITECTURE]` |
 | 2026-09-30 | [R2 build-time client installed, live round trip proven against the private archive bucket](2026-09-30-2328_r2-client-install-sdk-live-roundtrip.md) | `[BACKEND]` `[DEPENDENCIES]` `[SECURITY]` `[TESTING]` `[ARCHITECTURE]` |
