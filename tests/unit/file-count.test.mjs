@@ -114,6 +114,26 @@ test('assertFileCount: staticFileCount includes static-budget.json itself and ma
   }
 });
 
+test('assertFileCount (05-08 regression): running it a second time against the SAME dist/client (static-budget.json already exists from a prior run in this build) does not change the count and does not throw', () => {
+  const dir = tempDistDir();
+  try {
+    writeFileSync(path.join(dir, 'index.html'), 'x');
+    writeFileSync(path.join(dir, 'about.html'), 'x');
+
+    const first = assertFileCount({ root: dir, distClientDir: '.' });
+    assert.equal(first.count, 3); // 2 real files + static-budget.json itself
+
+    // 05-08's deploy step re-runs the gate on the FINAL dist/client, immediately before
+    // `wrangler deploy` — static-budget.json from the FIRST run (above) is still sitting in
+    // dist/client when this second call starts, exactly like a real build.
+    const second = assertFileCount({ root: dir, distClientDir: '.' });
+    assert.equal(second.count, 3, 'overwriting the existing static-budget.json must not add a phantom extra file');
+    assert.equal(countStaticFiles(dir), 3);
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
+});
+
 test('assertFileCount: records the evaluation status and the ceiling/threshold fields', () => {
   const dir = tempDistDir();
   try {

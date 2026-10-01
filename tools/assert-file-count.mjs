@@ -75,6 +75,16 @@ export function evaluateFileCount(count) {
  * returns `{ count, evaluation, budget }`. `archivedPages`/`hotWindowDescription` are passed
  * through from the caller (the partition plan / hot window this build already computed) so
  * `static-budget.json` records the hot window in force without re-deriving it.
+ *
+ * 05-08 fix: this gate now runs TWICE in a real production build — once as part of `pnpm run
+ * build`, and again in `tools/ci-build.mjs`'s deploy step, on the FINAL `dist/client` (after
+ * `archive-sync.mjs pre` may have moved pages back into it), immediately before `wrangler
+ * deploy` (D-13/REND-11). On that second run, `static-budget.json` from the FIRST run is already
+ * sitting in `dist/client` — writing the fresh copy OVERWRITES an existing file, so the total
+ * file count does not change. Only the very first write in a build adds a brand-new file. Found
+ * live (2026-10-01): a real second run against a real 60,397-page build threw
+ * `post-write recount (29937) does not equal the published staticFileCount (29938)` every single
+ * time, because the original code unconditionally assumed `static-budget.json` never exists yet.
  */
 export function assertFileCount({
   root = process.cwd(),
@@ -87,11 +97,14 @@ export function assertFileCount({
   afterWriteForTest = null,
 } = {}) {
   const distAbs = resolve(root, distClientDir);
+  const budgetAbs = resolve(distAbs, STATIC_BUDGET_FILE);
+  const budgetAlreadyExisted = existsSync(budgetAbs);
   const preWriteCount = countStaticFiles(distAbs);
-  // `staticFileCount` includes static-budget.json itself (the must-have's own wording) — the
-  // file doesn't exist yet at `preWriteCount` time, so the published/evaluated count is
-  // `preWriteCount + 1`, the true count once this write lands.
-  const count = preWriteCount + 1;
+  // `staticFileCount` includes static-budget.json itself (the must-have's own wording). If the
+  // file doesn't exist yet, this write adds a new file: `preWriteCount + 1`. If it already exists
+  // (a second run in the same build), this write overwrites it in place: the true count is just
+  // `preWriteCount` (already counted it once).
+  const count = budgetAlreadyExisted ? preWriteCount : preWriteCount + 1;
   const evaluation = evaluateFileCount(count);
 
   const budget = {
@@ -104,7 +117,6 @@ export function assertFileCount({
     hotWindow,
   };
 
-  const budgetAbs = resolve(distAbs, STATIC_BUDGET_FILE);
   writeFileSync(budgetAbs, JSON.stringify(budget));
 
   if (typeof afterWriteForTest === 'function') afterWriteForTest(distAbs);

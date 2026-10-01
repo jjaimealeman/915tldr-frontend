@@ -33,10 +33,19 @@ const CHECK_PATTERNS = [
   'build-state',
   'assert-no-d1',
   'listing',
+  // 05-08: the archive tier's own fail-loud modules — same `<module>: <message>` convention.
+  'archive-sync',
+  'partition-archive',
+  'assert-file-count',
+  'hot-window',
+  'tiering',
+  'tier-facts',
+  'r2-client',
 ];
 
-/** T-04-35/T-04-36: env keys whose exact value must never appear in a notification body. */
-const SECRET_ENV_KEYS = ['CLOUDFLARE_API_TOKEN', 'NTFY_TOKEN'];
+/** T-04-35/T-04-36: env keys whose exact value must never appear in a notification body.
+ * R2_ACCESS_KEY_ID/R2_SECRET_ACCESS_KEY added 05-08 — the archive tier's own R2 credentials. */
+const SECRET_ENV_KEYS = ['CLOUDFLARE_API_TOKEN', 'NTFY_TOKEN', 'R2_ACCESS_KEY_ID', 'R2_SECRET_ACCESS_KEY'];
 
 /** Any 40+ character run of token-shaped characters is redacted too, even with no matching env
  * var — catches a token echoed by a subprocess under a name this list doesn't know about. */
@@ -97,6 +106,46 @@ export function parseArchiveSyncResult(tail) {
   }
   return null;
 }
+
+/** 05-08 Task 2: mirrors `tools/archive-sync.mjs`'s own `isR2WriteBlocked` predicate, inverted —
+ * a deploy counts as "production" whenever archive-sync would NOT block its own R2 writes: the
+ * branch is `main`, or there's no `WORKERS_CI` at all (a local run deploys to the same production
+ * Worker/bucket archive-sync itself targets). Kept in sync deliberately (orchestrator directive)
+ * so this wrapper's hot-window guard and archive-sync's write-boundary guard never disagree about
+ * what counts as "production". */
+function isProductionDeploy(env) {
+  return env.WORKERS_CI_BRANCH === 'main' || !isTruthyFlag(env.WORKERS_CI);
+}
+
+/** Default `loadHotWindowImpl` — dynamically imports `src/lib/archive/hot-window.ts` (never
+ * statically imported, same reasoning as `defaultCommitImpl`'s dynamic import of
+ * `build-state.ts`: the `build` step must never load this file at all). Reads and validates
+ * `src/lib/archive/hot-window.json` via that module's own `loadHotWindow()` (which itself calls
+ * `parseHotWindow`). */
+async function defaultLoadHotWindow() {
+  const { loadHotWindow } = await import('../src/lib/archive/hot-window.ts');
+  return loadHotWindow();
+}
+
+/** Builds the daily-report ntfy body (REND-11: static file count vs. the 100,000 ceiling/80,000
+ * fail line, archived page count, hot-window status/days, backlog) from
+ * `archive-sync.mjs`'s own `dailyReport.body` shape. Spells out `PROVISIONAL` in the hot-window
+ * line whenever the window in force is `fallback-provisional` (D-07) — an operator must never
+ * have to cross-reference `hot-window.json` themselves to notice a fallback shipped. */
+function formatDailyReportBody(body = {}) {
+  const provisionalSuffix = body.hotWindowStatus === 'fallback-provisional' ? ' — PROVISIONAL' : '';
+  return [
+    `static files: ${body.staticFileCount ?? '?'} / ${body.ceiling ?? STATIC_ASSET_CEILING_FALLBACK} (fail at ${body.failAt ?? '?'})`,
+    `archived pages: ${body.archivedCount ?? '?'}`,
+    `hot window: ${body.hotWindowStatus ?? 'unknown'}, ${body.hotWindowDays ?? '?'} days${provisionalSuffix}`,
+    `backlog: ${body.backlog ?? 0}`,
+  ].join('\n');
+}
+
+/** Fallback ceiling text for `formatDailyReportBody` if a caller somehow omits `ceiling` — kept
+ * as a named constant rather than a bare `100000` literal so the number's meaning is obvious at
+ * the call site. */
+const STATIC_ASSET_CEILING_FALLBACK = 100_000;
 
 /**
  * Scans `tail` from the end for the last line that parses as JSON on its own (no prefix) —
@@ -239,14 +288,18 @@ export function toHeaderSafe(text) {
  * `Tags` headers, optional Bearer auth). Never called with a raw secret — every caller routes
  * `body`/`title` through `redact()` first, and `title` through `toHeaderSafe()` here (the header
  * boundary, not `redact()`'s job).
+ *
+ * 05-08 Task 2: `priority`/`tags` are now overridable (defaults unchanged — `high`/
+ * `rotating_light`, the original failure-notification shape); the daily report uses
+ * `low`/`bar_chart`, the file-count alarm uses `high`/`warning`.
  */
-async function defaultNotify({ env, title, body }) {
+async function defaultNotify({ env, title, body, priority = 'high', tags = 'rotating_light' }) {
   const server = env.NTFY_SERVER ?? 'https://ntfy.sh';
   const topic = env.NTFY_TOPIC;
   const headers = {
     Title: toHeaderSafe(title),
-    Priority: 'high',
-    Tags: 'rotating_light',
+    Priority: priority,
+    Tags: tags,
   };
   if (env.NTFY_TOKEN) headers.Authorization = `Bearer ${env.NTFY_TOKEN}`;
   await fetch(`${server}/${encodeURIComponent(topic)}`, { method: 'POST', headers, body });
@@ -309,6 +362,7 @@ export async function runCi(opts = {}) {
     notifyImpl = defaultNotify,
     commitImpl = defaultCommitImpl,
     markBuildStart = defaultMarkBuildStart,
+    loadHotWindowImpl = defaultLoadHotWindow,
     setTimer = (fn, ms) => setTimeout(fn, ms),
     clearTimer = (handle) => clearTimeout(handle),
     log = (...args) => console.log(...args),
@@ -320,14 +374,14 @@ export async function runCi(opts = {}) {
   const inCi = isTruthyFlag(env.WORKERS_CI);
   const watchdogMs = Number(env.BUILD_WATCHDOG_MS) > 0 ? Number(env.BUILD_WATCHDOG_MS) : DEFAULT_WATCHDOG_MS;
 
-  async function sendNotification(title, rawBody) {
+  async function sendNotification(title, rawBody, { priority = 'high', tags = 'rotating_light' } = {}) {
     const body = redact(rawBody, env);
     const safeTitle = redact(title, env);
     if (!env.NTFY_TOPIC) {
       log(`[ci-build] NTFY_TOPIC not set — logging only: ${safeTitle}\n${body}`);
       return;
     }
-    await notifyImpl({ env, title: safeTitle, body });
+    await notifyImpl({ env, title: safeTitle, body, priority, tags });
   }
 
   async function notifyFailure(check) {
@@ -380,29 +434,73 @@ export async function runCi(opts = {}) {
   }
 
   if (step === 'deploy' || step === 'all') {
-    // 05-08 Task 1: the real deploy sequence — archive-sync pre (upload new-to-archive pages,
-    // move back anything that fails/misses the deadline) -> the file-count gate re-run on the
-    // FINAL dist/client (pre may have moved pages back into it) -> wrangler deploy (or a dry run
+    // 05-08 Task 2: a production deploy (main CI branch, or any local run — a local deploy
+    // targets the same production Worker/bucket) must never ship a fallback-provisional hot
+    // window (D-07b) silently. Checked BEFORE any spawn at all — no archive-sync pre, no
+    // file-count gate, no wrangler. ALLOW_FALLBACK_HOT_WINDOW=1 is the deliberate, named override
+    // for the rare case the owner actually wants to ship the fallback (05-05's own D-07 escape
+    // hatch, extended here to the real deploy path).
+    if (isProductionDeploy(env)) {
+      let hotWindow;
+      try {
+        hotWindow = await loadHotWindowImpl();
+      } catch (err) {
+        await notifyFailure(`hot-window: ${err instanceof Error ? err.message : String(err)}`);
+        return 1;
+      }
+      if (hotWindow.status === 'fallback-provisional' && !isTruthyFlag(env.ALLOW_FALLBACK_HOT_WINDOW)) {
+        await notifyFailure(
+          'hot-window: refusing to ship a fallback-provisional hot window without ALLOW_FALLBACK_HOT_WINDOW=1 (D-07b)'
+        );
+        return 1;
+      }
+    }
+
+    // 05-08: the real deploy sequence — archive-sync pre (upload new-to-archive pages, move back
+    // anything that fails/misses the deadline) -> the file-count gate re-run on the FINAL
+    // dist/client (pre may have moved pages back into it) -> wrangler deploy (or a dry run
     // rehearsal, CI_BUILD_DEPLOY_DRY_RUN=1) -> commitLastGood (skipped in a dry run — no real
     // deploy happened to commit against) -> archive-sync post (re-upload changed pages, orphan
     // cleanup, backlog/daily-report bookkeeping). Pre and the file-count gate can abort the whole
     // deploy (D-13); post never can (D-10/D-12) — a failed or resultless post run is logged, not
     // treated as a build failure, since `wrangler deploy` (and therefore the site) already
-    // succeeded by the time post runs.
+    // succeeded by the time post runs. Every informational alert gathered along the way (pre's
+    // own alerts, the file-count warn alarm, post's alerts/daily-report) is sent AFTER the deploy
+    // succeeds — never blocking it, never gating it.
+    const pendingAlerts = [];
+
     const preResult = await spawnImpl('node', ['tools/archive-sync.mjs', 'pre', '--json'], { env });
     if (preResult.code !== 0) {
       const check = classifyFailure(preResult.tail, preResult.code);
       await notifyFailure(`archive-sync: ${check}`);
       return preResult.code;
     }
-    // eslint-disable-next-line no-unused-vars
     const preParsed = parseArchiveSyncResult(preResult.tail);
+    if (preParsed) {
+      for (const alert of preParsed.alerts ?? []) {
+        pendingAlerts.push({ title: '915 TLDR archive alert: pre-deploy sync', body: alert });
+      }
+    } else {
+      pendingAlerts.push({
+        title: '915 TLDR archive alert: pre-deploy sync',
+        body: 'archive-sync: pre-deploy sync produced no parseable ARCHIVE_SYNC_RESULT line',
+      });
+    }
 
     const countResult = await spawnImpl('node', ['tools/assert-file-count.mjs', '--json'], { env });
     if (countResult.code !== 0) {
       const check = classifyFailure(countResult.tail, countResult.code);
       await notifyFailure(`assert-file-count: ${check}`);
       return countResult.code;
+    }
+    const countParsed = parseLastJsonLine(countResult.tail);
+    if (countParsed?.status === 'warn') {
+      pendingAlerts.push({
+        title: '915 TLDR archive alarm: file count',
+        body: `archive: static file count ${countParsed.count} / ${countParsed.ceiling ?? STATIC_ASSET_CEILING_FALLBACK} (fail at ${countParsed.failAt ?? '80000'}) — approaching the ceiling`,
+        priority: 'high',
+        tags: 'warning',
+      });
     }
 
     const dryRun = isTruthyFlag(env.CI_BUILD_DEPLOY_DRY_RUN);
@@ -424,9 +522,34 @@ export async function runCi(opts = {}) {
     const postResult = await spawnImpl('node', ['tools/archive-sync.mjs', 'post', '--json'], { env });
     const postParsed = parseArchiveSyncResult(postResult.tail);
     if (postResult.code !== 0 || !postParsed) {
-      log(
-        `[ci-build] archive-sync post produced no usable result (exit ${postResult.code}) — continuing, the deploy itself already succeeded`
-      );
+      const check = classifyFailure(postResult.tail, postResult.code);
+      pendingAlerts.push({
+        title: '915 TLDR archive alert: post-deploy sync',
+        body: `archive-sync: post-deploy sync failed or produced no result — ${check}`,
+      });
+    } else {
+      for (const alert of postParsed.alerts ?? []) {
+        pendingAlerts.push({ title: '915 TLDR archive alert: post-deploy sync', body: alert });
+      }
+      if (postParsed.dailyReport?.due) {
+        pendingAlerts.push({
+          title: '915 TLDR archive daily report',
+          body: formatDailyReportBody(postParsed.dailyReport.body ?? {}),
+          priority: 'low',
+          tags: 'bar_chart',
+        });
+      }
+    }
+
+    // D-10/D-12: every alert above is informational — the deploy itself already succeeded (or
+    // never started). A notification failure here (e.g. ntfy unreachable) must never surface as
+    // this function's own return value.
+    for (const alert of pendingAlerts) {
+      try {
+        await sendNotification(alert.title, alert.body, { priority: alert.priority, tags: alert.tags });
+      } catch (err) {
+        log(`[ci-build] archive alert notification failed: ${err instanceof Error ? err.message : String(err)}`);
+      }
     }
 
     return 0;

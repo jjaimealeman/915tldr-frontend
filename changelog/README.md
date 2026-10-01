@@ -10,6 +10,7 @@ Entries are named `YYYY-MM-DD-HHMM_slug.md` and grouped by month, newest first.
 
 | Date | Entry | Keywords |
 |------|-------|----------|
+| 2026-10-01 | [Hot-window production guard, archive alerts, file-count alarm, daily report](2026-10-01-0146_05-08-task2-hot-window-guard-alerts-daily-report.md) | `[BACKEND]` `[DEPLOYMENT]` `[INFRA]` `[TESTING]` `[SECURITY]` `[BUG_FIX]` `[FEATURE]` |
 | 2026-10-01 | [Archive tier wired into the real deploy pipeline (tracer)](2026-10-01-0138_05-08-task1-ci-build-deploy-pipeline-tracer.md) | `[BACKEND]` `[DEPLOYMENT]` `[INFRA]` `[TESTING]` `[FEATURE]` |
 | 2026-10-01 | [Plan 05-07 complete: archive tier R2 sync (pre/post deploy)](2026-10-01-0150_05-07-complete-archive-sync-plan.md) | `[DOCUMENTATION]` `[PLANNING]` `[ARCHITECTURE]` `[TESTING]` |
 | 2026-10-01 | [Post-sync proven live against R2; archive architecture written down](2026-10-01-0145_05-07-task3-post-sync-live-proof-and-architecture-doc.md) | `[DOCUMENTATION]` `[BACKEND]` `[ARCHITECTURE]` `[TESTING]` |
