@@ -43,7 +43,7 @@
     "test:regression": "node --test \"tests/regression/**/*.test.mjs\"",
     "test:tracer": "node --test tests/tracer/tracer.test.mjs",
     "typecheck": "astro check",
-    "build": "pnpm run guard:config && pnpm run test:build-gate && astro build",
+    "build": "pnpm run guard:config && pnpm run test:build-gate && node tools/partition-archive.mjs --clean && astro build && node tools/partition-archive.mjs && node tools/assert-file-count.mjs",
     "dev": "astro dev",
     "preview": "astro preview",
     "deploy": "pnpm run guard:config && wrangler deploy --config wrangler.jsonc",
