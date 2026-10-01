@@ -10,6 +10,7 @@ Entries are named `YYYY-MM-DD-HHMM_slug.md` and grouped by month, newest first.
 
 | Date | Entry | Keywords |
 |------|-------|----------|
+| 2026-09-30 | [ARCH-01 zero-reads gate instrument: D1 baseline, deployed-binding check, request mix + verdict](2026-09-30-2318_arch-01-zero-reads-gate-instrument.md) | `[BACKEND]` `[TESTING]` `[SECURITY]` `[FEATURE]` |
 | 2026-09-30 | [Rewrote an auto-generated changelog placeholder with a real entry](2026-09-30-2259_fix-auto-generated-changelog-placeholder.md) | `[DOCUMENTATION]` `[CONFIG]` |
 | 2026-09-30 | [Plan 05-03 complete: archive-serving Worker (R2) documented and marked done](2026-09-30-2258_05-03-complete-archive-serving-worker-plan.md) | `[DOCUMENTATION]` `[PLANNING]` `[ARCHITECTURE]` |
 | 2026-09-30 | [Edge cache for archived GETs, proven through the real wrangler bundle](2026-09-30-2255_archive-edge-cache.md) | `[BACKEND]` `[ARCHITECTURE]` `[PERFORMANCE]` `[TESTING]` |
