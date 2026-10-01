@@ -5,15 +5,15 @@ milestone_name: milestone
 current_phase: 05
 current_phase_name: Hybrid Archive & Zero-Reads Proof
 status: executing
-stopped_at: Completed 05-06-PLAN.md
-last_updated: "2026-10-01T06:58:42.628Z"
+stopped_at: Completed 05-07-PLAN.md
+last_updated: "2026-10-01T07:25:29.103Z"
 last_activity: 2026-09-30
 last_activity_desc: Phase 05 plan 01 executed (tag tiering, hot window, build-time tier facts)
 progress:
   total_phases: 5
   completed_phases: 4
   total_plans: 64
-  completed_plans: 58
+  completed_plans: 59
 ---
 
 # Project State
@@ -28,11 +28,11 @@ See: .planning/PROJECT.md (updated 2026-09-16)
 ## Current Position
 
 Phase: 05 (Hybrid Archive & Zero-Reads Proof) — EXECUTING
-Plan: 7 of 12
+Plan: 8 of 12
 Status: Ready to execute
 Last activity: 2026-09-30 — Phase 05 plan 01 executed (tag tiering, hot window, tier facts)
 
-Progress: [█████████░] 91%
+Progress: [█████████░] 92%
 
 ## Performance Metrics
 
@@ -107,6 +107,7 @@ Progress: [█████████░] 91%
 | Phase 05 P02 | 12min | 4 tasks | 11 files |
 | Phase 05 P05 | ~45min | 3 tasks | 36 files |
 | Phase 05 P06 | ~40min | 3 tasks | 12 files |
+| Phase 05 P07 | ~40min | 3 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -256,6 +257,9 @@ Recent decisions affecting current work:
 - [Phase ?]: 05-06: staticFileCount counts dist/client/static-budget.json itself (preWriteCount+1), recounted after write to confirm the directory matches exactly — no off-by-one against find dist/client -type f | wc -l
 - [Phase ?]: 05-06: tests/unit/news-sitemap.test.mjs broke after partitioning though it wasn't in this plan's file list (Rule 1) — the sitemap plugin runs before partition, so it still lists archived URLs; fixed to expect static+archived counts
 - [Phase ?]: 05-06: REND-07 and REND-11 deliberately left Pending in REQUIREMENTS.md — this plan proves partition (REND-07's render-once half) and the per-build gate (REND-11's measurement half), but R2 upload (05-07) and daily reporting (05-08) are not yet done
+- [Phase ?]: 05-07: The R2-write branch guard lives at archive-sync.mjs's own store-wrapping boundary (wrapStoreForBranchGuard), not only as an early return in runPreSync/runPostSync -- a caller reaching for the store directly still can't write on a non-main Workers CI branch, even with valid credentials present (the leaked-secret scenario 05-02 flagged).
+- [Phase ?]: 05-07: Found and fixed a real index-safety bug before any live run touched it -- runPostSync was dropping an index entry for every orphan key it attempted to delete, regardless of whether R2's deleteObjects actually confirmed the deletion; fixed to only drop entries deleteObjects itself confirmed.
+- [Phase ?]: 05-07: REND-07 and REND-12 are intentionally left Pending in REQUIREMENTS.md, matching this phase's own established precedent (05-02/05-04/05-05/05-06) -- both halves of REND-07 are now proven live against the real bucket but only for ~100 of ~30,478 archive-tier pages; REND-12's governing ceiling is resolved and deadline-bounded phases are built, but the full re-render hasn't run at corpus scale yet. Full-corpus upload is 05-08/05-09's job; the full-re-render measurement is 05-10's job.
 
 ### Pending Todos
 
@@ -309,6 +313,6 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-10-01T06:58:42.609Z
-Stopped at: Completed 05-06-PLAN.md
+Last session: 2026-10-01T07:25:29.080Z
+Stopped at: Completed 05-07-PLAN.md
 Resume file: None

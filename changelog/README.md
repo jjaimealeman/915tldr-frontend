@@ -10,6 +10,7 @@ Entries are named `YYYY-MM-DD-HHMM_slug.md` and grouped by month, newest first.
 
 | Date | Entry | Keywords |
 |------|-------|----------|
+| 2026-10-01 | [Plan 05-07 complete: archive tier R2 sync (pre/post deploy)](2026-10-01-0150_05-07-complete-archive-sync-plan.md) | `[DOCUMENTATION]` `[PLANNING]` `[ARCHITECTURE]` `[TESTING]` |
 | 2026-10-01 | [Post-sync proven live against R2; archive architecture written down](2026-10-01-0145_05-07-task3-post-sync-live-proof-and-architecture-doc.md) | `[DOCUMENTATION]` `[BACKEND]` `[ARCHITECTURE]` `[TESTING]` |
 | 2026-10-01 | [Post-sync behavior suite: changed pages, orphans, backlog, force-full, daily report](2026-10-01-0120_05-07-task2-post-sync-tests-changed-orphans-backlog.md) | `[TESTING]` `[BACKEND]` `[SECURITY]` |
 | 2026-10-01 | [Deadline-aware task pool and the archive pre-sync tracer, proven live against R2](2026-10-01-0115_05-07-task1-run-pool-and-pre-sync-tracer.md) | `[BACKEND]` `[INFRA]` `[FEATURE]` `[TESTING]` `[SECURITY]` |
