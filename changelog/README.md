@@ -10,6 +10,7 @@ Entries are named `YYYY-MM-DD-HHMM_slug.md` and grouped by month, newest first.
 
 | Date | Entry | Keywords |
 |------|-------|----------|
+| 2026-09-30 | [Add the tier-facts tracer test (RED)](2026-09-30-2221_tier-facts-tracer-test-red.md) | `[TESTING]` `[BACKEND]` `[PLANNING]` |
 | 2026-09-30 | [Phase 5 planned: research, 12 plans in 7 waves, checker passed](2026-09-30-2206_phase-5-planned.md) | `[PLANNING]` `[DOCUMENTATION]` `[ARCHITECTURE]` |
 | 2026-09-30 | [Phase 5 context captured: zero-reads gate, hot window, tag tiering, archive freshness](2026-09-30-2030_phase-5-context-captured.md) | `[PLANNING]` `[DOCUMENTATION]` `[ARCHITECTURE]` |
 | 2026-09-30 | [Phase 4 Nyquist validation: 18/18 requirements covered, 0 gaps](2026-09-30-1942_phase-4-nyquist-validated.md) | `[TESTING]` `[DOCUMENTATION]` `[PLANNING]` |
