@@ -10,6 +10,7 @@ Entries are named `YYYY-MM-DD-HHMM_slug.md` and grouped by month, newest first.
 
 | Date | Entry | Keywords |
 |------|-------|----------|
+| 2026-09-30 | [Log the hot window during every build; prove facts match the built pages](2026-09-30-2229_hot-window-build-log-and-tier-facts-cross-checks.md) | `[BACKEND]` `[TESTING]` `[ARCHITECTURE]` |
 | 2026-09-30 | [Complete tiering/hot-window validation (GREEN)](2026-09-30-2225_tiering-hot-window-validation-green.md) | `[BACKEND]` `[ARCHITECTURE]` `[PLANNING]` |
 | 2026-09-30 | [Pin tiering/hot-window boundaries with tests (RED)](2026-09-30-2223_tiering-hot-window-boundary-tests-red.md) | `[TESTING]` `[BACKEND]` `[PLANNING]` |
 | 2026-09-30 | [Implement tier facts, hot window, and tiering rules end to end (GREEN)](2026-09-30-2222_tier-facts-tracer-implementation-green.md) | `[BACKEND]` `[ARCHITECTURE]` `[PLANNING]` |

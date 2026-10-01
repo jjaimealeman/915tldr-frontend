@@ -86,3 +86,71 @@ test(
     assert.equal(report.hotWindow.provisional, true, 'expected the bootstrap D-07 window to report provisional: true');
   }
 );
+
+// ---------------------------------------------------------------------------
+// Task 3: cross-checks against the real build — facts provably match the built pages.
+// ---------------------------------------------------------------------------
+
+test(
+  'tier-facts: every article fact path maps to an existing dist/client<path>.html file',
+  { skip: !DIST_BUILT && SKIP_REASON },
+  () => {
+    const { articles } = readTierFacts();
+    for (const fact of articles) {
+      const htmlPath = path.join(DIST_CLIENT, `${fact.path}.html`);
+      assert.ok(existsSync(htmlPath), `expected ${htmlPath} to exist for fact path ${fact.path}`);
+    }
+  }
+);
+
+test(
+  'tier-facts: the set of fact uuids equals the set of uuids parsed from built article file names',
+  { skip: !DIST_BUILT && SKIP_REASON },
+  () => {
+    const { articles } = readTierFacts();
+    const factUuids = new Set(articles.map((fact) => fact.uuid));
+
+    const builtUuids = new Set();
+    for (const filePath of findArticleHtmlFiles(DIST_CLIENT)) {
+      const match = ARTICLE_FILE_RE.exec(path.basename(filePath));
+      assert.ok(match, `expected ${filePath} to match the article file name pattern`);
+      builtUuids.add(match[2].toLowerCase());
+    }
+
+    assert.equal(factUuids.size, builtUuids.size, 'expected the same number of unique uuids on both sides');
+    for (const uuid of factUuids) {
+      assert.ok(builtUuids.has(uuid), `fact uuid ${uuid} has no matching built article file`);
+    }
+    for (const uuid of builtUuids) {
+      assert.ok(factUuids.has(uuid), `built article file uuid ${uuid} has no matching fact`);
+    }
+  }
+);
+
+test(
+  'tier-facts: no duplicate uuid in article facts, no duplicate slug in tag facts',
+  { skip: !DIST_BUILT && SKIP_REASON },
+  () => {
+    const { articles, tags } = readTierFacts();
+
+    const uuids = articles.map((fact) => fact.uuid);
+    assert.equal(new Set(uuids).size, uuids.length, 'expected no duplicate uuid among article facts');
+
+    const slugs = tags.map((fact) => fact.slug);
+    assert.equal(new Set(slugs).size, slugs.length, 'expected no duplicate slug among tag facts');
+  }
+);
+
+test(
+  'tier-facts: the sum of tag facts with count >= 10 equals tools/tier-report.mjs --json\'s tags.hot',
+  { skip: !DIST_BUILT && SKIP_REASON },
+  () => {
+    const { tags } = readTierFacts();
+    const expectedHot = tags.filter((fact) => fact.count >= 10).length;
+
+    const out = execFileSync('node', ['tools/tier-report.mjs', '--json'], { cwd: REPO_ROOT, encoding: 'utf8' });
+    const report = JSON.parse(out);
+
+    assert.equal(report.tags.hot, expectedHot);
+  }
+);
