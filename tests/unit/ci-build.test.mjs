@@ -9,9 +9,23 @@
 
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { runCi, classifyFailure, redact, toHeaderSafe } from '../../tools/ci-build.mjs';
+import {
+  runCi,
+  classifyFailure,
+  redact,
+  toHeaderSafe,
+  parseArchiveSyncResult,
+} from '../../tools/ci-build.mjs';
 
 const EIGHTEEN_MINUTES_MS = 18 * 60 * 1000;
+
+// A always-'derived' hot window, injected into deploy/all tests below that don't care about the
+// 05-08 Task 2 hot-window guard — keeps those tests hermetic (no real fs read of
+// src/lib/archive/hot-window.json) and immune to that file's own status changing later.
+const DERIVED_HOT_WINDOW = { status: 'derived', provisional: false, days: 202, basis: 'test', decision: 'test' };
+async function fakeLoadHotWindow() {
+  return DERIVED_HOT_WINDOW;
+}
 
 function noopTimer() {
   return 'timer-handle';
@@ -449,10 +463,215 @@ test('runCi step=build and step=all: the build is spawned with BUILD_STATE_REQUI
       env: {},
       spawnImpl,
       commitImpl: async () => {},
+      loadHotWindowImpl: fakeLoadHotWindow,
       setTimer: noopTimer,
       clearTimer: noopClear,
       log: noopLog,
     });
     assert.equal(firstCallEnv?.BUILD_STATE_REQUIRE_BASELINE, '1', `step=${step}`);
   }
+});
+
+// ---------------------------------------------------------------------------
+// parseArchiveSyncResult (05-08 Task 1)
+// ---------------------------------------------------------------------------
+
+test('parseArchiveSyncResult: parses the ARCHIVE_SYNC_RESULT JSON line out of a noisy tail', () => {
+  const tail = [
+    '[archive-sync] pre: uploaded=50 failed=0 movedBack=30428 disabled=false',
+    'ARCHIVE_SYNC_RESULT {"phase":"pre","uploaded":50,"failed":0,"deferred":0,"movedBack":30428,"deleted":0,"backlog":null,"alerts":[],"dailyReport":null,"disabled":false}',
+  ].join('\n');
+  const result = parseArchiveSyncResult(tail);
+  assert.equal(result.phase, 'pre');
+  assert.equal(result.uploaded, 50);
+  assert.equal(result.movedBack, 30428);
+});
+
+test('parseArchiveSyncResult: returns null when no result line is present', () => {
+  assert.equal(parseArchiveSyncResult('nothing relevant here\nno result line at all'), null);
+});
+
+test('parseArchiveSyncResult: returns null (not throws) on a malformed JSON tail', () => {
+  assert.equal(parseArchiveSyncResult('ARCHIVE_SYNC_RESULT {not valid json'), null);
+});
+
+test('parseArchiveSyncResult: returns null on empty/undefined input', () => {
+  assert.equal(parseArchiveSyncResult(''), null);
+  assert.equal(parseArchiveSyncResult(undefined), null);
+});
+
+// ---------------------------------------------------------------------------
+// runCi — deploy step: the archive-sync/file-count/wrangler/commit/archive-sync sequence
+// (05-08 Task 1 tracer)
+// ---------------------------------------------------------------------------
+
+function fakeArchiveSyncTail(phase, overrides = {}) {
+  const base = {
+    phase,
+    uploaded: 0,
+    failed: 0,
+    deferred: 0,
+    movedBack: 0,
+    deleted: 0,
+    backlog: phase === 'post' ? { count: 0, since: null } : null,
+    alerts: [],
+    dailyReport: phase === 'post' ? { due: false } : null,
+    disabled: false,
+    ...overrides,
+  };
+  return `[archive-sync] ${phase}: ok\nARCHIVE_SYNC_RESULT ${JSON.stringify(base)}`;
+}
+
+test('runCi step=deploy: writes the build-start marker is NOT part of the deploy step (build-only), and spawns archive-sync pre, assert-file-count, wrangler deploy, commitImpl, then archive-sync post, in that order', async () => {
+  const calls = [];
+  const spawnImpl = async (cmd, args) => {
+    calls.push({ cmd, args: [...args] });
+    if (args.includes('pre')) return { code: 0, tail: fakeArchiveSyncTail('pre') };
+    if (args.some((a) => String(a).includes('assert-file-count.mjs'))) {
+      return { code: 0, tail: '{"count":100,"ceiling":100000,"failAt":80000,"status":"ok"}' };
+    }
+    if (cmd === 'pnpm' && args.includes('wrangler')) return { code: 0, tail: '' };
+    if (args.includes('post')) return { code: 0, tail: fakeArchiveSyncTail('post') };
+    return { code: 0, tail: '' };
+  };
+  const commitCalls = [];
+  const code = await runCi({
+    step: 'deploy',
+    env: {},
+    spawnImpl,
+    notifyImpl: async () => {},
+    commitImpl: async (a) => commitCalls.push(a),
+    loadHotWindowImpl: fakeLoadHotWindow,
+    setTimer: noopTimer,
+    clearTimer: noopClear,
+    log: noopLog,
+  });
+
+  assert.equal(code, 0);
+  assert.equal(calls.length, 4, 'expected exactly 4 spawn calls: archive-sync pre, assert-file-count, wrangler deploy, archive-sync post');
+  assert.ok(calls[0].args.some((a) => String(a).includes('archive-sync.mjs')) && calls[0].args.includes('pre'));
+  assert.ok(calls[1].args.some((a) => String(a).includes('assert-file-count.mjs')));
+  assert.ok(calls[2].cmd === 'pnpm' && calls[2].args.includes('wrangler'));
+  assert.ok(calls[3].args.some((a) => String(a).includes('archive-sync.mjs')) && calls[3].args.includes('post'));
+  assert.equal(commitCalls.length, 1, 'commitImpl must be called exactly once, after a real deploy');
+});
+
+test('runCi step=deploy: CI_BUILD_DEPLOY_DRY_RUN=1 runs wrangler deploy --dry-run with --outdir and never calls commitImpl', async () => {
+  let wranglerArgs;
+  const spawnImpl = async (cmd, args) => {
+    if (args.includes('pre')) return { code: 0, tail: fakeArchiveSyncTail('pre') };
+    if (args.some((a) => String(a).includes('assert-file-count.mjs'))) {
+      return { code: 0, tail: '{"count":100,"ceiling":100000,"failAt":80000,"status":"ok"}' };
+    }
+    if (cmd === 'pnpm' && args.includes('wrangler')) {
+      wranglerArgs = [...args];
+      return { code: 0, tail: '' };
+    }
+    if (args.includes('post')) return { code: 0, tail: fakeArchiveSyncTail('post') };
+    return { code: 0, tail: '' };
+  };
+  const commitCalls = [];
+  const code = await runCi({
+    step: 'deploy',
+    env: { CI_BUILD_DEPLOY_DRY_RUN: '1' },
+    spawnImpl,
+    notifyImpl: async () => {},
+    commitImpl: async (a) => commitCalls.push(a),
+    loadHotWindowImpl: fakeLoadHotWindow,
+    setTimer: noopTimer,
+    clearTimer: noopClear,
+    log: noopLog,
+  });
+
+  assert.equal(code, 0);
+  assert.ok(wranglerArgs, 'wrangler deploy should still be spawned in a dry run');
+  assert.ok(wranglerArgs.includes('--dry-run'));
+  assert.ok(wranglerArgs.includes('--config'));
+  assert.ok(wranglerArgs.includes('wrangler.jsonc'));
+  assert.ok(wranglerArgs.includes('--outdir'));
+  assert.ok(wranglerArgs.includes('.wrangler/ci-dry-run'));
+  assert.equal(commitCalls.length, 0, 'commitImpl must never be called in a dry run — no real deploy happened');
+});
+
+test('runCi step=deploy: archive-sync pre exiting 1 aborts before wrangler/commitImpl, notifies exactly once with a title naming archive-sync', async () => {
+  const calls = [];
+  const notifyCalls = [];
+  const commitCalls = [];
+  const spawnImpl = async (cmd, args) => {
+    calls.push({ cmd, args: [...args] });
+    if (args.includes('pre')) return { code: 1, tail: 'archive-sync: archive index unreadable — boom' };
+    return { code: 0, tail: '' };
+  };
+  const code = await runCi({
+    step: 'deploy',
+    env: { NTFY_TOPIC: 'test-topic' },
+    spawnImpl,
+    notifyImpl: async (a) => notifyCalls.push(a),
+    commitImpl: async (a) => commitCalls.push(a),
+    loadHotWindowImpl: fakeLoadHotWindow,
+    setTimer: noopTimer,
+    clearTimer: noopClear,
+    log: noopLog,
+  });
+
+  assert.notEqual(code, 0);
+  assert.equal(calls.length, 1, 'only the archive-sync pre spawn should have happened');
+  assert.ok(
+    !calls.some((c) => (c.args ?? []).some((a) => String(a).includes('wrangler')) || String(c.cmd).includes('wrangler')),
+    'no wrangler process should ever be spawned after a failing archive-sync pre'
+  );
+  assert.equal(commitCalls.length, 0);
+  assert.equal(notifyCalls.length, 1);
+  assert.match(notifyCalls[0].title, /archive-sync/);
+});
+
+// ---------------------------------------------------------------------------
+// runCi — build step: writes the build-start marker before spawning the build
+// (05-08 Task 1)
+// ---------------------------------------------------------------------------
+
+test('runCi step=build: calls markBuildStart before spawning the build', async () => {
+  const events = [];
+  const spawnImpl = async () => {
+    events.push('spawn');
+    return { code: 0, tail: '' };
+  };
+  const markBuildStart = () => {
+    events.push('mark');
+  };
+  const code = await runCi({
+    step: 'build',
+    env: {},
+    spawnImpl,
+    markBuildStart,
+    setTimer: noopTimer,
+    clearTimer: noopClear,
+    log: noopLog,
+  });
+  assert.equal(code, 0);
+  assert.deepEqual(events, ['mark', 'spawn']);
+});
+
+test('runCi step=all: also calls markBuildStart before spawning the build', async () => {
+  const events = [];
+  const spawnImpl = async () => {
+    events.push('spawn');
+    return { code: 0, tail: '' };
+  };
+  const markBuildStart = () => {
+    events.push('mark');
+  };
+  await runCi({
+    step: 'all',
+    env: {},
+    spawnImpl,
+    markBuildStart,
+    commitImpl: async () => {},
+    loadHotWindowImpl: fakeLoadHotWindow,
+    setTimer: noopTimer,
+    clearTimer: noopClear,
+    log: noopLog,
+  });
+  assert.equal(events[0], 'mark');
+  assert.equal(events[1], 'spawn');
 });

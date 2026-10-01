@@ -18,6 +18,8 @@
 // push, or writes real KV.
 
 import { spawn } from 'node:child_process';
+import { mkdirSync, writeFileSync } from 'node:fs';
+import { dirname } from 'node:path';
 
 /** T-04-35: the ordered list of module names this project's own fail-loud checks throw from
  * (d1-articles-loader's console-prefixed log lines, the changelog loader, the D1/KV chokepoint
@@ -51,6 +53,69 @@ function isTruthyFlag(value) {
 const DEFAULT_WATCHDOG_MS = 18 * 60 * 1000;
 
 const NUMBER_OF_TAIL_LINES = 200;
+
+/** 05-08: mirrors `tools/archive-sync.mjs`'s own exported `BUILD_STARTED_AT_PATH` constant,
+ * duplicated here rather than imported — this file never statically imports archive-sync.mjs (it
+ * only ever spawns it as a child process, same arm's-length relationship it already has with
+ * `pnpm run build`), following this file's own established convention of duplicating small,
+ * stable constants/predicates (see `isTruthyFlag` above) rather than acquiring a new static
+ * dependency for one string. Both phases of archive-sync.mjs measure their deadlines from this
+ * file's mtime/contents. */
+const BUILD_STARTED_AT_PATH = '.astro/ci-build-started-at';
+
+/** 05-08: mirrors archive-sync.mjs's own `RESULT_LINE_PREFIX` constant (duplicated, not imported
+ * — same reasoning as `BUILD_STARTED_AT_PATH` above). */
+const RESULT_LINE_PREFIX = 'ARCHIVE_SYNC_RESULT ';
+
+/**
+ * Writes `.astro/ci-build-started-at` (epoch seconds), creating `.astro/` if it doesn't exist yet
+ * — real default used outside tests. Both archive-sync.mjs phases (pre's 840s deadline, post's
+ * 1020s deadline) measure their own deadline from this file's contents, so it must be written
+ * before `pnpm run build` starts, not after.
+ */
+function defaultMarkBuildStart() {
+  mkdirSync(dirname(BUILD_STARTED_AT_PATH), { recursive: true });
+  writeFileSync(BUILD_STARTED_AT_PATH, String(Math.floor(Date.now() / 1000)));
+}
+
+/**
+ * Scans `tail` for the last line starting with archive-sync.mjs's own `ARCHIVE_SYNC_RESULT `
+ * prefix and parses the JSON that follows it. Returns `null` (never throws) when no such line is
+ * present or the JSON after the prefix doesn't parse — a missing/malformed result line from a
+ * spawned archive-sync run is a signal to alert on, not a reason to crash this wrapper.
+ */
+export function parseArchiveSyncResult(tail) {
+  const lines = String(tail ?? '').split('\n');
+  for (let i = lines.length - 1; i >= 0; i -= 1) {
+    const line = lines[i].trim();
+    if (!line.startsWith(RESULT_LINE_PREFIX)) continue;
+    try {
+      return JSON.parse(line.slice(RESULT_LINE_PREFIX.length));
+    } catch {
+      return null;
+    }
+  }
+  return null;
+}
+
+/**
+ * Scans `tail` from the end for the last line that parses as JSON on its own (no prefix) —
+ * `tools/assert-file-count.mjs --json`'s own output shape. Returns `null` (never throws) when no
+ * line parses.
+ */
+function parseLastJsonLine(tail) {
+  const lines = String(tail ?? '').split('\n');
+  for (let i = lines.length - 1; i >= 0; i -= 1) {
+    const line = lines[i].trim();
+    if (!line) continue;
+    try {
+      return JSON.parse(line);
+    } catch {
+      continue;
+    }
+  }
+  return null;
+}
 
 /**
  * T-04-35: strips every secret value this project knows the name of, then sweeps any remaining
@@ -243,6 +308,7 @@ export async function runCi(opts = {}) {
     spawnImpl = defaultSpawn,
     notifyImpl = defaultNotify,
     commitImpl = defaultCommitImpl,
+    markBuildStart = defaultMarkBuildStart,
     setTimer = (fn, ms) => setTimeout(fn, ms),
     clearTimer = (handle) => clearTimeout(handle),
     log = (...args) => console.log(...args),
@@ -287,6 +353,11 @@ export async function runCi(opts = {}) {
   }
 
   if (step === 'build' || step === 'all') {
+    // 05-08: written BEFORE the build spawns — both archive-sync.mjs phases measure their own
+    // deadline (pre: 840s, post: 1020s) from this file's contents, so it must reflect the real
+    // start of THIS build, not some earlier moment.
+    markBuildStart();
+
     const buildResult = await runWatched({
       spawnFn: () =>
         spawnImpl('pnpm', ['run', 'build'], {
@@ -309,9 +380,36 @@ export async function runCi(opts = {}) {
   }
 
   if (step === 'deploy' || step === 'all') {
-    const deployResult = await spawnImpl('pnpm', ['exec', 'wrangler', 'deploy', '--config', 'wrangler.jsonc'], {
-      env,
-    });
+    // 05-08 Task 1: the real deploy sequence — archive-sync pre (upload new-to-archive pages,
+    // move back anything that fails/misses the deadline) -> the file-count gate re-run on the
+    // FINAL dist/client (pre may have moved pages back into it) -> wrangler deploy (or a dry run
+    // rehearsal, CI_BUILD_DEPLOY_DRY_RUN=1) -> commitLastGood (skipped in a dry run — no real
+    // deploy happened to commit against) -> archive-sync post (re-upload changed pages, orphan
+    // cleanup, backlog/daily-report bookkeeping). Pre and the file-count gate can abort the whole
+    // deploy (D-13); post never can (D-10/D-12) — a failed or resultless post run is logged, not
+    // treated as a build failure, since `wrangler deploy` (and therefore the site) already
+    // succeeded by the time post runs.
+    const preResult = await spawnImpl('node', ['tools/archive-sync.mjs', 'pre', '--json'], { env });
+    if (preResult.code !== 0) {
+      const check = classifyFailure(preResult.tail, preResult.code);
+      await notifyFailure(`archive-sync: ${check}`);
+      return preResult.code;
+    }
+    // eslint-disable-next-line no-unused-vars
+    const preParsed = parseArchiveSyncResult(preResult.tail);
+
+    const countResult = await spawnImpl('node', ['tools/assert-file-count.mjs', '--json'], { env });
+    if (countResult.code !== 0) {
+      const check = classifyFailure(countResult.tail, countResult.code);
+      await notifyFailure(`assert-file-count: ${check}`);
+      return countResult.code;
+    }
+
+    const dryRun = isTruthyFlag(env.CI_BUILD_DEPLOY_DRY_RUN);
+    const wranglerArgs = dryRun
+      ? ['exec', 'wrangler', 'deploy', '--dry-run', '--config', 'wrangler.jsonc', '--outdir', '.wrangler/ci-dry-run']
+      : ['exec', 'wrangler', 'deploy', '--config', 'wrangler.jsonc'];
+    const deployResult = await spawnImpl('pnpm', wranglerArgs, { env });
 
     if (deployResult.code !== 0) {
       const check = classifyFailure(deployResult.tail, deployResult.code);
@@ -319,7 +417,18 @@ export async function runCi(opts = {}) {
       return deployResult.code;
     }
 
-    await commitImpl({ buildHash: commit !== 'local' ? commit.slice(0, 7) : undefined });
+    if (!dryRun) {
+      await commitImpl({ buildHash: commit !== 'local' ? commit.slice(0, 7) : undefined });
+    }
+
+    const postResult = await spawnImpl('node', ['tools/archive-sync.mjs', 'post', '--json'], { env });
+    const postParsed = parseArchiveSyncResult(postResult.tail);
+    if (postResult.code !== 0 || !postParsed) {
+      log(
+        `[ci-build] archive-sync post produced no usable result (exit ${postResult.code}) — continuing, the deploy itself already succeeded`
+      );
+    }
+
     return 0;
   }
 
