@@ -10,6 +10,7 @@ Entries are named `YYYY-MM-DD-HHMM_slug.md` and grouped by month, newest first.
 
 | Date | Entry | Keywords |
 |------|-------|----------|
+| 2026-10-01 | [REND-11 fully reconciled against wrangler's own asset count; marked Complete](2026-10-01-1225_05-09-rend-11-wrangler-asset-count-reconciled-complete.md) | `[DOCUMENTATION]` `[DEPLOYMENT]` `[INFRA]` `[BUG_FIX]` |
 | 2026-10-01 | [Fill in 05-09-SUMMARY.md's self-referential commit hash](2026-10-01-1148_05-09-summary-self-reference-hash-fix.md) | `[DOCUMENTATION]` `[BUG_FIX]` |
 | 2026-10-01 | [Real build-log reconciliation; REND-11 still Pending](2026-10-01-1140_05-09-real-build-log-reconciliation-rend-11-still-pending.md) | `[DOCUMENTATION]` `[DEPLOYMENT]` `[INFRA]` `[BUG_FIX]` |
 | 2026-10-01 | [Plan 05-09 complete: first production archive deploy measured](2026-10-01-1105_05-09-complete-first-production-archive-deploy-plan.md) | `[DOCUMENTATION]` `[PLANNING]` `[DEPLOYMENT]` `[INFRA]` |

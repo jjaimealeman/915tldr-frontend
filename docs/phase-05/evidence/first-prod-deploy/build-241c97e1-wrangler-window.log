@@ -1,0 +1,25 @@
+# Build 241c97e1 — log window between ARCHIVE_SYNC_RESULT(pre) and Current Version ID, unfiltered (blank/separator lines dropped).
+# Pulled by the orchestrator 2026-10-01 ~10:12 MDT via Cloudflare API GET /accounts/{acct}/builds/builds/{uuid}/logs
+1790868170383 ARCHIVE_SYNC_RESULT {"phase":"pre","uploaded":19,"failed":0,"deferred":0,"movedBack":0,"deleted":0,"backlog":null,"alerts":[],"dailyReport":null,"disabled":false}
+1790868171038 {"count":29966,"ceiling":100000,"failAt":80000,"status":"ok"}
+1790868171039 [archive] static files: 29966 / 100000 (fail at 80000)
+1790868173167  ⛅️ wrangler 4.136.3
+1790868173842 🌀 Building list of assets...
+1790868174266 ✨ Read 29978 files from the assets directory /opt/buildhome/repo/dist/client
+1790868179215 🌀 Starting asset upload...
+1790868183103 🌀 Found 2 new or modified static assets to upload. Proceeding with upload...
+1790868183137 + /version.json
+1790868183137 + /index.html
+1790868183756 Uploaded 1 of 2 assets
+1790868183775 Uploaded 2 of 2 assets
+1790868183783 ✨ Success! Uploaded 2 files (29960 already uploaded) (0.64 sec)
+1790868183799 Total Upload: 8.34 KiB / gzip: 2.64 KiB
+1790868185867 Worker Startup Time: 2 ms
+1790868185869 Your Worker has access to the following bindings:
+1790868185869 env.RENDER_MANIFEST (3c92531f94294fcc94006455f433885f)      KV Namespace
+1790868185870 env.ARCHIVE_BUCKET (915tldr-archive)                        R2 Bucket
+1790868185870 env.ASSETS                                                  Assets
+1790868185870 Uploaded 915tldr-v2 (12.16 sec)
+1790868187581 Deployed 915tldr-v2 triggers (1.71 sec)
+1790868187581   dev.915tldr.com (custom domain)
+1790868187581 Current Version ID: 5d03fe4d-b763-4b18-bdc8-9d57a07e6741

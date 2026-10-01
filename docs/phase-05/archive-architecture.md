@@ -354,24 +354,54 @@ build** — `pre` uploaded all 19 new-to-archive pages with 0 failures, `post` u
 pages and deleted 3 orphans with 0 failures and a `0` backlog, both phases logged directly from
 the real build container. No second deploy was needed.
 
-**REND-11 precision reconciliation — partially closed, one piece still missing.** `.assetsignore`
-does not exist in this repo, and `wrangler.jsonc`'s `assets.directory` (`dist/client`) carries no
-further exclusion rules — so wrangler's uploaded-plus-already-present asset total is structurally
-guaranteed to **equal** (not merely "≥") `assert-file-count.mjs`'s own gate count, since both
-ultimately count the exact same directory with nothing filtered out in between. The real build log
-now independently confirms the **gate's own count** (`29966`) was computed correctly at build time
-and matches the live-served figure with zero drift (see above). **What the must_haves text asks
-for beyond that — the literal wrangler log line showing its own uploaded-plus-already-present
-asset split (e.g., "N new / M already present")** — is **not present in the filtered excerpt
-provided**: the only deploy-adjacent lines in that excerpt are `Total Upload: 8.34 KiB / gzip:
-2.64 KiB` (the Worker *script* bundle size, unrelated to the 29,966 static assets) and generic
-timing/success lines (`Uploaded 915tldr-v2 (12.16 sec)`, `Deployed 915tldr-v2 triggers (1.71
-sec)`). If a literal per-asset wrangler count is wanted to close this specific sub-item, the full
-60,605-line log would need a further grep for patterns like `already uploaded`, `files from the
-assets directory`, or `Uploading` — not attempted here since this executor's own token cannot
-reach the Builds API at all. **Verdict: REND-11 left Pending** (see "Decisions Made" in the
-SUMMARY) — the requirement's plain-text bar (daily report + 100k alarm) is doubly proven now, but
-this plan's own stricter must_haves bar (the literal wrangler split) is not fully met.
+**REND-11 precision reconciliation — now fully closed, every number named.** The orchestrator
+pulled a second log window (the unfiltered span between `ARCHIVE_SYNC_RESULT(pre)` and `Current
+Version ID`), committed as evidence at
+[`docs/phase-05/evidence/first-prod-deploy/build-241c97e1-wrangler-window.log`](./evidence/first-prod-deploy/build-241c97e1-wrangler-window.log),
+and it contains exactly the line the must_haves ask for:
+
+```
+✨ Read 29978 files from the assets directory /opt/buildhome/repo/dist/client
+🌀 Found 2 new or modified static assets to upload. Proceeding with upload...
++ /version.json
++ /index.html
+✨ Success! Uploaded 2 files (29960 already uploaded) (0.64 sec)
+```
+
+This produced a real, three-way numeric mismatch that needed explaining, not assuming: the
+gate's count (`29,966`), wrangler's own "Read N files" line (`29,978`), and wrangler's own
+upload-accounting total (`2 + 29,960 = 29,962`) all disagreed. Both gaps are now reconciled file
+by file — full working at
+[`docs/phase-05/evidence/first-prod-deploy/rend-11-reconciliation.md`](./evidence/first-prod-deploy/rend-11-reconciliation.md),
+reproduced locally this session via `pnpm exec wrangler deploy --dry-run --config wrangler.jsonc
+--outdir .wrangler/ci-dry-run` with `WRANGLER_LOG=debug`:
+
+- **`29,978 − 29,966 = 12`**: wrangler's own `✨ Read N files` console line counts every
+  top-level **directory** entry its walk visits, alongside real files — reproduced locally
+  (the exact same 12-directory gap appeared: `29,952` wrangler vs. `29,940` this session's own
+  local gate count) and the 12 extras identified by classifying each printed path against the
+  real filesystem: `_astro`, `business`, `community`, `crime`, `education`, `fonts`, `health`,
+  `politics`, `source`, `sports`, `tag`, `weather` — all confirmed real directories, not files.
+  This is a cosmetic quirk in wrangler's own log message, not an asset-count discrepancy: once
+  the 12 directories are subtracted, wrangler's real per-build file total (`29,978 − 12 =
+  29,966`) **matches the gate's count exactly, with zero drift.**
+- **`29,966 − 29,962 = 4`**: four root-level control files are read by both the gate and
+  wrangler's directory walk, but deliberately never served as content assets —
+  `.assetsignore` (the ignore-rules file itself), `_headers` and `_redirects` (parsed into the
+  deployed Worker's own `headers`/`redirects` config, confirmed earlier this session via the
+  Workers Versions API — not served as literal response bodies), and `wrangler.json` (an
+  `@astrojs/cloudflare` build-output artifact, explicitly excluded by `.assetsignore`'s own two
+  ignore lines: `wrangler.json`, `.dev.vars`). All four confirmed present on disk at
+  `dist/client`'s root. `29,966 − 4 = 29,962` — **exactly** wrangler's own reported total.
+
+**Verdict: REND-11 is now Complete.** The gate's conservative count is over wrangler's real
+served-asset total by exactly 4, every one of the 4 named above, and never under — precisely the
+shape the must_haves require ("it may only be over, never under," "explained file by file"). No
+code fix was warranted: `assert-file-count.mjs`'s `countStaticFiles()` already counts every
+regular file with no filtering, exactly as its own doc comment claims; the apparent 12-file "gap"
+was a misreading of wrangler's own debug console line, not a defect in this project's code. A doc
+comment was added to `tools/assert-file-count.mjs` pointing future readers at this reconciliation
+so it isn't reopened from scratch.
 
 **API access (disclosed, now partially resolved).** This executor's own Cloudflare API tokens
 (`CLOUDFLARE_API_TOKEN`, `CF_API_TOKEN`) returned `403 Forbidden` (error code `12004`) against the

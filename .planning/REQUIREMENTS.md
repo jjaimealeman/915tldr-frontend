@@ -28,7 +28,7 @@
 - [x] **REND-08**: A request for an archived article falls through the static-asset layer to the Worker and is served from R2
 - [x] **REND-09**: Tag pages default to the archive tier; only top-N tags by article count are promoted to hot static
 - [x] **REND-10**: The hot-content cutoff is derived from measured request traffic, not a fixed guess
-- [ ] **REND-11**: Total deployed static-asset file count is reported daily and alarms before 100,000
+- [x] **REND-11**: Total deployed static-asset file count is reported daily and alarms before 100,000
 - [ ] **REND-12**: A full archive re-render completes without exceeding Worker CPU limits
 
 ### Content Quality
@@ -266,7 +266,7 @@ Deferred. Tracked, not in this roadmap.
 | REND-08 | Phase 5 | Complete |
 | REND-09 | Phase 5 | Complete |
 | REND-10 | Phase 5 | Complete |
-| REND-11 | Phase 5 | Pending |
+| REND-11 | Phase 5 | Complete |
 | REND-12 | Phase 5 | Pending |
 | CONT-01 | Phase 2 | Complete |
 | CONT-02 | Phase 2 | Complete |
