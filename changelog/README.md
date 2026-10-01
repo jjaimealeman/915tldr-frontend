@@ -10,6 +10,7 @@ Entries are named `YYYY-MM-DD-HHMM_slug.md` and grouped by month, newest first.
 
 | Date | Entry | Keywords |
 |------|-------|----------|
+| 2026-10-01 | [Zero-reads gate + ARCH-08 evidence captured against the real deployed Worker](2026-10-01-1531_05-12-zero-reads-gate-evidence-captured.md) | `[TESTING]` `[PERFORMANCE]` `[DOCUMENTATION]` `[CRITICAL]` |
 | 2026-10-01 | [Fix: the zero-reads gate's --archive-plan CLI flag was parsed but never used](2026-10-01-1433_05-12-fix-archive-plan-wiring-never-connected.md) | `[BUG_FIX]` `[TESTING]` `[CRITICAL]` |
 | 2026-10-01 | [Fix: zero-reads gate's analytics catch-up wait was dead code on the live CLI path](2026-10-01-1243_05-12-fix-dead-analytics-catchup-wait.md) | `[BUG_FIX]` `[TESTING]` `[PERFORMANCE]` `[CRITICAL]` |
 | 2026-10-01 | [Plan 05-10 complete: REND-12 forced full re-upload measured and verified](2026-10-01-1332_05-10-complete-rend-12-forced-full-reupload-plan.md) | `[DOCUMENTATION]` `[PLANNING]` `[ARCHITECTURE]` `[PERFORMANCE]` |
