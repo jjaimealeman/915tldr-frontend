@@ -26,8 +26,8 @@
 - [x] **REND-06**: A render manifest in KV records what has been rendered and at which version
 - [ ] **REND-07**: Articles outside the hot window are rendered once to R2 and served from there
 - [ ] **REND-08**: A request for an archived article falls through the static-asset layer to the Worker and is served from R2
-- [ ] **REND-09**: Tag pages default to the archive tier; only top-N tags by article count are promoted to hot static
-- [ ] **REND-10**: The hot-content cutoff is derived from measured request traffic, not a fixed guess
+- [x] **REND-09**: Tag pages default to the archive tier; only top-N tags by article count are promoted to hot static
+- [x] **REND-10**: The hot-content cutoff is derived from measured request traffic, not a fixed guess
 - [ ] **REND-11**: Total deployed static-asset file count is reported daily and alarms before 100,000
 - [ ] **REND-12**: A full archive re-render completes without exceeding Worker CPU limits
 
@@ -264,8 +264,8 @@ Deferred. Tracked, not in this roadmap.
 | REND-06 | Phase 3 | Complete |
 | REND-07 | Phase 5 | Pending |
 | REND-08 | Phase 5 | Pending |
-| REND-09 | Phase 5 | Pending |
-| REND-10 | Phase 5 | Pending |
+| REND-09 | Phase 5 | Complete |
+| REND-10 | Phase 5 | Complete |
 | REND-11 | Phase 5 | Pending |
 | REND-12 | Phase 5 | Pending |
 | CONT-01 | Phase 2 | Complete |

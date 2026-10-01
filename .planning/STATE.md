@@ -2,18 +2,18 @@
 gsd_state_version: 1.0
 milestone: v1.5
 milestone_name: milestone
-current_phase: 04
-current_phase_name: Static Generation, Templates & SEO
+current_phase: 05
+current_phase_name: Hybrid Archive & Zero-Reads Proof
 status: executing
-stopped_at: Phase 5 context gathered
-last_updated: "2026-10-01T04:05:59.640Z"
-last_activity: 2026-09-26
-last_activity_desc: Phase 03 complete, transitioned to Phase 4
+stopped_at: Completed 05-01-PLAN.md
+last_updated: "2026-10-01T04:35:44.073Z"
+last_activity: 2026-09-30
+last_activity_desc: Phase 05 plan 01 executed (tag tiering, hot window, build-time tier facts)
 progress:
   total_phases: 5
   completed_phases: 4
   total_plans: 64
-  completed_plans: 52
+  completed_plans: 53
 ---
 
 # Project State
@@ -23,16 +23,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-09-16)
 
 **Core value:** Zero D1 reads on the public request path — architecturally zero, enforced structurally at build time.
-**Current focus:** Phase 04 — Static Generation, Templates & SEO
+**Current focus:** Phase 05 — Hybrid Archive & Zero-Reads Proof
 
 ## Current Position
 
-Phase: 04 (Static Generation, Templates & SEO) — EXECUTING
-Plan: 12 of 12
+Phase: 05 (Hybrid Archive & Zero-Reads Proof) — EXECUTING
+Plan: 2 of 12
 Status: Ready to execute
-Last activity: 2026-09-26 — Phase 04 execution started
+Last activity: 2026-09-30 — Phase 05 plan 01 executed (tag tiering, hot window, tier facts)
 
-Progress: [██████████] 100%
+Progress: [████████░░] 83%
 
 ## Performance Metrics
 
@@ -101,6 +101,7 @@ Progress: [██████████] 100%
 | Phase 04 P10 | ~2h45min (active, spanning two sessions) | 2 tasks | 6 files |
 | Phase 04 P11 | ~25min | 3 tasks | 9 files |
 | Phase 04 P12 | ~1h50min | 3 tasks | 5 files |
+| Phase 05 P01 | 25min | 3 tasks | 10 files |
 
 ## Accumulated Context
 
@@ -231,6 +232,8 @@ Recent decisions affecting current work:
 - [Phase ?]: 04-12: verify-edge-headers.mjs's live-article discovery now parses the deployed homepage's first [data-card] link instead of listing the entire KV render manifest (~40k+ keys, past its own documented scaling limit) -- no D1/KV credentials needed for discovery any more, and src/lib/slug.ts is no longer imported anywhere.
 - [Phase ?]: 04-12: tests/integration/url-shapes.test.mjs's /changelog check asserts against CHANGELOG_MIN_EXPECTED=15 (the already owner-approved 04-08 floor), not the plan's stale must_haves text of 18 -- production genuinely serves 15 entries today; the loader's own never-shrink ratchet will raise this automatically once v1 deploys the missing 3.
 - [Phase ?]: 04-12: Phase 4's 04-VALIDATION.md is now wave_0_complete: true and nyquist_compliant: true -- every task across 04-01..04-12 has an automated verify or is a documented owner-checkpoint immediately followed by one; full suite (test:unit/build-gate/regression/tracer) re-run green against the live deployment.
+- [Phase ?]: 05-01: Task 1's tiering.ts/hot-window.ts kept deliberately minimal so Task 2's RED/GREEN cycle was genuine (confirmed 6 real failures before any GREEN code).
+- [Phase ?]: 05-01: tier-facts.ts placed under src/lib/archive/, not src/lib/server/ — no credentials/D1/KV access, confirmed via grep that it never imports from the chokepoint directory.
 
 ### Pending Todos
 
@@ -272,6 +275,7 @@ Recent decisions affecting current work:
 - **RESOLVED — Phase 3, 03-05 (both prior halts).** The owner granted the missing Rulesets/Transform Rules token scope. Resumed from mandatory-ordering Step 2 and completed the plan: the noindex Transform Rule now covers `dev.915tldr.com` AND `admin-dev.915tldr.com` (extended scope, Rule 2 deviation — admin-dev didn't exist when the plan's Task 2 was first scoped); `915tldr-v2` is deployed and live on `dev.915tldr.com` (Custom Domain reassigned from `915tldr-dev`, `workers_dev: false`, stale zone Worker Route deleted after it was found to be out-prioritizing the reassignment); `pnpm verify:edge` (`tools/verify-edge-headers.mjs`) re-proves the whole policy on every future deploy. Two real bugs found and fixed along the way: `session: false` was a no-op in the wrong astro.config.mjs location (03-01's claimed fix never worked), and a stale zone Worker Route silently out-prioritized a correctly-reassigned Custom Domain for 3+ minutes, contrary to Cloudflare's documented precedence. Production (`915tldr.com`/`www.915tldr.com`) and `admin-dev.915tldr.com` verified unaffected throughout. See 03-05-SUMMARY.md for full detail. 03-05 is complete.
 - 04-07: production robots.txt behavior changes on next deploy -- v1's AI-crawler-blocking policy (Content-signal, GPTBot/ClaudeBot/CCBot/etc. Disallow) has never actually been served (v1's static public/robots.txt shadowed its own server route); v2 ships the intended policy, an owner-approved but real change to what's been crawlable. Also flagged: SEO-04 sitemap ordering-determinism unverified across two builds (@astrojs/sitemap documents no stable ordering guarantee) -- see 04-07-SUMMARY.md coverage D4.
 - **RESOLVED — Phase 4, 04-10 Task 2.** The owner chose option (a) and pushed `cc1b050` on 2026-09-30. Builds 3-4 ran on the real Workers Builds platform: Build 3 (flag-on, first toggle) was cold again as 04-09 already documented, 0/60,349 pages restored (expected); Build 4 (flag-on, no toggle) confirmed at least 34,871/~60,349 pages restored via `experimental.incrementalBuild` on a genuinely fresh Workers Builds container, wall time collapsing from 554s to 147s. **Verdict: `WB_REUSE_PROVEN`** — contradicts and supersedes 04-09's local `REUSE_WARM_ONLY` finding; likely explained by Workers Builds restoring both a dependencies cache and a build-output cache from the prior build, which 04-09's local fresh-clone simulation never fully reproduced. A new cost-relevant finding surfaced along the way: Build 3's deploy re-uploaded 60,355/60,355 assets (only 7 deduplicated), root-caused to `src/layouts/Base.astro` unconditionally printing `BUILD_HASH` in every page's footer — reported for 04-11, not fixed (Rule 4). The temporary `incrementalBuild=true` hardcode was reverted (`99795e3`) once both spike builds completed. See `04-10-SUMMARY.md` and `docs/phase-04/build-measurements.md` for full detail. 04-10 is complete.
+- STATE.md frontmatter current_phase was stale at 04 despite Phase 5 context/research/plan already existing on disk (05-CONTEXT.md, 05-RESEARCH.md, 12 PLAN.md files) — corrected to 05 during 05-01 execution; the body Current Position section had the same staleness and was corrected alongside it.
 
 ## Deferred Items
 
@@ -283,6 +287,6 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-10-01T02:30:05.471Z
-Stopped at: Phase 5 context gathered
-Resume file: .planning/phases/05-hybrid-archive-zero-reads-proof/05-CONTEXT.md
+Last session: 2026-10-01T04:35:44.053Z
+Stopped at: Completed 05-01-PLAN.md
+Resume file: None
