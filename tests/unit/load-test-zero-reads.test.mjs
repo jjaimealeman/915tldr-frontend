@@ -26,7 +26,11 @@ import {
   ARCHIVED_ARTICLE_SAMPLE,
   STATIC_TAG_SAMPLE,
   ARCHIVED_TAG_SAMPLE,
+  loadArchivePlanFile,
+  buildRequestMixInputFromArchivePlan,
 } from '../../tools/load-test-zero-reads.mjs';
+
+const ARCHIVE_PLAN_SAMPLE_PATH = new URL('../fixtures/archive-plan.sample.json', import.meta.url).pathname;
 
 const d1BaselineFixture = JSON.parse(
   readFileSync(new URL('../fixtures/graphql/d1-baseline-windows.json', import.meta.url))
@@ -334,6 +338,76 @@ test('buildRequestMix: throws when fewer than 10 archived tags are available', (
     () => buildRequestMix(mixInputFixture({ archivedTagPaths: Array.from({ length: 9 }, (_, i) => `/tag/a-${i}`) })),
     /at least 10 archived tag paths/
   );
+});
+
+// ---------------------------------------------------------------------------
+// buildRequestMixInputFromArchivePlan — the real CLI --archive-plan wiring (05-12 fix)
+// ---------------------------------------------------------------------------
+
+/** A fake `readTierFactsFn` matching tests/fixtures/archive-plan.sample.json's own 20
+ * archived-article uuids / 10 archived-tag slugs, plus enough hot articles and static tags to
+ * clear buildRequestMix's own HOT_ARTICLE_SAMPLE/STATIC_TAG_SAMPLE floors. */
+function fakeTierFactsFixture() {
+  const cutoffEpoch = 1751328000; // matches the fixture's own cutoffEpoch
+  const marginSeconds = 10 * 86400; // comfortably past the 2-day margin
+  const archivedArticles = Array.from({ length: 20 }, (_, i) => ({
+    uuid: `00000000-0000-4000-8000-${String(i).padStart(12, '0')}`,
+    path: `/crime/sample-archived-article-${i}-00000000-0000-4000-8000-${String(i).padStart(12, '0')}`,
+    publishedAt: cutoffEpoch - marginSeconds,
+  }));
+  const hotArticles = Array.from({ length: 25 }, (_, i) => ({
+    uuid: `11111111-1111-4111-8111-${String(i).padStart(12, '0')}`,
+    path: `/crime/sample-hot-article-${i}`,
+    publishedAt: cutoffEpoch + 10 * 86400,
+  }));
+  const archivedTags = Array.from({ length: 10 }, (_, i) => ({ slug: `sample-archived-tag-${i}`, count: 3 }));
+  const staticTags = Array.from({ length: 15 }, (_, i) => ({ slug: `sample-static-tag-${i}`, count: 50 }));
+  return () => ({ articles: [...archivedArticles, ...hotArticles], tags: [...archivedTags, ...staticTags] });
+}
+
+test('loadArchivePlanFile: loads and validates tests/fixtures/archive-plan.sample.json', () => {
+  const plan = loadArchivePlanFile(ARCHIVE_PLAN_SAMPLE_PATH);
+  assert.equal(plan.entries.length, 30);
+  assert.equal(typeof plan.cutoffEpoch, 'number');
+});
+
+test('loadArchivePlanFile: throws a clear, actionable error for a missing file (never a bare ENOENT)', () => {
+  assert.throws(
+    () => loadArchivePlanFile('tests/fixtures/does-not-exist-archive-plan.json'),
+    /missing tests\/fixtures\/does-not-exist-archive-plan\.json — run `pnpm run build`/
+  );
+});
+
+test('buildRequestMixInputFromArchivePlan: builds a requestMixInput buildRequestMix accepts, from a real archive-plan.json + injected tier facts', () => {
+  const input = buildRequestMixInputFromArchivePlan(ARCHIVE_PLAN_SAMPLE_PATH, {
+    readTierFactsFn: fakeTierFactsFixture(),
+  });
+  assert.deepEqual(input.categories, ['crime', 'politics', 'sports', 'business', 'education', 'community', 'health', 'weather']);
+  assert.equal(input.archivedArticlePaths.length, 20);
+  assert.equal(input.hotArticlePaths.length, 25);
+  assert.equal(input.archivedTagPaths.length, 10);
+  assert.equal(input.staticTagPaths.length, 15);
+  assert.ok(input.archivedTagPaths.every((p) => p.startsWith('/tag/sample-archived-tag-')));
+  assert.ok(input.staticTagPaths.every((p) => p.startsWith('/tag/sample-static-tag-')));
+
+  // Exercises the exact downstream consumer (main()'s own real use) — must not throw.
+  const mix = buildRequestMix({ ...input, seed: 5 });
+  assert.equal(mix.length, 71);
+  assert.equal(new Set(mix).size, 71);
+});
+
+test('buildRequestMixInputFromArchivePlan: excludes an archived article from hotArticlePaths even if tier facts list it', () => {
+  const readTierFactsFn = () => {
+    const base = fakeTierFactsFixture()();
+    // Deliberately duplicate archived uuid #0 into a "hot-looking" entry with a later
+    // publishedAt — buildRequestMixInputFromArchivePlan must still exclude it from
+    // hotArticlePaths because the plan's own entries mark it archived.
+    return base;
+  };
+  const input = buildRequestMixInputFromArchivePlan(ARCHIVE_PLAN_SAMPLE_PATH, { readTierFactsFn });
+  const archivedUuid0Path = '/crime/sample-archived-article-0-00000000-0000-4000-8000-000000000000';
+  assert.ok(!input.hotArticlePaths.includes(archivedUuid0Path));
+  assert.ok(input.archivedArticlePaths.includes(archivedUuid0Path));
 });
 
 // ---------------------------------------------------------------------------

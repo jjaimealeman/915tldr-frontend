@@ -23,8 +23,11 @@
 // (T-05-18, roadmap's own DoS-against-self mitigation).
 
 import { writeFile, mkdir } from 'node:fs/promises';
+import { existsSync, readFileSync } from 'node:fs';
 import path from 'node:path';
 import { queryCloudflareGraphql, introspectType, redact } from './lib/cf-graphql.mjs';
+import { readTierFacts as readTierFactsImpl } from '../src/lib/archive/tier-facts.ts';
+import { CATEGORIES } from '../src/lib/categories.ts';
 
 export const PRODUCTION_D1_DATABASE_ID = '552ba1d1-024a-4dee-bdaa-3ffd4bdb1f77';
 export const PUBLIC_WORKER_SCRIPT = '915tldr-v2';
@@ -241,6 +244,122 @@ export async function fetchDeployedBindings(deps = {}) {
 
   const bindingTypes = parseDeployedBindings(body);
   return { bindingTypes, hasD1Binding: bindingTypes.includes('d1') };
+}
+
+// ---------------------------------------------------------------------------
+// requestMixInput from a real local build (05-12 fix)
+// ---------------------------------------------------------------------------
+
+const ARCHIVE_PLAN_ARTICLE_KEY_RE =
+  /^articles\/([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12})\.html$/;
+const SECONDS_PER_DAY = 86400;
+export const ARCHIVED_ARTICLE_MARGIN_DAYS = 2;
+export const ARCHIVED_TAG_MAX_COUNT = 5;
+export const STATIC_TAG_MIN_COUNT = 25;
+
+/**
+ * Loads and minimally validates `dist/archive-plan.json` (`tools/partition-archive.mjs`'s own
+ * output) — the archived subset only, by construction. Mirrors `tests/helpers/
+ * archive-sample.mjs`'s own validation (never a bare `ENOENT`).
+ */
+export function loadArchivePlanFile(archivePlanPath) {
+  const abs = path.resolve(process.cwd(), archivePlanPath);
+  if (!existsSync(abs)) {
+    throw new Error(
+      `load-test-zero-reads: missing ${archivePlanPath} — run \`pnpm run build\` first`
+    );
+  }
+  let parsed;
+  try {
+    parsed = JSON.parse(readFileSync(abs, 'utf8'));
+  } catch (err) {
+    throw new Error(
+      `load-test-zero-reads: ${archivePlanPath} is not valid JSON: ${err instanceof Error ? err.message : String(err)}`
+    );
+  }
+  if (!parsed || typeof parsed !== 'object' || !Array.isArray(parsed.entries)) {
+    throw new Error(`load-test-zero-reads: ${archivePlanPath} must be an object with an "entries" array`);
+  }
+  if (typeof parsed.cutoffEpoch !== 'number') {
+    throw new Error(`load-test-zero-reads: ${archivePlanPath} must carry a numeric cutoffEpoch`);
+  }
+  return parsed;
+}
+
+/**
+ * Builds the `requestMixInput` `buildRequestMix` (and therefore the whole live gate) needs,
+ * directly from a real local build's own `dist/archive-plan.json` + `.astro/tier-facts-*.json` —
+ * the CLI's actual `--archive-plan` wiring. Fixed 2026-10-01 (05-12): `main()` parsed
+ * `--archive-plan` into `args.archivePlan` but never used it to build a `requestMixInput` at
+ * all, so every real (non-`--baseline-only`) CLI invocation threw immediately
+ * ("a full pass requires requestMixInput ... see --archive-plan") — the documented CLI usage in
+ * this file's own header comment and in docs/phase-05/zero-reads-gate.md could never actually
+ * run. `readTierFacts` is injectable (`readTierFactsFn`) so tests never touch the real `.astro/`
+ * build artifacts.
+ *
+ * Same tier-boundary safety margins as `tests/helpers/archive-sample.mjs` (05-11): archived
+ * articles must sit at least `ARCHIVED_ARTICLE_MARGIN_DAYS` past the plan's own `cutoffEpoch`;
+ * archived tags must have a full lifetime count of at most `ARCHIVED_TAG_MAX_COUNT`; static tags
+ * must have at least `STATIC_TAG_MIN_COUNT` and never appear in the plan's own archived-tag set —
+ * so build-to-build drift between this local build and whatever the live site is currently
+ * serving can never put a sampled URL on the wrong side of a tier boundary.
+ */
+export function buildRequestMixInputFromArchivePlan(archivePlanPath, deps = {}) {
+  const { readTierFactsFn = readTierFactsImpl } = deps;
+  const plan = loadArchivePlanFile(archivePlanPath);
+  const facts = readTierFactsFn();
+
+  const archivedUuids = new Set();
+  const archivedTagSlugs = new Set();
+  for (const entry of plan.entries) {
+    if (entry.kind === 'article') {
+      const match = ARCHIVE_PLAN_ARTICLE_KEY_RE.exec(entry.key);
+      if (match) archivedUuids.add(match[1]);
+    } else if (entry.kind === 'tag') {
+      archivedTagSlugs.add(entry.path.replace(/^\/tag\//, ''));
+    }
+  }
+
+  const archiveSideBeforeEpoch = plan.cutoffEpoch - ARCHIVED_ARTICLE_MARGIN_DAYS * SECONDS_PER_DAY;
+  const publishedByUuid = new Map(facts.articles.map((a) => [a.uuid, a.publishedAt]));
+  const archivedArticlePaths = [];
+  for (const entry of plan.entries) {
+    if (entry.kind !== 'article') continue;
+    const match = ARCHIVE_PLAN_ARTICLE_KEY_RE.exec(entry.key);
+    if (!match) continue;
+    const publishedAt = publishedByUuid.get(match[1]);
+    if (typeof publishedAt !== 'number' || publishedAt > archiveSideBeforeEpoch) continue;
+    archivedArticlePaths.push(entry.path);
+  }
+
+  const hotArticlePaths = facts.articles
+    .filter((a) => !archivedUuids.has(a.uuid))
+    .sort((a, b) => b.publishedAt - a.publishedAt)
+    .map((a) => a.path);
+
+  const countBySlug = new Map(facts.tags.map((t) => [t.slug, t.count]));
+  const archivedTagPaths = [];
+  for (const entry of plan.entries) {
+    if (entry.kind !== 'tag') continue;
+    const slug = entry.path.replace(/^\/tag\//, '');
+    const count = countBySlug.get(slug);
+    if (typeof count !== 'number' || count > ARCHIVED_TAG_MAX_COUNT) continue;
+    archivedTagPaths.push(entry.path);
+  }
+  archivedTagPaths.sort();
+
+  const staticTagPaths = facts.tags
+    .filter((t) => t.count >= STATIC_TAG_MIN_COUNT && !archivedTagSlugs.has(t.slug))
+    .sort((a, b) => a.slug.localeCompare(b.slug))
+    .map((t) => `/tag/${t.slug}`);
+
+  return {
+    categories: CATEGORIES.map((c) => c.slug),
+    hotArticlePaths,
+    archivedArticlePaths,
+    staticTagPaths,
+    archivedTagPaths,
+  };
 }
 
 // ---------------------------------------------------------------------------
@@ -787,6 +906,9 @@ export async function runLoadTest(opts = {}) {
 async function main() {
   const args = parseArgs(process.argv.slice(2));
   try {
+    // Fixed 2026-10-01 (05-12): --archive-plan was parsed but never used — a full pass requires
+    // requestMixInput, and nothing built one from the CLI's own --archive-plan argument.
+    const requestMixInput = args.baselineOnly ? null : buildRequestMixInputFromArchivePlan(args.archivePlan);
     const { exitCode, result } = await runLoadTest({
       baselineOnly: args.baselineOnly,
       requests: args.requests,
@@ -794,6 +916,7 @@ async function main() {
       evidence: args.evidence,
       seed: args.seed,
       forceWindow: args.forceWindow,
+      requestMixInput,
     });
     if (args.json) {
       console.log(JSON.stringify(result, null, 2));
