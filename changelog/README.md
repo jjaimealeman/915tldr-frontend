@@ -10,6 +10,7 @@ Entries are named `YYYY-MM-DD-HHMM_slug.md` and grouped by month, newest first.
 
 | Date | Entry | Keywords |
 |------|-------|----------|
+| 2026-09-30 | [Plan 05-02 complete: build-time R2 client for the archive tier](2026-09-30-2334_05-02-complete-r2-client-plan.md) | `[DOCUMENTATION]` `[PLANNING]` `[ARCHITECTURE]` `[TESTING]` |
 | 2026-09-30 | [Unit tests for r2-client.ts key discipline/secret hygiene, plus a build-gate case proving the Worker guard covers it](2026-09-30-2340_r2-client-unit-tests-and-build-gate-case.md) | `[BACKEND]` `[TESTING]` `[SECURITY]` `[ARCHITECTURE]` |
 | 2026-09-30 | [R2 build-time client installed, live round trip proven against the private archive bucket](2026-09-30-2328_r2-client-install-sdk-live-roundtrip.md) | `[BACKEND]` `[DEPENDENCIES]` `[SECURITY]` `[TESTING]` `[ARCHITECTURE]` |
 | 2026-09-30 | [Plan 05-04 complete: zero-reads gate + ARCH-08 measurement instruments documented and marked done](2026-09-30-2330_05-04-complete-zero-reads-gate-arch-08-instruments.md) | `[DOCUMENTATION]` `[PLANNING]` `[ARCHITECTURE]` `[TESTING]` |

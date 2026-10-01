@@ -5,15 +5,15 @@ milestone_name: milestone
 current_phase: 05
 current_phase_name: Hybrid Archive & Zero-Reads Proof
 status: executing
-stopped_at: Completed 05-04-PLAN.md
-last_updated: "2026-10-01T05:22:42.267Z"
+stopped_at: Completed 05-02-PLAN.md
+last_updated: "2026-10-01T05:33:47.030Z"
 last_activity: 2026-09-30
 last_activity_desc: Phase 05 plan 01 executed (tag tiering, hot window, build-time tier facts)
 progress:
   total_phases: 5
   completed_phases: 4
   total_plans: 64
-  completed_plans: 55
+  completed_plans: 56
 ---
 
 # Project State
@@ -28,11 +28,11 @@ See: .planning/PROJECT.md (updated 2026-09-16)
 ## Current Position
 
 Phase: 05 (Hybrid Archive & Zero-Reads Proof) — EXECUTING
-Plan: 4 of 12
+Plan: 5 of 12
 Status: Ready to execute
 Last activity: 2026-09-30 — Phase 05 plan 01 executed (tag tiering, hot window, tier facts)
 
-Progress: [█████████░] 86%
+Progress: [█████████░] 88%
 
 ## Performance Metrics
 
@@ -104,6 +104,7 @@ Progress: [█████████░] 86%
 | Phase 05 P01 | 25min | 3 tasks | 10 files |
 | Phase 05 P03 | ~35min | 3 tasks | 8 files |
 | Phase 05 P04 | ~75min | 3 tasks | 14 files |
+| Phase 05 P02 | 12min | 4 tasks | 11 files |
 
 ## Accumulated Context
 
@@ -242,6 +243,10 @@ Recent decisions affecting current work:
 - [Phase ?]: 05-04: Live schema introspection confirmed D1 analytics has no scriptName/workerName dimension — leg 2 of ARCH-01's gate is a databaseId-filtered delta measurement, not an attribution query; detection floor at v1's real baseline noise is ~40 rows/request even at the 20,000-request cap, not 1 — structural legs (1/1b) remain load-bearing.
 - [Phase ?]: 05-04: measure-worker-kv-cpu.mjs is a measurement/reporting tool, not a go/no-go gate — its CLI always exits 0 on a successful run; the real 24h measurement shows CPU well within budget (p99 1.88ms) but KV reads (102) mildly exceed invocations (94), likely dataset-bucketing skew between two independently-aggregated GraphQL datasets, disclosed in docs/phase-05/zero-reads-gate.md rather than hidden.
 - [Phase ?]: 05-04: ARCH-01 is intentionally left Pending in REQUIREMENTS.md despite being listed in this plan's frontmatter requirements — this plan builds and calibrates the zero-reads gate INSTRUMENT (live-proved --baseline-only), but the actual requirement (a public request measured with zero D1 reads) is only verified by the full gate run at 05-12, after the archive tier is serving (D-03). Marking it complete now would be premature.
+- [Phase ?]: 05-02: r2-client.ts placed at src/lib/server/r2-client.ts (the enforced D1/KV chokepoint directory), not src/lib/archive/ as 05-RESEARCH.md originally proposed, so the existing build-gate guard covers it with zero new guard code.
+- [Phase ?]: 05-02: live round trip against the real private 915tldr-archive bucket succeeded (put/head/get/delete/head-after-delete); bucket confirmed to have no public r2.dev URL and no custom domain.
+- [Phase ?]: 05-02: Task 4's TDD RED/GREEN discipline was not genuinely sequenced — r2-client.ts was already fully implemented in Task 3 (the tracer, which itself required a live-proved implementation), so Task 4's 26 tests passed immediately on first run. Disclosed, same pattern as 05-04.
+- [Phase ?]: 05-02: REND-07 is intentionally left Pending in REQUIREMENTS.md despite being listed in this plan's frontmatter requirements — this plan builds and live-proves the R2 WRITE INSTRUMENT (storage + credential + client), not the actual render-once-to-R2 step for real archived articles (that is 05-07's job). Marking it complete now would be premature, matching 05-04's own precedent for ARCH-01.
 
 ### Pending Todos
 
@@ -295,6 +300,6 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-10-01T05:22:42.247Z
-Stopped at: Completed 05-04-PLAN.md
+Last session: 2026-10-01T05:33:22.742Z
+Stopped at: Completed 05-02-PLAN.md
 Resume file: None
