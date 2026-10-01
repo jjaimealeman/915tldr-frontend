@@ -1,0 +1,24 @@
+{
+  "_comment": "Recorded shape of a kvOperationsAdaptiveGroups response (tools/measure-worker-kv-cpu.mjs fetchKvReadOperations), captured live against the RENDER_MANIFEST namespace (3c92531f94294fcc94006455f433885f) 2026-10-01 (24h trailing window), filtered to actionType: read. No account identifier appears in this dataset's own response fields.",
+  "response": {
+    "data": {
+      "viewer": {
+        "accounts": [
+          {
+            "kvOperationsAdaptiveGroups": [
+              {
+                "dimensions": { "actionType": "read", "namespaceId": "3c92531f94294fcc94006455f433885f" },
+                "sum": { "requests": 102 }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "errors": null
+  },
+  "group": {
+    "dimensions": { "actionType": "read", "namespaceId": "3c92531f94294fcc94006455f433885f" },
+    "sum": { "requests": 102 }
+  }
+}

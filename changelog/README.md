@@ -10,6 +10,7 @@ Entries are named `YYYY-MM-DD-HHMM_slug.md` and grouped by month, newest first.
 
 | Date | Entry | Keywords |
 |------|-------|----------|
+| 2026-09-30 | [ARCH-08 live measurement: KV reads and Worker CPU time off the deployed Worker](2026-09-30-2322_arch-08-worker-kv-cpu-measurement.md) | `[BACKEND]` `[TESTING]` `[PERFORMANCE]` |
 | 2026-09-30 | [ARCH-01 zero-reads gate instrument: D1 baseline, deployed-binding check, request mix + verdict](2026-09-30-2318_arch-01-zero-reads-gate-instrument.md) | `[BACKEND]` `[TESTING]` `[SECURITY]` `[FEATURE]` |
 | 2026-09-30 | [Rewrote an auto-generated changelog placeholder with a real entry](2026-09-30-2259_fix-auto-generated-changelog-placeholder.md) | `[DOCUMENTATION]` `[CONFIG]` |
 | 2026-09-30 | [Plan 05-03 complete: archive-serving Worker (R2) documented and marked done](2026-09-30-2258_05-03-complete-archive-serving-worker-plan.md) | `[DOCUMENTATION]` `[PLANNING]` `[ARCHITECTURE]` |
