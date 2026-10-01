@@ -247,8 +247,109 @@ already ships the static site, not as a separately-scheduled mechanism at all (R
 ## Measurements
 
 ### 05-09 — first production archive deploy
-*(to be filled by 05-09 — real deploy-step wall-clock time for pre/post against the full corpus,
-first production `ARCHIVE_SYNC_RESULT` lines, actual PUT/DELETE counts)*
+
+**`ARCHIVE_TIER_LIVE | 29,966 static, 30,494 in R2 (12,912 articles + 17,582 tags), converged in 1 build | merge feature/phase-05 -> develop -> main (push) -> Workers Builds production build**
+
+**Route decision (Task 1, owner checkpoint).** Owner selected **option-a** (merge to main) on
+2026-10-01 ~09:07 MDT, on the orchestrator's recommendation: the archive tier serves persistently
+so later measurement plans (05-10, 05-12) don't race a 2-hourly rebuild, and REND-12 is measured
+on the real Workers Builds platform rather than an operator machine. Consequence for D-03/REND-12:
+the zero-reads gate (05-12) and the forced-full-reupload measurement (05-10) now run against a
+host that stays live between ingest cycles, not a deploy that a future build could silently
+overwrite.
+
+**Ship (Task 2, owner action).** Owner merged `feature/phase-05` -> `develop` (`57c4b05`) ->
+`main` (`57dfa94`) and pushed both, 2026-10-01 ~09:14 MDT. Confirmed locally: `git cat-file -e
+57dfa94` and `git cat-file -e 57c4b05` both resolve.
+
+**Deploy observed (Task 3).** Workers Builds production build `241c97e1-7935-4275-848a-f6bd3f7dd67c`
+(worker tag `228bdc88e86f4a78b51b5bb496af8923`, branch `main`, commit `57dfa94`): created
+`2026-10-01T15:13:17Z`, stopped `2026-10-01T15:23:32Z` — **~10m15s total wall time**, comfortably
+inside the 20-minute Workers Builds hard ceiling and inside both archive-sync deadlines
+(840s/1020s measured from the build's own start marker). The corresponding `develop` build
+(`ac9f5a9b-beaa-4cfa-b749-9d9e860c9d54`, commit `57c4b05`) succeeded separately at `15:22:36Z`.
+Worker version `5d03fe4d-b763-4b18-bdc8-9d57a07e6741` (version #20) deployed at
+`2026-10-01T15:23:04.491Z`, confirmed independently via the Workers Versions API and
+`wrangler deployments list --name 915tldr-v2` (no Workers-Builds-specific scope needed for
+either) — both line up with the build's own stop time to the second.
+
+**Live checks (this session, GET requests, not cached from any prior session):**
+
+| Check | Result |
+|---|---|
+| `/version.json` | `commit: 57dfa94`, `builtAt: 2026-10-01T15:17:12.920Z`, `hashSource: workers-ci` — matches the observed build |
+| `/static-budget.json` | `staticFileCount: 29966`, `status: "ok"` (under the 70,000 warn / 80,000 fail thresholds, 100,000 ceiling); `archivedPages: { articles: 12912, tags: 17582 }`; `hotWindow.provisional: false`, `days: 202` (D-07b, unchanged from 05-05/05-06) |
+| 2 fresh archived articles (`/community/crew-11-astronauts-...`, `/sports/team-usa-mens-hockey-...`) | 200, `Server-Timing: archive;desc=r2, kv;dur=<ms>, r2;dur=<ms>` on first request |
+| 2 fresh archived tags (`/tag/raf`, `/tag/bajas`) | 200, `Server-Timing: archive;desc=r2, r2;dur=<ms>` (no `kv;dur` — the tag branch never reads KV, matching the documented contract above) |
+| Repeat `GET` of the same archived article | `cf-cache-status: HIT`, `age: 1`, `Server-Timing: archive;desc=edge-cache` |
+| Repeat `HEAD` (`curl -I`) of the same archived article | Still 200, but **does not** hit the edge cache — re-reads R2 every time (`archive;desc=r2` again). Disclosed, not fixed: the manual Cache API layer is only populated/matched for `GET`, not `HEAD`; correctness is unaffected (HEAD never serves stale/wrong content), only the cache-hit optimization is GET-only. |
+| 1 hot article (`/sports/yankees-young-core-thrives-...`, linked live from the homepage) | 200, **no** `Server-Timing` header at all — served entirely by the static-assets layer, the Worker is never invoked for a hot page |
+| `pnpm run verify:edge` | 4/4 checks PASS (static-asset noindex, Worker-generated 404 noindex on admin-dev, production negative control, no app-level robots meta) |
+
+**Cold R2/KV latency — the owner-agreed hot-window revisit trigger (orchestrator addition).**
+150 distinct archive-tier URLs (120 articles + 30 tags, evenly sampled across the full 30,478-entry
+local plan) were each requested exactly once this session — confirmed genuinely cold by 0 edge-cache
+hits across all 150 (`cf-cache-status` absent/MISS, `Server-Timing` always `archive;desc=r2`, never
+`edge-cache`, on the first hit of each URL):
+
+| Metric | n | p50 | p95 | min | max | mean |
+|---|---|---|---|---|---|---|
+| R2 `get()` (`r2;dur`) | 150 | 129ms | **215ms** | 97ms | 287ms | 140.4ms |
+| KV manifest read (`kv;dur`, articles only — tags never read KV) | 120 | 148ms | **188ms** | 99ms | 290ms | 149.2ms |
+
+**Verdict: both cold p95 figures (215ms R2, 188ms KV) sit comfortably under the owner-agreed
+~300ms revisit threshold (05-05's decision) → KEEP the 202-day hot window as-is, no action.**
+KV and R2 are comparable in magnitude (mean 149ms vs. 140ms) — KV is not the dominant cost on a
+cold archive hit; both reads sit in the same ~100-300ms band, and together (kv + r2, sequential,
+per the Worker routing diagram above) a cold archived-article response's two-read tax is roughly
+250-300ms at the median, well inside the 1.5s LCP budget (ROADMAP criterion 2).
+
+**Convergence.** 05-08's own full-corpus dry run (hours before this real deploy) had already
+written all 30,478 entries of that build's plan into the real `915tldr-archive` bucket's index.
+This plan's own attempt to re-observe the real production build's own `ARCHIVE_SYNC_RESULT` lines
+hit an API permission gap (see "API access" below); as a cross-check, this session ran the
+project's own `tools/archive-sync.mjs` directly against the same production bucket (read-only
+inspection first, then `pre`/`post`, using the real `R2_ACCESS_KEY_ID`/`R2_SECRET_ACCESS_KEY`
+from `.dev.vars` — the identical credentials and tool the real deploy itself uses). Immediately
+after the deploy, the bucket's index held 30,475 of this session's local (hours-stale) 30,478-entry
+plan — 22 tag pages had changed content (touched by article ingestion between 05-08's dry run and
+this deploy) and 3 tag pages (`universidad`, `tennessee`, `unesco`) were not yet indexed against
+that local plan. A `post` run (after refreshing a stale local `.astro/ci-build-started-at` marker,
+which had initially caused a false "22 deferred" reading by computing elapsed time from a
+7.9-hour-old timestamp) re-synced the 22 changed tag pages cleanly: `uploaded: 22, failed: 0,
+deferred: 0, backlog: {count: 0, since: null}`. The 3 "new" tag uploads could not be confirmed by
+this measurement — their rendered HTML doesn't exist in this machine's hours-stale local
+`dist/archive` directory — but this is local staleness, not a production gap: the live
+`/static-budget.json` independently reports MORE archived tags (17,582) than this session's local
+plan snapshot knows about (17,566), meaning production's own corpus has already grown past what
+this machine's morning build captured. **Convergence verdict: the corpus converged within the one
+observed production build** — no second deploy was needed to reach a fully-synced state (backlog
+`0`, `lastConvergedAt` recorded) — consistent with 05-08's own prediction that this deploy would
+find close to zero new archive-tier work to do.
+
+**REND-11 precision reconciliation.** `.assetsignore` does not exist in this repo, and
+`wrangler.jsonc`'s `assets.directory` (`dist/client`) carries no further exclusion rules — so for
+this project's current configuration, wrangler's uploaded-plus-already-present asset total is
+structurally guaranteed to **equal** (not merely "≥") `assert-file-count.mjs`'s own gate count,
+since both ultimately count the exact same directory with nothing filtered out in between. 05-08's
+own dry run already empirically confirmed this 1:1 match after fixing the second-run recount bug.
+**This session could not independently re-pull the real production build's own literal wrangler
+log line** (the exact "N uploaded / M already present" split) — see "API access" below. The live,
+independently-fetched gate output itself (`staticFileCount: 29966`, `status: "ok"`) is confirmed
+and is the authoritative number for this deploy; the missing piece is corroborating detail, not a
+contested figure.
+
+**API access (disclosed gap).** The Cloudflare Workers Builds API
+(`GET /accounts/{account}/builds/workers/{tag}/builds`) returned `403 Forbidden` (error code
+`12004`) against both configured tokens (`CLOUDFLARE_API_TOKEN`, `CF_API_TOKEN`) this session —
+consistent with the checkpoint context's own note that "the Cloudflare builds MCP needs re-auth."
+The Workers Versions/Deployments API (a different, accessible endpoint — `wrangler deployments
+list`, `GET .../workers/scripts/{name}/versions/{id}`) was reachable with the same token and
+confirmed the deploy's existence and exact timing, but carries no asset-count or archive-sync-log
+field. **Recommendation:** re-grant the token's Workers Builds read scope before 05-10/05-12 if the
+literal per-build archive-sync/wrangler log lines are needed for those plans' own measurements;
+until then, this plan's live HTTP checks and the direct-against-the-bucket cross-check above are
+the load-bearing evidence, and all of them independently corroborate a healthy, converged deploy.
 
 ### 05-10 — forced full re-upload
 *(to be filled by 05-10 — `request-full` end-to-end wall-clock time, backlog convergence time
