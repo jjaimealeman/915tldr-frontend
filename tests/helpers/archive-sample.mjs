@@ -182,6 +182,35 @@ export function archivedTagSlugs(plan) {
 }
 
 /**
+ * Picks up to `n` HOT (static, never archived) articles — the most-recently-published ones
+ * (descending `publishedAt`), for comparing against archived pages (TTFB, LCP). Reads `.astro/
+ * tier-facts-articles.json` directly (every public article, not just the archived subset) and
+ * excludes anything `archivedArticleUuids(plan)` already claims. Each returned item carries
+ * `{ uuid, path, publishedAt }`.
+ */
+export function pickHotArticles(plan, n, { articleFactsPath = DEFAULT_ARTICLE_FACTS_PATH } = {}) {
+  if (!plan || !Array.isArray(plan.entries)) fail('pickHotArticles requires a loaded plan');
+  if (typeof n !== 'number' || n < 0) fail(`pickHotArticles: n must be a non-negative number, got ${n}`);
+
+  const factsRaw = readJsonFile(articleFactsPath);
+  if (!factsRaw || !Array.isArray(factsRaw.entries)) {
+    fail(`${articleFactsPath} must be an object with an "entries" array`);
+  }
+
+  const archivedUuids = archivedArticleUuids(plan);
+  const candidates = factsRaw.entries
+    .filter((entry) => !archivedUuids.has(entry.uuid))
+    .sort((a, b) => b.publishedAt - a.publishedAt)
+    .map((entry) => ({ uuid: entry.uuid, path: entry.path, publishedAt: entry.publishedAt }));
+
+  if (candidates.length < n) {
+    fail(`requested ${n} hot articles, but only found ${candidates.length}`);
+  }
+
+  return candidates.slice(0, n);
+}
+
+/**
  * Picks one STATIC (hot, never archived) tag with at least `minCount` articles — the counterpart
  * `url-shapes.test.mjs` needs to compare an archived tag's `/`-suffix and `.html`-suffix redirect
  * shape against a known-static tag's own. A tag qualifies when it has a real article count (from

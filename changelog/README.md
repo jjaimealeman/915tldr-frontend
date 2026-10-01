@@ -10,6 +10,7 @@ Entries are named `YYYY-MM-DD-HHMM_slug.md` and grouped by month, newest first.
 
 | Date | Entry | Keywords |
 |------|-------|----------|
+| 2026-10-01 | [R2 latency and archived-page LCP measured against the 1.5s budget](2026-10-01-1110_05-11-r2-latency-and-archived-lcp-measured.md) | `[PERFORMANCE]` `[TESTING]` `[DOCUMENTATION]` |
 | 2026-10-01 | [A real reader clicks into archived pages without extra hops](2026-10-01-1055_05-11-real-browser-journeys-into-archived-pages.md) | `[TESTING]` `[FEATURE]` |
 | 2026-10-01 | [Archived pages now prove the same live URL contract as static pages](2026-10-01-1041_05-11-live-url-contract-parity-for-archived-pages.md) | `[TESTING]` `[BUG_FIX]` `[DEPLOYMENT]` |
 | 2026-10-01 | [Fill in 05-09-SUMMARY.md's final self-referential commit hash](2026-10-01-1232_05-09-fill-in-final-self-reference-hash.md) | `[DOCUMENTATION]` `[BUG_FIX]` |
