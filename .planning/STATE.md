@@ -5,15 +5,15 @@ milestone_name: milestone
 current_phase: 05
 current_phase_name: Hybrid Archive & Zero-Reads Proof
 status: executing
-stopped_at: Completed 05-01-PLAN.md
-last_updated: "2026-10-01T04:35:44.073Z"
+stopped_at: Completed 05-03-PLAN.md
+last_updated: "2026-10-01T04:58:37.904Z"
 last_activity: 2026-09-30
 last_activity_desc: Phase 05 plan 01 executed (tag tiering, hot window, build-time tier facts)
 progress:
   total_phases: 5
   completed_phases: 4
   total_plans: 64
-  completed_plans: 53
+  completed_plans: 54
 ---
 
 # Project State
@@ -28,11 +28,11 @@ See: .planning/PROJECT.md (updated 2026-09-16)
 ## Current Position
 
 Phase: 05 (Hybrid Archive & Zero-Reads Proof) — EXECUTING
-Plan: 2 of 12
+Plan: 3 of 12
 Status: Ready to execute
 Last activity: 2026-09-30 — Phase 05 plan 01 executed (tag tiering, hot window, tier facts)
 
-Progress: [████████░░] 83%
+Progress: [████████░░] 84%
 
 ## Performance Metrics
 
@@ -102,6 +102,7 @@ Progress: [████████░░] 83%
 | Phase 04 P11 | ~25min | 3 tasks | 9 files |
 | Phase 04 P12 | ~1h50min | 3 tasks | 5 files |
 | Phase 05 P01 | 25min | 3 tasks | 10 files |
+| Phase 05 P03 | ~35min | 3 tasks | 8 files |
 
 ## Accumulated Context
 
@@ -234,6 +235,9 @@ Recent decisions affecting current work:
 - [Phase ?]: 04-12: Phase 4's 04-VALIDATION.md is now wave_0_complete: true and nyquist_compliant: true -- every task across 04-01..04-12 has an automated verify or is a documented owner-checkpoint immediately followed by one; full suite (test:unit/build-gate/regression/tracer) re-run green against the live deployment.
 - [Phase ?]: 05-01: Task 1's tiering.ts/hot-window.ts kept deliberately minimal so Task 2's RED/GREEN cycle was genuine (confirmed 6 real failures before any GREEN code).
 - [Phase ?]: 05-01: tier-facts.ts placed under src/lib/archive/, not src/lib/server/ — no credentials/D1/KV access, confirmed via grep that it never imports from the chokepoint directory.
+- [Phase ?]: 05-03: R2 keys for archived pages are derived fresh from the validated articleId/slug on every request (articleArchiveKey/tagArchiveKey), not stored in a v3 render-manifest field — race-free across both hot->archive and archive->hot transitions; avoids a schema bump mid-build.
+- [Phase ?]: 05-03 Task 2: measured dev.915tldr.com live and found static HTML Content-Type is exactly 'text/html' (no charset param) and Cache-Control is 'public, max-age=0, must-revalidate'; archived responses now match exactly (Task 1's placeholder Content-Type with a charset param was corrected here).
+- [Phase ?]: 05-03 Task 2: tag-suffix redirect (/tag/<slug>/ and /tag/<slug>.html) status measured live as 307, matching the project's existing trailing-slash convention, not 301.
 
 ### Pending Todos
 
@@ -287,6 +291,6 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-10-01T04:35:44.053Z
-Stopped at: Completed 05-01-PLAN.md
+Last session: 2026-10-01T04:57:08.663Z
+Stopped at: Completed 05-03-PLAN.md
 Resume file: None
