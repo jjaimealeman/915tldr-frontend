@@ -10,6 +10,7 @@ Entries are named `YYYY-MM-DD-HHMM_slug.md` and grouped by month, newest first.
 
 | Date | Entry | Keywords |
 |------|-------|----------|
+| 2026-10-01 | [Plan 05-05 complete: hot window derived live from real traffic](2026-10-01-0018_05-05-complete-hot-window-derivation-plan.md) | `[DOCUMENTATION]` `[PLANNING]` `[ARCHITECTURE]` `[TESTING]` |
 | 2026-10-01 | [Hot window derived live from 30 days of real reader traffic (REND-10)](2026-10-01-0014_hot-window-derived-from-30-days-of-real-traffic.md) | `[BACKEND]` `[ARCHITECTURE]` `[TESTING]` `[DOCUMENTATION]` |
 
 ## September 2026

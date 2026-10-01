@@ -5,15 +5,15 @@ milestone_name: milestone
 current_phase: 05
 current_phase_name: Hybrid Archive & Zero-Reads Proof
 status: executing
-stopped_at: Completed 05-02-PLAN.md
-last_updated: "2026-10-01T05:33:47.030Z"
+stopped_at: Completed 05-05-PLAN.md
+last_updated: "2026-10-01T06:18:10.935Z"
 last_activity: 2026-09-30
 last_activity_desc: Phase 05 plan 01 executed (tag tiering, hot window, build-time tier facts)
 progress:
   total_phases: 5
   completed_phases: 4
   total_plans: 64
-  completed_plans: 56
+  completed_plans: 57
 ---
 
 # Project State
@@ -28,11 +28,11 @@ See: .planning/PROJECT.md (updated 2026-09-16)
 ## Current Position
 
 Phase: 05 (Hybrid Archive & Zero-Reads Proof) — EXECUTING
-Plan: 5 of 12
+Plan: 6 of 12
 Status: Ready to execute
 Last activity: 2026-09-30 — Phase 05 plan 01 executed (tag tiering, hot window, tier facts)
 
-Progress: [█████████░] 88%
+Progress: [█████████░] 89%
 
 ## Performance Metrics
 
@@ -105,6 +105,7 @@ Progress: [█████████░] 88%
 | Phase 05 P03 | ~35min | 3 tasks | 8 files |
 | Phase 05 P04 | ~75min | 3 tasks | 14 files |
 | Phase 05 P02 | 12min | 4 tasks | 11 files |
+| Phase 05 P05 | ~45min | 3 tasks | 36 files |
 
 ## Accumulated Context
 
@@ -247,6 +248,9 @@ Recent decisions affecting current work:
 - [Phase ?]: 05-02: live round trip against the real private 915tldr-archive bucket succeeded (put/head/get/delete/head-after-delete); bucket confirmed to have no public r2.dev URL and no custom domain.
 - [Phase ?]: 05-02: Task 4's TDD RED/GREEN discipline was not genuinely sequenced — r2-client.ts was already fully implemented in Task 3 (the tracer, which itself required a live-proved implementation), so Task 4's 26 tests passed immediately on first run. Disclosed, same pattern as 05-04.
 - [Phase ?]: 05-02: REND-07 is intentionally left Pending in REQUIREMENTS.md despite being listed in this plan's frontmatter requirements — this plan builds and live-proves the R2 WRITE INSTRUMENT (storage + credential + client), not the actual render-once-to-R2 step for real archived articles (that is 05-07's job). Marking it complete now would be premature, matching 05-04's own precedent for ARCH-01.
+- [Phase ?]: 05-05: Chosen bot filter is requestSource:eyeball AND verifiedBotCategory:"" AND userAgent token exclusions as a floor -- botScore/botScoreBucketBy10 are access-denied at query time on this Free-plan zone (no Bot Management), confirmed by a live query error, not assumed from the schema listing.
+- [Phase ?]: 05-05: The live derivation's long-tail finding -- 95% coverage of human article reads needs 234 days of article age, far beyond the 30-day measurement window -- is capped to 202 days by the 60,000-file post-Phase-6 budget. hot-window.json records both days:202 and uncappedDays:234/cappedByFileBudget:true. Flagged for owner review and for re-check before Phase 6 doubles the corpus.
+- [Phase ?]: 05-05: Tasks 1-2 (tracer + math) were implemented, tested and committed together in one commit rather than two separate TDD RED/GREEN cycles -- the live Cloudflare schema (query-time field access, GraphQL filter AND-array shape) had to be discovered via real probe queries before a meaningful test could be written, matching 05-04's own disclosed precedent.
 
 ### Pending Todos
 
@@ -289,6 +293,7 @@ Recent decisions affecting current work:
 - 04-07: production robots.txt behavior changes on next deploy -- v1's AI-crawler-blocking policy (Content-signal, GPTBot/ClaudeBot/CCBot/etc. Disallow) has never actually been served (v1's static public/robots.txt shadowed its own server route); v2 ships the intended policy, an owner-approved but real change to what's been crawlable. Also flagged: SEO-04 sitemap ordering-determinism unverified across two builds (@astrojs/sitemap documents no stable ordering guarantee) -- see 04-07-SUMMARY.md coverage D4.
 - **RESOLVED — Phase 4, 04-10 Task 2.** The owner chose option (a) and pushed `cc1b050` on 2026-09-30. Builds 3-4 ran on the real Workers Builds platform: Build 3 (flag-on, first toggle) was cold again as 04-09 already documented, 0/60,349 pages restored (expected); Build 4 (flag-on, no toggle) confirmed at least 34,871/~60,349 pages restored via `experimental.incrementalBuild` on a genuinely fresh Workers Builds container, wall time collapsing from 554s to 147s. **Verdict: `WB_REUSE_PROVEN`** — contradicts and supersedes 04-09's local `REUSE_WARM_ONLY` finding; likely explained by Workers Builds restoring both a dependencies cache and a build-output cache from the prior build, which 04-09's local fresh-clone simulation never fully reproduced. A new cost-relevant finding surfaced along the way: Build 3's deploy re-uploaded 60,355/60,355 assets (only 7 deduplicated), root-caused to `src/layouts/Base.astro` unconditionally printing `BUILD_HASH` in every page's footer — reported for 04-11, not fixed (Rule 4). The temporary `incrementalBuild=true` hardcode was reverted (`99795e3`) once both spike builds completed. See `04-10-SUMMARY.md` and `docs/phase-04/build-measurements.md` for full detail. 04-10 is complete.
 - STATE.md frontmatter current_phase was stale at 04 despite Phase 5 context/research/plan already existing on disk (05-CONTEXT.md, 05-RESEARCH.md, 12 PLAN.md files) — corrected to 05 during 05-01 execution; the body Current Position section had the same staleness and was corrected alongside it.
+- 05-05: Owner review needed (not a code blocker) -- the live hot-window derivation found a long-tail traffic pattern (95% coverage needs 234 days of article age, not the informally-expected ~30), capped to a 202-day launch cutoff by the 60,000-file post-Phase-6 budget. See docs/phase-05/hot-window-derivation.md's cap-arithmetic table and coverage item D6 in 05-05-SUMMARY.md.
 
 ## Deferred Items
 
@@ -300,6 +305,6 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-10-01T05:33:22.742Z
-Stopped at: Completed 05-02-PLAN.md
+Last session: 2026-10-01T06:18:10.915Z
+Stopped at: Completed 05-05-PLAN.md
 Resume file: None
