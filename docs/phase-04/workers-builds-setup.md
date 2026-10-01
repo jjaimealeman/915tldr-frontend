@@ -83,6 +83,10 @@ KV):
    Workers Builds at it, if Workers Builds' injected token cannot be edited directly) to add
    the missing permission, then re-run a build to confirm the loader no longer throws a
    permission-denied error.
+4. Do **not** broaden the token beyond what the build needs: Workers deploy, D1 Read and
+   Workers KV Storage Edit (T-04-41). This repo is public and every build runs with this token,
+   so any extra scope (D1 Edit on other databases, DNS, account settings) is exposure with no
+   benefit. If the token already carries more, narrow it.
 
 This mirrors the exact gap Phase 3 (03-01 Task 2) found and fixed for the owner's own local
 `CLOUDFLARE_API_TOKEN` — Workers Builds' injected token is a **separate** credential and must be
