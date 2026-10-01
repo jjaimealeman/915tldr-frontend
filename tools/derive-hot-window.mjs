@@ -236,16 +236,24 @@ export function pickCutoffDays(histogram, target) {
   return entries[entries.length - 1][0];
 }
 
-/** For each target in `targets`, the chosen `days` (via `pickCutoffDays`) and the coverage
- * actually achieved at that cutoff (>= target, since `pickCutoffDays` is inclusive). */
-export function coverageCurve(histogram, targets = [0.8, 0.9, 0.95, 0.99]) {
+/** The actual share of `histogram`'s total with age `<= days` — the coverage a given cutoff
+ * REALLY achieves, independent of whatever target picked that cutoff in the first place. Used to
+ * recompute `achievedCoverage` after `applyStaticCap` has possibly lowered the chosen cutoff — a
+ * cap-lowered N almost always covers LESS than the original target, and the record must say so,
+ * not repeat the pre-cap figure under a post-cap label. */
+export function coverageAtDays(histogram, days) {
   const entries = sortedHistogramEntries(histogram);
   const total = entries.reduce((sum, [, count]) => sum + count, 0);
   if (total === 0) fail('no matched human article requests');
+  return entries.reduce((sum, [age, count]) => (age <= days ? sum + count : sum), 0) / total;
+}
+
+/** For each target in `targets`, the chosen `days` (via `pickCutoffDays`) and the coverage
+ * actually achieved at that cutoff (>= target, since `pickCutoffDays` is inclusive). */
+export function coverageCurve(histogram, targets = [0.8, 0.9, 0.95, 0.99]) {
   return targets.map((target) => {
     const days = pickCutoffDays(histogram, target);
-    const achieved = entries.reduce((sum, [age, count]) => (age <= days ? sum + count : sum), 0) / total;
-    return { target, days, achievedCoverage: achieved };
+    return { target, days, achievedCoverage: coverageAtDays(histogram, days) };
   });
 }
 
@@ -432,7 +440,11 @@ export async function deriveHotWindow({
 
   const chosenDays = pickCutoffDays(histogram, coverage);
   const curve = coverageCurve(histogram, [0.8, 0.9, 0.95, 0.99]);
-  const achievedCoverage = curve.find((c) => c.target === coverage)?.achievedCoverage ?? coverage;
+  // Coverage at the UNCAPPED cutoff — what `coverage` alone would have achieved before any
+  // file-budget reduction. This is NOT the final `achievedCoverage` once `applyStaticCap` lowers
+  // the day count below; it's kept separately (`uncappedCoverage`) so the record never reports a
+  // pre-cap coverage figure under the post-cap `days` value.
+  const uncappedCoverage = coverageAtDays(histogram, chosenDays);
 
   const capResult = applyStaticCap(
     chosenDays,
@@ -446,6 +458,11 @@ export async function deriveHotWindow({
       }),
     staticCap
   );
+
+  // `achievedCoverage` MUST describe what `capResult.days` (the days value actually shipped in
+  // this record) covers — recomputed here, not reused from the uncapped cutoff above. When
+  // `capResult.capped` is false the two are identical (capResult.days === chosenDays).
+  const achievedCoverage = coverageAtDays(histogram, capResult.days);
 
   const topArticles = [...perArticle.entries()]
     .map(([uuid, entry]) => ({
@@ -473,6 +490,7 @@ export async function deriveHotWindow({
     derivedAt: new Date(now).toISOString(),
     cappedByFileBudget: capResult.capped,
     uncappedDays: capResult.uncappedDays,
+    uncappedCoverage,
     botFilter:
       'requestSource:eyeball AND verifiedBotCategory:"" AND userAgent NOT LIKE bot/crawl/spider/slurp/' +
       'facebookexternalhit/preview/monitor/headless (case variants) — botScore/botScoreBucketBy10 are ' +
