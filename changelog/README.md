@@ -10,6 +10,7 @@ Entries are named `YYYY-MM-DD-HHMM_slug.md` and grouped by month, newest first.
 
 | Date | Entry | Keywords |
 |------|-------|----------|
+| 2026-09-30 | [Archived tags, HEAD, 503 handling and Server-Timing for the archive branch](2026-09-30-2249_archive-tag-serving-head-503-server-timing.md) | `[BACKEND]` `[ARCHITECTURE]` `[TESTING]` `[SECURITY]` |
 | 2026-09-30 | [Archived articles now served from R2 on a canonical-path miss (tracer)](2026-09-30-2243_archive-article-serving-r2-tracer.md) | `[BACKEND]` `[ARCHITECTURE]` `[TESTING]` `[CONFIG]` |
 | 2026-09-30 | [Phase 4 UAT 3 passes: one ingest cycle, one production build](2026-09-30-2240_phase-4-uat-3-production-rebuild-trigger-pass.md) | `[DOCS]` `[TESTING]` `[DEPLOY]` |
 | 2026-09-30 | [Plan 05-01 complete: tag tiering, hot window and tier facts](2026-09-30-2236_05-01-complete-tag-tiering-hot-window-and-tier-fac.md) | `[DOCUMENTATION]` `[PLANNING]` `[ARCHITECTURE]` |
