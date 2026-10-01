@@ -2,6 +2,12 @@
 // `.astro/tier-facts-tags.json`) match the built pages end to end, and that
 // `tools/tier-report.mjs` classifies them correctly. Dist-based — skips cleanly when dist/client
 // or the facts are absent, same skip pattern as tests/unit/listing-pages.test.mjs.
+//
+// 05-06 (Task 3): every cross-check below now applies the "static or archived" rule — a fact's
+// page may legitimately live under dist/client (hot tier) OR have been moved to dist/archive by
+// tools/partition-archive.mjs (archive tier, named by dist/archive-plan.json). Both the "built"
+// uuid set and the per-fact existence check now look in both places, so partitioning an
+// archive-tier article out of dist/client is never mistaken for a missing/orphaned fact.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';
@@ -12,6 +18,7 @@ import { UUID_RE, TAG_SLUG_RE } from '../../src/lib/article-url.ts';
 
 const REPO_ROOT = path.resolve(import.meta.dirname, '../..');
 const DIST_CLIENT = path.join(REPO_ROOT, 'dist', 'client');
+const ARCHIVE_PLAN_PATH = path.join(REPO_ROOT, 'dist', 'archive-plan.json');
 const ARTICLE_FACTS_ABS = path.join(REPO_ROOT, ARTICLE_FACTS_PATH);
 const TAG_FACTS_ABS = path.join(REPO_ROOT, TAG_FACTS_PATH);
 const DIST_BUILT = existsSync(DIST_CLIENT) && existsSync(ARTICLE_FACTS_ABS) && existsSync(TAG_FACTS_ABS);
@@ -20,6 +27,8 @@ const SKIP_REASON =
 
 const ARTICLE_FILE_RE =
   /^(.+)-([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12})\.html$/;
+const ARCHIVED_ARTICLE_KEY_RE =
+  /^articles\/([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12})\.html$/;
 
 /** Every article HTML file under a category directory (`dist/client/<category>/<slug>-<uuid>.html`). */
 function findArticleHtmlFiles(dir) {
@@ -37,13 +46,46 @@ function findArticleHtmlFiles(dir) {
   return found;
 }
 
+/** Reads `dist/archive-plan.json` if present (a build with nothing archived, or a stale
+ * pre-05-06 dist/, both legitimately have none) — returns `{ entries: [] }` otherwise, never
+ * throws, so every cross-check below degrades to "archived set is empty" rather than failing to
+ * even read the plan. */
+function loadArchivePlan() {
+  if (!existsSync(ARCHIVE_PLAN_PATH)) return { entries: [] };
+  return JSON.parse(readFileSync(ARCHIVE_PLAN_PATH, 'utf8'));
+}
+
+/** The set of uuids named by every archived ARTICLE entry in the plan (parsed from the entry's
+ * own `key`, e.g. `articles/<uuid>.html` — the plan's own contract, not re-derived from a fact). */
+function archivedArticleUuids(plan) {
+  const uuids = new Set();
+  for (const entry of plan.entries) {
+    if (entry.kind !== 'article') continue;
+    const match = ARCHIVED_ARTICLE_KEY_RE.exec(entry.key);
+    if (match) uuids.add(match[1].toLowerCase());
+  }
+  return uuids;
+}
+
+/** The set of canonical paths named by every archived ARTICLE entry in the plan — used by the
+ * "every fact path maps to an existing page" cross-check's archived branch. */
+function archivedArticlePaths(plan) {
+  return new Set(plan.entries.filter((e) => e.kind === 'article').map((e) => e.path));
+}
+
 test(
-  'tier-facts: one article fact per built article html file, each with a valid uuid/path/publishedAt',
+  'tier-facts: one article fact per built article html file (static dist/client + archived dist/archive-plan.json entries combined)',
   { skip: !DIST_BUILT && SKIP_REASON },
   () => {
     const { articles } = readTierFacts();
-    const articleFiles = findArticleHtmlFiles(DIST_CLIENT);
-    assert.equal(articles.length, articleFiles.length, 'expected one article fact per built article html file');
+    const staticFiles = findArticleHtmlFiles(DIST_CLIENT);
+    const plan = loadArchivePlan();
+    const archivedCount = plan.entries.filter((e) => e.kind === 'article').length;
+    assert.equal(
+      articles.length,
+      staticFiles.length + archivedCount,
+      'expected one article fact per built article html file, whether it stayed static or was archived'
+    );
 
     for (const fact of articles) {
       assert.match(fact.uuid, UUID_RE);
@@ -97,19 +139,27 @@ test(
 // ---------------------------------------------------------------------------
 
 test(
-  'tier-facts: every article fact path maps to an existing dist/client<path>.html file',
+  'tier-facts: every article fact path maps to an existing dist/client<path>.html file, or to the archived file named by dist/archive-plan.json for that path',
   { skip: !DIST_BUILT && SKIP_REASON },
   () => {
     const { articles } = readTierFacts();
+    const plan = loadArchivePlan();
+    const archivedPaths = archivedArticlePaths(plan);
+
     for (const fact of articles) {
       const htmlPath = path.join(DIST_CLIENT, `${fact.path}.html`);
-      assert.ok(existsSync(htmlPath), `expected ${htmlPath} to exist for fact path ${fact.path}`);
+      const isStatic = existsSync(htmlPath);
+      const isArchived = archivedPaths.has(fact.path);
+      assert.ok(
+        isStatic || isArchived,
+        `expected ${fact.path} to map to an existing static file (${htmlPath}) or an archive-plan entry`
+      );
     }
   }
 );
 
 test(
-  'tier-facts: the set of fact uuids equals the set of uuids parsed from built article file names',
+  'tier-facts: the set of fact uuids equals the set of uuids parsed from built article file names (static dist/client union archived dist/archive-plan.json entries)',
   { skip: !DIST_BUILT && SKIP_REASON },
   () => {
     const { articles } = readTierFacts();
@@ -121,13 +171,15 @@ test(
       assert.ok(match, `expected ${filePath} to match the article file name pattern`);
       builtUuids.add(match[2].toLowerCase());
     }
+    const plan = loadArchivePlan();
+    for (const uuid of archivedArticleUuids(plan)) builtUuids.add(uuid);
 
     assert.equal(factUuids.size, builtUuids.size, 'expected the same number of unique uuids on both sides');
     for (const uuid of factUuids) {
-      assert.ok(builtUuids.has(uuid), `fact uuid ${uuid} has no matching built article file`);
+      assert.ok(builtUuids.has(uuid), `fact uuid ${uuid} has no matching built or archived article file`);
     }
     for (const uuid of builtUuids) {
-      assert.ok(factUuids.has(uuid), `built article file uuid ${uuid} has no matching fact`);
+      assert.ok(factUuids.has(uuid), `built/archived article file uuid ${uuid} has no matching fact`);
     }
   }
 );
