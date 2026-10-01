@@ -10,6 +10,8 @@ Entries are named `YYYY-MM-DD-HHMM_slug.md` and grouped by month, newest first.
 
 | Date | Entry | Keywords |
 |------|-------|----------|
+| 2026-09-30 | [Rewrote an auto-generated changelog placeholder with a real entry](2026-09-30-2259_fix-auto-generated-changelog-placeholder.md) | `[DOCUMENTATION]` `[CONFIG]` |
+| 2026-09-30 | [Plan 05-03 complete: archive-serving Worker (R2) documented and marked done](2026-09-30-2258_05-03-complete-archive-serving-worker-plan.md) | `[DOCUMENTATION]` `[PLANNING]` `[ARCHITECTURE]` |
 | 2026-09-30 | [Edge cache for archived GETs, proven through the real wrangler bundle](2026-09-30-2255_archive-edge-cache.md) | `[BACKEND]` `[ARCHITECTURE]` `[PERFORMANCE]` `[TESTING]` |
 | 2026-09-30 | [Archived tags, HEAD, 503 handling and Server-Timing for the archive branch](2026-09-30-2249_archive-tag-serving-head-503-server-timing.md) | `[BACKEND]` `[ARCHITECTURE]` `[TESTING]` `[SECURITY]` |
 | 2026-09-30 | [Archived articles now served from R2 on a canonical-path miss (tracer)](2026-09-30-2243_archive-article-serving-r2-tracer.md) | `[BACKEND]` `[ARCHITECTURE]` `[TESTING]` `[CONFIG]` |
