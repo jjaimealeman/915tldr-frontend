@@ -13,6 +13,7 @@ import {
   summarizeBaseline,
   detectionFloor,
   fetchD1RowsRead,
+  checkD1AnalyticsCaughtUp,
   parseDeployedBindings,
   fetchDeployedBindings,
   buildRequestMix,
@@ -195,6 +196,47 @@ test('fetchD1RowsRead: the query filters on PRODUCTION_D1_DATABASE_ID and no oth
   );
   assert.equal(queryBody.variables.databaseId, PRODUCTION_D1_DATABASE_ID);
   assert.equal(PRODUCTION_D1_DATABASE_ID, '552ba1d1-024a-4dee-bdaa-3ffd4bdb1f77');
+});
+
+// ---------------------------------------------------------------------------
+// checkD1AnalyticsCaughtUp — the live analytics-freshness poll (05-12 fix)
+// ---------------------------------------------------------------------------
+
+test('checkD1AnalyticsCaughtUp: true when at least one data point exists at or after the given instant', async () => {
+  let queryBody;
+  const fetchImpl = async (url, opts) => {
+    queryBody = JSON.parse(opts.body);
+    return jsonResponse({
+      data: {
+        viewer: {
+          accounts: [
+            {
+              d1AnalyticsAdaptiveGroups: [
+                { dimensions: { datetimeFiveMinutes: '2026-09-30T05:15:00Z' } },
+              ],
+            },
+          ],
+        },
+      },
+    });
+  };
+  const caughtUp = await checkD1AnalyticsCaughtUp('2026-09-30T05:15:00.000Z', {
+    fetchImpl,
+    env: { CLOUDFLARE_API_TOKEN: 'tok', CLOUDFLARE_ACCOUNT_ID: 'acct' },
+  });
+  assert.equal(caughtUp, true);
+  assert.equal(queryBody.variables.databaseId, PRODUCTION_D1_DATABASE_ID);
+  assert.equal(queryBody.variables.at, '2026-09-30T05:15:00.000Z');
+});
+
+test('checkD1AnalyticsCaughtUp: false when no data point exists yet at or after the given instant', async () => {
+  const fetchImpl = async () =>
+    jsonResponse({ data: { viewer: { accounts: [{ d1AnalyticsAdaptiveGroups: [] }] } } });
+  const caughtUp = await checkD1AnalyticsCaughtUp('2026-09-30T05:15:00.000Z', {
+    fetchImpl,
+    env: { CLOUDFLARE_API_TOKEN: 'tok', CLOUDFLARE_ACCOUNT_ID: 'acct' },
+  });
+  assert.equal(caughtUp, false);
 });
 
 // ---------------------------------------------------------------------------
@@ -655,4 +697,132 @@ test('runLoadTest: baseline-only mode throws when a window measures zero total r
       }),
     /zero total rowsRead/
   );
+});
+
+// ---------------------------------------------------------------------------
+// runLoadTest — full (non-baseline) pass: the live analytics-catch-up default (05-12 fix)
+// ---------------------------------------------------------------------------
+
+function fullPassFetchImpl({ archivedServerTiming = true, caughtUpOnFirstPoll = true, rowsReadTotal = 500000 } = {}) {
+  let catchUpCalls = 0;
+  const fetchImpl = async (url, opts) => {
+    // Preflight + paced pass: plain GETs against the base URL, no JSON body.
+    if (!opts?.body) {
+      const archived = url.includes('/crime/archived-') || url.startsWith('https://dev.915tldr.com/tag/archived-');
+      return {
+        status: 200,
+        headers: { get: (name) => (name === 'server-timing' ? (archived && archivedServerTiming ? 'archive;desc=r2' : null) : null) },
+      };
+    }
+    const body = JSON.parse(opts.body);
+    // Introspection (shared by fetchD1RowsRead).
+    if (body.variables?.name) {
+      return jsonResponse({
+        data: {
+          __type: {
+            fields:
+              body.variables.name === 'AccountD1AnalyticsAdaptiveGroupsSum'
+                ? [{ name: 'rowsRead' }]
+                : [{ name: 'datetimeFiveMinutes' }],
+          },
+        },
+      });
+    }
+    // checkD1AnalyticsCaughtUp: has `at`, not `start`/`end`.
+    if (body.variables?.at && !body.variables?.start) {
+      catchUpCalls += 1;
+      const caughtUp = caughtUpOnFirstPoll || catchUpCalls > 1;
+      return jsonResponse({
+        data: {
+          viewer: {
+            accounts: [
+              { d1AnalyticsAdaptiveGroups: caughtUp ? [{ dimensions: { datetimeFiveMinutes: body.variables.at } }] : [] },
+            ],
+          },
+        },
+      });
+    }
+    // fetchD1RowsRead (load window + 7 baseline windows).
+    if (body.variables?.start) {
+      return jsonResponse({ data: { viewer: { accounts: [{ d1AnalyticsAdaptiveGroups: [{ sum: { rowsRead: rowsReadTotal } }] }] } } });
+    }
+    // deployed-bindings REST call (no GraphQL body shape at all — reached via the `!opts?.body`
+    // branch above in practice, so this is unreachable, kept only as a safety fallback).
+    return jsonResponse({ success: true, result: { bindings: [{ type: 'assets' }, { type: 'kv_namespace' }] } });
+  };
+  // fetchDeployedBindings calls a REST endpoint (no body at all) — give it its own branch ahead of
+  // the plain-GET preflight/pass branch by checking the URL shape first.
+  return async (url, opts) => {
+    if (url.includes('/workers/scripts/')) {
+      return jsonResponse({ success: true, result: { bindings: [{ type: 'assets' }, { type: 'kv_namespace' }] } });
+    }
+    return fetchImpl(url, opts);
+  };
+}
+
+test('runLoadTest: full pass — with no deps.checkCaughtUp supplied, defaults to a LIVE checkD1AnalyticsCaughtUp poll (not an unconditional true)', async () => {
+  let catchUpQueried = false;
+  const baseFetch = fullPassFetchImpl({ caughtUpOnFirstPoll: true });
+  const fetchImpl = async (url, opts) => {
+    if (opts?.body) {
+      const body = JSON.parse(opts.body);
+      if (body.variables?.at && !body.variables?.start) catchUpQueried = true;
+    }
+    return baseFetch(url, opts);
+  };
+
+  const { exitCode, result } = await runLoadTest({
+    requests: 4,
+    requestMixInput: mixInputFixture(),
+    deps: {
+      fetchImpl,
+      env: { CLOUDFLARE_API_TOKEN: 'tok', CLOUDFLARE_ACCOUNT_ID: 'acct' },
+      sleep: async () => {},
+      now: (() => {
+        const times = ['2026-09-30T05:25:00.000Z', '2026-09-30T05:25:00.050Z'];
+        let i = 0;
+        return () => new Date(times[Math.min(i++, times.length - 1)]);
+      })(),
+    },
+  });
+
+  assert.equal(catchUpQueried, true, 'the live default must perform a real checkD1AnalyticsCaughtUp query');
+  assert.notEqual(result.rule, 'analytics-not-caught-up');
+  assert.ok(exitCode === 0 || exitCode === 2, `expected a judged verdict, got exitCode=${exitCode} rule=${result.rule}`);
+});
+
+test('runLoadTest: full pass — gives up and reports analytics-not-caught-up after the capped wait when the live poll never succeeds', async () => {
+  const fetchImpl = fullPassFetchImpl({ caughtUpOnFirstPoll: false });
+  // caughtUpOnFirstPoll:false plus catchUpCalls > 1 never becoming true in fullPassFetchImpl's
+  // closure (it only flips true on a second call) would falsely succeed on retry #2 — override
+  // with a fetchImpl variant that NEVER returns a data point, to genuinely exercise the
+  // max-wait-exceeded path.
+  const neverCaughtUp = async (url, opts) => {
+    if (opts?.body) {
+      const body = JSON.parse(opts.body);
+      if (body.variables?.at && !body.variables?.start) {
+        return jsonResponse({ data: { viewer: { accounts: [{ d1AnalyticsAdaptiveGroups: [] }] } } });
+      }
+    }
+    return fetchImpl(url, opts);
+  };
+
+  const { exitCode, result } = await runLoadTest({
+    requests: 4,
+    requestMixInput: mixInputFixture(),
+    deps: {
+      fetchImpl: neverCaughtUp,
+      env: { CLOUDFLARE_API_TOKEN: 'tok', CLOUDFLARE_ACCOUNT_ID: 'acct' },
+      sleep: async () => {}, // no-op — the 15 capped retries run instantly in this test
+      now: (() => {
+        const times = ['2026-09-30T05:25:00.000Z', '2026-09-30T05:25:00.050Z'];
+        let i = 0;
+        return () => new Date(times[Math.min(i++, times.length - 1)]);
+      })(),
+    },
+  });
+
+  assert.equal(exitCode, 3);
+  assert.match(result.rule, /^analytics-not-caught-up:/);
+  assert.equal(result.loadRowsRead, null);
 });

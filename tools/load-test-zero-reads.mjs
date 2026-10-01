@@ -171,6 +171,36 @@ export async function fetchD1RowsRead(window, deps = {}) {
   return groups.reduce((sum, g) => sum + (g?.sum?.rowsRead ?? 0), 0);
 }
 
+/**
+ * Reports whether D1 analytics for `PRODUCTION_D1_DATABASE_ID` already has a data point at or
+ * after `atIso` — the live signal the `analytics-not-caught-up` validity rule polls on
+ * (docs/phase-05/zero-reads-gate.md). A single-row, open-ended `datetimeFiveMinutes_geq` filter
+ * (no upper bound) is cheap and sufficient: any returned group proves the dataset has ingested at
+ * least one 5-minute bucket at or after the load window's own end.
+ */
+export async function checkD1AnalyticsCaughtUp(atIso, deps = {}) {
+  const { fetchImpl = fetch, env = process.env } = deps;
+  const accountId = requireEnv(env, 'CLOUDFLARE_ACCOUNT_ID');
+  const query = `query($accountTag: string!, $databaseId: string!, $at: Time!) {
+    viewer {
+      accounts(filter: { accountTag: $accountTag }) {
+        d1AnalyticsAdaptiveGroups(
+          limit: 1
+          filter: { databaseId: $databaseId, datetimeFiveMinutes_geq: $at }
+        ) {
+          dimensions { datetimeFiveMinutes }
+        }
+      }
+    }
+  }`;
+  const data = await queryCloudflareGraphql(
+    { query, variables: { accountTag: accountId, databaseId: PRODUCTION_D1_DATABASE_ID, at: atIso } },
+    { fetchImpl, env }
+  );
+  const groups = data?.viewer?.accounts?.[0]?.d1AnalyticsAdaptiveGroups ?? [];
+  return groups.length > 0;
+}
+
 // ---------------------------------------------------------------------------
 // Deployed-binding check (leg 1b)
 // ---------------------------------------------------------------------------
@@ -700,9 +730,15 @@ export async function runLoadTest(opts = {}) {
   // Wait for analytics to catch up to the window end (injectable sleep; capped wait).
   let analyticsNotCaughtUp = false;
   let waited = 0;
-  // A caller-supplied `checkCaughtUp` lets tests avoid a real polling loop entirely; the live CLI
-  // path always polls (see main()).
-  const checkCaughtUp = deps.checkCaughtUp ?? (async () => true);
+  // A caller-supplied `checkCaughtUp` lets tests drive this loop with a fake signal. When none is
+  // supplied — the live CLI path, since `main()` never passes `deps` — this defaults to a REAL
+  // live poll (`checkD1AnalyticsCaughtUp` against `windowEnd`), not an unconditional `true`. Fixed
+  // 2026-10-01 (05-12): the prior unconditional-`true` default meant the documented "analytics
+  // catch-up wait" was dead code on every real `node tools/load-test-zero-reads.mjs` invocation —
+  // `loadRowsRead` was fetched immediately after the pass ended, with no live confirmation the
+  // dataset had actually ingested that window yet, risking an undercounted (falsely low) PASS.
+  const checkCaughtUp =
+    deps.checkCaughtUp ?? (() => checkD1AnalyticsCaughtUp(windowEnd.toISOString(), resolvedDeps));
   // eslint-disable-next-line no-constant-condition
   while (true) {
     const caughtUp = await checkCaughtUp();

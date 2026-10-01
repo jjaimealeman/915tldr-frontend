@@ -10,6 +10,7 @@ Entries are named `YYYY-MM-DD-HHMM_slug.md` and grouped by month, newest first.
 
 | Date | Entry | Keywords |
 |------|-------|----------|
+| 2026-10-01 | [Fix: zero-reads gate's analytics catch-up wait was dead code on the live CLI path](2026-10-01-1243_05-12-fix-dead-analytics-catchup-wait.md) | `[BUG_FIX]` `[TESTING]` `[PERFORMANCE]` `[CRITICAL]` |
 | 2026-10-01 | [Plan 05-10 complete: REND-12 forced full re-upload measured and verified](2026-10-01-1332_05-10-complete-rend-12-forced-full-reupload-plan.md) | `[DOCUMENTATION]` `[PLANNING]` `[ARCHITECTURE]` `[PERFORMANCE]` |
 | 2026-10-01 | [REND-12 verdict computed honestly: ARCHIVE_RERENDER_CONVERGES (today), Phase 6 flagged](2026-10-01-1245_05-10-rend-12-verdict-archive-rerender-converges.md) | `[DOCUMENTATION]` `[ARCHITECTURE]` `[PERFORMANCE]` `[DEPLOYMENT]` |
 | 2026-10-01 | [Forced full archive re-upload observed on the real production platform](2026-10-01-1230_05-10-forced-full-reupload-build-log-evidence.md) | `[DOCUMENTATION]` `[DEPLOYMENT]` `[INFRA]` |
