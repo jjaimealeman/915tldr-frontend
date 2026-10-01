@@ -10,6 +10,7 @@ Entries are named `YYYY-MM-DD-HHMM_slug.md` and grouped by month, newest first.
 
 | Date | Entry | Keywords |
 |------|-------|----------|
+| 2026-10-01 | [Deadline-aware task pool and the archive pre-sync tracer, proven live against R2](2026-10-01-0115_05-07-task1-run-pool-and-pre-sync-tracer.md) | `[BACKEND]` `[INFRA]` `[FEATURE]` `[TESTING]` `[SECURITY]` |
 | 2026-10-01 | [Plan 05-06 complete: archive-tier partition + 80,000-file build gate](2026-10-01-0058_05-06-complete-partition-archive-file-count-gate.md) | `[DOCUMENTATION]` `[PLANNING]` `[ARCHITECTURE]` `[TESTING]` |
 | 2026-10-01 | [Existing build-output tests and the byte-identity regression now cover both tiers](2026-10-01-0055_05-06-task3-existing-tests-cover-both-tiers.md) | `[TESTING]` `[BUG_FIX]` `[BACKEND]` |
 | 2026-10-01 | [Unit tests pinning the file-count gate boundaries and the partition's path safety](2026-10-01-0054_05-06-task2-partition-and-file-count-unit-tests.md) | `[TESTING]` `[BACKEND]` `[SECURITY]` |
