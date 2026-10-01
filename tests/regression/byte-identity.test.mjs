@@ -34,6 +34,13 @@
 // unrelated, separately-tracked footer-stamp finding recorded in
 // docs/phase-04/build-pipeline-decision.md's "Out of scope for this plan" section — this test
 // does not need to strip or account for that field.
+//
+// 05-06 (Task 3, REND-07): the regression now covers BOTH tiers. `tools/compare-builds.mjs`'s
+// `snapshot()` walks `dist/archive` as well as `dist/client` (prefixed `archive/`), and its
+// `isArticleFile` counts an archived article file the same as a static one — so an archive-tier
+// page that changed without a corresponding `changed=N` from the loader fails this test exactly
+// the same way a static one would. The bound below (`changedB * RAIL_FANOUT`) therefore applies
+// identically regardless of which tier a changed article page lives in.
 
 import { test } from 'node:test';
 import assert from 'node:assert/strict';

@@ -50,6 +50,13 @@ const FIXTURE_ID_MAP = {
   // `src/worker.ts` catches a transitive reach into the D1/KV chokepoint directory exactly like
   // any other entrypoint kind.
   'worker-with-kv-import.ts': 'src/worker.ts',
+  // T-05-08 (05-02) fixture: proves the same Worker-entrypoint coverage extends to
+  // `src/lib/server/r2-client.ts` — a module the guard was never specifically written for
+  // (r2-client.ts postdates the directory-wide T-03-02a fix), demonstrating the guard's
+  // whole-directory scope covers it automatically. Mapped to the same synthetic
+  // `src/worker.ts` id as `worker-with-kv-import.ts` above — safe because each scenario builds
+  // its own fresh module graph from its own seed file, never both at once.
+  'worker-with-r2-import.ts': 'src/worker.ts',
 };
 
 function idFor(absPath) {
@@ -320,6 +327,19 @@ test('Case 7 (T-04-26): a Worker-shaped fixture that reaches kv-manifest.ts tran
   const combined = messages.join('\n');
   assert.match(combined, /src\/worker\.ts/, 'message must name the violating Worker entrypoint');
   assert.match(combined, /kv-manifest\.ts/, 'message must name the forbidden module reached');
+  assert.match(
+    logs.join('\n'),
+    /entrypoints found: [1-9]/,
+    'non-vacuity: this fixture tree must match at least one entrypoint, not zero'
+  );
+});
+
+test('Case 9 (T-05-08): a Worker-shaped fixture that reaches r2-client.ts transitively through a helper is rejected', () => {
+  const { threw, messages, logs } = runScenario(['worker-with-r2-import.ts']);
+  assert.equal(threw, true, 'checker must reject a transitive reach into r2-client.ts');
+  const combined = messages.join('\n');
+  assert.match(combined, /src\/worker\.ts/, 'message must name the violating Worker entrypoint');
+  assert.match(combined, /r2-client\.ts/, 'message must name the forbidden module reached');
   assert.match(
     logs.join('\n'),
     /entrypoints found: [1-9]/,

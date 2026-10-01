@@ -17,6 +17,12 @@ import path from 'node:path';
 import { isKnownCategory } from '../src/lib/categories.ts';
 
 const DEFAULT_DIST_CLIENT = 'dist/client';
+// 05-06 (Task 3, REND-07): archive-tier pages move to dist/archive after astro build
+// (tools/partition-archive.mjs) — a byte-identity snapshot that only walked dist/client would
+// silently stop covering ~30,000 archived pages. Snapshotted under an `archive/` prefix so the
+// two trees' keys never collide with a same-named dist/client file.
+const DEFAULT_DIST_ARCHIVE = 'dist/archive';
+const ARCHIVE_SNAPSHOT_PREFIX = 'archive/';
 const DEFAULT_SNAPSHOT_DIR = '.astro/snapshots';
 const MAX_LISTED_CHANGED_ARTICLES = 20;
 
@@ -47,27 +53,44 @@ async function hashFile(filePath) {
 
 /**
  * Writes `.astro/snapshots/<name>.json`: `{ <relative path under dist/client>: sha256 }` for
- * every file in the build output. Returns `{ path, count }` for the caller to log.
+ * every file in the build output, PLUS (05-06) every file under `dist/archive`, keyed with an
+ * `archive/` prefix so it never collides with a dist/client path of the same shape. Returns
+ * `{ path, count }` for the caller to log — `count` covers both trees.
  */
-export async function snapshot(name, distDir = DEFAULT_DIST_CLIENT, snapshotDir = DEFAULT_SNAPSHOT_DIR) {
+export async function snapshot(
+  name,
+  distDir = DEFAULT_DIST_CLIENT,
+  snapshotDir = DEFAULT_SNAPSHOT_DIR,
+  archiveDir = DEFAULT_DIST_ARCHIVE
+) {
   const files = await walk(distDir);
+  const archiveFiles = await walk(archiveDir);
   const map = {};
   for (const relPath of files.sort()) {
     // eslint-disable-next-line no-await-in-loop
     map[relPath] = await hashFile(path.join(distDir, relPath));
   }
+  for (const relPath of archiveFiles.sort()) {
+    // eslint-disable-next-line no-await-in-loop
+    map[`${ARCHIVE_SNAPSHOT_PREFIX}${relPath}`] = await hashFile(path.join(archiveDir, relPath));
+  }
   await mkdir(snapshotDir, { recursive: true });
   const outPath = path.join(snapshotDir, `${name}.json`);
   await writeFile(outPath, JSON.stringify(map, null, 2));
-  return { path: outPath, count: files.length };
+  return { path: outPath, count: files.length + archiveFiles.length };
 }
 
 /**
  * An "article file" for this diff's purposes: `dist/client/<known-category-slug>/<file>.html` —
  * one path segment under a REAL category directory (not `tag/*.html`, `source/*.html`, or a
- * top-level category LISTING page like `crime.html`, which lives at depth 0, not depth 1).
+ * top-level category LISTING page like `crime.html`, which lives at depth 0, not depth 1) — OR
+ * (05-06) an archived article file, `archive/articles/<uuid>.html`, which this diff counts as an
+ * article too since it is the exact same rendered output, just relocated by the partition step.
  */
 function isArticleFile(relPath) {
+  if (relPath.startsWith(`${ARCHIVE_SNAPSHOT_PREFIX}articles/`) && relPath.endsWith('.html')) {
+    return true;
+  }
   const parts = relPath.split(path.sep);
   return parts.length === 2 && isKnownCategory(parts[0]) && parts[1].endsWith('.html');
 }

@@ -1,0 +1,353 @@
+{
+  "status": "derived",
+  "provisional": false,
+  "days": 202,
+  "basis": "request-age-coverage",
+  "decision": "D-07b",
+  "window": {
+    "from": "2026-09-01",
+    "to": "2026-09-30"
+  },
+  "coverageTarget": 0.95,
+  "achievedCoverage": 0.9266415483206132,
+  "articleRequestsCounted": 31053,
+  "derivedAt": "2026-10-01T06:25:17.022Z",
+  "cappedByFileBudget": true,
+  "uncappedDays": 234,
+  "uncappedCoverage": 0.9509870221878723,
+  "botFilter": "requestSource:eyeball AND verifiedBotCategory:\"\" AND userAgent NOT LIKE bot/crawl/spider/slurp/facebookexternalhit/preview/monitor/headless (case variants) — botScore/botScoreBucketBy10 are not accessible on this Free-plan zone (no Bot Management), confirmed by a live query error",
+  "botFilteredShare": 0.4855531488822592,
+  "unmatchedArticleRequests": 484,
+  "payloadRequests": 5591,
+  "anomalies": 0,
+  "tagRequestsTotal": 1491,
+  "tagRequestsStatic": 1474,
+  "tagRequestsArchive": 13,
+  "tagRequestsUnmatched": 4,
+  "coverageCurve": [
+    {
+      "target": 0.8,
+      "days": 83,
+      "achievedCoverage": 0.8034006376195537
+    },
+    {
+      "target": 0.9,
+      "days": 147,
+      "achievedCoverage": 0.9000740669178501
+    },
+    {
+      "target": 0.95,
+      "days": 234,
+      "achievedCoverage": 0.9509870221878723
+    },
+    {
+      "target": 0.99,
+      "days": 262,
+      "achievedCoverage": 0.9906611277493318
+    }
+  ],
+  "topArticles": [
+    {
+      "uuid": "c80a97f8-6981-4a23-9c3e-5416d8fe2754",
+      "path": "/education/canutillo-isd-approves-reduced-tax-rate-for-upcoming-school-year-c80a97f8-6981-4a23-9c3e-5416d8fe2754/",
+      "requests": 55,
+      "medianAgeDays": 3
+    },
+    {
+      "uuid": "e5bb3e8c-942a-43e2-8d8c-b33184d6b8dc",
+      "path": "/community/tragic-bus-fire-claims-life-on-60-freeway-near-los-angeles-e5bb3e8c-942a-43e2-8d8c-b33184d6b8dc",
+      "requests": 37,
+      "medianAgeDays": 21
+    },
+    {
+      "uuid": "61de174f-0dc9-4c1a-b79c-be82d3e75e07",
+      "path": "/crime/quick-arrest-made-in-juarez-car-dealership-arson-case-61de174f-0dc9-4c1a-b79c-be82d3e75e07",
+      "requests": 33,
+      "medianAgeDays": 19
+    },
+    {
+      "uuid": "e822c27e-b096-4cc3-a23c-1fc959d654c1",
+      "path": "/community/abused-puppy-maple-finds-new-home-amid-courtroom-advocacy-e822c27e-b096-4cc3-a23c-1fc959d654c1",
+      "requests": 32,
+      "medianAgeDays": 20.5
+    },
+    {
+      "uuid": "5427214d-d6d4-4d96-8e19-1bbb6770c16a",
+      "path": "/politics/dhs-claims-of-voter-fraud-in-nevada-raise-questions-amid-incomplete-data-5427214d-d6d4-4d96-8e19-1bbb6770c16a",
+      "requests": 32,
+      "medianAgeDays": 20.5
+    },
+    {
+      "uuid": "ff7b8d27-2523-4e53-8fb0-1a978edb66a7",
+      "path": "/business/walmart-introduces-contactless-payment-options-for-el-paso-shoppers-ff7b8d27-2523-4e53-8fb0-1a978edb66a7",
+      "requests": 31,
+      "medianAgeDays": 20
+    },
+    {
+      "uuid": "3e657bc9-f3ee-48f8-ad17-1f3e6f6e2500",
+      "path": "/community/la-union-maze-opens-for-27th-season-celebrating-new-mexico-agriculture-3e657bc9-f3ee-48f8-ad17-1f3e6f6e2500",
+      "requests": 31,
+      "medianAgeDays": 20
+    },
+    {
+      "uuid": "a1ed7740-c264-4eb9-b09d-a6458b5b421f",
+      "path": "/education/utep-anticipates-record-enrollment-and-fundraising-success-this-year-a1ed7740-c264-4eb9-b09d-a6458b5b421f",
+      "requests": 31,
+      "medianAgeDays": 20
+    },
+    {
+      "uuid": "56d6ec64-867d-4987-9257-59478e5da9c7",
+      "path": "/community/helping-kids-cope-with-back-to-school-stress-in-el-paso-56d6ec64-867d-4987-9257-59478e5da9c7",
+      "requests": 29,
+      "medianAgeDays": 18.5
+    },
+    {
+      "uuid": "57220c7c-eba8-48c8-9d96-eb489a13dfad",
+      "path": "/community/epkicks-announces-annual-5k-run-for-shoes-event-in-el-paso-57220c7c-eba8-48c8-9d96-eb489a13dfad",
+      "requests": 29,
+      "medianAgeDays": 19
+    },
+    {
+      "uuid": "a4738868-afe9-4b72-bdea-bb4edfc7ed29",
+      "path": "/crime/el-pasos-most-wanted-fugitives-week-of-august-21-2026-a4738868-afe9-4b72-bdea-bb4edfc7ed29",
+      "requests": 27,
+      "medianAgeDays": 18
+    },
+    {
+      "uuid": "020f4830-942d-4687-b542-1d64d0f68c07",
+      "path": "/education/5th-graders-at-charles-q-murphee-school-make-their-pledge-on-august-21-2026-020f4830-942d-4687-b542-1d64d0f68c07",
+      "requests": 27,
+      "medianAgeDays": 19
+    },
+    {
+      "uuid": "9513adb4-c64d-4a64-ac54-fd9fee0d1f9a",
+      "path": "/business/polymarket-flags-military-insider-trading-cases-for-doj-investigation-9513adb4-c64d-4a64-ac54-fd9fee0d1f9a",
+      "requests": 27,
+      "medianAgeDays": 20
+    },
+    {
+      "uuid": "ef2bf42f-ed90-4bc3-b493-539c4f0e96c3",
+      "path": "/community/flesh-eating-screwworm-threatens-to-enter-the-us-from-mexico-ef2bf42f-ed90-4bc3-b493-539c4f0e96c3",
+      "requests": 26,
+      "medianAgeDays": 136.5
+    },
+    {
+      "uuid": "a878b8cc-022b-4242-81c2-1763f39277a1",
+      "path": "/crime/lindsay-clancys-defense-concludes-in-high-profile-murder-trial-a878b8cc-022b-4242-81c2-1763f39277a1",
+      "requests": 26,
+      "medianAgeDays": 17.5
+    },
+    {
+      "uuid": "7ca5ae58-ca33-4f87-b928-3809561ee33f",
+      "path": "/community/local-news-update-featuring-brenda-lepenski-and-robert-bettes-7ca5ae58-ca33-4f87-b928-3809561ee33f",
+      "requests": 26,
+      "medianAgeDays": 18.5
+    },
+    {
+      "uuid": "4fdc5d4c-09c3-4c0d-87ce-7ff1c5225c98",
+      "path": "/crime/legal-team-prepares-for-action-after-grand-jury-clears-in-nolan-wells-case-4fdc5d4c-09c3-4c0d-87ce-7ff1c5225c98",
+      "requests": 26,
+      "medianAgeDays": 3
+    },
+    {
+      "uuid": "6511a542-d91b-4ab9-81a7-eab701d1b7e5",
+      "path": "/business/rising-bond-yields-signal-economic-concerns-for-el-paso-residents-6511a542-d91b-4ab9-81a7-eab701d1b7e5",
+      "requests": 25,
+      "medianAgeDays": 22
+    },
+    {
+      "uuid": "ff2d1f63-f604-4ddb-a0c2-e8d0a76ac953",
+      "path": "/community/controversy-arises-over-potential-renaming-of-navy-aircraft-carrier-to-trump-ff2d1f63-f604-4ddb-a0c2-e8d0a76ac953",
+      "requests": 25,
+      "medianAgeDays": 18
+    },
+    {
+      "uuid": "b35ce180-f567-4526-9aa5-2736100d228e",
+      "path": "/politics/rubn-rocha-moya-resumes-governorship-amid-us-drug-trafficking-allegations-b35ce180-f567-4526-9aa5-2736100d228e",
+      "requests": 25,
+      "medianAgeDays": 20
+    }
+  ],
+  "dayResults": [
+    {
+      "day": "2026-09-01",
+      "matchedArticleRequests": 1257,
+      "eyeballTotal": 8568,
+      "humanTotal": 5840
+    },
+    {
+      "day": "2026-09-02",
+      "matchedArticleRequests": 1901,
+      "eyeballTotal": 13753,
+      "humanTotal": 11024
+    },
+    {
+      "day": "2026-09-03",
+      "matchedArticleRequests": 2392,
+      "eyeballTotal": 8308,
+      "humanTotal": 5840
+    },
+    {
+      "day": "2026-09-04",
+      "matchedArticleRequests": 1677,
+      "eyeballTotal": 8755,
+      "humanTotal": 6445
+    },
+    {
+      "day": "2026-09-05",
+      "matchedArticleRequests": 2912,
+      "eyeballTotal": 11695,
+      "humanTotal": 6284
+    },
+    {
+      "day": "2026-09-06",
+      "matchedArticleRequests": 923,
+      "eyeballTotal": 7288,
+      "humanTotal": 5778
+    },
+    {
+      "day": "2026-09-07",
+      "matchedArticleRequests": 625,
+      "eyeballTotal": 5919,
+      "humanTotal": 4711
+    },
+    {
+      "day": "2026-09-08",
+      "matchedArticleRequests": 1161,
+      "eyeballTotal": 9288,
+      "humanTotal": 7205
+    },
+    {
+      "day": "2026-09-09",
+      "matchedArticleRequests": 1570,
+      "eyeballTotal": 10221,
+      "humanTotal": 8099
+    },
+    {
+      "day": "2026-09-10",
+      "matchedArticleRequests": 356,
+      "eyeballTotal": 3579,
+      "humanTotal": 2731
+    },
+    {
+      "day": "2026-09-11",
+      "matchedArticleRequests": 265,
+      "eyeballTotal": 9046,
+      "humanTotal": 5717
+    },
+    {
+      "day": "2026-09-12",
+      "matchedArticleRequests": 203,
+      "eyeballTotal": 6420,
+      "humanTotal": 3226
+    },
+    {
+      "day": "2026-09-13",
+      "matchedArticleRequests": 198,
+      "eyeballTotal": 7732,
+      "humanTotal": 4087
+    },
+    {
+      "day": "2026-09-14",
+      "matchedArticleRequests": 378,
+      "eyeballTotal": 5677,
+      "humanTotal": 3977
+    },
+    {
+      "day": "2026-09-15",
+      "matchedArticleRequests": 308,
+      "eyeballTotal": 12196,
+      "humanTotal": 5367
+    },
+    {
+      "day": "2026-09-16",
+      "matchedArticleRequests": 245,
+      "eyeballTotal": 14348,
+      "humanTotal": 4236
+    },
+    {
+      "day": "2026-09-17",
+      "matchedArticleRequests": 481,
+      "eyeballTotal": 12805,
+      "humanTotal": 4176
+    },
+    {
+      "day": "2026-09-18",
+      "matchedArticleRequests": 337,
+      "eyeballTotal": 15769,
+      "humanTotal": 6190
+    },
+    {
+      "day": "2026-09-19",
+      "matchedArticleRequests": 695,
+      "eyeballTotal": 22754,
+      "humanTotal": 3535
+    },
+    {
+      "day": "2026-09-20",
+      "matchedArticleRequests": 799,
+      "eyeballTotal": 12967,
+      "humanTotal": 8309
+    },
+    {
+      "day": "2026-09-21",
+      "matchedArticleRequests": 842,
+      "eyeballTotal": 15084,
+      "humanTotal": 10788
+    },
+    {
+      "day": "2026-09-22",
+      "matchedArticleRequests": 1051,
+      "eyeballTotal": 11389,
+      "humanTotal": 5979
+    },
+    {
+      "day": "2026-09-23",
+      "matchedArticleRequests": 1429,
+      "eyeballTotal": 16646,
+      "humanTotal": 10364
+    },
+    {
+      "day": "2026-09-24",
+      "matchedArticleRequests": 914,
+      "eyeballTotal": 10180,
+      "humanTotal": 5179
+    },
+    {
+      "day": "2026-09-25",
+      "matchedArticleRequests": 1148,
+      "eyeballTotal": 12967,
+      "humanTotal": 5613
+    },
+    {
+      "day": "2026-09-26",
+      "matchedArticleRequests": 1115,
+      "eyeballTotal": 14408,
+      "humanTotal": 4775
+    },
+    {
+      "day": "2026-09-27",
+      "matchedArticleRequests": 1131,
+      "eyeballTotal": 15991,
+      "humanTotal": 3708
+    },
+    {
+      "day": "2026-09-28",
+      "matchedArticleRequests": 1339,
+      "eyeballTotal": 16075,
+      "humanTotal": 5001
+    },
+    {
+      "day": "2026-09-29",
+      "matchedArticleRequests": 1860,
+      "eyeballTotal": 12274,
+      "humanTotal": 5907
+    },
+    {
+      "day": "2026-09-30",
+      "matchedArticleRequests": 1541,
+      "eyeballTotal": 10464,
+      "humanTotal": 6141
+    }
+  ]
+}

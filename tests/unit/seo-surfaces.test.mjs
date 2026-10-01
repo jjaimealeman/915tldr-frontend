@@ -4,6 +4,11 @@
 // direct-require check during this task) — regex extraction matching this suite's own established
 // style (tests/unit/structured-data.test.mjs, tests/unit/not-found.test.mjs).
 //
+// 05-06 (Task 3, REND-07): rss.xml's 30 most recent items are, same as 404-index.json, always
+// younger than the hot window's cutoff (202 days as of D-07b) by construction, so every link in
+// a real build is static today — the "static or archived" check below is defensive, the same
+// rule every other dist-output test in this plan applies.
+//
 // robots.txt: owner decision 2026-09-27 — production's live `https://915tldr.com/robots.txt` is
 // a fully permissive `User-Agent: *\nDisallow:` (v1's static `public/robots.txt` shadows its own
 // `server/routes/robots.txt.ts`, so the elaborate per-bot/AI-crawler policy has never actually
@@ -89,13 +94,24 @@ test('seo-surfaces: rss.xml has at most 30 items, and every link/guid answers a 
   const itemLinks = allLinks.slice(1);
   assert.equal(itemLinks.length, items.length, 'expected one <link> per item (after the channel link)');
 
+  const archivePlanPath = path.join(REPO_ROOT, 'dist', 'archive-plan.json');
+  const archivedPaths = new Set();
+  if (existsSync(archivePlanPath)) {
+    const plan = JSON.parse(readFileSync(archivePlanPath, 'utf8'));
+    for (const e of plan.entries) {
+      if (e.kind === 'article') archivedPaths.add(e.path);
+    }
+  }
+
   for (const link of itemLinks) {
     assert.match(link, /^https:\/\/915tldr\.com\//, `expected ${link} to start with the production origin`);
     assert.doesNotMatch(link, /\/$/, `expected ${link} to carry no trailing slash`);
     const relPath = link.replace('https://915tldr.com', '');
+    // Static or archived (05-06): a page this build produced may have been moved to
+    // dist/archive by tools/partition-archive.mjs.
     assert.ok(
-      distFileExists(`${relPath}.html`),
-      `expected ${link} to map to a page this build produced (dist/client${relPath}.html)`
+      distFileExists(`${relPath}.html`) || archivedPaths.has(relPath),
+      `expected ${link} to map to a page this build produced (dist/client${relPath}.html or an archive-plan entry)`
     );
   }
 

@@ -14,6 +14,7 @@ import ArticleCard from '../../components/ArticleCard.astro';
 import { articlePath, TAG_SLUG_RE } from '../../lib/article-url';
 import { groupByTag, TAG_PAGE_COUNT } from '../../lib/listing';
 import { breadcrumbNode } from '../../lib/structured-data';
+import { writeTagFacts } from '../../lib/archive/tier-facts';
 
 export async function getStaticPaths() {
   const entries = await getCollection('articles');
@@ -32,6 +33,12 @@ export async function getStaticPaths() {
   console.log(`tag pages: ${grouped.size} tags`);
   mkdirSync('.astro', { recursive: true });
   writeFileSync('.astro/tag-build-log.json', JSON.stringify({ tagCount: grouped.size }));
+
+  // 05-01 (Task 1): one tier fact per tag page, carrying the FULL article count (D-08 precision)
+  // — never `pageArticles.length`, which is capped at TAG_PAGE_COUNT.
+  writeTagFacts(
+    [...grouped.entries()].map(([slug, entry]) => ({ slug, count: entry.articles.length }))
+  );
 
   return [...grouped.entries()].map(([slug, entry]) => {
     if (!TAG_SLUG_RE.test(slug)) {

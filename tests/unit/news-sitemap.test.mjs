@@ -186,7 +186,7 @@ test('news-sitemap: sitemap-index.xml exists and references at least one child s
   assert.ok(childLocs.length >= 1, 'expected at least one child sitemap');
 });
 
-test('news-sitemap: across all sitemap children, URL count equals built HTML file count (minus 404.html), no trailing slashes except root, no /404', { skip: !DIST_BUILT && SKIP_REASON }, () => {
+test('news-sitemap: across all sitemap children, URL count equals built HTML file count plus archived page count (minus 404.html), no trailing slashes except root, no /404', { skip: !DIST_BUILT && SKIP_REASON }, () => {
   const indexXml = readDist('sitemap-index.xml');
   const childLocs = [...indexXml.matchAll(/<loc>(.*?)<\/loc>/g)].map((m) => m[1]);
 
@@ -198,8 +198,25 @@ test('news-sitemap: across all sitemap children, URL count equals built HTML fil
     allSitemapUrls.push(...urls);
   }
 
+  // 05-06: the sitemap plugin runs during `astro build`, BEFORE tools/partition-archive.mjs moves
+  // archive-tier article/tag pages out of dist/client — so every sitemap URL still names a page
+  // this build rendered, whether it ended up served as a static asset (dist/client) or from R2
+  // (dist/archive). "Static or archived" (same rule the other tests in this task apply): the
+  // expected count is the static HTML file count PLUS the archived page count from
+  // dist/archive-plan.json, not dist/client's file count alone.
+  const planPath = path.join(REPO_ROOT, 'dist', 'archive-plan.json');
+  let archivedPageCount = 0;
+  if (existsSync(planPath)) {
+    const plan = JSON.parse(readFileSync(planPath, 'utf8'));
+    archivedPageCount = (plan.counts?.archivedArticles ?? 0) + (plan.counts?.archivedTags ?? 0);
+  }
+
   const htmlFileCount = countHtmlFiles(DIST_CLIENT) - 1; // minus 404.html
-  assert.equal(allSitemapUrls.length, htmlFileCount, 'expected sitemap URL count to equal built HTML page count minus 404');
+  assert.equal(
+    allSitemapUrls.length,
+    htmlFileCount + archivedPageCount,
+    'expected sitemap URL count to equal built HTML page count (minus 404) plus archived page count'
+  );
 
   for (const url of allSitemapUrls) {
     const pathname = new URL(url).pathname;

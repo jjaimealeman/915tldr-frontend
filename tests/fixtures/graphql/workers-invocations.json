@@ -1,0 +1,28 @@
+{
+  "_comment": "Recorded shape of a workersInvocationsAdaptive response (tools/measure-worker-kv-cpu.mjs fetchWorkerInvocations), captured live against this account's deployed 915tldr-v2 Worker 2026-10-01 (24h trailing window). cpuTime fields are reported in MICROSECONDS, confirmed via the live schema's own field descriptions. No account identifier appears in this dataset's own response fields.",
+  "response": {
+    "data": {
+      "viewer": {
+        "accounts": [
+          {
+            "workersInvocationsAdaptive": [
+              {
+                "dimensions": { "scriptName": "915tldr-v2" },
+                "sum": { "requests": 94 },
+                "quantiles": { "cpuTimeP50": 830, "cpuTimeP99": 1883 },
+                "max": { "cpuTime": 1883 }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "errors": null
+  },
+  "group": {
+    "dimensions": { "scriptName": "915tldr-v2" },
+    "sum": { "requests": 94 },
+    "quantiles": { "cpuTimeP50": 830, "cpuTimeP99": 1883 },
+    "max": { "cpuTime": 1883 }
+  }
+}

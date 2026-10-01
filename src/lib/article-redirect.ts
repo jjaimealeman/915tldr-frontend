@@ -40,7 +40,10 @@ export function extractArticleUuid(pathname: string): string | null {
   return match[1].toLowerCase();
 }
 
-export type RedirectDecision = { type: 'redirect'; location: string } | { type: 'not-found' };
+export type RedirectDecision =
+  | { type: 'redirect'; location: string }
+  | { type: 'canonical'; articleId: string }
+  | { type: 'not-found' };
 
 /** The subset of the render-manifest entry shape (see the kv-manifest module in the D1/KV
  * chokepoint directory) this module reads. Declared locally, not imported from that module, since
@@ -70,9 +73,13 @@ interface RedirectManifestEntry {
  * `articlePath` always returns a same-origin path starting with `/<category-slug>/`; it can never
  * begin with `//` or carry a host, so this decision can never redirect off-origin.
  *
- * Loop guard: if `pathname` already equals the canonical path, returns `not-found` — the file at
- * that path is simply missing (the canonical page itself was never built, or was removed), and
- * redirecting a path to itself would be an infinite-redirect bug, not a fix.
+ * 05-03: if `pathname` already equals the canonical path, returns `{ type: 'canonical',
+ * articleId }` instead of `not-found` — a canonical-path static-asset miss no longer means "the
+ * page was never built or was removed" (04-06's assumption); it now also means "possibly
+ * archived" (REND-08). The Worker (`src/worker.ts`) uses the returned `articleId` (already
+ * validated and lowercased above) to derive the R2 archive key and try serving it before falling
+ * through to the static 404 page. This also closes the former infinite-redirect loop guard the
+ * same way: a canonical path is never redirected to itself.
  */
 export function resolveRedirect(pathname: string, entry: unknown): RedirectDecision {
   if (!entry || typeof entry !== 'object') return { type: 'not-found' };
@@ -99,7 +106,9 @@ export function resolveRedirect(pathname: string, entry: unknown): RedirectDecis
     return { type: 'not-found' };
   }
 
-  if (pathname === canonical) return { type: 'not-found' };
+  if (pathname === canonical) {
+    return { type: 'canonical', articleId: candidate.articleId.toLowerCase() };
+  }
 
   return { type: 'redirect', location: canonical };
 }

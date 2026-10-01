@@ -1,6 +1,13 @@
 // 04-06 Task 3: proves the built 404 page, its build-time suggestion index, and public/_redirects
 // against REAL built output under dist/client — following tests/unit/listing-pages.test.mjs's
 // established "assert on rendered output, skip if unbuilt" convention.
+//
+// 05-06 (Task 3, REND-07/REND-09): src/pages/404-index.json.ts indexes only the NEWEST
+// NOT_FOUND_INDEX_COUNT (500) articles, which are always younger than the hot window's cutoff
+// (202 days as of D-07b) by construction — so every entry in a real build is static, never
+// archived. The "static or archived" check below is defensive (the same rule every other
+// dist-output test in this plan applies, in case a future change to NOT_FOUND_INDEX_COUNT or the
+// hot window ever makes that no longer true), not a fix for an observed failure.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync, existsSync, statSync } from 'node:fs';
@@ -76,6 +83,15 @@ test('not-found: 404-index.json parses, has <= NOT_FOUND_INDEX_COUNT entries, is
   );
   assert.ok(index.length > 0, 'expected at least one entry (the corpus is non-empty)');
 
+  const archivePlanPath = path.join(REPO_ROOT, 'dist', 'archive-plan.json');
+  const archivedPaths = new Set();
+  if (existsSync(archivePlanPath)) {
+    const plan = JSON.parse(readFileSync(archivePlanPath, 'utf8'));
+    for (const e of plan.entries) {
+      if (e.kind === 'article') archivedPaths.add(e.path);
+    }
+  }
+
   for (const entry of index) {
     assert.equal(typeof entry.t, 'string');
     assert.ok(entry.t.length > 0, 'expected a non-empty title');
@@ -83,11 +99,14 @@ test('not-found: 404-index.json parses, has <= NOT_FOUND_INDEX_COUNT entries, is
     assert.ok(entry.p.startsWith('/'), `expected an absolute path, got ${entry.p}`);
 
     // Same-build consistency: every path in the index must exist in THIS build's own output —
-    // build.format: 'file' means /crime/slug-uuid maps to dist/client/crime/slug-uuid.html.
+    // build.format: 'file' means /crime/slug-uuid maps to dist/client/crime/slug-uuid.html, OR
+    // (05-06, static-or-archived rule) to the archived file named by dist/archive-plan.json.
     const expectedFile = path.join(DIST_CLIENT, `${entry.p}.html`);
+    const isStatic = existsSync(expectedFile) && statSync(expectedFile).isFile();
+    const isArchived = archivedPaths.has(entry.p);
     assert.ok(
-      existsSync(expectedFile) && statSync(expectedFile).isFile(),
-      `expected ${entry.p} to map to an existing built file (${expectedFile})`
+      isStatic || isArchived,
+      `expected ${entry.p} to map to an existing built file (${expectedFile}) or an archive-plan entry`
     );
   }
 });
