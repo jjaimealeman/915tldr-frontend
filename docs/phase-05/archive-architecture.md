@@ -304,52 +304,86 @@ cold archive hit; both reads sit in the same ~100-300ms band, and together (kv +
 per the Worker routing diagram above) a cold archived-article response's two-read tax is roughly
 250-300ms at the median, well inside the 1.5s LCP budget (ROADMAP criterion 2).
 
-**Convergence.** 05-08's own full-corpus dry run (hours before this real deploy) had already
-written all 30,478 entries of that build's plan into the real `915tldr-archive` bucket's index.
-This plan's own attempt to re-observe the real production build's own `ARCHIVE_SYNC_RESULT` lines
-hit an API permission gap (see "API access" below); as a cross-check, this session ran the
-project's own `tools/archive-sync.mjs` directly against the same production bucket (read-only
-inspection first, then `pre`/`post`, using the real `R2_ACCESS_KEY_ID`/`R2_SECRET_ACCESS_KEY`
-from `.dev.vars` — the identical credentials and tool the real deploy itself uses). Immediately
-after the deploy, the bucket's index held 30,475 of this session's local (hours-stale) 30,478-entry
-plan — 22 tag pages had changed content (touched by article ingestion between 05-08's dry run and
-this deploy) and 3 tag pages (`universidad`, `tennessee`, `unesco`) were not yet indexed against
-that local plan. A `post` run (after refreshing a stale local `.astro/ci-build-started-at` marker,
-which had initially caused a false "22 deferred" reading by computing elapsed time from a
-7.9-hour-old timestamp) re-synced the 22 changed tag pages cleanly: `uploaded: 22, failed: 0,
-deferred: 0, backlog: {count: 0, since: null}`. The 3 "new" tag uploads could not be confirmed by
-this measurement — their rendered HTML doesn't exist in this machine's hours-stale local
-`dist/archive` directory — but this is local staleness, not a production gap: the live
-`/static-budget.json` independently reports MORE archived tags (17,582) than this session's local
-plan snapshot knows about (17,566), meaning production's own corpus has already grown past what
-this machine's morning build captured. **Convergence verdict: the corpus converged within the one
-observed production build** — no second deploy was needed to reach a fully-synced state (backlog
-`0`, `lastConvergedAt` recorded) — consistent with 05-08's own prediction that this deploy would
-find close to zero new archive-tier work to do.
+**Convergence — now confirmed against the real build log, not just a cross-check.** The
+orchestrator pulled the real production build's log (`GET /accounts/{acct}/builds/builds/{uuid}/
+logs`, their own Cloudflare API access — this executor's token independently returned `403
+Forbidden`, see "API access" below) and the filtered archive/deploy lines are committed as
+evidence at [`docs/phase-05/evidence/first-prod-deploy/build-241c97e1-archive-lines.log`](./evidence/first-prod-deploy/build-241c97e1-archive-lines.log).
+The real lines:
 
-**REND-11 precision reconciliation.** `.assetsignore` does not exist in this repo, and
-`wrangler.jsonc`'s `assets.directory` (`dist/client`) carries no further exclusion rules — so for
-this project's current configuration, wrangler's uploaded-plus-already-present asset total is
-structurally guaranteed to **equal** (not merely "≥") `assert-file-count.mjs`'s own gate count,
-since both ultimately count the exact same directory with nothing filtered out in between. 05-08's
-own dry run already empirically confirmed this 1:1 match after fixing the second-run recount bug.
-**This session could not independently re-pull the real production build's own literal wrangler
-log line** (the exact "N uploaded / M already present" split) — see "API access" below. The live,
-independently-fetched gate output itself (`staticFileCount: 29966`, `status: "ok"`) is confirmed
-and is the authoritative number for this deploy; the missing piece is corroborating detail, not a
-contested figure.
+```
+[archive] partition: 12912 articles and 17582 tags archived; 27601 articles and 2328 tags static
+[archive] static files: 29966 / 100000 (fail at 80000)
+ARCHIVE_SYNC_RESULT {"phase":"pre","uploaded":19,"failed":0,"deferred":0,"movedBack":0,"deleted":0,"backlog":null,...}
+Current Version ID: 5d03fe4d-b763-4b18-bdc8-9d57a07e6741
+ARCHIVE_SYNC_RESULT {"phase":"post","uploaded":22,"failed":0,"deferred":0,"movedBack":0,"deleted":3,"backlog":{"count":0,"since":null},...}
+```
 
-**API access (disclosed gap).** The Cloudflare Workers Builds API
-(`GET /accounts/{account}/builds/workers/{tag}/builds`) returned `403 Forbidden` (error code
-`12004`) against both configured tokens (`CLOUDFLARE_API_TOKEN`, `CF_API_TOKEN`) this session —
-consistent with the checkpoint context's own note that "the Cloudflare builds MCP needs re-auth."
-The Workers Versions/Deployments API (a different, accessible endpoint — `wrangler deployments
-list`, `GET .../workers/scripts/{name}/versions/{id}`) was reachable with the same token and
-confirmed the deploy's existence and exact timing, but carries no asset-count or archive-sync-log
-field. **Recommendation:** re-grant the token's Workers Builds read scope before 05-10/05-12 if the
-literal per-build archive-sync/wrangler log lines are needed for those plans' own measurements;
-until then, this plan's live HTTP checks and the direct-against-the-bucket cross-check above are
-the load-bearing evidence, and all of them independently corroborate a healthy, converged deploy.
+This **resolves, with an exact explanation, the gap this section originally reported** (when this
+plan could only reach the bucket directly, not the build log):
+
+- **`pre` really uploaded 19 new-to-archive pages with 0 failures** — not the "3 new, 3 failed"
+  this session's own earlier local cross-check found. The real production `astro build` ran a
+  fresh pull against live D1 at `~15:13-15:16Z`, many hours after this executor's own local
+  `dist/archive-plan.json` (generated `07:56 MDT` the same morning); the extra 16 candidates (19
+  real vs. 3 local) are organic corpus drift from hours of ingestion in between, and the 3
+  "failures" this session originally reported were purely a local-dist-staleness artifact (those
+  3 tag pages' rendered HTML didn't exist in this machine's hours-old `dist/archive` — the real
+  build rendered and uploaded them, and 16 others, with zero failures).
+- **`post` really uploaded exactly 22 changed tag pages, 0 failures, `backlog: {count: 0, since:
+  null}`** — an exact match to this session's own earlier cross-check result
+  (`uploaded: 22, failed: 0, deferred: 0`), run ~20-25 minutes after the real build's own `post`
+  phase completed (`Current Version ID` logged at `15:23:07Z`; this session's manual rerun started
+  `~15:44Z`). The match is not a coincidence: this session's local plan (from `07:56Z`, the same
+  era as 05-08's original index population) and the real build's fresh plan disagreed with the
+  *already-fixed* index on the same 22 keys, for the same underlying reason (genuine content
+  drift since 05-08) — this session's manual `post` rerun then re-uploaded the same 22 keys a
+  second time, redundantly but harmlessly (merge-on-write, same bytes, no cost concern).
+- **`post` also deleted 3 vanished orphans** — a data point this session's own cross-check never
+  surfaced (that run only exercised `pre` and a second `post`, after the real orphans had already
+  been cleaned up).
+- **Partition/static-file counts match exactly**, independently, three ways: the real build log
+  (`29966`, `12912 articles + 17582 tags archived`), the live `/static-budget.json` fetched this
+  session, and `27601 + 2328 = 29929` (static articles+tags) + `37` other static pages (home,
+  category pages, static pages, sitemap files, `robots.txt`, `version.json`,
+  `static-budget.json` itself, etc.) `= 29966`. Zero drift between build-time count and what was
+  later served.
+
+**Convergence verdict (confirmed): the corpus converged within the one observed production
+build** — `pre` uploaded all 19 new-to-archive pages with 0 failures, `post` uploaded 22 changed
+pages and deleted 3 orphans with 0 failures and a `0` backlog, both phases logged directly from
+the real build container. No second deploy was needed.
+
+**REND-11 precision reconciliation — partially closed, one piece still missing.** `.assetsignore`
+does not exist in this repo, and `wrangler.jsonc`'s `assets.directory` (`dist/client`) carries no
+further exclusion rules — so wrangler's uploaded-plus-already-present asset total is structurally
+guaranteed to **equal** (not merely "≥") `assert-file-count.mjs`'s own gate count, since both
+ultimately count the exact same directory with nothing filtered out in between. The real build log
+now independently confirms the **gate's own count** (`29966`) was computed correctly at build time
+and matches the live-served figure with zero drift (see above). **What the must_haves text asks
+for beyond that — the literal wrangler log line showing its own uploaded-plus-already-present
+asset split (e.g., "N new / M already present")** — is **not present in the filtered excerpt
+provided**: the only deploy-adjacent lines in that excerpt are `Total Upload: 8.34 KiB / gzip:
+2.64 KiB` (the Worker *script* bundle size, unrelated to the 29,966 static assets) and generic
+timing/success lines (`Uploaded 915tldr-v2 (12.16 sec)`, `Deployed 915tldr-v2 triggers (1.71
+sec)`). If a literal per-asset wrangler count is wanted to close this specific sub-item, the full
+60,605-line log would need a further grep for patterns like `already uploaded`, `files from the
+assets directory`, or `Uploading` — not attempted here since this executor's own token cannot
+reach the Builds API at all. **Verdict: REND-11 left Pending** (see "Decisions Made" in the
+SUMMARY) — the requirement's plain-text bar (daily report + 100k alarm) is doubly proven now, but
+this plan's own stricter must_haves bar (the literal wrangler split) is not fully met.
+
+**API access (disclosed, now partially resolved).** This executor's own Cloudflare API tokens
+(`CLOUDFLARE_API_TOKEN`, `CF_API_TOKEN`) returned `403 Forbidden` (error code `12004`) against the
+Workers Builds API (`GET /accounts/{account}/builds/workers/{tag}/builds`) — an executor-token
+scope issue, not a platform-wide block: **the orchestrator's own Cloudflare API access reached the
+same build's logs successfully** (`GET /accounts/{acct}/builds/builds/{uuid}/logs`), which is how
+the `ARCHIVE_SYNC_RESULT` lines above were obtained. For 05-10/05-12: **ask the orchestrator for
+build-log lines rather than treating this as a blocker** — the gap is specific to this executor's
+token, and the working channel is already known. The Workers Versions/Deployments API (a third,
+separately-accessible endpoint — `wrangler deployments list`, `GET .../workers/scripts/{name}/
+versions/{id}`) remains reachable with this executor's own token and confirmed the deploy's
+existence and exact timing independently, but carries no asset-count or archive-sync-log field.
 
 ### 05-10 — forced full re-upload
 *(to be filled by 05-10 — `request-full` end-to-end wall-clock time, backlog convergence time

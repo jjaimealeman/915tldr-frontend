@@ -20,23 +20,27 @@ provides:
     p95=188ms — the owner-agreed hot-window revisit trigger (~300ms) is not tripped"
   - "docs/phase-05/archive-architecture.md's 'First production archive deploy' measurements
     section, filled in with the real deploy's timing, live-check results, latency figures, and
-    a disclosed Workers-Builds-API-permission gap"
+    the real production build log's own archive-sync lines (orchestrator-fetched, committed as
+    evidence at docs/phase-05/evidence/first-prod-deploy/build-241c97e1-archive-lines.log)"
 affects: ["05-10 (forced full re-upload at corpus scale, same production host)", "05-12 (the
   final zero-D1-reads gate — can now run against a persistently-serving archive tier)"]
 
 # Actuals (#2632)
 actuals:
-  tokens: 4100
+  tokens: 5200
   tasks: 3
-  commits: 2
+  commits: 3
 
 tech-stack:
   added: []
   patterns:
     - "Cross-checking a production deploy's own archive-sync state directly against the real R2
       bucket (read-only index inspection, then idempotent pre/post reruns with the real
-      credentials) when the Workers Builds build-log API is inaccessible — same tool, same
-      bucket, same credentials the real deploy itself used, not a simulation."
+      credentials) when this executor's own Workers Builds build-log API access is forbidden —
+      same tool, same bucket, same credentials the real deploy itself used, not a simulation.
+      Independently confirmed correct once the orchestrator (whose own Cloudflare API access
+      works) pulled the real build's own ARCHIVE_SYNC_RESULT lines and they matched this
+      session's cross-check almost exactly."
     - "Sampling cold-path latency by requesting distinct, never-before-touched archive URLs
       exactly once each (verified via 0 edge-cache hits across the sample) rather than repeat-
       requesting one URL, which would measure the edge cache instead of R2/KV."
@@ -45,6 +49,7 @@ key-files:
   created: []
   modified:
     - docs/phase-05/archive-architecture.md
+    - docs/phase-05/evidence/first-prod-deploy/build-241c97e1-archive-lines.log
 
 key-decisions:
   - "Owner selected option-a (merge feature/phase-05 -> develop -> main, push) at Task 1's
@@ -54,15 +59,17 @@ key-decisions:
   - "Owner executed the merge/push at Task 2, 2026-10-01 ~09:14 MDT (57c4b05 -> 57dfa94),
     triggering the real Workers Builds production build this plan observed."
   - "REND-07 marked Complete in REQUIREMENTS.md — the render-once-to-R2 guarantee is now proven
-    on the real production deploy, serving real traffic-eligible requests, not a dry run."
-  - "REND-11 left Pending — this plan's own must_haves required reconciling the gate's
-    conservative count against wrangler's real uploaded-plus-already-present total from the
-    actual production build log, and the Cloudflare Workers Builds API returned 403 Forbidden
-    for both available tokens this session (disclosed below). The structural argument (no
-    .assetsignore, so the two counts are expected to be identical) and 05-08's own prior
-    empirical match are recorded, but the literal real-build log line was not re-obtained — not
-    marking complete on a partial reconciliation, matching this phase's own established
-    discipline (05-02/04/05/06/07/08)."
+    on the real production deploy, serving real traffic-eligible requests, not a dry run, and
+    independently confirmed by the real build log's own ARCHIVE_SYNC_RESULT lines."
+  - "REND-11 still left Pending, even after the orchestrator supplied the real build log. The
+    build log confirms the gate's own count (29,966) was computed correctly at build time with
+    zero drift, and resolves the convergence numbers exactly (pre: uploaded 19/failed 0; post:
+    uploaded 22/deleted 3/backlog 0) — but the plan's own must_haves ask specifically for
+    wrangler's own uploaded-plus-already-present asset-count line, which the filtered log excerpt
+    provided does not contain (only the Worker script's own bundle-size and generic timing
+    lines). Not marking complete on a structural argument alone when the literal number this
+    plan's own bar names is still absent — matches this phase's own established discipline
+    (05-02/04/05/06/07/08)."
 
 requirements-completed: ["REND-07"]
 
@@ -115,23 +122,42 @@ coverage:
         status: pass
     human_judgment: false
   - id: D5
-    description: "Convergence and REND-11 precision reconciled as far as this session's
-      available access allows: a direct read-only-then-corrective cross-check against the real
-      R2 bucket (same tool/credentials the deploy itself uses) confirms a converged, zero-backlog
-      state; the Workers Builds build-log API access gap is disclosed, not silently worked around"
+    description: "Convergence confirmed directly from the real production build's own log (not
+      merely a cross-check): archive-sync pre uploaded 19 new-to-archive pages with 0 failures;
+      post uploaded 22 changed pages, deleted 3 vanished orphans, with 0 failures and a 0
+      backlog — the corpus converged within the one observed build"
+    requirement: "REND-07"
     verification:
       - kind: other
-        ref: "node tools/archive-sync.mjs (read-only index inspection, then pre/post) against the
-          real 915tldr-archive bucket -> 30,475/30,478 already synced immediately post-deploy, 22
-          changed tag pages re-synced cleanly (uploaded:22 failed:0 deferred:0), backlog 0 after;
-          Cloudflare Workers Builds API calls returned 403/12004 on both available tokens"
+        ref: "docs/phase-05/evidence/first-prod-deploy/build-241c97e1-archive-lines.log (real
+          production build 241c97e1, orchestrator-fetched via Cloudflare API) ->
+          ARCHIVE_SYNC_RESULT pre {uploaded:19,failed:0,deferred:0,movedBack:0,deleted:0}; post
+          {uploaded:22,failed:0,deferred:0,deleted:3,backlog:{count:0,since:null}}; matches this
+          session's own earlier R2-bucket cross-check (uploaded:22,failed:0,deferred:0) exactly
+          on the post phase"
         status: pass
+    human_judgment: false
+  - id: D6
+    description: "REND-11 precision: the gate's conservative count (/static-budget.json,
+      29,966) is confirmed correct at build time (zero drift) by the real build log; the
+      stricter must_haves ask additionally for wrangler's own uploaded-plus-already-present
+      asset-count line, which is not present in the filtered log excerpt available this session"
+    requirement: "REND-11"
+    verification:
+      - kind: other
+        ref: "build-241c97e1-archive-lines.log's [archive] static files: 29966 / 100000 line
+          matches /static-budget.json live and the partition line's own article/tag counts
+          exactly; no wrangler asset-upload-count line (only Total Upload: 8.34 KiB — the Worker
+          script bundle size — and generic timing lines) appears in the excerpt provided"
+        status: unknown
     human_judgment: true
-    rationale: "The literal production build's own ARCHIVE_SYNC_RESULT log lines could not be
-      independently re-obtained (API permission gap); this deliverable rests on a cross-check via
-      the same tool against the same bucket, which is strong corroborating evidence but not the
-      original build's own log output. An owner/human should confirm the Workers Builds dashboard
-      shows no backlog/failure alert from the real build before treating REND-11 as fully closed."
+    rationale: "The specific figure this plan's must_haves name (wrangler's own
+      uploaded-plus-already-present split) is not present in the log excerpt available. The
+      structural argument (no .assetsignore, so the two counts must be equal) is sound but is an
+      argument, not the literal number the must_haves ask for. A human (or a further grep of the
+      full 60,605-line log, e.g. for 'already uploaded'/'files from the assets directory', which
+      this executor's own forbidden token cannot fetch) should confirm that literal line before
+      REND-11 is marked complete."
 
 duration: ~90min
 completed: 2026-10-01
@@ -140,17 +166,19 @@ status: complete
 
 # Phase 5 Plan 9: First Production Archive Deploy Summary
 
-**The archive tier is confirmed live on dev.915tldr.com's real production host — a real, non-dry-run Workers Builds deploy (merge to main, commit `57dfa94`) now serves archived articles/tags from R2 with cold-read latency (R2 p95=215ms, KV p95=188ms) comfortably under the hot-window revisit threshold, while a Cloudflare API permission gap blocked pulling the real build's own archive-sync log lines — disclosed rather than papered over.**
+**The archive tier is confirmed live on dev.915tldr.com's real production host — a real, non-dry-run Workers Builds deploy (merge to main, commit `57dfa94`) now serves archived articles/tags from R2 with cold-read latency (R2 p95=215ms, KV p95=188ms) comfortably under the hot-window revisit threshold. This executor's own Cloudflare token couldn't reach the Workers Builds log API, but the orchestrator's token could — the real build's own `ARCHIVE_SYNC_RESULT` lines are now committed as evidence and confirm convergence exactly; only the literal wrangler asset-upload-count line REND-11's must_haves ask for is still absent from what's available.**
 
 ## Performance
 
-- **Duration:** ~90 min
+- **Duration:** ~105 min (includes a follow-up pass after the orchestrator supplied the real
+  build log)
 - **Started:** 2026-10-01T15:35:00Z (approx. — immediately after context/plan read, continuing
   from two owner-resolved checkpoints)
-- **Completed:** 2026-10-01T17:05:00Z
+- **Completed:** 2026-10-01T17:20:00Z
 - **Tasks:** 3 (Task 1 owner checkpoint — resolved before this session; Task 2 owner action —
-  resolved before this session; Task 3 tracer — executed this session)
-- **Files modified:** 1 (plus 2 changelog files)
+  resolved before this session; Task 3 tracer — executed this session, then corrected against
+  the real build log supplied by the orchestrator)
+- **Files modified:** 2 (plus 3 changelog files)
 
 ## Accomplishments
 
@@ -175,19 +203,31 @@ status: complete
   (n=150). KV manifest read (articles only — tags never read KV): p50=148ms, p95=**188ms**
   (n=120). Both sit comfortably under the ~300ms threshold 05-05's owner decision named as the
   trigger to revisit the 202-day hot window → **no action, window stays as-is.**
-- **Cross-checked convergence and REND-11 precision directly against the real R2 bucket**, after
-  the Cloudflare Workers Builds build-log API returned `403 Forbidden` (error `12004`) for both
+- **Cross-checked convergence directly against the real R2 bucket**, after this executor's own
+  Cloudflare Workers Builds build-log API calls returned `403 Forbidden` (error `12004`) for both
   configured tokens (`CLOUDFLARE_API_TOKEN`, `CF_API_TOKEN`) — matching the checkpoint's own
   disclosed "needs re-auth" note. Using the project's own `tools/archive-sync.mjs` against the
   same production bucket with the same real credentials the deploy itself uses: immediately
   post-deploy the index held 30,475 of this session's local (hours-stale) 30,478-entry plan; a
   `post` run re-synced the 22 changed tag pages cleanly (`uploaded: 22, failed: 0, deferred: 0`,
-  backlog cleared). 3 "new" tag uploads could not be confirmed locally (their rendered HTML isn't
-  in this machine's stale `dist/archive`), but production's own live tag count (17,582) already
-  exceeds this session's local snapshot (17,566) — local staleness, not a production gap.
-- **Filled `docs/phase-05/archive-architecture.md`'s "First production archive deploy"
-  measurements** with the `ARCHIVE_TIER_LIVE` verdict line, every number above, the route
-  decision and its consequence, and the disclosed API-access gap.
+  backlog cleared).
+- **The orchestrator then supplied the real build's own log** (their own Cloudflare API access
+  works; this executor's token-scope gap is specific to this executor, not the platform) —
+  filtered archive/deploy lines from build `241c97e1`, committed as evidence at
+  `docs/phase-05/evidence/first-prod-deploy/build-241c97e1-archive-lines.log`. This **confirms,
+  with an exact explanation, every open question from the cross-check above**: the real `pre`
+  phase uploaded 19 new-to-archive pages with 0 failures (not "3 new, 3 failed" — that was this
+  session's own local `dist/archive` staleness, now fully explained); the real `post` phase
+  uploaded exactly 22 changed pages and deleted 3 vanished orphans, with 0 failures and a 0
+  backlog — an exact match to this session's own independent cross-check on the `post` count.
+  The build log's own `[archive] static files: 29966` line also matches `/static-budget.json`
+  and the partition line's article/tag counts with zero drift.
+- **Filled, then corrected, `docs/phase-05/archive-architecture.md`'s "First production archive
+  deploy" measurements** with the `ARCHIVE_TIER_LIVE` verdict line, every number above (now
+  resting on the real build log, not just a cross-check), the route decision and its consequence,
+  and a precisely-scoped remaining gap: the must_haves' literal wrangler asset-upload-count line
+  (uploaded vs. already-present) is still not present in the filtered excerpt available — only
+  the Worker script's own bundle-size line and generic timing lines appear there.
 
 ## Task Commits
 
@@ -196,55 +236,77 @@ status: complete
 2. **Task 3 (tracer):** `f9f3e0d` (docs) — `docs/phase-05/archive-architecture.md`,
    `changelog/2026-10-01-0953_05-09-first-production-archive-deploy-measured.md`,
    `changelog/README.md`
+3. **Task 3 follow-up (real build-log reconciliation):** `[pending — see completion report for
+   hash]` (docs) — `docs/phase-05/evidence/first-prod-deploy/build-241c97e1-archive-lines.log`,
+   `docs/phase-05/archive-architecture.md`, a new changelog entry, `changelog/README.md`
 
 **Plan metadata:** pending (this SUMMARY's own commit, via `/jja-commit`).
 
 ## Files Created/Modified
 
 - `docs/phase-05/archive-architecture.md` - "First production archive deploy" measurements
-  subsection filled: route decision, deploy timing, live header checks, cold R2/KV latency table
-  and verdict, convergence cross-check, REND-11 reconciliation, disclosed API-access gap
-  (modified)
+  subsection filled, then corrected against the real build log: route decision, deploy timing,
+  live header checks, cold R2/KV latency table and verdict, convergence now confirmed directly
+  from the real build's own `ARCHIVE_SYNC_RESULT` lines, REND-11 reconciliation narrowed to the
+  one still-missing wrangler asset-count line, and the API-access gap reframed as
+  executor-token-specific (modified)
+- `docs/phase-05/evidence/first-prod-deploy/build-241c97e1-archive-lines.log` - the real
+  production build's filtered archive/deploy log lines, fetched by the orchestrator (whose own
+  Cloudflare API access works) and committed here as evidence (created)
 - `changelog/2026-10-01-0953_05-09-first-production-archive-deploy-measured.md` - dev changelog
-  entry for this plan's work (created)
-- `changelog/README.md` - index entry added (modified)
+  entry for this plan's initial work (created)
+- `changelog/README.md` - index entries added (modified)
 
 ## Decisions Made
 
 - Owner selected **option-a** (merge to main) at Task 1, 2026-10-01 ~09:07 MDT — the archive tier
   now serves persistently rather than racing a 2-hourly rebuild; 05-10/05-12 inherit a stable
   host.
-- **REND-07 marked Complete** in REQUIREMENTS.md — proven on the real production deploy.
-- **REND-11 left Pending** — the must_haves' own bar (reconcile the gate count against wrangler's
-  real build-log total) was only partially met: the structural argument and 05-08's prior
-  empirical match are documented, but the literal real-build wrangler log line could not be
-  re-obtained this session (API permission gap). Marking it complete on a partial reconciliation
-  would contradict this phase's own established "don't round up" discipline.
-- A direct cross-check against the live R2 bucket (same tool, same credentials as the real
-  deploy) was used in place of the inaccessible build log, and disclosed as such rather than
-  presented as the original build's own output.
+- **REND-07 marked Complete** in REQUIREMENTS.md — proven on the real production deploy, and now
+  independently confirmed by the real build log's own archive-sync lines.
+- **REND-11 remains Pending, even after the real build log arrived.** The build log resolves the
+  convergence numbers exactly and confirms the gate's own count (29,966) was computed correctly
+  at build time with zero drift — but the plan's own must_haves ask specifically for wrangler's
+  own uploaded-plus-already-present asset-count line, and the filtered log excerpt available
+  this session does not contain it (only the Worker script's own bundle-size line and generic
+  timing/success lines appear in the deploy section). The structural argument (no
+  `.assetsignore`, so the two counts must be equal) remains sound, but it is an argument, not the
+  literal figure the must_haves name. Not rounding up on an argument when the actual bar is a
+  specific number — matches this phase's own established discipline.
+- This executor's own Cloudflare Workers Builds API access gap (`403`/`12004` on both configured
+  tokens) is now understood to be **executor-token-specific, not a platform-wide block** — the
+  orchestrator's own Cloudflare API access reached the same build's logs successfully. The
+  STATE.md blocker is updated accordingly: 05-10/05-12 should ask the orchestrator for build-log
+  lines rather than treating this as something that blocks their own execution.
 
 ## Deviations from Plan
 
 ### Auto-fixed Issues
 
-**1. [Rule 3 - Blocking] Cloudflare Workers Builds API inaccessible for the planned build-log
-observation**
+**1. [Rule 3 - Blocking, RESOLVED mid-session] Cloudflare Workers Builds API inaccessible to this
+executor's own token**
 - **Found during:** Task 3, attempting `workers_builds_list_builds`-equivalent REST calls
 - **Issue:** `GET /accounts/{id}/builds/workers/{tag}/builds` returned `403 Forbidden` (error
   `12004`) for both `CLOUDFLARE_API_TOKEN` and `CF_API_TOKEN` — matches the checkpoint context's
   own disclosed "the Cloudflare builds MCP needs re-auth" note; this is a known, pre-existing
   credential-scope gap, not something introduced by this plan.
-- **Fix:** Used the accessible Workers Versions/Deployments API (`wrangler deployments list`,
-  the versions endpoint) to independently confirm the deploy's existence and exact timing, and
-  cross-checked convergence/reconciliation directly against the real R2 bucket using the
+- **Initial workaround:** Used the accessible Workers Versions/Deployments API (`wrangler
+  deployments list`, the versions endpoint) to independently confirm the deploy's existence and
+  exact timing, and cross-checked convergence directly against the real R2 bucket using the
   project's own sync tool and credentials (not a build-log substitute presented as the original).
-- **Files modified:** none (read-only + idempotent sync-tool reruns against the real bucket;
-  no code change)
-- **Verification:** Live HTTP checks and the direct-bucket cross-check both independently
-  corroborate a healthy, converged deploy; disclosed the gap explicitly in the architecture doc
-  rather than hiding it.
-- **Committed in:** `f9f3e0d` (documents the gap directly)
+- **Resolved:** The orchestrator's own Cloudflare API access reached the same build's logs
+  successfully and supplied the filtered archive/deploy lines, now committed as evidence at
+  `docs/phase-05/evidence/first-prod-deploy/build-241c97e1-archive-lines.log`. The gap is
+  executor-token-specific, not a platform-wide block — confirmed by a different, working
+  credential reaching the identical build.
+- **Files modified:** `docs/phase-05/evidence/first-prod-deploy/build-241c97e1-archive-lines.log`
+  (new evidence file), `docs/phase-05/archive-architecture.md` (corrected against the real log)
+- **Verification:** The real build log's `ARCHIVE_SYNC_RESULT` lines match this session's own
+  independent R2-bucket cross-check exactly on the `post` phase (`uploaded: 22, failed: 0`), and
+  explain the earlier `pre`-phase discrepancy (19 real vs. 3 local) as local `dist/archive`
+  staleness, not a production defect.
+- **Committed in:** `f9f3e0d` (initial disclosure), follow-up commit (resolution — see
+  completion report for hash)
 
 **2. [Rule 1 - Bug] Own throwaway latency-measurement script's Server-Timing parser was wrong**
 - **Found during:** Task 3's own cold-latency sampling, first two runs
@@ -276,13 +338,14 @@ reading**
 
 ---
 
-**Total deviations:** 3 (1 Rule 3 blocking — a genuine access-permission gap worked around and
-disclosed, not silently papered over; 2 Rule 1 bugs — both in this session's own throwaway
-tooling/local state, not in any committed repo code).
-**Impact on plan:** None of the three affected the plan's committed deliverable. The
-build-log-API gap is now a named, documented follow-up (re-grant the token's Workers Builds
-scope before 05-10/05-12); the other two were measurement-tooling bugs caught and corrected
-before any number was recorded.
+**Total deviations:** 3 (1 Rule 3 blocking — a genuine access-permission gap worked around,
+disclosed, then resolved mid-session once the orchestrator's own working Cloudflare credential
+supplied the real log; 2 Rule 1 bugs — both in this session's own throwaway tooling/local state,
+not in any committed repo code).
+**Impact on plan:** None of the three affected the plan's committed deliverable. The build-log
+gap is now understood precisely (executor-token scope, not a platform block; ask the
+orchestrator, don't block 05-10/05-12 on re-granting this executor's own token); the other two
+were measurement-tooling bugs caught and corrected before any number was recorded.
 
 ## Issues Encountered
 
@@ -290,12 +353,11 @@ None beyond the three disclosed deviations above.
 
 ## User Setup Required
 
-**One action recommended before 05-10/05-12, not blocking this plan's completion:** re-grant the
-Cloudflare API token's Workers Builds read scope (Workers Builds Configuration: Read, or
-equivalent) if the literal per-build `ARCHIVE_SYNC_RESULT`/wrangler asset-count log lines are
-needed for those plans' own measurements. This plan's own conclusions do not depend on it — all
-load-bearing evidence came from live HTTP checks and a direct cross-check against the real R2
-bucket.
+None blocking. **Informational only:** this executor's own Cloudflare API token still cannot
+reach the Workers Builds log API directly (`403`/`12004`) — re-granting its Workers Builds read
+scope would let a future executor session fetch build logs itself rather than asking the
+orchestrator, but this is a convenience, not a requirement; the orchestrator's own access already
+covers the need (see the updated STATE.md blocker).
 
 ## Next Phase Readiness
 
@@ -304,12 +366,14 @@ bucket.
   persistently-serving deploy rather than racing a 2-hourly rebuild.
 - The 202-day hot window stays as decided in 05-05 — this plan's own revisit-trigger measurement
   (cold p95 215ms R2 / 188ms KV, both under ~300ms) confirms no change is needed.
-- **Follow-up, not blocking:** re-grant the Cloudflare API token's Workers Builds read scope
-  before 05-10/05-12 if those plans need the literal per-build archive-sync log output; until
-  then, live HTTP checks and direct-bucket cross-checks (as used here) remain available as a
-  fallback.
-- REND-11 remains Pending — see "Decisions Made" above for why it was not marked complete on a
-  partial reconciliation.
+- **For 05-10/05-12:** if a literal per-build archive-sync/wrangler log line is needed, **ask the
+  orchestrator** (their Cloudflare API access reached this build's logs successfully) rather than
+  treating this executor's own token-scope gap as a blocker.
+- **REND-11 remains Pending** even after the real build log arrived — the specific missing piece
+  is the literal wrangler uploaded-plus-already-present asset-count line, not present in the
+  filtered excerpt available this session. If that precision is still wanted, ask the
+  orchestrator for a further grep of the full 60,605-line log (patterns like `already uploaded`,
+  `files from the assets directory`, `Uploading`) before closing REND-11.
 
 ---
 *Phase: 05-hybrid-archive-zero-reads-proof*
@@ -317,5 +381,8 @@ bucket.
 
 ## Self-Check: PASSED
 
-`docs/phase-05/archive-architecture.md` confirmed present on disk with the `ARCHIVE_TIER_LIVE`
-line (`grep -c` → 1). Commit `f9f3e0d` confirmed present in `git log --oneline --all`.
+`docs/phase-05/archive-architecture.md` and `docs/phase-05/evidence/first-prod-deploy/
+build-241c97e1-archive-lines.log` both confirmed present on disk (`grep -c ARCHIVE_TIER_LIVE` ->
+1; log file matches the orchestrator-supplied content byte for byte). Commit `f9f3e0d` confirmed
+present in `git log --oneline --all`; the follow-up commit is confirmed in the completion report
+below.

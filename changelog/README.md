@@ -10,6 +10,7 @@ Entries are named `YYYY-MM-DD-HHMM_slug.md` and grouped by month, newest first.
 
 | Date | Entry | Keywords |
 |------|-------|----------|
+| 2026-10-01 | [Real build-log reconciliation; REND-11 still Pending](2026-10-01-1140_05-09-real-build-log-reconciliation-rend-11-still-pending.md) | `[DOCUMENTATION]` `[DEPLOYMENT]` `[INFRA]` `[BUG_FIX]` |
 | 2026-10-01 | [Plan 05-09 complete: first production archive deploy measured](2026-10-01-1105_05-09-complete-first-production-archive-deploy-plan.md) | `[DOCUMENTATION]` `[PLANNING]` `[DEPLOYMENT]` `[INFRA]` |
 | 2026-10-01 | [First production archive deploy measured and recorded](2026-10-01-0953_05-09-first-production-archive-deploy-measured.md) | `[DEPLOYMENT]` `[INFRA]` `[PERFORMANCE]` `[DOCUMENTATION]` |
 | 2026-10-01 | [Plan 05-08 complete: archive tier wired into the real deploy pipeline](2026-10-01-0152_05-08-complete-archive-tier-deploy-pipeline-plan.md) | `[DOCUMENTATION]` `[PLANNING]` `[ARCHITECTURE]` `[TESTING]` |
