@@ -73,7 +73,7 @@ test(
 );
 
 test(
-  'tier-facts: node tools/tier-report.mjs --json exits 0, classifies tags.hot as the count with count >= 10, flags hotWindow.provisional',
+  'tier-facts: node tools/tier-report.mjs --json exits 0, classifies tags.hot as the count with count >= 10, and reports hotWindow.provisional matching the window currently committed to hot-window.json',
   { skip: !DIST_BUILT && SKIP_REASON },
   () => {
     const out = execFileSync('node', ['tools/tier-report.mjs', '--json'], { cwd: REPO_ROOT, encoding: 'utf8' });
@@ -83,7 +83,12 @@ test(
     const expectedHot = tags.filter((t) => t.count >= 10).length;
 
     assert.equal(report.tags.hot, expectedHot);
-    assert.equal(report.hotWindow.provisional, true, 'expected the bootstrap D-07 window to report provisional: true');
+    // 05-01 pinned this to `true` (the D-07 bootstrap in effect at the time). 05-05 replaced the
+    // bootstrap with a real traffic-derived window (D-07b), so the live committed file's own
+    // `provisional` flag is now the source of truth, not a hardcoded expectation — this test
+    // follows whichever window is actually committed rather than re-pinning a transient state.
+    const committed = JSON.parse(readFileSync(path.join(REPO_ROOT, 'src/lib/archive/hot-window.json'), 'utf8'));
+    assert.equal(report.hotWindow.provisional, committed.provisional);
   }
 );
 
