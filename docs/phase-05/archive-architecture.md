@@ -94,20 +94,51 @@ BUILD step (tools/ci-build.mjs, 05-08's wiring — this plan's own tracer ran th
                                                       writes dist/archive-plan.json
   5. node tools/assert-file-count.mjs             — fails the build at 80,000 dist/client files (D-13)
 
-DEPLOY step (tools/ci-build.mjs's deploy path, 05-08's wiring)
+DEPLOY step (tools/ci-build.mjs's deploy path, 05-08's wiring, 05-20's guard addition)
   6. node tools/archive-sync.mjs pre              — uploads NEW-to-archive pages; anything that fails,
                                                       times out, or sits beyond --limit is moved BACK into
-                                                      dist/client (file-count re-check after this, per 05-08)
+                                                      dist/client (file-count re-check after this, per 05-08).
+                                                      Writes dist/archive-synced.json on every exit-0 path
+                                                      (CR-02, 05-20) — see "The sync marker and guard" below.
   7. node tools/assert-file-count.mjs (re-check)   — the move-back in step 6 can only ever LOWER the count
                                                       further from the build step's own number, never raise it
-  8. wrangler deploy                               — ships dist/client (every page confirmed static OR confirmed in R2)
-  9. commitLastGood                                — only after a REAL, successful deploy (04-09's existing guarantee)
- 10. node tools/archive-sync.mjs post             — re-uploads CHANGED archived pages, deletes orphans,
+  8. node tools/assert-archive-synced.mjs          — refuses to proceed if dist/ was partitioned but step 6
+                                                      has not confirmed THIS build (CR-02, 05-20)
+  9. wrangler deploy                               — ships dist/client (every page confirmed static OR confirmed in R2)
+ 10. commitLastGood                                — only after a REAL, successful deploy (04-09's existing guarantee)
+ 11. node tools/archive-sync.mjs post             — re-uploads CHANGED archived pages, deletes orphans,
                                                       tracks backlog, reports once/day; never alters the
                                                       deploy's own exit code (D-10/D-12)
 ```
 
-**Step 10's own gate (CR-01/WR-01, 05-14):** before `post` does anything else, it refuses in two
+**The sync marker and guard (CR-02, 05-20).** Before this fix, the documented `pnpm run deploy` was
+a bare `guard:config && wrangler deploy --config wrangler.jsonc` — it skipped steps 6-8 and 11
+entirely, so a `pnpm run build` followed by that command could ship a partitioned `dist/` with
+every page newly crossing the hot cutoff (~90/day at the measured ingest rate) confirmed neither
+static nor in R2, a 404 until the next CI sync. The fix is two layers, used together:
+
+- **`deploy` is now routed through the real sequence**: `pnpm run guard:config && node
+  tools/ci-build.mjs deploy` — the same command Workers Builds' own `deploy:ci` already ran.
+- **Step 6 (pre) writes `dist/archive-synced.json`** on every exit-0 outcome (success, disabled,
+  index-unreadable — never on the plan-missing exit-1 path, since there's no plan to vouch for):
+  `{ planGeneratedAt, syncedAt, phase: 'pre' }`. `planGeneratedAt` is keyed to `dist/archive-
+  plan.json`'s own `generatedAt` (set by `tools/partition-archive.mjs`'s `planPartition`), not a
+  bare boolean — a marker written for an OLDER partition can never vouch for a NEWER one. The file
+  lives inside `dist/` but outside `dist/client`, so it is never itself deployed.
+- **Step 8 (`tools/assert-archive-synced.mjs`) is the new guard**, spawned on the FINAL
+  `dist/client` immediately before wrangler. Five cases: no plan and no archive files -> ok
+  (nothing was partitioned); no plan but a stray file under `dist/archive` -> refuse, naming it
+  (the plan was deleted or never written, but partitioned output is still sitting there); plan
+  present, marker missing -> refuse ("archive-sync pre has not run for this build"); marker's
+  `planGeneratedAt` doesn't match the plan's `generatedAt` -> refuse ("stale"); matching marker ->
+  ok. A refusal aborts the deploy at step 8 — wrangler, `commitLastGood`, and post (steps 9-11)
+  never run, exactly like a file-count-gate failure (D-13) already does.
+- `pnpm run guard:archive-synced` runs step 8's check by hand against any `dist/` without
+  deploying anything. A bare `wrangler deploy` remains forbidden (`wrangler.jsonc`'s own comment
+  already says so, and T-05-69 accepts that a hand-typed one bypasses the guard — out of scope,
+  low severity, no documented path recommends it).
+
+**Step 11's own gate (CR-01/WR-01, 05-14):** before `post` does anything else, it refuses in two
 ways. First, a dry run (`CI_BUILD_DEPLOY_DRY_RUN` set) is refused outright — zero network calls,
 zero R2 calls — independent of 05-13's ci-build-side guard, so a direct
 `CI_BUILD_DEPLOY_DRY_RUN=1 node tools/archive-sync.mjs post` invocation is refused too, not just
@@ -127,12 +158,14 @@ still stand.
 1. **A page leaves `dist/client` (the static tier) only after its R2 PUT is confirmed.** Step 4
    (partition) moves every archive-tier page out of `dist/client` unconditionally; step 6 (pre)
    immediately moves back anything it could NOT confirm in R2 — a failed upload, a deadline
-   cutoff, or a page beyond `--limit`. By the time step 8 (`wrangler deploy`) runs, every page in
-   `dist/client` is either genuinely hot, or archive-tier-but-unconfirmed-so-served-static-this-
-   cycle. There is no window where a page is neither static nor in R2 (REND-08's no-404-window
-   guarantee).
-2. **An R2 copy is removed only after the static page replacing it is already live.** Step 10
-   (post) runs AFTER `wrangler deploy` (step 8) and `commitLastGood` (step 9) — a "promoted
+   cutoff, or a page beyond `--limit`. Step 8 (the sync guard, CR-02/05-20) refuses to let the
+   deploy proceed at all if step 6 never ran for this build. By the time step 9 (`wrangler deploy`)
+   runs, every page in `dist/client` is either genuinely hot, or archive-tier-but-unconfirmed-so-
+   served-static-this-cycle. There is no window where a page is neither static nor in R2 (REND-08's
+   no-404-window guarantee) — and, since 05-20, no DOCUMENTED deploy path that can reach that
+   window undetected either.
+2. **An R2 copy is removed only after the static page replacing it is already live.** Step 11
+   (post) runs AFTER `wrangler deploy` (step 9) and `commitLastGood` (step 10) — a "promoted
    orphan" (a page that moved hot this cycle) is only deleted from R2 once the deploy that made it
    static has already shipped. The reverse direction (archive→hot) is exactly how step 6 behaves:
    a page never leaves static before R2 confirms it archived.
@@ -180,8 +213,9 @@ changed) — never a lost/corrupted index.
 
 | Constant | Value | Measured from |
 |---|---|---|
-| `PRE_DEADLINE_SECONDS` | 840 (14 min) | `.astro/ci-build-started-at`, or this process's own start if that file is absent (the documented weaker local-run behavior) |
+| `PRE_DEADLINE_SECONDS` | 840 (14 min) | `.astro/ci-build-started-at`, or this process's own start if that file is absent OR stale (the documented weaker local-run behavior; see the 1,800s rule below) |
 | `POST_DEADLINE_SECONDS` | 1020 (17 min) | same |
+| `BUILD_START_MARKER_MAX_AGE_SECONDS` | 1,800 (30 min, IN-06/05-20) | the marker's own age — a marker older than this, or more than 60s in the future, is ignored |
 | `BACKLOG_ALERT_HOURS` | 20 | `archive-state.json`'s `backlogSince` |
 | Platform watchdog warning | 18 min (`tools/ci-build.mjs`'s `DEFAULT_WATCHDOG_MS`) | — |
 | Platform hard ceiling | 20 min (Workers Builds) | `developers.cloudflare.com/workers/ci-cd/builds/limits-and-pricing` |
@@ -189,6 +223,19 @@ changed) — never a lost/corrupted index.
 Both deadlines sit inside the 20-minute hard ceiling with margin for the rest of the build (`astro
 build`, partition, file-count gate, `wrangler deploy` itself) to also fit in the same window —
 they are not "840/1020 seconds of archive work plus however long everything else takes."
+
+**The 1,800s stale build-start marker rule (IN-06, 05-20).** `.astro/ci-build-started-at` is
+written once, at the start of the BUILD step (step 1 above) — but a standalone `node
+tools/ci-build.mjs deploy` (local, or a re-run against an already-built `dist/`) spawns no build
+step at all, so it would otherwise inherit whatever marker an EARLIER `pnpm run build` left
+behind. Before this fix, that stale marker made both `PRE_DEADLINE_SECONDS` and
+`POST_DEADLINE_SECONDS` look already past: pre moved every new page back to static (0 uploaded)
+and post deferred every change, raising a false D-10 backlog alert. `getBuildStartEpochSeconds`
+now ignores a marker whose age exceeds 1,800s or that sits more than 60s in the future, logging one
+`[archive-sync] ignoring stale build-start marker ...` stderr line and falling back to this
+process's own start instead — exactly the existing "marker absent" fallback, now also applied to
+"marker present but stale." 1,800s comfortably exceeds Workers Builds' own 1,200s (20min) hard
+ceiling, so a live CI-written marker is never the one this rule discards.
 
 **The backlog rule (D-10):** when `post`'s deadline is reached mid-run, every still-`changed` key
 that never got a chance to start lands in `notStarted` → reported as `deferred`. `archive-
@@ -230,6 +277,7 @@ PROJECT.md's own Context section names as the root cause of the v1 D1-reads inci
 | R2 listing fails at pre-sync (self-heal's own `listKeys` calls, WR-02, 05-18) | The index is trusted as-is for this run — exactly the pre-fix behavior, not a regression — so a transient listing failure never blocks the deploy | One alert naming that the index was trusted without self-heal this run |
 | A DeleteObjects batch fails (WR-02, 05-18) | `deleteObjects` never throws mid-loop: a failing batch reports every one of its keys as an error (code only, never `err.message`) and the loop continues to the next batch; the failed keys' index entries are kept (their deletion status is unknown), every other batch's deletions land and are removed from the index normally | `errors` in the delete result names the keys/codes; one alert naming the failed-delete count |
 | Index write fails after pre-sync uploads (WR-02, 05-18) | The uploaded pages are already confirmed in R2 — the deploy proceeds safely even though the index doesn't yet list them. The next run's self-heal (or a plain re-upload, since the index doesn't list them either) re-indexes them | One alert naming the upload count and that the next run re-indexes them; `exitCode` stays 0 — the docstring's "exits 1 only when the plan is missing" holds again |
+| Partitioned `dist/` deployed without pre-sync (CR-02, 05-20) | Refused before `wrangler deploy` ever runs — `tools/assert-archive-synced.mjs` (step 8) sees a plan present with the sync marker missing (or stale/mismatched) and exits 1; `runCi` returns that code immediately, same as a file-count-gate failure (D-13) | One failure notification titled with `assert-archive-synced:`; no wrangler spawn, no `commitLastGood`, no archive-sync post this run |
 
 ## Live origin
 
