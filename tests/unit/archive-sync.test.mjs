@@ -15,6 +15,7 @@ import {
   FORCE_FULL_KEY,
   DAILY_REPORT_KEY,
   BACKLOG_ALERT_HOURS,
+  ARCHIVE_SYNCED_MARKER_PATH,
   diffAgainstIndex,
   runPreSync,
   runPostSync,
@@ -327,6 +328,88 @@ test('archive-sync: runPreSync — --limit treats keys beyond n as not started (
     });
     assert.equal(result.uploaded, 2);
     assert.equal(result.movedBack, 3);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// CR-02 (05-20): pre writes the sync marker on every exitCode:0 path, never on
+// the plan-missing exitCode:1 path.
+// ---------------------------------------------------------------------------
+
+function markerPathFor(root) {
+  return join(root, ARCHIVE_SYNCED_MARKER_PATH);
+}
+
+function readMarker(root) {
+  return JSON.parse(readFileSync(markerPathFor(root), 'utf8'));
+}
+
+test("archive-sync (CR-02): a successful run writes dist/archive-synced.json with planGeneratedAt equal to the plan's own generatedAt", async () => {
+  const entries = [{ kind: 'article', key: 'articles/a.html', path: '/cat/a-uuid' }];
+  await withTempRoot(entries, {}, async (root, plan) => {
+    const store = makeFakeStore();
+    const { exitCode } = await runPreSync({
+      root,
+      env: {},
+      hasR2CredentialsFn: trueCreds,
+      createStore: async () => store,
+    });
+    assert.equal(exitCode, 0);
+    assert.equal(existsSync(markerPathFor(root)), true);
+    const marker = readMarker(root);
+    assert.equal(marker.planGeneratedAt, plan.generatedAt);
+    assert.equal(marker.phase, 'pre');
+  });
+});
+
+test('archive-sync (CR-02): a disabled run (no credentials) still writes the marker, keyed to the same plan', async () => {
+  const entries = [{ kind: 'article', key: 'articles/a.html', path: '/cat/a-uuid' }];
+  await withTempRoot(entries, {}, async (root, plan) => {
+    const { exitCode } = await runPreSync({
+      root,
+      env: {},
+      hasR2CredentialsFn: falseCreds,
+      createStore: async () => makeFakeStore(),
+    });
+    assert.equal(exitCode, 0);
+    assert.equal(existsSync(markerPathFor(root)), true);
+    assert.equal(readMarker(root).planGeneratedAt, plan.generatedAt);
+  });
+});
+
+test('archive-sync (CR-02): an index-unreadable run still writes the marker, keyed to the same plan', async () => {
+  const entries = [{ kind: 'article', key: 'articles/a.html', path: '/cat/a-uuid' }];
+  await withTempRoot(entries, {}, async (root, plan) => {
+    const store = makeFakeStore({ failGetJsonKeys: new Set([ARCHIVE_INDEX_KEY]) });
+    const { exitCode } = await runPreSync({
+      root,
+      env: {},
+      hasR2CredentialsFn: trueCreds,
+      createStore: async () => store,
+    });
+    assert.equal(exitCode, 0);
+    assert.equal(existsSync(markerPathFor(root)), true);
+    assert.equal(readMarker(root).planGeneratedAt, plan.generatedAt);
+  });
+});
+
+test('archive-sync (CR-02): the plan-missing (exitCode 1) path never writes the marker', async () => {
+  const root = mkdtempSync(join(tmpdir(), 'archive-sync-test-'));
+  try {
+    const { exitCode } = await runPreSync({ root, env: {}, hasR2CredentialsFn: trueCreds });
+    assert.equal(exitCode, 1);
+    assert.equal(existsSync(markerPathFor(root)), false);
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+
+test('archive-sync (CR-02): the marker is never written under dist/client (never deployed)', async () => {
+  const entries = [{ kind: 'article', key: 'articles/a.html', path: '/cat/a-uuid' }];
+  await withTempRoot(entries, {}, async (root) => {
+    const store = makeFakeStore();
+    await runPreSync({ root, env: {}, hasR2CredentialsFn: trueCreds, createStore: async () => store });
+    assert.equal(existsSync(join(root, 'dist', 'client', 'archive-synced.json')), false);
   });
 });
 

@@ -27,7 +27,7 @@
 // convention). Credential handling follows OPS-11 (same as `src/lib/server/r2-client.ts`):
 // read from `process.env` only, never logged, never embedded in a thrown message.
 
-import { existsSync, mkdirSync, readFileSync, renameSync } from 'node:fs';
+import { existsSync, mkdirSync, readFileSync, renameSync, writeFileSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { runPool } from './lib/run-pool.mjs';
 import { ARCHIVE_DIR, PARTITION_PLAN_PATH } from './partition-archive.mjs';
@@ -41,6 +41,11 @@ export const BUILD_STARTED_AT_PATH = '.astro/ci-build-started-at';
 export const PRE_DEADLINE_SECONDS = 840;
 export const POST_DEADLINE_SECONDS = 1020;
 export const BACKLOG_ALERT_HOURS = 20;
+// CR-02 (05-20): the marker `tools/assert-archive-synced.mjs` reads before `wrangler deploy`
+// runs — proof that `runPreSync` has confirmed THIS build's partition (uploaded or moved back
+// every archive-tier page) before a partitioned `dist/` is allowed to ship. Lives inside `dist/`
+// but outside `dist/client` (never deployed) — see `writeSyncedMarker` below.
+export const ARCHIVE_SYNCED_MARKER_PATH = 'dist/archive-synced.json';
 export const ARCHIVE_SYNC_CONCURRENCY = 32;
 export const LIVE_ORIGIN_DEFAULT = 'https://dev.915tldr.com';
 export const LIVE_CHECK_ATTEMPTS = 6;
@@ -106,6 +111,19 @@ function getDeadlineMs(root, deadlineSeconds) {
 
 function nowIso() {
   return new Date().toISOString();
+}
+
+/** CR-02 (05-20): writes `ARCHIVE_SYNCED_MARKER_PATH` — called immediately before every
+ * `exitCode: 0` return of `runPreSync` (success, disabled, index-unreadable), after any
+ * move-back has already completed, and NEVER on the plan-missing `exitCode: 1` path (there is no
+ * plan to vouch for there). Keyed to `plan.generatedAt` (set by `tools/partition-archive.mjs`'s
+ * `planPartition`) rather than a boolean, so a marker written for an older partition can never be
+ * mistaken for proof that a newer one was synced. Lives at `dist/archive-synced.json` — inside
+ * `dist/` but never inside `dist/client`, so it is never itself deployed. */
+function writeSyncedMarker(root, plan) {
+  const abs = resolve(root, ARCHIVE_SYNCED_MARKER_PATH);
+  mkdirSync(dirname(abs), { recursive: true });
+  writeFileSync(abs, JSON.stringify({ planGeneratedAt: plan?.generatedAt ?? null, syncedAt: nowIso(), phase: 'pre' }));
 }
 
 /** `en-CA` formats as `YYYY-MM-DD` directly — the one locale/format combination that avoids
@@ -384,6 +402,11 @@ export async function checkLiveDeployment({
  * Exits (via the returned `exitCode`) 1 ONLY when the plan is missing or invalid — every other
  * outcome (disabled, index unreadable, partial upload failure) is exitCode 0, matching D-10's
  * "never blocks a deploy" guarantee at the pre-deploy phase too.
+ *
+ * CR-02 (05-20): writes `ARCHIVE_SYNCED_MARKER_PATH` on every `exitCode: 0` return (success,
+ * disabled, index-unreadable) — proof `tools/assert-archive-synced.mjs` accepts as "this build's
+ * partition has been confirmed" before `wrangler deploy` is allowed to run. Never written on the
+ * plan-missing `exitCode: 1` path, since there's no plan's `generatedAt` to key the marker to.
  */
 export async function runPreSync(opts = {}) {
   const {
@@ -420,6 +443,7 @@ export async function runPreSync(opts = {}) {
   const { disabled, reason } = await checkDisabled(env, hasR2CredentialsFn);
   if (disabled) {
     const moved = moveEntriesBack(planEntries, root);
+    writeSyncedMarker(root, plan);
     return {
       result: buildResult({
         phase: 'pre',
@@ -445,6 +469,7 @@ export async function runPreSync(opts = {}) {
     index = (await store.getJson(ARCHIVE_INDEX_KEY)) ?? { version: 1, entries: {} };
   } catch (err) {
     const moved = moveEntriesBack(planEntries, root);
+    writeSyncedMarker(root, plan);
     return {
       result: buildResult({
         phase: 'pre',
@@ -536,6 +561,8 @@ export async function runPreSync(opts = {}) {
   if (failed.length > 0) {
     alerts.push(`archive-sync: ${failed.length} page(s) failed to upload — previous state (static) still serving`);
   }
+
+  writeSyncedMarker(root, plan);
 
   return {
     result: buildResult({
