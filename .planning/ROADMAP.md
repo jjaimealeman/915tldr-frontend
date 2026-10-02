@@ -317,7 +317,7 @@ Plans:
   4. Tag pages default to the R2 archive tier with only a measured top-N by article count promoted to hot static; total deployed static-asset file count is reported daily, the current count is recorded against the 100,000 ceiling, and the build fails at an 80,000-file safety margin.
   5. The hot-content cutoff is derived from measured request traffic over a stated window — not a fixed guess — and a full archive re-render completes with no single Worker invocation exceeding the 300 s CPU ceiling.
 
-**Plans**: 12/12 plans executed in 7 waves
+**Plans**: 21 plans — 12 executed in 7 waves; 9 gap-closure plans (05-13..05-21, from 05-VERIFICATION.md + 05-REVIEW.md) in 4 waves
 
 Plans:
 **Wave 1**
@@ -352,6 +352,27 @@ Plans:
 **Wave 7** *(blocked on Wave 6 completion)*
 
 - [x] 05-12-PLAN.md — The zero-reads gate (D-01..D-03, halt on failure) and ARCH-08 on the deployed Worker; validation map closed (wave 7)
+
+**Gap closure — Wave 1** *(2026-10-02, owner scope: verifier gaps + safety warnings)*
+
+- [ ] 05-13-PLAN.md — CR-01 (ci-build): a dry-run or failed deploy never spawns archive-sync post; credential-free real-CLI rehearsal
+- [ ] 05-14-PLAN.md — CR-01 + WR-01 (archive-sync): post refuses a dry run and any build that is not the live deployment; pre-delete re-check
+- [ ] 05-15-PLAN.md — WR-08 / REND-10: countOtherFiles counts dist/client + dist/archive; real re-derivation run end to end, preview only
+- [ ] 05-16-PLAN.md — CR-03: load window aligned exactly like the baseline; 2026-10-01 verdict re-checked with a read-only aligned re-query
+- [ ] 05-17-PLAN.md — ARCH-08: repeatable per-request CPU tool on Workers Observability (API verified live); 1-vs-4 reconciliation; IN-01 correlation
+
+**Gap closure — Wave 2** *(blocked on Gap closure Wave 1 completion)*
+
+- [ ] 05-18-PLAN.md — WR-02: R2 failures can't leave the index lying; pre self-heals via listKeys; deleteObjects partial results
+- [ ] 05-19-PLAN.md — ARCH-08 owner decision (accept with definition / fix code / re-measure) recorded; WINDOWS #26 per decision
+
+**Gap closure — Wave 3** *(blocked on Gap closure Wave 2 completion)*
+
+- [ ] 05-20-PLAN.md — CR-02 (+ IN-06 part): `pnpm run deploy` routed through ci-build; sync marker + guard before wrangler; stale build-start marker ignored
+
+**Gap closure — Wave 4** *(blocked on Gap closure Wave 3 completion)*
+
+- [ ] 05-21-PLAN.md — REND-11 daily-report human check; 05-VALIDATION.md and evidence-based REQUIREMENTS.md statuses; deferred review findings parked
 
 ### Phase 6: Bilingual
 
