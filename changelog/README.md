@@ -10,6 +10,7 @@ Entries are named `YYYY-MM-DD-HHMM_slug.md` and grouped by month, newest first.
 
 | Date | Entry | Keywords |
 |------|-------|----------|
+| 2026-10-02 | [WR-08 fix: hot-window re-derivation can count a partitioned build again](2026-10-02-2200_05-15-task1-wr08-count-both-trees-negative-guard.md) | `[BUG_FIX]` `[BACKEND]` `[TESTING]` |
 | 2026-10-02 | [Plan 05-14 complete: CR-01/WR-01's archive-sync half closed](2026-10-02-1520_05-14-complete-cr01-wr01-archive-sync-half-closed.md) | `[DOCUMENTATION]` `[PLANNING]` `[TESTING]` `[SECURITY]` |
 | 2026-10-02 | [Document the live-deployment gate in the archive architecture record](2026-10-02-1515_05-14-task3-architecture-doc-live-deployment-gate.md) | `[DOCUMENTATION]` `[ARCHITECTURE]` `[SECURITY]` `[DEPLOYMENT]` |
 | 2026-10-02 | [Dry-run refusal, propagation polling, and a pre-delete liveness re-check](2026-10-02-1510_05-14-task2-dry-run-refusal-polling-predelete-recheck.md) | `[BUG_FIX]` `[SECURITY]` `[BACKEND]` `[TESTING]` `[DEPLOYMENT]` |

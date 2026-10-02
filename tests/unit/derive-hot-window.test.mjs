@@ -6,7 +6,7 @@
 // convention.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { readFileSync, existsSync, mkdtempSync, rmSync } from 'node:fs';
+import { readFileSync, existsSync, mkdtempSync, mkdirSync, writeFileSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import {
@@ -28,6 +28,8 @@ import {
   deriveHotWindow,
   writeHotWindowAtomic,
   writeFallback,
+  countOtherFiles,
+  DEFAULT_DIST_ARCHIVE,
 } from '../../tools/derive-hot-window.mjs';
 import { parseHotWindow } from '../../src/lib/archive/hot-window.ts';
 import { readTierFacts } from '../../src/lib/archive/tier-facts.ts';
@@ -483,4 +485,159 @@ test('writeFallback: refuses an empty reason', async () => {
   } finally {
     rmSync(dir, { recursive: true, force: true });
   }
+});
+
+// ---------------------------------------------------------------------------
+// countOtherFiles — WR-08 (05-15): count both dist/client AND dist/archive, guard negatives
+// ---------------------------------------------------------------------------
+//
+// Since 05-06 every `pnpm run build` partitions archive-tier pages out of `dist/client` into
+// `dist/archive`. Pre-fix, `countOtherFiles` only walked `dist/client` and ignored a third
+// argument entirely, so on a partitioned tree it undercounts by exactly the number of archived
+// pages (reproduced live by 05-REVIEW's WR-08 as -30,467 against the real build). These tests
+// build small trees under `mkdtempSync` to pin the fix without touching the real `dist/`.
+
+function makeFile(filePath) {
+  mkdirSync(path.dirname(filePath), { recursive: true });
+  writeFileSync(filePath, '');
+}
+
+/** Builds a temp `{ client, archive }` tree: `client` gets 2 hot article pages + 1 hot tag page +
+ * 3 other files (index.html, robots.txt, _astro/app.js); `archive` gets 2 archived article pages
+ * + 1 archived tag page under `articles/`/`tags/`. Returns the dir paths plus facts listing all 4
+ * articles + 2 tags (matching the plan's own behavior bullets). Caller cleans up `root`. */
+function buildPartitionedTree() {
+  const root = mkdtempSync(path.join(tmpdir(), 'wr08-partitioned-tree-'));
+  const client = path.join(root, 'client');
+  const archive = path.join(root, 'archive');
+
+  makeFile(path.join(client, 'articles', 'hot-a1.html'));
+  makeFile(path.join(client, 'articles', 'hot-a2.html'));
+  makeFile(path.join(client, 'tags', 'hot-t1.html'));
+  makeFile(path.join(client, 'index.html'));
+  makeFile(path.join(client, 'robots.txt'));
+  makeFile(path.join(client, '_astro', 'app.js'));
+
+  makeFile(path.join(archive, 'articles', 'archived-a1.html'));
+  makeFile(path.join(archive, 'articles', 'archived-a2.html'));
+  makeFile(path.join(archive, 'tags', 'archived-t1.html'));
+
+  const facts = {
+    articles: [
+      { uuid: 'a0000000-0000-0000-0000-000000000001', path: '/x/hot-a1', publishedAt: 0 },
+      { uuid: 'a0000000-0000-0000-0000-000000000002', path: '/x/hot-a2', publishedAt: 0 },
+      { uuid: 'a0000000-0000-0000-0000-000000000003', path: '/x/archived-a1', publishedAt: 0 },
+      { uuid: 'a0000000-0000-0000-0000-000000000004', path: '/x/archived-a2', publishedAt: 0 },
+    ],
+    tags: [
+      { slug: 'hot-t1', count: 999 },
+      { slug: 'archived-t1', count: 1 },
+    ],
+  };
+
+  return { root, client, archive, facts };
+}
+
+test('countOtherFiles: WR-08 — partitioned tree (dist/client + dist/archive) counts both, returns 3', async () => {
+  const { root, client, archive, facts } = buildPartitionedTree();
+  try {
+    // Pre-fix, countOtherFiles(client, facts, archive) ignores the third argument and returns
+    // walk(client) - 4 - 2 = 6 - 6 = 0, not 3 — this is the assertion that goes red before Task
+    // 1's GREEN fix.
+    const result = await countOtherFiles(client, facts, archive);
+    assert.equal(result, 3);
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+
+test('countOtherFiles: WR-08 — moved-back page (archived page moved from dist/archive into dist/client) still returns 3', async () => {
+  const { root, client, archive, facts } = buildPartitionedTree();
+  try {
+    // Simulate archive-sync pre's move-back (or a half-finished partition): one archived page
+    // moves back into dist/client. Every page is still counted exactly once, wherever it sits.
+    const from = path.join(archive, 'articles', 'archived-a1.html');
+    const to = path.join(client, 'articles', 'archived-a1.html');
+    mkdirSync(path.dirname(to), { recursive: true });
+    writeFileSync(to, '');
+    rmSync(from, { force: true });
+
+    const result = await countOtherFiles(client, facts, archive);
+    assert.equal(result, 3);
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+
+test('countOtherFiles: WR-08 — unpartitioned tree (no dist/archive directory) still counts correctly', async () => {
+  const root = mkdtempSync(path.join(tmpdir(), 'wr08-unpartitioned-tree-'));
+  const client = path.join(root, 'client');
+  const archive = path.join(root, 'archive-does-not-exist');
+  try {
+    // All 4 articles + 2 tags live in dist/client (no partition has ever run); dist/archive does
+    // not exist on disk at all.
+    makeFile(path.join(client, 'articles', 'hot-a1.html'));
+    makeFile(path.join(client, 'articles', 'hot-a2.html'));
+    makeFile(path.join(client, 'articles', 'archived-a1.html'));
+    makeFile(path.join(client, 'articles', 'archived-a2.html'));
+    makeFile(path.join(client, 'tags', 'hot-t1.html'));
+    makeFile(path.join(client, 'tags', 'archived-t1.html'));
+    makeFile(path.join(client, 'index.html'));
+    makeFile(path.join(client, 'robots.txt'));
+    makeFile(path.join(client, '_astro', 'app.js'));
+
+    const facts = {
+      articles: [
+        { uuid: 'a0000000-0000-0000-0000-000000000001', path: '/x/hot-a1', publishedAt: 0 },
+        { uuid: 'a0000000-0000-0000-0000-000000000002', path: '/x/hot-a2', publishedAt: 0 },
+        { uuid: 'a0000000-0000-0000-0000-000000000003', path: '/x/archived-a1', publishedAt: 0 },
+        { uuid: 'a0000000-0000-0000-0000-000000000004', path: '/x/archived-a2', publishedAt: 0 },
+      ],
+      tags: [
+        { slug: 'hot-t1', count: 999 },
+        { slug: 'archived-t1', count: 1 },
+      ],
+    };
+
+    assert.equal(existsSync(archive), false);
+    const result = await countOtherFiles(client, facts, archive);
+    assert.equal(result, 3);
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+
+test('countOtherFiles: WR-08 — negative guard rejects with derive-hot-window: and all four counts', async () => {
+  const { root, client, archive } = buildPartitionedTree();
+  try {
+    // 9 real files total (6 client + 3 archive), but facts claim far more pages than exist —
+    // the bug this guards against is a negative otherFiles silently reaching deriveHotWindow.
+    const bogusFacts = {
+      articles: Array.from({ length: 60 }, (_, i) => ({
+        uuid: `b0000000-0000-0000-0000-${String(i).padStart(12, '0')}`,
+        path: `/x/bogus-${i}`,
+        publishedAt: 0,
+      })),
+      tags: Array.from({ length: 40 }, (_, i) => ({ slug: `bogus-tag-${i}`, count: 1 })),
+    };
+
+    await assert.rejects(
+      () => countOtherFiles(client, bogusFacts, archive),
+      (err) => {
+        assert.ok(err instanceof Error);
+        assert.match(err.message, /^derive-hot-window:/);
+        assert.match(err.message, /6/); // dist/client count
+        assert.match(err.message, /3/); // dist/archive count
+        assert.match(err.message, /60/); // article fact count
+        assert.match(err.message, /40/); // tag fact count
+        return true;
+      }
+    );
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+
+test('DEFAULT_DIST_ARCHIVE: matches tools/partition-archive.mjs ARCHIVE_DIR', () => {
+  assert.equal(DEFAULT_DIST_ARCHIVE, 'dist/archive');
 });
