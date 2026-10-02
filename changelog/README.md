@@ -10,6 +10,7 @@ Entries are named `YYYY-MM-DD-HHMM_slug.md` and grouped by month, newest first.
 
 | Date | Entry | Keywords |
 |------|-------|----------|
+| 2026-10-02 | [Plan 05-18 complete: WR-02 closed (index self-heal + partial-result deletes)](2026-10-02-2335_05-18-complete-wr02-closed-index-selfheal-partial-deletes.md) | `[DOCUMENTATION]` `[PLANNING]` `[TESTING]` `[CRITICAL]` |
 | 2026-10-02 | [WR-02 Task 3: record the four new failure modes and the self-heal listing cost](2026-10-02-2325_05-18-task3-wr02-failure-modes-and-selfheal-cost-doc.md) | `[DOCUMENTATION]` `[ARCHITECTURE]` `[TESTING]` |
 | 2026-10-02 | [WR-02 Task 2: deleteObjects reports partial results; every remaining post/pre R2 call made non-fatal](2026-10-02-2315_05-18-task2-deleteobjects-partial-results-nonfatal-writes.md) | `[BUG_FIX]` `[BACKEND]` `[TESTING]` `[SECURITY]` `[CRITICAL]` |
 | 2026-10-02 | [WR-02 Task 1: post-sync index-write failures never crash the run; pre-sync self-heals](2026-10-02-2300_05-18-task1-wr02-post-index-write-alert-pre-self-heal.md) | `[BUG_FIX]` `[BACKEND]` `[TESTING]` `[CRITICAL]` |
