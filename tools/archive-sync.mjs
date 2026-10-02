@@ -298,13 +298,16 @@ async function defaultHasR2Credentials(env) {
  * file, an unreachable origin, a non-2xx response or a malformed remote body all fold into
  * `live: false` with a `reason`, because this function's caller (`runPostSync`) itself must never
  * fail a deploy (D-10/D-12's existing contract, extended to this new gate): an uncertain answer
- * must be treated as "not live," not thrown. 05-14 Task 1 implements exactly one fetch attempt;
- * Task 2 adds polling (`attempts`/`sleep`/`intervalMs`) to absorb post-deploy propagation delay. */
+ * must be treated as "not live," not thrown. Polls up to `attempts` times (default 6, 10s apart)
+ * to absorb post-deploy propagation delay, awaiting `sleep(intervalMs)` between non-matching
+ * attempts — never after the final attempt, and never after a match. `attempts` in the returned
+ * object is however many fetches were actually made (1 on the first-attempt match or on an
+ * unreachable origin/missing local file, up to the full `attempts` count otherwise). */
 export async function checkLiveDeployment({
   root = process.cwd(),
   env = process.env,
   fetchImpl = fetch,
-  sleep,
+  sleep = (ms) => new Promise((resolveSleep) => setTimeout(resolveSleep, ms)),
   attempts = LIVE_CHECK_ATTEMPTS,
   intervalMs = LIVE_CHECK_INTERVAL_MS,
 } = {}) {
@@ -335,30 +338,44 @@ export async function checkLiveDeployment({
     };
   }
 
-  // 05-14 Task 1: a single fetch attempt. Task 2 wraps this in a polling loop.
-  const url = `${origin}/version.json?archive-sync=${Date.now()}`;
+  const totalAttempts = Math.max(1, Number(attempts) || 1);
   let remote = null;
   let reason = null;
-  try {
-    const res = await fetchImpl(url, { headers: { 'cache-control': 'no-cache' } });
-    if (res && res.ok) {
-      const body = await res.json();
-      if (body && typeof body.commit === 'string' && typeof body.builtAt === 'string') {
-        remote = { commit: body.commit, builtAt: body.builtAt };
+  let madeAttempts = 0;
+
+  for (let i = 0; i < totalAttempts; i += 1) {
+    madeAttempts += 1;
+    const url = `${origin}/version.json?archive-sync=${Date.now()}`;
+    try {
+      const res = await fetchImpl(url, { headers: { 'cache-control': 'no-cache' } });
+      if (res && res.ok) {
+        const body = await res.json();
+        if (body && typeof body.commit === 'string' && typeof body.builtAt === 'string') {
+          remote = { commit: body.commit, builtAt: body.builtAt };
+          reason = null;
+        } else {
+          remote = null;
+          reason = 'remote /version.json response is missing commit/builtAt';
+        }
       } else {
-        reason = 'remote /version.json response is missing commit/builtAt';
+        remote = null;
+        reason = `remote /version.json returned status ${res ? res.status : 'unknown'}`;
       }
-    } else {
-      reason = `remote /version.json returned status ${res ? res.status : 'unknown'}`;
+    } catch (err) {
+      remote = null;
+      reason = `remote /version.json fetch failed — ${err instanceof Error ? err.message : String(err)}`;
     }
-  } catch (err) {
-    reason = `remote /version.json fetch failed — ${err instanceof Error ? err.message : String(err)}`;
+
+    if (remote && remote.commit === local.commit && remote.builtAt === local.builtAt) {
+      return { live: true, local, remote, attempts: madeAttempts, reason: null };
+    }
+
+    if (i < totalAttempts - 1) {
+      await sleep(intervalMs);
+    }
   }
 
-  if (remote && remote.commit === local.commit && remote.builtAt === local.builtAt) {
-    return { live: true, local, remote, attempts: 1, reason: null };
-  }
-  return { live: false, local, remote, attempts: 1, reason: reason ?? 'commit/builtAt mismatch' };
+  return { live: false, local, remote, attempts: madeAttempts, reason: reason ?? 'commit/builtAt mismatch' };
 }
 
 /**
@@ -540,6 +557,30 @@ export async function runPostSync(opts = {}) {
   const planEntries = plan.entries;
   const alerts = [];
 
+  // CR-01 (05-14 Task 2): a dry-run deploy ships nothing, so a direct `post` invocation during
+  // one (e.g. `CI_BUILD_DEPLOY_DRY_RUN=1 node tools/archive-sync.mjs post`, bypassing 05-13's
+  // ci-build-side guard) must refuse before even checking credentials or the live deployment —
+  // zero R2 calls, zero network calls, period.
+  if (isTruthyFlag(env.CI_BUILD_DEPLOY_DRY_RUN)) {
+    return {
+      result: buildResult({
+        phase: 'post',
+        uploaded: 0,
+        failed: 0,
+        deferred: 0,
+        movedBack: 0,
+        deleted: 0,
+        backlog: null,
+        alerts: [
+          'archive-sync: post-deploy sync skipped — CI_BUILD_DEPLOY_DRY_RUN is set (a dry run deployed nothing; the production bucket is not touched)',
+        ],
+        dailyReport: { due: false },
+        disabled: true,
+      }),
+      exitCode: 0,
+    };
+  }
+
   const { disabled, reason } = await checkDisabled(env, hasR2CredentialsFn);
   if (disabled) {
     return {
@@ -661,16 +702,28 @@ export async function runPostSync(opts = {}) {
   let deletedCount = 0;
   let actuallyDeleted = [];
   if (toDelete.length > 0) {
-    const delResult = await store.deleteObjects(toDelete);
-    deletedCount = delResult.deleted;
-    if (delResult.errors?.length > 0) {
-      alerts.push(`archive-sync: ${delResult.errors.length} object(s) failed to delete`);
+    // WR-01 (05-14 Task 2): re-check liveness ONE more time, immediately before the delete call —
+    // if a deploy landed during the upload phase above, the live deployment may no longer be this
+    // build, and deleting now would repeat the exact overlapping-build bug the initial gate exists
+    // to prevent. On a mid-run change, skip the delete entirely (not a partial delete) and keep
+    // every orphan's index entry — this run's uploads/index-adds above still stand.
+    const preDeleteLiveness = await checkLiveDeploymentFn({ attempts: 1 });
+    if (!preDeleteLiveness.live) {
+      alerts.push(
+        `archive-sync: live deployment changed during post-sync — skipping ${toDelete.length} deletion(s); index entries kept`
+      );
+    } else {
+      const delResult = await store.deleteObjects(toDelete);
+      deletedCount = delResult.deleted;
+      if (delResult.errors?.length > 0) {
+        alerts.push(`archive-sync: ${delResult.errors.length} object(s) failed to delete`);
+      }
+      // Only drop an index entry for a key that `deleteObjects` actually confirmed deleted — a
+      // key that errored (R2 outage, NoSuchKey, anything else) must keep its index entry, or the
+      // next run would never retry it and the index would silently lie about what's really in R2.
+      const erroredKeys = new Set((delResult.errors ?? []).map((e) => e.key));
+      actuallyDeleted = toDelete.filter((key) => !erroredKeys.has(key));
     }
-    // Only drop an index entry for a key that `deleteObjects` actually confirmed deleted — a
-    // key that errored (R2 outage, NoSuchKey, anything else) must keep its index entry, or the
-    // next run would never retry it and the index would silently lie about what's really in R2.
-    const erroredKeys = new Set((delResult.errors ?? []).map((e) => e.key));
-    actuallyDeleted = toDelete.filter((key) => !erroredKeys.has(key));
   }
 
   if (Object.keys(add).length > 0 || actuallyDeleted.length > 0) {

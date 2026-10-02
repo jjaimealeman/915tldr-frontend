@@ -10,6 +10,7 @@ Entries are named `YYYY-MM-DD-HHMM_slug.md` and grouped by month, newest first.
 
 | Date | Entry | Keywords |
 |------|-------|----------|
+| 2026-10-02 | [Dry-run refusal, propagation polling, and a pre-delete liveness re-check](2026-10-02-1510_05-14-task2-dry-run-refusal-polling-predelete-recheck.md) | `[BUG_FIX]` `[SECURITY]` `[BACKEND]` `[TESTING]` `[DEPLOYMENT]` |
 | 2026-10-02 | [archive-sync post refuses to touch R2 unless the live deployment is this build](2026-10-02-1500_05-14-task1-cr01-wr01-live-deployment-gate.md) | `[BUG_FIX]` `[SECURITY]` `[BACKEND]` `[TESTING]` `[DEPLOYMENT]` |
 | 2026-10-02 | [Plan 05-13 complete: CR-01's ci-build half closed](2026-10-02-2058_05-13-complete-cr01-ci-build-half-closed.md) | `[DOCUMENTATION]` `[PLANNING]` `[TESTING]` `[SECURITY]` |
 | 2026-10-02 | [CR-01 proven live on the real CLI; pipeline doc states the dry-run contract](2026-10-02-2052_05-13-task2-cr01-live-dry-run-proof-and-doc.md) | `[DOCUMENTATION]` `[TESTING]` `[DEPLOYMENT]` `[SECURITY]` |

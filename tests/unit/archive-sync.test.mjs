@@ -750,6 +750,161 @@ test('archive-sync: checkLiveDeployment — a single attempt returns live:false 
 });
 
 // ---------------------------------------------------------------------------
+// Task 2 (05-14): dry-run refusal, propagation polling, pre-delete re-check
+// ---------------------------------------------------------------------------
+
+test('archive-sync: runPostSync — CI_BUILD_DEPLOY_DRY_RUN=1 refuses before checkLiveDeploymentFn is ever called; createStore never called, disabled:true, alert names the flag', async () => {
+  const entries = [{ kind: 'article', key: 'articles/a.html', path: '/cat/a-uuid' }];
+  await withTempRoot(entries, {}, async (root) => {
+    let createStoreCalled = false;
+    let livenessCalled = false;
+    const { result, exitCode } = await runPostSync({
+      root,
+      env: { CI_BUILD_DEPLOY_DRY_RUN: '1' },
+      hasR2CredentialsFn: trueCreds,
+      checkLiveDeploymentFn: async () => {
+        livenessCalled = true;
+        return { live: true };
+      },
+      createStore: async () => {
+        createStoreCalled = true;
+        return makeFakeStore();
+      },
+    });
+
+    assert.equal(createStoreCalled, false);
+    assert.equal(livenessCalled, false, 'a dry run must refuse before the liveness check is ever invoked');
+    assert.equal(result.disabled, true);
+    assert.equal(exitCode, 0);
+    assert.match(result.alerts[0], /CI_BUILD_DEPLOY_DRY_RUN/);
+  });
+});
+
+test('archive-sync: checkLiveDeployment — polls up to `attempts` times, returning live:true on the first match; sleep is called once per non-matching attempt', async () => {
+  await withTempRoot([], {}, async (root) => {
+    writeLocalVersionJson(root, { commit: 'abc1234', builtAt: '2026-10-02T03:00:00.000Z' });
+    let call = 0;
+    const fetchImpl = async () => {
+      call += 1;
+      const builtAt = call < 3 ? '2026-10-02T00:00:00.000Z' : '2026-10-02T03:00:00.000Z';
+      return { ok: true, status: 200, json: async () => ({ commit: 'abc1234', builtAt }) };
+    };
+    const sleepCalls = [];
+    const sleep = async (ms) => {
+      sleepCalls.push(ms);
+    };
+
+    const result = await checkLiveDeployment({ root, env: {}, fetchImpl, sleep, attempts: 6, intervalMs: 10_000 });
+
+    assert.equal(result.live, true);
+    assert.equal(result.attempts, 3);
+    assert.deepEqual(sleepCalls, [10_000, 10_000], 'sleep must be called exactly twice — once after each non-matching attempt, never after the match');
+  });
+});
+
+test('archive-sync: checkLiveDeployment — never live after exhausting `attempts`; a rejecting fetch never throws; a non-https origin never calls fetch', async () => {
+  await withTempRoot([], {}, async (root) => {
+    writeLocalVersionJson(root, { commit: 'abc1234', builtAt: '2026-10-02T00:00:00.000Z' });
+
+    let alwaysMismatchedCalls = 0;
+    const alwaysMismatched = async () => {
+      alwaysMismatchedCalls += 1;
+      return { ok: true, status: 200, json: async () => ({ commit: 'abc1234', builtAt: 'never-matches' }) };
+    };
+    const neverLive = await checkLiveDeployment({ root, env: {}, fetchImpl: alwaysMismatched, sleep: async () => {}, attempts: 4 });
+    assert.equal(neverLive.live, false);
+    assert.equal(alwaysMismatchedCalls, 4);
+
+    const rejecting = async () => {
+      throw new Error('ECONNREFUSED');
+    };
+    const rejected = await checkLiveDeployment({ root, env: {}, fetchImpl: rejecting, sleep: async () => {}, attempts: 1 });
+    assert.equal(rejected.live, false);
+    assert.ok(rejected.reason);
+
+    let insecureFetchCalled = false;
+    const insecureResult = await checkLiveDeployment({
+      root,
+      env: { ARCHIVE_SYNC_LIVE_ORIGIN: 'http://dev.915tldr.com' },
+      fetchImpl: async () => {
+        insecureFetchCalled = true;
+        return { ok: true, status: 200, json: async () => ({ commit: 'abc1234', builtAt: '2026-10-02T00:00:00.000Z' }) };
+      },
+      attempts: 1,
+    });
+    assert.equal(insecureResult.live, false);
+    assert.equal(insecureFetchCalled, false, 'a non-https origin must never be fetched');
+  });
+});
+
+test('archive-sync: runPostSync — the live deployment changing during post-sync skips deletions, keeps the orphan indexed, but still uploads/indexes the changed key', async () => {
+  const entries = [{ kind: 'article', key: 'articles/changed.html', path: '/cat/changed-uuid', body: '<html>v2</html>' }];
+  await withTempRoot(entries, {}, async (root) => {
+    const indexEntries = {
+      'articles/changed.html': { sha256: sha256Of('<html>v1</html>'), path: '/cat/changed-uuid' },
+      'articles/orphan.html': { sha256: 'x', path: '/cat/orphan-uuid' },
+    };
+    mkdirSync(dirname(clientFileFor(root, '/cat/orphan-uuid')), { recursive: true });
+    writeFileSync(clientFileFor(root, '/cat/orphan-uuid'), '<html>now hot</html>'); // promoted orphan
+
+    const store = makeFakeStore({
+      seed: {
+        [ARCHIVE_INDEX_KEY]: { body: JSON.stringify({ version: 1, entries: indexEntries }) },
+        'articles/orphan.html': { body: '<html>archived copy</html>', sha256: 'x' },
+      },
+    });
+
+    let livenessCalls = 0;
+    const flakyLiveness = async () => {
+      livenessCalls += 1;
+      return livenessCalls === 1 ? { live: true } : { live: false, local: { commit: 'a', builtAt: '1' }, remote: { commit: 'b', builtAt: '2' }, reason: 'deploy landed mid-run' };
+    };
+
+    const { result } = await runPostSync({
+      root,
+      env: {},
+      hasR2CredentialsFn: trueCreds,
+      checkLiveDeploymentFn: flakyLiveness,
+      createStore: async () => store,
+    });
+
+    assert.equal(result.uploaded, 1, 'the changed key must still be uploaded — only deletions are gated by the re-check');
+    assert.equal(result.deleted, 0);
+    assert.equal(store.calls.some((c) => c[0] === 'deleteObjects'), false, 'deleteObjects must never be called once the re-check reports non-live');
+    assert.ok(result.alerts.some((a) => /live deployment changed during post-sync/.test(a)));
+
+    const index = JSON.parse(store.objects.get(ARCHIVE_INDEX_KEY).body);
+    assert.equal(index.entries['articles/changed.html'].sha256, sha256Of('<html>v2</html>'), 'the changed key must be re-indexed with its new sha256');
+    assert.equal('articles/orphan.html' in index.entries, true, 'the orphan must remain indexed — its deletion was skipped');
+  });
+});
+
+test('archive-sync: runPostSync — a non-live run at the initial gate leaves the force-full marker untouched and writes neither archive-state.json nor daily-report.json', async () => {
+  const entries = [{ kind: 'article', key: 'articles/a.html', path: '/cat/a-uuid' }];
+  await withTempRoot(entries, {}, async (root) => {
+    const store = makeFakeStore({
+      seed: {
+        [ARCHIVE_INDEX_KEY]: { body: JSON.stringify({ version: 1, entries: {} }) },
+        [FORCE_FULL_KEY]: { body: JSON.stringify({ requestedAt: new Date().toISOString(), reason: 'template change' }) },
+      },
+    });
+    const nonLive = async () => ({ live: false, local: { commit: 'aaa', builtAt: 'L' }, remote: { commit: 'bbb', builtAt: 'R' }, reason: 'mismatch' });
+
+    await runPostSync({
+      root,
+      env: {},
+      hasR2CredentialsFn: trueCreds,
+      checkLiveDeploymentFn: nonLive,
+      createStore: async () => store,
+    });
+
+    assert.equal(store.objects.has(FORCE_FULL_KEY), true, 'the force-full marker must survive a non-live run');
+    assert.equal(store.calls.some((c) => c[0] === 'putJson' && c[1] === ARCHIVE_STATE_KEY), false);
+    assert.equal(store.calls.some((c) => c[0] === 'putJson' && c[1] === DAILY_REPORT_KEY), false);
+  });
+});
+
+// ---------------------------------------------------------------------------
 // requestFullReupload
 // ---------------------------------------------------------------------------
 
