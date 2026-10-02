@@ -42,6 +42,10 @@ export const PRE_DEADLINE_SECONDS = 840;
 export const POST_DEADLINE_SECONDS = 1020;
 export const BACKLOG_ALERT_HOURS = 20;
 export const ARCHIVE_SYNC_CONCURRENCY = 32;
+export const LIVE_ORIGIN_DEFAULT = 'https://dev.915tldr.com';
+export const LIVE_CHECK_ATTEMPTS = 6;
+export const LIVE_CHECK_INTERVAL_MS = 10_000;
+export const LOCAL_VERSION_PATH = 'dist/client/version.json';
 
 const DIST_CLIENT_DIR = 'dist/client';
 const ARCHIVE_CONTENT_TYPE = 'text/html'; // measured live against dev.915tldr.com — 05-03-SUMMARY.md
@@ -286,6 +290,77 @@ async function defaultHasR2Credentials(env) {
   return hasR2Credentials(env);
 }
 
+/** CR-01/WR-01 (05-14): the one check standing between `runPostSync` and every R2 mutation it
+ * can make. Reads this build's own `dist/client/version.json`, compares it against the live
+ * deployment's `/version.json` (commit AND builtAt — `builtAt` differs between a local build and
+ * the deployed build of the same commit, so commit alone would under-detect), and reports
+ * `live: true` only on an exact match of both fields. Never throws — a missing/unparseable local
+ * file, an unreachable origin, a non-2xx response or a malformed remote body all fold into
+ * `live: false` with a `reason`, because this function's caller (`runPostSync`) itself must never
+ * fail a deploy (D-10/D-12's existing contract, extended to this new gate): an uncertain answer
+ * must be treated as "not live," not thrown. 05-14 Task 1 implements exactly one fetch attempt;
+ * Task 2 adds polling (`attempts`/`sleep`/`intervalMs`) to absorb post-deploy propagation delay. */
+export async function checkLiveDeployment({
+  root = process.cwd(),
+  env = process.env,
+  fetchImpl = fetch,
+  sleep,
+  attempts = LIVE_CHECK_ATTEMPTS,
+  intervalMs = LIVE_CHECK_INTERVAL_MS,
+} = {}) {
+  const localAbs = resolve(root, LOCAL_VERSION_PATH);
+  let local = null;
+  if (existsSync(localAbs)) {
+    try {
+      const parsed = JSON.parse(readFileSync(localAbs, 'utf8'));
+      if (parsed && typeof parsed.commit === 'string' && typeof parsed.builtAt === 'string') {
+        local = { commit: parsed.commit, builtAt: parsed.builtAt };
+      }
+    } catch {
+      local = null;
+    }
+  }
+  if (!local) {
+    return { live: false, local: null, remote: null, attempts: 0, reason: `${LOCAL_VERSION_PATH} is missing or unparseable` };
+  }
+
+  const origin = env.ARCHIVE_SYNC_LIVE_ORIGIN || LIVE_ORIGIN_DEFAULT;
+  if (!origin.startsWith('https://')) {
+    return {
+      live: false,
+      local,
+      remote: null,
+      attempts: 0,
+      reason: `ARCHIVE_SYNC_LIVE_ORIGIN must be an https origin — got ${JSON.stringify(origin)}`,
+    };
+  }
+
+  // 05-14 Task 1: a single fetch attempt. Task 2 wraps this in a polling loop.
+  const url = `${origin}/version.json?archive-sync=${Date.now()}`;
+  let remote = null;
+  let reason = null;
+  try {
+    const res = await fetchImpl(url, { headers: { 'cache-control': 'no-cache' } });
+    if (res && res.ok) {
+      const body = await res.json();
+      if (body && typeof body.commit === 'string' && typeof body.builtAt === 'string') {
+        remote = { commit: body.commit, builtAt: body.builtAt };
+      } else {
+        reason = 'remote /version.json response is missing commit/builtAt';
+      }
+    } else {
+      reason = `remote /version.json returned status ${res ? res.status : 'unknown'}`;
+    }
+  } catch (err) {
+    reason = `remote /version.json fetch failed — ${err instanceof Error ? err.message : String(err)}`;
+  }
+
+  if (remote && remote.commit === local.commit && remote.builtAt === local.builtAt) {
+    return { live: true, local, remote, attempts: 1, reason: null };
+  }
+  return { live: false, local, remote, attempts: 1, reason: reason ?? 'commit/builtAt mismatch' };
+}
+
 /**
  * Pre-deploy phase: uploads pages new to the archive; anything that fails, times out at the
  * deadline, or sits beyond `--limit` is moved back into `dist/client` before this returns.
@@ -439,6 +514,7 @@ export async function runPostSync(opts = {}) {
     createStore = defaultCreateStore,
     hasR2CredentialsFn = defaultHasR2Credentials,
     forceFullFlag = false,
+    checkLiveDeploymentFn = (liveOpts) => checkLiveDeployment({ root, env, ...liveOpts }),
   } = opts;
 
   let plan;
@@ -478,6 +554,32 @@ export async function runPostSync(opts = {}) {
         alerts: [`archive-sync: archive tier disabled for this build — ${reason}`],
         dailyReport: null,
         disabled: true,
+      }),
+      exitCode: 0,
+    };
+  }
+
+  // CR-01/WR-01 (05-14): refuse every path below — uploads, deletions, state, daily report,
+  // force-full clearing — unless the live deployment is THIS build. Checked before `createStore`
+  // so a non-live run makes exactly one read-only GET and zero R2 calls.
+  const liveness = await checkLiveDeploymentFn();
+  if (!liveness.live) {
+    const localDesc = liveness.local ? `${liveness.local.commit}@${liveness.local.builtAt}` : 'unknown';
+    const remoteDesc = liveness.remote ? `${liveness.remote.commit}@${liveness.remote.builtAt}` : 'unknown';
+    return {
+      result: buildResult({
+        phase: 'post',
+        uploaded: 0,
+        failed: 0,
+        deferred: 0,
+        movedBack: 0,
+        deleted: 0,
+        backlog: null,
+        alerts: [
+          `archive-sync: post-deploy sync skipped — live deployment is not this build (live ${remoteDesc}, local ${localDesc}; ${liveness.reason}); no R2 changes made, daily report not evaluated this run`,
+        ],
+        dailyReport: { due: false },
+        disabled: false,
       }),
       exitCode: 0,
     };

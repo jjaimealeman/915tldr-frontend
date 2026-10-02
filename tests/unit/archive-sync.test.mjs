@@ -21,6 +21,7 @@ import {
   requestFullReupload,
   isR2WriteBlocked,
   wrapStoreForBranchGuard,
+  checkLiveDeployment,
 } from '../../tools/archive-sync.mjs';
 
 // ---------------------------------------------------------------------------
@@ -154,6 +155,11 @@ function archiveFileFor(root, key) {
 
 const trueCreds = async () => true;
 const falseCreds = async () => false;
+
+/** Every pre-existing `runPostSync(` call below describes a LIVE build (05-14) — without this
+ * stub injected, those calls would hit the real default `checkLiveDeployment` and attempt a
+ * genuine network fetch against dev.915tldr.com inside a unit test. */
+const liveOk = async () => ({ live: true, local: null, remote: null, attempts: 1, reason: null });
 
 // ---------------------------------------------------------------------------
 // diffAgainstIndex
@@ -349,6 +355,7 @@ test('archive-sync: runPostSync — uploads changed keys; a failed re-upload is 
       root,
       env: {},
       hasR2CredentialsFn: trueCreds,
+      checkLiveDeploymentFn: liveOk,
       createStore: async () => store,
     });
 
@@ -388,6 +395,7 @@ test('archive-sync: runPostSync — deletes promoted orphans freely; vanished or
       root,
       env: {},
       hasR2CredentialsFn: trueCreds,
+      checkLiveDeploymentFn: liveOk,
       createStore: async () => store,
     });
 
@@ -415,6 +423,7 @@ test('archive-sync: runPostSync — promoted orphans delete even when vanished o
       root,
       env: {},
       hasR2CredentialsFn: trueCreds,
+      checkLiveDeploymentFn: liveOk,
       createStore: async () => store,
     });
 
@@ -453,7 +462,7 @@ test('archive-sync: runPostSync — a deadline already passed defers every chang
       },
     });
 
-    const { result } = await runPostSync({ root, env: {}, hasR2CredentialsFn: trueCreds, createStore: async () => store });
+    const { result } = await runPostSync({ root, env: {}, hasR2CredentialsFn: trueCreds, checkLiveDeploymentFn: liveOk, createStore: async () => store });
 
     assert.equal(result.uploaded, 0);
     assert.equal(result.deferred, 1);
@@ -486,7 +495,7 @@ test('archive-sync: runPostSync — backlogSince is kept from the earlier value 
       },
     });
 
-    const { result } = await runPostSync({ root, env: {}, hasR2CredentialsFn: trueCreds, createStore: async () => store });
+    const { result } = await runPostSync({ root, env: {}, hasR2CredentialsFn: trueCreds, checkLiveDeploymentFn: liveOk, createStore: async () => store });
     assert.equal(result.backlog.since, oldBacklogSince);
   });
 });
@@ -511,7 +520,7 @@ test('archive-sync: runPostSync — a later run that clears the backlog sets bac
       },
     });
 
-    const { result } = await runPostSync({ root, env: {}, hasR2CredentialsFn: trueCreds, createStore: async () => store });
+    const { result } = await runPostSync({ root, env: {}, hasR2CredentialsFn: trueCreds, checkLiveDeploymentFn: liveOk, createStore: async () => store });
 
     assert.equal(result.deferred, 0);
     assert.equal(result.backlog.count, 0);
@@ -543,7 +552,7 @@ test(`archive-sync: runPostSync — a backlogSince older than ${BACKLOG_ALERT_HO
       },
     });
 
-    const { result } = await runPostSync({ root, env: {}, hasR2CredentialsFn: trueCreds, createStore: async () => store });
+    const { result } = await runPostSync({ root, env: {}, hasR2CredentialsFn: trueCreds, checkLiveDeploymentFn: liveOk, createStore: async () => store });
     assert.ok(result.alerts.some((a) => /backlog older than 20h \(D-10\)/.test(a)));
   });
 });
@@ -573,7 +582,7 @@ test('archive-sync: runPostSync — with the force-full marker present, every in
       },
     });
 
-    const { result } = await runPostSync({ root, env: {}, hasR2CredentialsFn: trueCreds, createStore: async () => store });
+    const { result } = await runPostSync({ root, env: {}, hasR2CredentialsFn: trueCreds, checkLiveDeploymentFn: liveOk, createStore: async () => store });
 
     assert.equal(result.uploaded, 2, 'both keys re-uploaded even though their sha256 matched the index');
     assert.equal(result.deferred, 0);
@@ -597,9 +606,146 @@ test('archive-sync: runPostSync — the force-full marker is kept when the run s
       },
     });
 
-    const { result } = await runPostSync({ root, env: {}, hasR2CredentialsFn: trueCreds, createStore: async () => store });
+    const { result } = await runPostSync({ root, env: {}, hasR2CredentialsFn: trueCreds, checkLiveDeploymentFn: liveOk, createStore: async () => store });
     assert.equal(result.deferred, 1);
     assert.equal(store.objects.has(FORCE_FULL_KEY), true, 'the marker must survive a run that still has a backlog');
+  });
+});
+
+// ---------------------------------------------------------------------------
+// WR-01 / CR-01 (05-14): post refuses a build that is not live
+// ---------------------------------------------------------------------------
+
+function writeLocalVersionJson(root, { commit = 'aaa1234', builtAt = '2026-10-02T00:00:00.000Z' } = {}) {
+  mkdirSync(join(root, 'dist', 'client'), { recursive: true });
+  writeFileSync(join(root, 'dist', 'client', 'version.json'), JSON.stringify({ commit, builtAt }));
+}
+
+test('archive-sync: runPostSync (05-14) — a non-live build refuses before createStore is ever called; zero uploads, zero deletions, one alert naming both versions', async () => {
+  const entries = [{ kind: 'article', key: 'articles/a.html', path: '/cat/a-uuid' }];
+  await withTempRoot(entries, {}, async (root) => {
+    let createStoreCalled = false;
+    const nonLive = async () => ({
+      live: false,
+      local: { commit: 'aaa', builtAt: 'L' },
+      remote: { commit: 'bbb', builtAt: 'R' },
+      reason: 'mismatch',
+    });
+
+    const { result, exitCode } = await runPostSync({
+      root,
+      env: {},
+      hasR2CredentialsFn: trueCreds,
+      checkLiveDeploymentFn: nonLive,
+      createStore: async () => {
+        createStoreCalled = true;
+        return makeFakeStore();
+      },
+    });
+
+    assert.equal(createStoreCalled, false, 'createStore must never be called when the live deployment is not this build');
+    assert.equal(result.uploaded, 0);
+    assert.equal(result.deleted, 0);
+    assert.equal(exitCode, 0);
+    assert.equal(result.alerts.length, 1);
+    assert.match(result.alerts[0], /live deployment is not this build/);
+    assert.match(result.alerts[0], /aaa/, 'the alert must name the local commit');
+    assert.match(result.alerts[0], /bbb/, 'the alert must name the remote (live) commit');
+  });
+});
+
+test('archive-sync: runPostSync (05-14) — WR-01 overlapping-build regression: key K (in the index, absent from this build\'s plan, present in this build\'s dist/client) survives a non-live run untouched in R2 and in the index', async () => {
+  // Build A's plan has no entries at all — K was never part of build A's own content. But K is
+  // present as a real static file in build A's dist/client (the review's 4-step scenario), and K
+  // is still listed in the index and still stored in R2 because build B (now live) archived it.
+  await withTempRoot([], {}, async (root) => {
+    mkdirSync(dirname(clientFileFor(root, '/cat/k-uuid')), { recursive: true });
+    writeFileSync(clientFileFor(root, '/cat/k-uuid'), '<html>K is static in build A</html>');
+
+    const store = makeFakeStore({
+      seed: {
+        [ARCHIVE_INDEX_KEY]: {
+          body: JSON.stringify({ version: 1, entries: { 'articles/k.html': { sha256: 'k-sha', path: '/cat/k-uuid' } } }),
+        },
+        'articles/k.html': { body: '<html>K archived by build B</html>', sha256: 'k-sha' },
+      },
+    });
+
+    const nonLive = async () => ({
+      live: false,
+      local: { commit: 'aaa', builtAt: 'L' },
+      remote: { commit: 'bbb', builtAt: 'R' },
+      reason: 'mismatch',
+    });
+
+    const { result } = await runPostSync({
+      root,
+      env: {},
+      hasR2CredentialsFn: trueCreds,
+      checkLiveDeploymentFn: nonLive,
+      createStore: async () => store,
+    });
+
+    assert.equal(result.deleted, 0, 'a non-live run must delete nothing');
+    assert.equal(store.objects.has('articles/k.html'), true, 'K must remain in R2 — a non-live build must never delete it');
+    const index = JSON.parse(store.objects.get(ARCHIVE_INDEX_KEY).body);
+    assert.equal('articles/k.html' in index.entries, true, 'K must remain indexed');
+    assert.equal(store.calls.some((c) => c[0] === 'deleteObjects'), false, 'deleteObjects must never appear in store.calls on a non-live run');
+  });
+});
+
+test('archive-sync: runPostSync (05-14) — a live build behaves exactly as before (covered by every other post test via the liveOk stub)', async () => {
+  const entries = [{ kind: 'article', key: 'articles/a.html', path: '/cat/a-uuid', body: '<html>v2</html>' }];
+  await withTempRoot(entries, {}, async (root) => {
+    const store = makeFakeStore({
+      seed: {
+        [ARCHIVE_INDEX_KEY]: {
+          body: JSON.stringify({ version: 1, entries: { 'articles/a.html': { sha256: sha256Of('<html>v1</html>'), path: '/cat/a-uuid' } } }),
+        },
+      },
+    });
+
+    const { result } = await runPostSync({
+      root,
+      env: {},
+      hasR2CredentialsFn: trueCreds,
+      checkLiveDeploymentFn: liveOk,
+      createStore: async () => store,
+    });
+
+    assert.equal(result.uploaded, 1);
+  });
+});
+
+test('archive-sync: checkLiveDeployment — a single attempt returns live:true only when both commit and builtAt match, and the requested URL is the dev.915tldr.com default with a cache-busting query', async () => {
+  await withTempRoot([], {}, async (root) => {
+    writeLocalVersionJson(root, { commit: 'abc1234', builtAt: '2026-10-02T00:00:00.000Z' });
+    let requestedUrl = null;
+    const fetchImpl = async (url) => {
+      requestedUrl = String(url);
+      return { ok: true, status: 200, json: async () => ({ commit: 'abc1234', builtAt: '2026-10-02T00:00:00.000Z' }) };
+    };
+
+    const result = await checkLiveDeployment({ root, env: {}, fetchImpl, attempts: 1 });
+
+    assert.equal(result.live, true);
+    assert.equal(result.local.commit, 'abc1234');
+    assert.equal(result.remote.commit, 'abc1234');
+    assert.ok(requestedUrl.startsWith('https://dev.915tldr.com/version.json?'), `expected the default live origin, got ${requestedUrl}`);
+  });
+});
+
+test('archive-sync: checkLiveDeployment — a single attempt returns live:false when builtAt differs (same commit)', async () => {
+  await withTempRoot([], {}, async (root) => {
+    writeLocalVersionJson(root, { commit: 'abc1234', builtAt: '2026-10-02T00:00:00.000Z' });
+    const fetchImpl = async () => ({ ok: true, status: 200, json: async () => ({ commit: 'abc1234', builtAt: '2026-10-02T05:00:00.000Z' }) });
+
+    const result = await checkLiveDeployment({ root, env: {}, fetchImpl, attempts: 1 });
+
+    assert.equal(result.live, false);
+    assert.equal(result.local.commit, 'abc1234');
+    assert.equal(result.remote.builtAt, '2026-10-02T05:00:00.000Z');
+    assert.ok(result.reason);
   });
 });
 
@@ -637,12 +783,12 @@ test('archive-sync: runPostSync — dailyReport.due is true exactly once per Ame
     );
     const store = makeFakeStore();
 
-    const first = await runPostSync({ root, env: {}, hasR2CredentialsFn: trueCreds, createStore: async () => store });
+    const first = await runPostSync({ root, env: {}, hasR2CredentialsFn: trueCreds, checkLiveDeploymentFn: liveOk, createStore: async () => store });
     assert.equal(first.result.dailyReport.due, true);
     assert.equal(first.result.dailyReport.body.staticFileCount, 29937);
     assert.equal(first.result.dailyReport.body.ceiling, 100000);
 
-    const second = await runPostSync({ root, env: {}, hasR2CredentialsFn: trueCreds, createStore: async () => store });
+    const second = await runPostSync({ root, env: {}, hasR2CredentialsFn: trueCreds, checkLiveDeploymentFn: liveOk, createStore: async () => store });
     assert.equal(second.result.dailyReport.due, false);
   });
 });
@@ -654,7 +800,7 @@ test('archive-sync: runPostSync — dailyReport.due is true exactly once per Ame
 test('archive-sync: runPostSync — post never exits non-zero, even when the plan is missing', async () => {
   const root = mkdtempSync(join(tmpdir(), 'archive-sync-test-'));
   try {
-    const { result, exitCode } = await runPostSync({ root, env: {}, hasR2CredentialsFn: trueCreds });
+    const { result, exitCode } = await runPostSync({ root, env: {}, hasR2CredentialsFn: trueCreds, checkLiveDeploymentFn: liveOk });
     assert.equal(exitCode, 0);
     assert.ok(result.alerts[0].includes('archive-plan.json'));
   } finally {
@@ -670,6 +816,7 @@ test('archive-sync: runPostSync — missing credentials returns disabled:true wi
       root,
       env: {},
       hasR2CredentialsFn: falseCreds,
+      checkLiveDeploymentFn: liveOk,
       createStore: async () => {
         created = true;
         return makeFakeStore();
