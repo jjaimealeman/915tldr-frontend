@@ -3,17 +3,17 @@ gsd_state_version: 1.0
 milestone: v1.5
 milestone_name: milestone
 current_phase: 05
-current_phase_name: Hybrid Archive & Zero-Reads Proof
+current_phase_name: hybrid-archive-zero-reads-proof
 status: executing
-stopped_at: Completed 05-12-PLAN.md -- Phase 5 complete, ARCH-01 ZERO_READS_PROVEN
-last_updated: "2026-10-02T17:03:04.758Z"
-last_activity: 2026-10-01
-last_activity_desc: Phase 05 plan 11 executed (live URL contract + real-browser journeys for archived pages; R2 latency and archived-page LCP measured — R2_LATENCY_EXCEEDS_LCP, flagged for owner review)
+stopped_at: Completed 05-13-PLAN.md -- CR-01 (ci-build half) closed
+last_updated: "2026-10-02T20:49:09.479Z"
+last_activity: 2026-10-02
+last_activity_desc: Phase 05 execution started
 progress:
   total_phases: 5
-  completed_phases: 5
+  completed_phases: 4
   total_plans: 73
-  completed_plans: 64
+  completed_plans: 65
 ---
 
 # Project State
@@ -23,16 +23,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-09-16)
 
 **Core value:** Zero D1 reads on the public request path — architecturally zero, enforced structurally at build time.
-**Current focus:** Phase 05 — Hybrid Archive & Zero-Reads Proof
+**Current focus:** Phase 05 — hybrid-archive-zero-reads-proof
 
 ## Current Position
 
-Phase: 05 (Hybrid Archive & Zero-Reads Proof) — EXECUTING
-Plan: 12 of 12 (05-10 still pending; 05-11 complete out of order per orchestrator wave sequencing)
-Status: Ready to execute (05-10 or 05-12 next)
-Last activity: 2026-10-01 — Phase 05 plan 11 executed (live URL contract + browser journeys for archived pages; R2/LCP measured)
+Phase: 05 (hybrid-archive-zero-reads-proof) — EXECUTING
+Plan: 2 of 21
+Status: Ready to execute
+Last activity: 2026-10-02 — Phase 05 execution started
 
-Progress: [██████████] 100%
+Progress: [█████████░] 89%
 
 ## Performance Metrics
 
@@ -113,6 +113,7 @@ Progress: [██████████] 100%
 | Phase 05 P11 | ~110min | 3 tasks | 14 files |
 | Phase 05 P10 | ~76min | 2 tasks | 3 files |
 | Phase 05 P12 | ~3h10min | 3 tasks | 11 files |
+| Phase 05 P13 | 35min | 2 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -279,6 +280,7 @@ Recent decisions affecting current work:
 - [Phase ?]: 05-12: ARCH-01 verdict ZERO_READS_PROVEN -- a real 20,000-request pass against the deployed Worker measured load-window rowsRead (1,684,090) within v1's own 7-day background (z=-1.0011), and the deployed Worker carries no D1 binding. Phase 5's core premise is proven, not assumed; Phase 6 may proceed per D-02.
 - [Phase ?]: 05-12: Found and fixed two real, pre-existing bugs in load-test-zero-reads.mjs (05-04's own gate instrument) before the real gate could run: the documented analytics catch-up wait was dead code on the live CLI path, and --archive-plan was parsed but never used to build a request mix -- the documented CLI usage had never actually worked, on any invocation, before 05-12.
 - [Phase ?]: 05-12: ARCH-08 measured on the deployed Worker over the gate's own window -- KV reads within budget (202/8464 invocations), CPU p50/p99 excellent (0.764ms/2.846ms), but a single real request spiked to 49.966ms, over the 20ms hard-fail ceiling. Disclosed, not hidden; recorded as a failed requirement for /gsd-verify-work, not a project halt (D-02 applies only to the ZERO_READS_* verdict). Logged to WINDOWS.md #26.
+- [Phase ?]: 05-13: Restructured ci-build.mjs's deploy branch so commitImpl AND the entire archive-sync post spawn/parse/alert block run only inside a single !dryRun conditional (not two independent guards) — closes the ci-build half of code-review finding CR-01; proven by 3 red-to-green regression tests plus a credential-free live CLI dry run (pre reported disabled:true, skip line logged once, zero post ARCHIVE_SYNC_RESULT lines).
 
 ### Pending Todos
 
@@ -335,6 +337,6 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-10-01T21:43:29.087Z
-Stopped at: Completed 05-12-PLAN.md -- Phase 5 complete, ARCH-01 ZERO_READS_PROVEN
+Last session: 2026-10-02T20:49:09.458Z
+Stopped at: Completed 05-13-PLAN.md -- CR-01 (ci-build half) closed
 Resume file: None
