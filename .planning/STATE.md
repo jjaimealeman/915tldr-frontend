@@ -5,15 +5,15 @@ milestone_name: milestone
 current_phase: 05
 current_phase_name: hybrid-archive-zero-reads-proof
 status: executing
-stopped_at: Completed 05-20-PLAN.md -- CR-02 closed (deploy routed through guard, IN-06 fixed)
-last_updated: "2026-10-02T22:07:06.213Z"
+stopped_at: Completed 05-17-PLAN.md -- ARCH-08 CPU-outlier dispute settled (4 outliers, not 1), decision doc written for 05-19
+last_updated: "2026-10-02T23:09:21.977Z"
 last_activity: 2026-10-02
 last_activity_desc: Phase 05 execution started
 progress:
   total_phases: 5
   completed_phases: 4
   total_plans: 73
-  completed_plans: 70
+  completed_plans: 71
 ---
 
 # Project State
@@ -28,11 +28,11 @@ See: .planning/PROJECT.md (updated 2026-09-16)
 ## Current Position
 
 Phase: 05 (hybrid-archive-zero-reads-proof) — EXECUTING
-Plan: 7 of 21
+Plan: 8 of 21
 Status: Ready to execute
 Last activity: 2026-10-02 — Phase 05 execution started
 
-Progress: [██████████] 96%
+Progress: [██████████] 97%
 
 ## Performance Metrics
 
@@ -119,6 +119,7 @@ Progress: [██████████] 96%
 | Phase 05 P16 | 25min | 2 tasks | 4 files |
 | Phase 05 P18 | 4min | 3 tasks | 6 files |
 | Phase 05 P20 | ~35min | 3 tasks | 9 files |
+| Phase 05 P17 | 27min | 2 tasks | 10 files |
 
 ## Accumulated Context
 
@@ -293,6 +294,8 @@ Recent decisions affecting current work:
 - [Phase ?]: 05-16: fixed zero-reads gate's CR-03 window-alignment bias structurally (one aligned window feeds both sides); re-checked the 2026-10-01 ZERO_READS_PROVEN verdict with a real read-only re-query (2,183,097 rowsRead, z=-0.7585), confirming it on measured data rather than the review's own estimate
 - [Phase ?]: WR-02 closed: post-sync index-write failures are non-fatal alerts; pre-sync self-heals any index entry R2 doesn't actually hold; deleteObjects reports partial results instead of throwing away confirmed deletions
 - [Phase ?]: 05-20: CR-02 closed — pnpm run deploy routed through tools/ci-build.mjs deploy, gated on a new tools/assert-archive-synced.mjs guard that refuses a partitioned dist/ unless archive-sync pre has confirmed this exact build (marker keyed to the plan's generatedAt). IN-06 fixed alongside (BUILD_START_MARKER_MAX_AGE_SECONDS=1800). Both CR-01 and CR-02 -- the two blockers on REND-07/REND-08 per 05-VERIFICATION.md -- are now closed; REQUIREMENTS.md closure itself deferred to 05-21 per this project's own established pattern.
+- [Phase ?]: ARCH-08: no decision made — docs/phase-05/arch-08-cpu-outliers.md records three labelled options (accept/fix/re-measure) for the owner's 05-19 checkpoint
+- [Phase ?]: ARCH-08 outlier count settled at 4 (>=20ms) / 5 (>=5ms) via a new per-request tool against Workers Observability telemetry (dataset cloudflare-workers), not the aggregate GraphQL workersInvocationsAdaptive dataset
 
 ### Pending Todos
 
@@ -349,6 +352,6 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-10-02T22:07:06.192Z
-Stopped at: Completed 05-20-PLAN.md -- CR-02 closed (deploy routed through guard, IN-06 fixed)
+Last session: 2026-10-02T23:09:21.956Z
+Stopped at: Completed 05-17-PLAN.md -- ARCH-08 CPU-outlier dispute settled (4 outliers, not 1), decision doc written for 05-19
 Resume file: None
