@@ -10,6 +10,7 @@ Entries are named `YYYY-MM-DD-HHMM_slug.md` and grouped by month, newest first.
 
 | Date | Entry | Keywords |
 |------|-------|----------|
+| 2026-10-02 | [Plant SEED-001: personalized news (/me, digests, follow-a-story)](2026-10-02-1757_plant-seed-001-personalized-news.md) | `[PLANNING]` `[DOCUMENTATION]` `[ARCHITECTURE]` |
 | 2026-10-02 | [Plan 05-17 complete: ARCH-08's CPU-outlier dispute settled (4, not 1)](2026-10-02-1709_05-17-complete-arch08-outlier-dispute-settled.md) | `[DOCUMENTATION]` `[PLANNING]` `[TESTING]` `[SECURITY]` `[ARCHITECTURE]` `[CRITICAL]` |
 | 2026-10-02 | [Plan 05-17 Task 2: IN-01 correlation evidence and the ARCH-08 decision doc](2026-10-02-1707_05-17-task2-in01-correlation-and-decision-doc.md) | `[BACKEND]` `[TESTING]` `[SECURITY]` `[ARCHITECTURE]` `[DOCUMENTATION]` `[CRITICAL]` |
 | 2026-10-02 | [Plan 05-20 complete: CR-02 closed (guarded deploy) and IN-06 fixed](2026-10-02-1706_05-20-complete-cr02-closed-guarded-deploy.md) | `[DOCUMENTATION]` `[PLANNING]` `[TESTING]` `[SECURITY]` `[CRITICAL]` |
