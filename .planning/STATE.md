@@ -5,15 +5,15 @@ milestone_name: milestone
 current_phase: 05
 current_phase_name: hybrid-archive-zero-reads-proof
 status: executing
-stopped_at: Completed 05-15-PLAN.md -- REND-10/WR-08 re-derivation capability restored and proven live (preview only)
-last_updated: "2026-10-02T21:24:24.465Z"
+stopped_at: Completed 05-16-PLAN.md -- CR-03 window-alignment fix + re-check committed
+last_updated: "2026-10-02T21:34:26.459Z"
 last_activity: 2026-10-02
 last_activity_desc: Phase 05 execution started
 progress:
   total_phases: 5
   completed_phases: 4
   total_plans: 73
-  completed_plans: 67
+  completed_plans: 68
 ---
 
 # Project State
@@ -28,11 +28,11 @@ See: .planning/PROJECT.md (updated 2026-09-16)
 ## Current Position
 
 Phase: 05 (hybrid-archive-zero-reads-proof) — EXECUTING
-Plan: 4 of 21
+Plan: 5 of 21
 Status: Ready to execute
 Last activity: 2026-10-02 — Phase 05 execution started
 
-Progress: [█████████░] 92%
+Progress: [█████████░] 93%
 
 ## Performance Metrics
 
@@ -116,6 +116,7 @@ Progress: [█████████░] 92%
 | Phase 05 P13 | 35min | 2 tasks | 3 files |
 | Phase 05 P14 | ~21min | 3 tasks | 3 files |
 | Phase 05 P15 | ~35min | 2 tasks | 3 files |
+| Phase 05 P16 | 25min | 2 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -287,6 +288,7 @@ Recent decisions affecting current work:
 - [Phase ?]: 05-14: checkLiveDeployment compares commit AND builtAt (not commit alone) — builtAt differs between a local build and the deployed build of the same commit
 - [Phase ?]: 05-15: countOtherFiles now counts both dist/client and dist/archive (WR-08), with a negative-result guard naming all four counts; DEFAULT_DIST_ARCHIVE re-exported from partition-archive.mjs's ARCHIVE_DIR
 - [Phase ?]: 05-15: the real, non-probe derive-hot-window.mjs path was proven live end to end (preview only, no --write) against current Cloudflare Zone Analytics; hot-window.json confirmed byte-identical before/after -- REND-10's only recorded blocking gap (05-VERIFICATION gap 3) is closed, but REQUIREMENTS.md is left for 05-21 to update per convention
+- [Phase ?]: 05-16: fixed zero-reads gate's CR-03 window-alignment bias structurally (one aligned window feeds both sides); re-checked the 2026-10-01 ZERO_READS_PROVEN verdict with a real read-only re-query (2,183,097 rowsRead, z=-0.7585), confirming it on measured data rather than the review's own estimate
 
 ### Pending Todos
 
@@ -343,6 +345,6 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-10-02T21:24:24.444Z
-Stopped at: Completed 05-15-PLAN.md -- REND-10/WR-08 re-derivation capability restored and proven live (preview only)
+Last session: 2026-10-02T21:34:26.438Z
+Stopped at: Completed 05-16-PLAN.md -- CR-03 window-alignment fix + re-check committed
 Resume file: None

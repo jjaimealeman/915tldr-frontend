@@ -13,6 +13,7 @@ Entries are named `YYYY-MM-DD-HHMM_slug.md` and grouped by month, newest first.
 | 2026-10-02 | [Plan 05-15 complete: REND-10/WR-08 re-derivation capability restored](2026-10-02-2225_05-15-complete-rend-10-wr08-rederivation-restored.md) | `[DOCUMENTATION]` `[PLANNING]` `[TESTING]` |
 | 2026-10-02 | [REND-10's re-derivation capability proven live, preview only](2026-10-02-2215_05-15-task2-live-rederivation-preview-proven.md) | `[DOCUMENTATION]` `[TESTING]` `[ARCHITECTURE]` |
 | 2026-10-02 | [WR-08 fix: hot-window re-derivation can count a partitioned build again](2026-10-02-2200_05-15-task1-wr08-count-both-trees-negative-guard.md) | `[BUG_FIX]` `[BACKEND]` `[TESTING]` |
+| 2026-10-02 | [Plan 05-16 complete: CR-03 window-alignment bias fixed and re-checked](2026-10-02-2134_05-16-complete-cr03-window-alignment-closed.md) | `[DOCUMENTATION]` `[PLANNING]` `[TESTING]` `[CRITICAL]` |
 | 2026-10-02 | [CR-03 re-checked live: 2026-10-01 ZERO_READS_PROVEN verdict confirmed on corrected data](2026-10-02-2131_05-16-task2-cr03-live-recheck-recorded-correction.md) | `[TESTING]` `[DOCUMENTATION]` `[CRITICAL]` `[PERFORMANCE]` |
 | 2026-10-02 | [CR-03 GREEN: one aligned window feeds both sides of the zero-reads comparison](2026-10-02-2130_05-16-task1-cr03-green-align-load-window.md) | `[BUG_FIX]` `[BACKEND]` `[TESTING]` `[CRITICAL]` |
 | 2026-10-02 | [CR-03 RED: load/baseline window alignment regression test](2026-10-02-2129_05-16-task1-cr03-red-window-alignment-test.md) | `[TESTING]` `[BUG_FIX]` `[CRITICAL]` |
