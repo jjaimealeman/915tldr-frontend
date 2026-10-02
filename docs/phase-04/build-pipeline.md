@@ -72,11 +72,17 @@ DEPLOY step
   3. wrangler deploy --config wrangler.jsonc           — ships dist/client (every page confirmed
                                                           static OR confirmed in R2)
   4. commitLastGood                                    — only after a REAL, successful deploy
-                                                          (unchanged from 04-09)
+                                                          (unchanged from 04-09) (skipped entirely
+                                                          in a dry run — CI_BUILD_DEPLOY_DRY_RUN=1
+                                                          deploys nothing, so nothing may be
+                                                          committed or deleted; CR-01, 05-13)
   5. node tools/archive-sync.mjs post                  — re-uploads CHANGED archived pages,
                                                           deletes orphans, tracks backlog, reports
                                                           once/day; NEVER alters the deploy's own
-                                                          exit code (D-10/D-12)
+                                                          exit code (D-10/D-12) (skipped entirely
+                                                          in a dry run — CI_BUILD_DEPLOY_DRY_RUN=1
+                                                          deploys nothing, so nothing may be
+                                                          committed or deleted; CR-01, 05-13)
   6. ntfy alerts/daily report — every archive outcome from steps 1-5 (failed uploads, a disabled
      tier, a backlog older than 20h, the file-count warn alarm, the once-daily REND-11 report)
      reaches the owner exactly once, sent AFTER the deploy itself succeeds — never gating it
