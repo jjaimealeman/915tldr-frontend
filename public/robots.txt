@@ -117,10 +117,6 @@ Disallow: /
 User-agent: PetalBot
 Disallow: /
 
-# Perplexity AI
-User-agent: PerplexityBot
-Disallow: /
-
 # Cohere
 User-agent: cohere-ai
 Disallow: /
@@ -140,6 +136,14 @@ Allow: /
 
 # DuckDuckGo AI assistant
 User-agent: DuckAssistBot
+Allow: /
+
+# Perplexity - search index + user-triggered fetches for cited answers
+# (allowed 2026-10-02: ai-input=yes; training remains opted out via ai-train=no)
+User-agent: PerplexityBot
+Allow: /
+
+User-agent: Perplexity-User
 Allow: /
 
 # =============================================================================
