@@ -10,6 +10,7 @@ import {
   normalizeInvocationEvent,
   summarizeCpuOutliers,
   fetchInvocationEvents,
+  fetchPathEventHistory,
   correlateOutliers,
   findColdStartKeys,
 } from '../../tools/measure-worker-cpu-outliers.mjs';
@@ -166,6 +167,38 @@ test('fetchInvocationEvents: passes a server-side $workers.cpuTimeMs filter when
   assert.ok(cpuFilter, 'expected a $workers.cpuTimeMs filter to be sent');
   assert.equal(cpuFilter.operation, 'gt');
   assert.equal(cpuFilter.value, 5);
+});
+
+test('fetchPathEventHistory: sends a $workers.event.path eq filter alongside scriptName, and returns every match', async () => {
+  let capturedBody = null;
+  const fetchImpl = async (url, opts) => {
+    capturedBody = JSON.parse(opts.body);
+    return jsonResponse(fixture.eventsViewApiResponse);
+  };
+  const history = await fetchPathEventHistory(
+    '/business/wall-street-outlier-a-33333333-3333-3333-3333-333333333333',
+    { from: fixture.window.from, to: fixture.window.to },
+    { fetchImpl, env: { CLOUDFLARE_API_TOKEN: 'tok', CLOUDFLARE_ACCOUNT_ID: 'acct' } }
+  );
+  assert.equal(capturedBody.view, 'events');
+  const pathFilter = capturedBody.parameters.filters.find((f) => f.key === '$workers.event.path');
+  assert.ok(pathFilter, 'expected a $workers.event.path filter to be sent');
+  assert.equal(pathFilter.operation, 'eq');
+  assert.equal(pathFilter.value, '/business/wall-street-outlier-a-33333333-3333-3333-3333-333333333333');
+  assert.equal(history.length, 7);
+});
+
+test('fetchPathEventHistory: a full page (length === limit) throws rather than under-reporting a repeat count', async () => {
+  const fetchImpl = async () => jsonResponse(fixture.eventsViewApiResponseFullPage);
+  await assert.rejects(
+    () =>
+      fetchPathEventHistory(
+        '/some/busy-path',
+        { from: fixture.window.from, to: fixture.window.to, limit: 3 },
+        { fetchImpl, env: { CLOUDFLARE_API_TOKEN: 'tok', CLOUDFLARE_ACCOUNT_ID: 'acct' } }
+      ),
+    /measure-worker-cpu-outliers:.*incomplete/
+  );
 });
 
 // ---------------------------------------------------------------------------

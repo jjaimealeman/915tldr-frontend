@@ -163,6 +163,33 @@ async function postTelemetryQuery(body, { fetchImpl, env }) {
   return parsed.result;
 }
 
+/** Shared pagination-safety fetch: runs one `events`-view query with `extraFilters` appended to
+ * the standard scriptName filter, and throws rather than returning a page that cannot be proven
+ * complete (`events.length === limit` — see the no-cursor/offset finding in api-shape.json). */
+async function fetchEventsPage({ from, to, extraFilters = [], limit }, { fetchImpl, env, queryId }) {
+  const body = {
+    queryId,
+    view: 'events',
+    timeframe: { from, to },
+    limit,
+    parameters: {
+      datasets: [TELEMETRY_DATASET],
+      filters: [{ key: '$workers.scriptName', operation: 'eq', type: 'string', value: PUBLIC_WORKER_SCRIPT }, ...extraFilters],
+    },
+  };
+
+  const result = await postTelemetryQuery(body, { fetchImpl, env });
+  const rawEvents = result?.events?.events ?? [];
+
+  if (rawEvents.length === limit) {
+    throw new Error(
+      `measure-worker-cpu-outliers: result page is incomplete — ${rawEvents.length} events returned at limit=${limit} and this endpoint has no cursor/offset to fetch a next page (verified — see api-shape.json); narrow the window/filter or raise --limit and re-run rather than trust a partial count`
+    );
+  }
+
+  return rawEvents.map(normalizeInvocationEvent);
+}
+
 /**
  * Fetches every invocation event for `PUBLIC_WORKER_SCRIPT` in `[from, to]` (inclusive bounds —
  * matching the gate window's own convention) with `cpuTimeMs > minCpuMs`, as VERIFIED, normalized
@@ -173,30 +200,29 @@ async function postTelemetryQuery(body, { fetchImpl, env }) {
  */
 export async function fetchInvocationEvents({ from, to, minCpuMs = 0, limit = 1000 }, deps = {}) {
   const { fetchImpl = fetch, env = process.env } = deps;
+  const extraFilters =
+    minCpuMs > 0 ? [{ key: '$workers.cpuTimeMs', operation: 'gt', type: 'number', value: minCpuMs }] : [];
+  return fetchEventsPage(
+    { from, to, extraFilters, limit },
+    { fetchImpl, env, queryId: '00000000-0000-0000-0000-000000000000' }
+  );
+}
 
-  const filters = [{ key: '$workers.scriptName', operation: 'eq', type: 'string', value: PUBLIC_WORKER_SCRIPT }];
-  if (minCpuMs > 0) {
-    filters.push({ key: '$workers.cpuTimeMs', operation: 'gt', type: 'number', value: minCpuMs });
-  }
-
-  const body = {
-    queryId: '00000000-0000-0000-0000-000000000000',
-    view: 'events',
-    timeframe: { from, to },
-    limit,
-    parameters: { datasets: [TELEMETRY_DATASET], filters },
-  };
-
-  const result = await postTelemetryQuery(body, { fetchImpl, env });
-  const rawEvents = result?.events?.events ?? [];
-
-  if (rawEvents.length === limit) {
-    throw new Error(
-      `measure-worker-cpu-outliers: result page is incomplete — ${rawEvents.length} events returned at limit=${limit} and this endpoint has no cursor/offset to fetch a next page (verified — see api-shape.json); narrow the window or raise --limit and re-run rather than trust a partial count`
-    );
-  }
-
-  return rawEvents.map(normalizeInvocationEvent);
+/**
+ * Fetches EVERY invocation of one exact `path` in `[from, to]` — used by `--correlate` to get the
+ * TRUE full-window repeat count and occurrence timestamps for each outlier's path (not just the
+ * handful of outlier events themselves), since `$workers.event.path` is confirmed filterable with
+ * `operation: "eq"` (verified: a bogus control path returns exactly 0 matches). Subject to the
+ * same 2000-row/no-cursor cap as any other `events`-view query — a single archived article's
+ * repeat count within one gate window has not been observed anywhere near that cap, but a path
+ * that IS that busy throws rather than under-reporting, same as `fetchInvocationEvents`.
+ */
+export async function fetchPathEventHistory(path, { from, to, limit = 1900 }, deps = {}) {
+  const { fetchImpl = fetch, env = process.env } = deps;
+  return fetchEventsPage(
+    { from, to, extraFilters: [{ key: '$workers.event.path', operation: 'eq', type: 'string', value: path }], limit },
+    { fetchImpl, env, queryId: '00000000-0000-0000-0000-000000000002' }
+  );
 }
 
 /** Fetches the true total invocation count for `PUBLIC_WORKER_SCRIPT` in `[from, to]` via the
@@ -323,8 +349,29 @@ export async function runMeasurement(opts = {}) {
 
   let correlation = null;
   if (correlate) {
-    correlation = correlateOutliers(summary.outliers, events, { windowStartMs: fromMs });
-    await writeEvidence(evidence, 'correlation.json', correlation);
+    // samePathCount/samePathRank need the TRUE full-window occurrence list for each outlier's
+    // path, not just the handful of outlier events themselves — otherwise two outliers sharing a
+    // path would report samePathCount:2 when the real figure (an archived article hit by a
+    // recurring poller) can be in the hundreds. Colo-level population is NOT similarly expanded
+    // (every outlier observed shares one colo carrying the bulk of this window's ~8,477
+    // invocations, which the 2000-row/no-cursor cap makes infeasible to enumerate in full) — see
+    // `coloPopulationCaveat` below and docs/phase-05/arch-08-cpu-outliers.md's IN-01 section.
+    const distinctPaths = [...new Set(summary.outliers.map((o) => o.path).filter(Boolean))];
+    const pathHistories = await Promise.all(
+      distinctPaths.map((p) => fetchPathEventHistory(p, { from: fromMs, to: toMs }, resolvedDeps))
+    );
+    const byRequestId = new Map();
+    for (const e of [...events, ...pathHistories.flat()]) {
+      byRequestId.set(e.requestId ?? `${e.timestamp}:${e.path}`, e);
+    }
+    const correlationUniverse = [...byRequestId.values()];
+
+    correlation = correlateOutliers(summary.outliers, correlationUniverse, { windowStartMs: fromMs });
+    await writeEvidence(evidence, 'correlation.json', {
+      coloPopulationCaveat:
+        'samePathCount/samePathRank are TRUE full-window counts (fetched per-path via $workers.event.path eq, unaffected by the outlier-only fetch). firstInColoInWindow/gapSincePrevSameColoMs are NOT computed against the full per-colo population — every outlier here shares one colo that likely carries most of this window\'s ~8,477 invocations, and enumerating all of them is blocked by the verified 2000-row/no-cursor cap. Treat the colo fields as scoped to the known population (outliers + their paths\' full history) only, not as a true "first ever at this colo" claim.',
+      outliers: correlation,
+    });
   }
 
   console.log(

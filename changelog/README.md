@@ -10,6 +10,7 @@ Entries are named `YYYY-MM-DD-HHMM_slug.md` and grouped by month, newest first.
 
 | Date | Entry | Keywords |
 |------|-------|----------|
+| 2026-10-02 | [Plan 05-17 Task 2: IN-01 correlation evidence and the ARCH-08 decision doc](2026-10-02-1707_05-17-task2-in01-correlation-and-decision-doc.md) | `[BACKEND]` `[TESTING]` `[SECURITY]` `[ARCHITECTURE]` `[DOCUMENTATION]` `[CRITICAL]` |
 | 2026-10-02 | [Plan 05-20 complete: CR-02 closed (guarded deploy) and IN-06 fixed](2026-10-02-1706_05-20-complete-cr02-closed-guarded-deploy.md) | `[DOCUMENTATION]` `[PLANNING]` `[TESTING]` `[SECURITY]` `[CRITICAL]` |
 | 2026-10-02 | [Plan 05-17 Task 1: per-request CPU-outlier tool, verified live, settles 4 vs 1](2026-10-02-1658_05-17-task1-cpu-outlier-tool-verified-live.md) | `[BACKEND]` `[TESTING]` `[SECURITY]` `[ARCHITECTURE]` `[CRITICAL]` |
 | 2026-10-02 | [Plan 05-20 Task 3: pipeline and architecture docs describe the guarded deploy](2026-10-02-1645_05-20-task3-docs-guarded-deploy-path.md) | `[DOCUMENTATION]` `[ARCHITECTURE]` `[DEPLOYMENT]` `[SECURITY]` |
