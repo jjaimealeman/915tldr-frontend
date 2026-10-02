@@ -37,7 +37,12 @@ function sha256Of(body) {
  * matching the real client's own per-key failure shape. `calls` records every method
  * invocation (name + first arg) so a test can assert "no R2 calls made" when a guard should
  * have short-circuited before the store was ever touched. */
-function makeFakeStore({ seed = {}, failPutKeys = new Set(), failGetJsonKeys = new Set() } = {}) {
+function makeFakeStore({
+  seed = {},
+  failPutKeys = new Set(),
+  failGetJsonKeys = new Set(),
+  failDeleteObjects = false,
+} = {}) {
   const objects = new Map(Object.entries(seed));
   const calls = [];
   return {
@@ -73,6 +78,7 @@ function makeFakeStore({ seed = {}, failPutKeys = new Set(), failGetJsonKeys = n
     },
     async deleteObjects(keys) {
       calls.push(['deleteObjects', keys]);
+      if (failDeleteObjects) throw new Error('fake deleteObjects failure');
       let deleted = 0;
       const errors = [];
       for (const key of keys) {
@@ -902,6 +908,84 @@ test('archive-sync: runPostSync — a non-live run at the initial gate leaves th
     assert.equal(store.calls.some((c) => c[0] === 'putJson' && c[1] === ARCHIVE_STATE_KEY), false);
     assert.equal(store.calls.some((c) => c[0] === 'putJson' && c[1] === DAILY_REPORT_KEY), false);
   });
+});
+
+// ---------------------------------------------------------------------------
+// WR-02 (05-18): a failed index write can never become a 404
+// ---------------------------------------------------------------------------
+
+test('archive-sync: WR-02 (05-18): a failed index write can never become a 404 — post survives, pre self-heals', async () => {
+  const kBody = '<html>K archived content</html>';
+  const kSha = sha256Of(kBody);
+  const failPutKeys = new Set([ARCHIVE_INDEX_KEY]);
+  const store = makeFakeStore({
+    seed: {
+      [ARCHIVE_INDEX_KEY]: {
+        body: JSON.stringify({ version: 1, entries: { 'articles/k.html': { sha256: kSha, path: '/cat/k-uuid' } } }),
+      },
+      'articles/k.html': { body: kBody, sha256: kSha },
+    },
+    failPutKeys,
+  });
+
+  // Step 1 (post): plan omits K; K is a promoted orphan (now static in dist/client); the fake
+  // store holds K; the index write (mergeWriteIndex's putJson) fails.
+  await withTempRoot([], {}, async (postRoot) => {
+    mkdirSync(dirname(clientFileFor(postRoot, '/cat/k-uuid')), { recursive: true });
+    writeFileSync(clientFileFor(postRoot, '/cat/k-uuid'), '<html>K is static now</html>');
+
+    const { result, exitCode } = await runPostSync({
+      root: postRoot,
+      env: {},
+      hasR2CredentialsFn: trueCreds,
+      checkLiveDeploymentFn: liveOk,
+      createStore: async () => store,
+    });
+
+    assert.equal(exitCode, 0, 'post must resolve, not throw, on a failed index write');
+    assert.equal(result.deleted, 1, 'K was actually deleted from R2');
+    assert.equal(store.objects.has('articles/k.html'), false, 'K is gone from the fake R2 store');
+    const indexAfterPost = JSON.parse(store.objects.get(ARCHIVE_INDEX_KEY).body);
+    assert.ok('articles/k.html' in indexAfterPost.entries, 'the stored index still lists K — the write failed');
+    assert.ok(
+      result.alerts.some((a) => /index write failed after post-sync/.test(a)),
+      `expected an alert naming the failed index write, got: ${JSON.stringify(result.alerts)}`
+    );
+  });
+
+  // Step 2 (pre): a NEW build whose plan includes K again (same sha as the stale index entry),
+  // the SAME store (index write no longer failing) — self-heal must detect K missing from R2
+  // and re-upload it as new, rather than trusting the stale "unchanged" index entry.
+  failPutKeys.delete(ARCHIVE_INDEX_KEY);
+  await withTempRoot(
+    [{ kind: 'article', key: 'articles/k.html', path: '/cat/k-uuid', body: kBody }],
+    {},
+    async (preRoot) => {
+      const { result } = await runPreSync({
+        root: preRoot,
+        env: {},
+        hasR2CredentialsFn: trueCreds,
+        createStore: async () => store,
+      });
+
+      assert.ok(
+        store.calls.some((c) => c[0] === 'putObject' && c[1] === 'articles/k.html'),
+        'K must be re-uploaded — self-heal must classify it as new, not unchanged'
+      );
+      assert.equal(result.uploaded, 1);
+      assert.equal(
+        existsSync(clientFileFor(preRoot, '/cat/k-uuid')),
+        false,
+        'K must NOT be moved back to static — the upload succeeded'
+      );
+      assert.ok(
+        result.alerts.some(
+          (a) => /indexed page\(s\) were missing from R2/.test(a) && /index self-heal/.test(a)
+        ),
+        `expected a self-heal alert, got: ${JSON.stringify(result.alerts)}`
+      );
+    }
+  );
 });
 
 // ---------------------------------------------------------------------------

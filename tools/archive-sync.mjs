@@ -462,7 +462,38 @@ export async function runPreSync(opts = {}) {
     };
   }
 
-  const diff = diffAgainstIndex({ planEntries, index, forceFull: false, pathExists: () => false });
+  // WR-02 (05-18) index self-heal: a post-sync run whose deletion succeeded but whose index write
+  // then failed leaves the index claiming an object R2 no longer holds. If that key later re-enters
+  // the archive tier, trusting the stale index entry here would classify it as `unchanged`/`changed`
+  // (not `new`), skip the upload, and the deploy would remove it from static — a permanent 404 for
+  // unchanged content. Once per run, list what R2 actually holds under the two archive prefixes and
+  // treat any indexed-but-missing plan key as `new` instead, so it uploads before the deploy relies
+  // on it. A listing failure is not fatal — the index-only diff runs exactly as it did before this
+  // fix, with its own alert, rather than blocking the deploy over a transient R2 read.
+  let diffIndex = index;
+  const selfHealAlerts = [];
+  try {
+    const [articleKeys, tagKeys] = await Promise.all([store.listKeys('articles/'), store.listKeys('tags/')]);
+    const r2Keys = new Set([...articleKeys, ...tagKeys]);
+    const indexEntries = index.entries ?? {};
+    const missingFromR2 = planEntries
+      .map((entry) => entry.key)
+      .filter((key) => key in indexEntries && !r2Keys.has(key));
+    if (missingFromR2.length > 0) {
+      const healedEntries = { ...indexEntries };
+      for (const key of missingFromR2) delete healedEntries[key];
+      diffIndex = { ...index, entries: healedEntries };
+      selfHealAlerts.push(
+        `archive-sync: ${missingFromR2.length} indexed page(s) were missing from R2 — re-uploading as new (index self-heal)`
+      );
+    }
+  } catch (err) {
+    selfHealAlerts.push(
+      `archive-sync: could not list R2 keys — index trusted without self-heal this run (${err instanceof Error ? err.message : String(err)})`
+    );
+  }
+
+  const diff = diffAgainstIndex({ planEntries, index: diffIndex, forceFull: false, pathExists: () => false });
   let candidates = diff.newKeys;
   let beyondLimit = [];
   if (typeof limit === 'number' && Number.isFinite(limit) && candidates.length > limit) {
@@ -488,14 +519,20 @@ export async function runPreSync(opts = {}) {
   for (const { item } of done) {
     add[item.key] = { sha256: item.sha256, bytes: item.bytes, path: item.path, uploadedAt: nowIso() };
   }
+  const alerts = [...selfHealAlerts];
   if (Object.keys(add).length > 0) {
-    await mergeWriteIndex(store, { add, remove: [] });
+    try {
+      await mergeWriteIndex(store, { add, remove: [] });
+    } catch (err) {
+      alerts.push(
+        `archive-sync: index write failed after ${Object.keys(add).length} upload(s) — those pages are in R2 and deploy safely; the next run re-uploads them as new (${err instanceof Error ? err.message : String(err)})`
+      );
+    }
   }
 
   const toMoveBack = [...failed.map((f) => f.item), ...notStarted.map((n) => n.item), ...beyondLimit];
   const moved = moveEntriesBack(toMoveBack, root);
 
-  const alerts = [];
   if (failed.length > 0) {
     alerts.push(`archive-sync: ${failed.length} page(s) failed to upload — previous state (static) still serving`);
   }
@@ -727,7 +764,16 @@ export async function runPostSync(opts = {}) {
   }
 
   if (Object.keys(add).length > 0 || actuallyDeleted.length > 0) {
-    await mergeWriteIndex(store, { add, remove: actuallyDeleted });
+    try {
+      await mergeWriteIndex(store, { add, remove: actuallyDeleted });
+    } catch (err) {
+      // WR-02 (05-18): the deletion(s)/upload(s) above already happened against R2 — only the
+      // bookkeeping write failed. Never throw here: the next pre-sync's index self-heal (above)
+      // repairs any resulting drift before a deploy relies on the index being truthful.
+      alerts.push(
+        `archive-sync: index write failed after post-sync — ${actuallyDeleted.length} deletion(s) and ${Object.keys(add).length} upload(s) may be missing from the index; the next pre-sync self-heals (${err instanceof Error ? err.message : String(err)})`
+      );
+    }
   }
 
   const deferredCount = notStarted.length;
