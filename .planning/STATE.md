@@ -5,15 +5,15 @@ milestone_name: milestone
 current_phase: 05
 current_phase_name: hybrid-archive-zero-reads-proof
 status: executing
-stopped_at: Completed 05-13-PLAN.md -- CR-01 (ci-build half) closed
-last_updated: "2026-10-02T20:49:09.479Z"
+stopped_at: Completed 05-14-PLAN.md -- CR-01/WR-01 archive-sync-side live-deployment gate closed
+last_updated: "2026-10-02T21:07:45.266Z"
 last_activity: 2026-10-02
 last_activity_desc: Phase 05 execution started
 progress:
   total_phases: 5
   completed_phases: 4
   total_plans: 73
-  completed_plans: 65
+  completed_plans: 66
 ---
 
 # Project State
@@ -28,11 +28,11 @@ See: .planning/PROJECT.md (updated 2026-09-16)
 ## Current Position
 
 Phase: 05 (hybrid-archive-zero-reads-proof) — EXECUTING
-Plan: 2 of 21
+Plan: 3 of 21
 Status: Ready to execute
 Last activity: 2026-10-02 — Phase 05 execution started
 
-Progress: [█████████░] 89%
+Progress: [█████████░] 90%
 
 ## Performance Metrics
 
@@ -114,6 +114,7 @@ Progress: [█████████░] 89%
 | Phase 05 P10 | ~76min | 2 tasks | 3 files |
 | Phase 05 P12 | ~3h10min | 3 tasks | 11 files |
 | Phase 05 P13 | 35min | 2 tasks | 3 files |
+| Phase 05 P14 | ~21min | 3 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -281,6 +282,8 @@ Recent decisions affecting current work:
 - [Phase ?]: 05-12: Found and fixed two real, pre-existing bugs in load-test-zero-reads.mjs (05-04's own gate instrument) before the real gate could run: the documented analytics catch-up wait was dead code on the live CLI path, and --archive-plan was parsed but never used to build a request mix -- the documented CLI usage had never actually worked, on any invocation, before 05-12.
 - [Phase ?]: 05-12: ARCH-08 measured on the deployed Worker over the gate's own window -- KV reads within budget (202/8464 invocations), CPU p50/p99 excellent (0.764ms/2.846ms), but a single real request spiked to 49.966ms, over the 20ms hard-fail ceiling. Disclosed, not hidden; recorded as a failed requirement for /gsd-verify-work, not a project halt (D-02 applies only to the ZERO_READS_* verdict). Logged to WINDOWS.md #26.
 - [Phase ?]: 05-13: Restructured ci-build.mjs's deploy branch so commitImpl AND the entire archive-sync post spawn/parse/alert block run only inside a single !dryRun conditional (not two independent guards) — closes the ci-build half of code-review finding CR-01; proven by 3 red-to-green regression tests plus a credential-free live CLI dry run (pre reported disabled:true, skip line logged once, zero post ARCHIVE_SYNC_RESULT lines).
+- [Phase ?]: 05-14: no override flag for manual archive-sync post against a local build — refused by design, documented rather than worked around
+- [Phase ?]: 05-14: checkLiveDeployment compares commit AND builtAt (not commit alone) — builtAt differs between a local build and the deployed build of the same commit
 
 ### Pending Todos
 
@@ -337,6 +340,6 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-10-02T20:49:09.458Z
-Stopped at: Completed 05-13-PLAN.md -- CR-01 (ci-build half) closed
+Last session: 2026-10-02T21:07:45.245Z
+Stopped at: Completed 05-14-PLAN.md -- CR-01/WR-01 archive-sync-side live-deployment gate closed
 Resume file: None

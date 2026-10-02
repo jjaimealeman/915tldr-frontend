@@ -317,7 +317,7 @@ Plans:
   4. Tag pages default to the R2 archive tier with only a measured top-N by article count promoted to hot static; total deployed static-asset file count is reported daily, the current count is recorded against the 100,000 ceiling, and the build fails at an 80,000-file safety margin.
   5. The hot-content cutoff is derived from measured request traffic over a stated window — not a fixed guess — and a full archive re-render completes with no single Worker invocation exceeding the 300 s CPU ceiling.
 
-**Plans**: 13/21 plans executed — 12 executed in 7 waves; 9 gap-closure plans (05-13..05-21, from 05-VERIFICATION.md + 05-REVIEW.md) in 4 waves
+**Plans**: 14/21 plans executed — 12 executed in 7 waves; 9 gap-closure plans (05-13..05-21, from 05-VERIFICATION.md + 05-REVIEW.md) in 4 waves
 
 Plans:
 **Wave 1**
@@ -356,7 +356,7 @@ Plans:
 **Gap closure — Wave 1** *(2026-10-02, owner scope: verifier gaps + safety warnings)*
 
 - [x] 05-13-PLAN.md — CR-01 (ci-build): a dry-run or failed deploy never spawns archive-sync post; credential-free real-CLI rehearsal
-- [ ] 05-14-PLAN.md — CR-01 + WR-01 (archive-sync): post refuses a dry run and any build that is not the live deployment; pre-delete re-check
+- [x] 05-14-PLAN.md — CR-01 + WR-01 (archive-sync): post refuses a dry run and any build that is not the live deployment; pre-delete re-check
 - [ ] 05-15-PLAN.md — WR-08 / REND-10: countOtherFiles counts dist/client + dist/archive; real re-derivation run end to end, preview only
 - [ ] 05-16-PLAN.md — CR-03: load window aligned exactly like the baseline; 2026-10-01 verdict re-checked with a read-only aligned re-query
 - [ ] 05-17-PLAN.md — ARCH-08: repeatable per-request CPU tool on Workers Observability (API verified live); 1-vs-4 reconciliation; IN-01 correlation
@@ -503,7 +503,7 @@ Phase 3 and may run alongside Phases 5-7.
 | 2. Content Quality & Grounding | 11/10 | Complete    | 2026-09-21 |
 | 3. Foundation & Read-Budget Guardrails | 7/7 | Complete    | 2026-09-26 |
 | 4. Static Generation, Templates & SEO | 12/12 | In Progress|  |
-| 5. Hybrid Archive & Zero-Reads Proof | 13/21 | In Progress|  |
+| 5. Hybrid Archive & Zero-Reads Proof | 14/21 | In Progress|  |
 | 6. Bilingual | 0/TBD | Not started | - |
 | 7. Imagery & Share Cards | 0/TBD | Not started | - |
 | 8. Server Islands & Interactivity | 0/TBD | Not started | - |
