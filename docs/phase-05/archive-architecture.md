@@ -107,6 +107,21 @@ DEPLOY step (tools/ci-build.mjs's deploy path, 05-08's wiring)
                                                       deploy's own exit code (D-10/D-12)
 ```
 
+**Step 10's own gate (CR-01/WR-01, 05-14):** before `post` does anything else, it refuses in two
+ways. First, a dry run (`CI_BUILD_DEPLOY_DRY_RUN` set) is refused outright — zero network calls,
+zero R2 calls — independent of 05-13's ci-build-side guard, so a direct
+`CI_BUILD_DEPLOY_DRY_RUN=1 node tools/archive-sync.mjs post` invocation is refused too, not just
+the ci-build-orchestrated path. Second, once past the dry-run check and the existing
+credentials/branch-guard check, `post` requires the live deployment's own `/version.json`
+(`commit` AND `builtAt` — `builtAt` differs between a local build and the deployed build of the
+same commit, so `commit` alone would under-detect) to exactly match this build's own
+`dist/client/version.json`, polling up to 6 attempts 10 seconds apart to absorb post-deploy
+propagation delay. Only once that gate passes does `post` touch R2 at all. Immediately before the
+delete step specifically, it re-checks liveness one more time (a single attempt) — if a deploy
+landed during the upload phase above, the delete is skipped entirely (not partial) and every
+orphan's index entry is kept, while this run's own uploads/index-adds from earlier in the same run
+still stand.
+
 ### The two invariants this sequence exists to hold
 
 1. **A page leaves `dist/client` (the static tier) only after its R2 PUT is confirmed.** Step 4
@@ -208,6 +223,21 @@ PROJECT.md's own Context section names as the root cause of the v1 D1-reads inci
 | Deadline hit mid-run | `pre`: untouched new keys moved back to static (never left static in the first place). `post`: untouched changed keys keep their OLD R2 object serving, tracked as backlog | `movedBack`/`deferred` counts; `post` additionally updates `archive-state.json`'s backlog fields |
 | Concurrent builds (two builds racing the same cycle) | Both builds' own writes land; the merge-on-write index read happens right before each write, so neither build's upload is lost — at worst, a page both builds happened to touch gets uploaded twice (harmless, same bytes either way) | No special alert — this is the accepted, documented race in "Merge-on-write discipline" above |
 | Run interrupted entirely (process killed, container recycled) mid-phase | Whatever had already been confirmed via a successful `putObject`/`deleteObjects` call is real and already in R2; the index merge-write for THIS run's batch never happened (it's the last step), so those confirmed-but-unindexed uploads simply get re-confirmed as "new" (pre) or "changed-looking-unchanged-once-reconciled" on the next run — never lost, at worst redundantly retried | Nothing special — the next run's own diff naturally recovers; no partial/corrupt index state is possible because the index write is a single atomic `putJson` call, never a partial multi-write |
+| Dry run reaches post (direct invocation) | Nothing touched — refused before `checkDisabled`, before any network or R2 call, independent of 05-13's own ci-build-side dry-run guard | `disabled: true`, one alert naming `CI_BUILD_DEPLOY_DRY_RUN`; exit code 0 |
+| Live deployment is not this build (overlapping or out-of-order builds, propagation failure, origin unreachable) | No R2 changes — `post` returns before `createStore` is even called; force-full marker kept untouched; daily report deferred to the next live build | One alert per build naming both the local and live commit/builtAt and the reason; exit code 0. **A persistent alert of this kind means post-sync is not running at all for ANY build — the owner must treat it as an incident**, not a one-off skip, since it also means REND-11's daily report and REND-12's re-render are silently not happening |
+| Live deployment changes mid-run (between the initial gate and the delete step) | The run's own uploads/index-adds (already confirmed before the change) still stand; only the delete step is skipped — not partial, every orphan's index entry kept for the next run | One alert naming the skip and the deletion count; `deleted: 0` for this run |
+
+## Live origin
+
+`ARCHIVE_SYNC_LIVE_ORIGIN` (default `https://dev.915tldr.com`, https origins only — anything else
+is refused without a fetch) names the one deployment `post` trusts as "the live site" when deciding
+whether it's allowed to mutate R2. **This MUST be updated at the Phase 12 production cutover** — the
+day `dev.915tldr.com` stops being the deployed origin, every `post` run will start failing its
+liveness check and silently skip (see the failure-mode row above: a persistent skip is an incident,
+not a quiet no-op). There is no override flag to force `post` against a non-live build by design — a
+manual `node tools/archive-sync.mjs post` run against a local build is refused on purpose; run
+`post` only from the build that was actually deployed (normally: never by hand at all, only via
+`tools/ci-build.mjs`'s own deploy step).
 
 ## Cost
 

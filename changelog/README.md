@@ -10,6 +10,7 @@ Entries are named `YYYY-MM-DD-HHMM_slug.md` and grouped by month, newest first.
 
 | Date | Entry | Keywords |
 |------|-------|----------|
+| 2026-10-02 | [Document the live-deployment gate in the archive architecture record](2026-10-02-1515_05-14-task3-architecture-doc-live-deployment-gate.md) | `[DOCUMENTATION]` `[ARCHITECTURE]` `[SECURITY]` `[DEPLOYMENT]` |
 | 2026-10-02 | [Dry-run refusal, propagation polling, and a pre-delete liveness re-check](2026-10-02-1510_05-14-task2-dry-run-refusal-polling-predelete-recheck.md) | `[BUG_FIX]` `[SECURITY]` `[BACKEND]` `[TESTING]` `[DEPLOYMENT]` |
 | 2026-10-02 | [archive-sync post refuses to touch R2 unless the live deployment is this build](2026-10-02-1500_05-14-task1-cr01-wr01-live-deployment-gate.md) | `[BUG_FIX]` `[SECURITY]` `[BACKEND]` `[TESTING]` `[DEPLOYMENT]` |
 | 2026-10-02 | [Plan 05-13 complete: CR-01's ci-build half closed](2026-10-02-2058_05-13-complete-cr01-ci-build-half-closed.md) | `[DOCUMENTATION]` `[PLANNING]` `[TESTING]` `[SECURITY]` |
