@@ -9,6 +9,8 @@
 
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
+import { resolve } from 'node:path';
 import {
   runCi,
   classifyFailure,
@@ -32,6 +34,18 @@ function noopTimer() {
 }
 function noopClear() {}
 function noopLog() {}
+
+// ---------------------------------------------------------------------------
+// CR-02 (05-20): package.json contract — deploy routed through ci-build.mjs,
+// never a bare wrangler deploy; guard:archive-synced script present
+// ---------------------------------------------------------------------------
+
+test('package.json (CR-02, 05-20): scripts.deploy routes through tools/ci-build.mjs deploy and never calls a bare wrangler deploy; guard:archive-synced is defined', () => {
+  const pkg = JSON.parse(readFileSync(resolve(process.cwd(), 'package.json'), 'utf8'));
+  assert.match(pkg.scripts.deploy, /tools\/ci-build\.mjs deploy/);
+  assert.doesNotMatch(pkg.scripts.deploy, /\bwrangler\s+deploy\b/);
+  assert.equal(pkg.scripts['guard:archive-synced'], 'node tools/assert-archive-synced.mjs');
+});
 
 // ---------------------------------------------------------------------------
 // classifyFailure
@@ -544,13 +558,16 @@ function fakeArchiveSyncTail(phase, overrides = {}) {
   return `[archive-sync] ${phase}: ok\nARCHIVE_SYNC_RESULT ${JSON.stringify(base)}`;
 }
 
-test('runCi step=deploy: writes the build-start marker is NOT part of the deploy step (build-only), and spawns archive-sync pre, assert-file-count, wrangler deploy, commitImpl, then archive-sync post, in that order', async () => {
+test('runCi step=deploy: writes the build-start marker is NOT part of the deploy step (build-only), and spawns archive-sync pre, assert-file-count, assert-archive-synced, wrangler deploy, commitImpl, then archive-sync post, in that order (CR-02, 05-20)', async () => {
   const calls = [];
   const spawnImpl = async (cmd, args) => {
     calls.push({ cmd, args: [...args] });
     if (args.includes('pre')) return { code: 0, tail: fakeArchiveSyncTail('pre') };
     if (args.some((a) => String(a).includes('assert-file-count.mjs'))) {
       return { code: 0, tail: '{"count":100,"ceiling":100000,"failAt":80000,"status":"ok"}' };
+    }
+    if (args.some((a) => String(a).includes('assert-archive-synced.mjs'))) {
+      return { code: 0, tail: '[assert-archive-synced] ok: no plan and no archive files' };
     }
     if (cmd === 'pnpm' && args.includes('wrangler')) return { code: 0, tail: '' };
     if (args.includes('post')) return { code: 0, tail: fakeArchiveSyncTail('post') };
@@ -570,12 +587,62 @@ test('runCi step=deploy: writes the build-start marker is NOT part of the deploy
   });
 
   assert.equal(code, 0);
-  assert.equal(calls.length, 4, 'expected exactly 4 spawn calls: archive-sync pre, assert-file-count, wrangler deploy, archive-sync post');
+  assert.equal(
+    calls.length,
+    5,
+    'expected exactly 5 spawn calls: archive-sync pre, assert-file-count, assert-archive-synced, wrangler deploy, archive-sync post'
+  );
   assert.ok(calls[0].args.some((a) => String(a).includes('archive-sync.mjs')) && calls[0].args.includes('pre'));
   assert.ok(calls[1].args.some((a) => String(a).includes('assert-file-count.mjs')));
-  assert.ok(calls[2].cmd === 'pnpm' && calls[2].args.includes('wrangler'));
-  assert.ok(calls[3].args.some((a) => String(a).includes('archive-sync.mjs')) && calls[3].args.includes('post'));
+  assert.ok(calls[2].args.some((a) => String(a).includes('assert-archive-synced.mjs')));
+  assert.ok(calls[3].cmd === 'pnpm' && calls[3].args.includes('wrangler'));
+  assert.ok(calls[4].args.some((a) => String(a).includes('archive-sync.mjs')) && calls[4].args.includes('post'));
   assert.equal(commitCalls.length, 1, 'commitImpl must be called exactly once, after a real deploy');
+});
+
+test('runCi step=deploy (CR-02, 05-20): assert-archive-synced exiting 1 aborts before wrangler/commitImpl/post, notifies exactly once with a title naming assert-archive-synced', async () => {
+  const calls = [];
+  const notifyCalls = [];
+  const commitCalls = [];
+  const spawnImpl = async (cmd, args) => {
+    calls.push({ cmd, args: [...args] });
+    if (args.includes('pre')) return { code: 0, tail: fakeArchiveSyncTail('pre') };
+    if (args.some((a) => String(a).includes('assert-file-count.mjs'))) {
+      return { code: 0, tail: '{"count":100,"ceiling":100000,"failAt":80000,"status":"ok"}' };
+    }
+    if (args.some((a) => String(a).includes('assert-archive-synced.mjs'))) {
+      return {
+        code: 1,
+        tail: 'assert-archive-synced: dist/ was partitioned but archive-sync pre has not run for this build',
+      };
+    }
+    return { code: 0, tail: '' };
+  };
+  const code = await runCi({
+    step: 'deploy',
+    env: { NTFY_TOPIC: 'test-topic' },
+    spawnImpl,
+    notifyImpl: async (a) => notifyCalls.push(a),
+    commitImpl: async (a) => commitCalls.push(a),
+    loadHotWindowImpl: fakeLoadHotWindow,
+    setTimer: noopTimer,
+    clearTimer: noopClear,
+    log: noopLog,
+  });
+
+  assert.notEqual(code, 0);
+  assert.equal(calls.length, 3, 'only pre, assert-file-count, and assert-archive-synced should have spawned');
+  assert.ok(
+    !calls.some((c) => (c.args ?? []).some((a) => String(a).includes('wrangler')) || String(c.cmd).includes('wrangler')),
+    'no wrangler process should ever be spawned after a failing assert-archive-synced'
+  );
+  assert.ok(
+    !calls.some((c) => (c.args ?? []).some((a) => String(a).includes('archive-sync.mjs')) && c.args.includes('post')),
+    'archive-sync post must never spawn after a failing assert-archive-synced'
+  );
+  assert.equal(commitCalls.length, 0);
+  assert.equal(notifyCalls.length, 1);
+  assert.match(notifyCalls[0].title, /assert-archive-synced/);
 });
 
 test('runCi step=deploy: CI_BUILD_DEPLOY_DRY_RUN=1 runs wrangler deploy --dry-run with --outdir and never calls commitImpl', async () => {

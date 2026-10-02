@@ -33,6 +33,7 @@
     "palette:build": "node design/scripts/build-palette.mjs",
     "palette:swatches": "node design/scripts/render-swatches.mjs",
     "guard:config": "node tools/check-config-guards.mjs",
+  "guard:archive-synced": "node tools/assert-archive-synced.mjs",
     "verify:edge": "node tools/verify-edge-headers.mjs",
     "measure:d1": "node tools/measure-d1-pagination.mjs",
     "measure:render": "node tools/measure-render-cost.mjs",
@@ -46,7 +47,7 @@
     "build": "pnpm run guard:config && pnpm run test:build-gate && node tools/partition-archive.mjs --clean && astro build && node tools/partition-archive.mjs && node tools/assert-file-count.mjs",
     "dev": "astro dev",
     "preview": "astro preview",
-    "deploy": "pnpm run guard:config && wrangler deploy --config wrangler.jsonc",
+    "deploy": "pnpm run guard:config && node tools/ci-build.mjs deploy",
     "build:ci": "node tools/ci-build.mjs build",
     "deploy:ci": "node tools/ci-build.mjs deploy",
     "ci:local": "node tools/ci-build.mjs all"

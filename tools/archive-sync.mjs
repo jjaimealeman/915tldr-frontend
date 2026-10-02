@@ -46,6 +46,14 @@ export const BACKLOG_ALERT_HOURS = 20;
 // every archive-tier page) before a partitioned `dist/` is allowed to ship. Lives inside `dist/`
 // but outside `dist/client` (never deployed) — see `writeSyncedMarker` below.
 export const ARCHIVE_SYNCED_MARKER_PATH = 'dist/archive-synced.json';
+// IN-06 (05-20): a `.astro/ci-build-started-at` marker older than this (or more than 60s in the
+// future) is never trusted — `getBuildStartEpochSeconds` falls back to this process's own start
+// instead. A standalone `ci-build deploy` previously inherited a stale marker from an earlier
+// `pnpm run build`, making both deadlines (PRE_DEADLINE_SECONDS/POST_DEADLINE_SECONDS) look
+// already past: pre moved every new page back, post deferred every change and raised false
+// backlog alerts. 1,800s exceeds Workers Builds' 1,200s (20min) hard ceiling, so a live CI marker
+// is never the one this ignores — only a stale leftover from an earlier local build is.
+export const BUILD_START_MARKER_MAX_AGE_SECONDS = 1800;
 export const ARCHIVE_SYNC_CONCURRENCY = 32;
 export const LIVE_ORIGIN_DEFAULT = 'https://dev.915tldr.com';
 export const LIVE_CHECK_ATTEMPTS = 6;
@@ -95,12 +103,26 @@ export function wrapStoreForBranchGuard(store, env = process.env) {
   return { ...store, putObject: refuse, putJson: refuse, deleteObjects: refuse };
 }
 
+/** IN-06 (05-20): a marker older than `BUILD_START_MARKER_MAX_AGE_SECONDS`, or more than 60s in
+ * the future (clock skew, not a real future build start), is never trusted — both deadlines must
+ * be measured from THIS build's own start, not a stale leftover from an earlier one. Falls back
+ * to `PROCESS_START_EPOCH_SECONDS` (this module's own load time) exactly as the missing-marker
+ * case already did, with one stderr line naming the age so a stale marker is never silently
+ * ignored. */
 function getBuildStartEpochSeconds(root) {
   const abs = resolve(root, BUILD_STARTED_AT_PATH);
   if (existsSync(abs)) {
     const raw = readFileSync(abs, 'utf8').trim();
     const n = Number(raw);
-    if (Number.isFinite(n) && n > 0) return n;
+    if (Number.isFinite(n) && n > 0) {
+      const ageSeconds = PROCESS_START_EPOCH_SECONDS - n;
+      if (ageSeconds <= BUILD_START_MARKER_MAX_AGE_SECONDS && ageSeconds >= -60) {
+        return n;
+      }
+      console.error(
+        `[archive-sync] ignoring stale build-start marker (age ${ageSeconds}s > ${BUILD_START_MARKER_MAX_AGE_SECONDS}s) — measuring deadlines from this process's own start`
+      );
+    }
   }
   return PROCESS_START_EPOCH_SECONDS;
 }

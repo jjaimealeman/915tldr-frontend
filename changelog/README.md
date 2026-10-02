@@ -10,6 +10,7 @@ Entries are named `YYYY-MM-DD-HHMM_slug.md` and grouped by month, newest first.
 
 | Date | Entry | Keywords |
 |------|-------|----------|
+| 2026-10-02 | [Plan 05-20 Task 2: deploy routed through the sync guard, IN-06's stale build-start marker fixed](2026-10-02-1625_05-20-task2-deploy-routed-through-guard-in06-stale-marker-fix.md) | `[SECURITY]` `[BUG_FIX]` `[BACKEND]` `[TESTING]` `[DEPLOYMENT]` `[CRITICAL]` |
 | 2026-10-02 | [Plan 05-20 Task 1: archive-sync writes a sync marker, new guard refuses an unconfirmed partitioned build](2026-10-02-1556_05-20-task1-cr02-sync-marker-and-guard.md) | `[SECURITY]` `[TESTING]` `[CRITICAL]` `[ENHANCEMENT]` |
 | 2026-10-02 | [Plan 05-18 complete: WR-02 closed (index self-heal + partial-result deletes)](2026-10-02-2335_05-18-complete-wr02-closed-index-selfheal-partial-deletes.md) | `[DOCUMENTATION]` `[PLANNING]` `[TESTING]` `[CRITICAL]` |
 | 2026-10-02 | [WR-02 Task 3: record the four new failure modes and the self-heal listing cost](2026-10-02-2325_05-18-task3-wr02-failure-modes-and-selfheal-cost-doc.md) | `[DOCUMENTATION]` `[ARCHITECTURE]` `[TESTING]` |

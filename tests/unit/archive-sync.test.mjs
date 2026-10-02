@@ -16,6 +16,7 @@ import {
   DAILY_REPORT_KEY,
   BACKLOG_ALERT_HOURS,
   ARCHIVE_SYNCED_MARKER_PATH,
+  BUILD_START_MARKER_MAX_AGE_SECONDS,
   diffAgainstIndex,
   runPreSync,
   runPostSync,
@@ -410,6 +411,77 @@ test('archive-sync (CR-02): the marker is never written under dist/client (never
     const store = makeFakeStore();
     await runPreSync({ root, env: {}, hasR2CredentialsFn: trueCreds, createStore: async () => store });
     assert.equal(existsSync(join(root, 'dist', 'client', 'archive-synced.json')), false);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// IN-06 (05-20): a stale build-start marker is ignored, never used to compute
+// an already-expired deadline.
+// ---------------------------------------------------------------------------
+
+test("archive-sync (IN-06, 05-20): a build-start marker older than BUILD_START_MARKER_MAX_AGE_SECONDS is ignored — pre measures its deadline from this process's own start instead", async () => {
+  const entries = [
+    { kind: 'article', key: 'articles/a.html', path: '/cat/a-uuid' },
+    { kind: 'article', key: 'articles/b.html', path: '/cat/b-uuid' },
+    { kind: 'article', key: 'articles/c.html', path: '/cat/c-uuid' },
+  ];
+  await withTempRoot(entries, {}, async (root) => {
+    writePastBuildStart(root, BUILD_START_MARKER_MAX_AGE_SECONDS * 4); // 7,200s — far past the 1,800s ceiling
+    const store = makeFakeStore();
+    const { result, exitCode } = await runPreSync({
+      root,
+      env: {},
+      hasR2CredentialsFn: trueCreds,
+      createStore: async () => store,
+    });
+    assert.equal(exitCode, 0);
+    assert.equal(result.uploaded, 3, 'the stale marker must be ignored, not used to compute an already-expired deadline');
+    assert.equal(result.movedBack, 0, 'pre-fix this would have moved all 3 back (0 uploaded)');
+  });
+});
+
+test('archive-sync (IN-06, 05-20): a build-start marker from more than 60s in the future is also ignored', async () => {
+  const entries = [{ kind: 'article', key: 'articles/a.html', path: '/cat/a-uuid' }];
+  await withTempRoot(entries, {}, async (root) => {
+    mkdirSync(join(root, '.astro'), { recursive: true });
+    const futureEpoch = Math.floor(Date.now() / 1000) + 3600; // 1h in the future
+    writeFileSync(join(root, '.astro', 'ci-build-started-at'), String(futureEpoch));
+    const store = makeFakeStore();
+    const { result, exitCode } = await runPreSync({
+      root,
+      env: {},
+      hasR2CredentialsFn: trueCreds,
+      createStore: async () => store,
+    });
+    assert.equal(exitCode, 0);
+    assert.equal(result.uploaded, 1);
+    assert.equal(result.movedBack, 0);
+  });
+});
+
+test('archive-sync (IN-06, 05-20): a build-start marker at exactly BUILD_START_MARKER_MAX_AGE_SECONDS old is still honored (boundary, existing deadline tests use 1,025s)', async () => {
+  const entries = [{ kind: 'article', key: 'articles/a.html', path: '/cat/a-uuid', body: '<html>v2</html>' }];
+  await withTempRoot(entries, {}, async (root) => {
+    writePastBuildStart(root, 1020 + 5); // matches the existing runPostSync deadline tests' value
+    const store = makeFakeStore({
+      seed: {
+        [ARCHIVE_INDEX_KEY]: {
+          body: JSON.stringify({
+            version: 1,
+            entries: { 'articles/a.html': { sha256: 'stale-sha', path: '/cat/a-uuid' } },
+          }),
+        },
+      },
+    });
+    const { result, exitCode } = await runPostSync({
+      root,
+      env: {},
+      hasR2CredentialsFn: trueCreds,
+      createStore: async () => store,
+      checkLiveDeploymentFn: liveOk,
+    });
+    assert.equal(exitCode, 0);
+    assert.equal(result.deferred, 1, '1,025s is still within BUILD_START_MARKER_MAX_AGE_SECONDS (1,800s) — the existing deadline must still apply');
   });
 });
 

@@ -41,6 +41,8 @@ const CHECK_PATTERNS = [
   'tiering',
   'tier-facts',
   'r2-client',
+  // CR-02 (05-20): the deploy-time guard refusing an unconfirmed partitioned build.
+  'assert-archive-synced',
 ];
 
 /** T-04-35/T-04-36: env keys whose exact value must never appear in a notification body.
@@ -456,19 +458,21 @@ export async function runCi(opts = {}) {
       }
     }
 
-    // 05-08: the real deploy sequence — archive-sync pre (upload new-to-archive pages, move back
-    // anything that fails/misses the deadline) -> the file-count gate re-run on the FINAL
-    // dist/client (pre may have moved pages back into it) -> wrangler deploy (or a dry run
-    // rehearsal, CI_BUILD_DEPLOY_DRY_RUN=1) -> commitLastGood -> archive-sync post (re-upload
-    // changed pages, orphan cleanup, backlog/daily-report bookkeeping). commitLastGood AND
-    // archive-sync post are BOTH skipped entirely in a dry run (CI_BUILD_DEPLOY_DRY_RUN=1 deploys
-    // nothing, so nothing may be committed or deleted; CR-01, 05-13). Pre and the file-count gate
-    // can abort the whole deploy (D-13); post never can (D-10/D-12) — a failed or resultless post
-    // run is logged, not treated as a build failure, since `wrangler deploy` (and therefore the
-    // site) already succeeded by the time post runs. Every informational alert gathered along the
-    // way (pre's own alerts, the file-count warn alarm, post's alerts/daily-report) is sent AFTER
-    // the deploy succeeds — never blocking it, never gating it. A dry run still delivers every
-    // alert it gathered before the wrangler step (pre's alerts, the file-count warn alarm).
+    // 05-08/05-20: the real deploy sequence — archive-sync pre (upload new-to-archive pages, move
+    // back anything that fails/misses the deadline) -> the file-count gate re-run on the FINAL
+    // dist/client (pre may have moved pages back into it) -> the sync guard (assert-archive-
+    // synced.mjs — CR-02, 05-20: refuses a partitioned dist/ that pre has not confirmed for THIS
+    // build) -> wrangler deploy (or a dry run rehearsal, CI_BUILD_DEPLOY_DRY_RUN=1) ->
+    // commitLastGood -> archive-sync post (re-upload changed pages, orphan cleanup, backlog/
+    // daily-report bookkeeping). commitLastGood AND archive-sync post are BOTH skipped entirely in
+    // a dry run (CI_BUILD_DEPLOY_DRY_RUN=1 deploys nothing, so nothing may be committed or deleted;
+    // CR-01, 05-13). Pre, the file-count gate, and the sync guard can each abort the whole deploy
+    // (D-13/CR-02); post never can (D-10/D-12) — a failed or resultless post run is logged, not
+    // treated as a build failure, since `wrangler deploy` (and therefore the site) already
+    // succeeded by the time post runs. Every informational alert gathered along the way (pre's own
+    // alerts, the file-count warn alarm, post's alerts/daily-report) is sent AFTER the deploy
+    // succeeds — never blocking it, never gating it. A dry run still delivers every alert it
+    // gathered before the wrangler step (pre's alerts, the file-count warn alarm).
     const pendingAlerts = [];
 
     const preResult = await spawnImpl('node', ['tools/archive-sync.mjs', 'pre', '--json'], { env });
@@ -503,6 +507,19 @@ export async function runCi(opts = {}) {
         priority: 'high',
         tags: 'warning',
       });
+    }
+
+    // CR-02 (05-20): the sync guard — refuses to let a partitioned dist/ (pages moved out of
+    // dist/client by partition-archive.mjs) reach wrangler unless THIS build's archive-sync pre
+    // (just above) has confirmed it via dist/archive-synced.json. Spawned on the FINAL dist/client
+    // (after the file-count gate re-ran above), immediately before wrangler — a refusal here must
+    // abort the deploy exactly like the file-count gate does, never reaching wrangler/commitImpl/
+    // post.
+    const syncedResult = await spawnImpl('node', ['tools/assert-archive-synced.mjs'], { env });
+    if (syncedResult.code !== 0) {
+      const check = classifyFailure(syncedResult.tail, syncedResult.code);
+      await notifyFailure(`assert-archive-synced: ${check}`);
+      return syncedResult.code;
     }
 
     const dryRun = isTruthyFlag(env.CI_BUILD_DEPLOY_DRY_RUN);
