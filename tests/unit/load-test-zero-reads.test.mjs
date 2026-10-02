@@ -900,3 +900,95 @@ test('runLoadTest: full pass — gives up and reports analytics-not-caught-up af
   assert.match(result.rule, /^analytics-not-caught-up:/);
   assert.equal(result.loadRowsRead, null);
 });
+
+// ---------------------------------------------------------------------------
+// CR-03 (05-16): the load window and the 7 baseline windows must be aligned
+// identically — the review found the load window passed raw into a
+// bucket-start-filtered query, always dropping the bucket containing its own
+// start, while comparableWindows() aligns the baseline outward to 5-minute
+// boundaries. That asymmetry biases every gate run toward PASS.
+// ---------------------------------------------------------------------------
+
+test('CR-03 (05-16): load and baseline windows are aligned identically', async () => {
+  const rowsReadQueries = []; // { start, end } for every fetchD1RowsRead call
+  const catchUpAts = []; // `at` for every checkD1AnalyticsCaughtUp call
+  const baseFetch = fullPassFetchImpl({ caughtUpOnFirstPoll: true });
+  const recordingFetchImpl = async (url, opts) => {
+    if (opts?.body) {
+      const body = JSON.parse(opts.body);
+      if (body.variables?.at && !body.variables?.start) {
+        catchUpAts.push(body.variables.at);
+      } else if (body.variables?.start) {
+        rowsReadQueries.push({ start: body.variables.start, end: body.variables.end });
+      }
+    }
+    return baseFetch(url, opts);
+  };
+
+  const { result } = await runLoadTest({
+    requests: 4,
+    requestMixInput: mixInputFixture(),
+    deps: {
+      fetchImpl: recordingFetchImpl,
+      env: { CLOUDFLARE_API_TOKEN: 'tok', CLOUDFLARE_ACCOUNT_ID: 'acct' },
+      sleep: async () => {},
+      now: (() => {
+        const times = ['2026-09-30T03:27:13.000Z', '2026-09-30T03:52:41.000Z'];
+        let i = 0;
+        return () => new Date(times[Math.min(i++, times.length - 1)]);
+      })(),
+    },
+  });
+
+  // Exactly 8 rowsRead queries: 1 load window + 7 baseline windows.
+  assert.equal(rowsReadQueries.length, 8, 'expected 1 load-window query + 7 baseline-window queries');
+
+  const [loadQuery, ...baselineQueries] = rowsReadQueries;
+  assert.equal(baselineQueries.length, 7);
+
+  // The load-window rowsRead query is aligned outward to 5-minute boundaries, not the raw
+  // 03:27:13.000Z / 03:52:41.000Z instants the fake clock returned.
+  assert.equal(loadQuery.start, '2026-09-30T03:25:00.000Z');
+  assert.equal(loadQuery.end, '2026-09-30T03:55:00.000Z');
+
+  const loadDurationMs = new Date(loadQuery.end).getTime() - new Date(loadQuery.start).getTime();
+
+  // Every baseline window starts at 03:25:00.000Z on each of the 7 preceding days and has the
+  // identical duration (and therefore identical minute-of-hour end boundary) as the load window.
+  const expectedBaselineStarts = [
+    '2026-09-23T03:25:00.000Z',
+    '2026-09-24T03:25:00.000Z',
+    '2026-09-25T03:25:00.000Z',
+    '2026-09-26T03:25:00.000Z',
+    '2026-09-27T03:25:00.000Z',
+    '2026-09-28T03:25:00.000Z',
+    '2026-09-29T03:25:00.000Z',
+  ];
+  baselineQueries.forEach((w, i) => {
+    assert.equal(w.start, expectedBaselineStarts[i]);
+    const durationMs = new Date(w.end).getTime() - new Date(w.start).getTime();
+    assert.equal(durationMs, loadDurationMs, `baseline window ${i} duration must equal the load window duration`);
+    assert.equal(
+      new Date(w.start).getUTCMinutes(),
+      new Date(loadQuery.start).getUTCMinutes(),
+      `baseline window ${i} start minute-of-hour must match the load window's`
+    );
+    assert.equal(
+      new Date(w.end).getUTCMinutes(),
+      new Date(loadQuery.end).getUTCMinutes(),
+      `baseline window ${i} end minute-of-hour must match the load window's`
+    );
+  });
+
+  // The catch-up poll targets the aligned end (03:55:00.000Z), not the raw windowEnd (03:52:41.000Z).
+  assert.ok(catchUpAts.length > 0, 'expected at least one checkD1AnalyticsCaughtUp call');
+  for (const at of catchUpAts) {
+    assert.equal(at, '2026-09-30T03:55:00.000Z');
+  }
+
+  // The result carries both the aligned measured window and the raw request window.
+  assert.equal(result.window.start, '2026-09-30T03:25:00.000Z');
+  assert.equal(result.window.end, '2026-09-30T03:55:00.000Z');
+  assert.equal(result.requestWindow.start, '2026-09-30T03:27:13.000Z');
+  assert.equal(result.requestWindow.end, '2026-09-30T03:52:41.000Z');
+});
