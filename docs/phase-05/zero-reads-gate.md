@@ -300,6 +300,51 @@ and the deployed Worker has no D1 binding | node tools/load-test-zero-reads.mjs 
 One attempt. No INCONCLUSIVE re-runs were needed — the only prior failure was the tool bug (fixed
 before any measurement was attempted), not a named ARCH-01 validity-rule rejection.
 
+### CR-03 correction (05-16, 2026-10-02)
+
+05-REVIEW.md's CR-03 found an asymmetry in the measurement above: `comparableWindows()` aligns the
+7 baseline windows outward to 5-minute boundaries (floor start, ceil end), but the load window was
+passed into the D1 analytics query raw. Because `datetimeFiveMinutes` is a bucket-start dimension,
+the bucket containing the load window's own raw start was always excluded from the sum — the
+recorded load window (`20:34:05.536Z` .. `21:16:29.049Z`) summed only 9 buckets (`20:35`-`21:15`)
+against each baseline window's 10 buckets (`20:30`-`21:20`), an ~10% undercount on the measured
+side.
+
+**Fix (commit `f79816c`, plan 05-16):** `runLoadTest` now builds one aligned window
+(`alignedLoad` — floored start, ceiled end) right after the pass ends, and threads it through every
+D1-analytics call site that previously saw the raw window: the ingest-slot check, the analytics
+catch-up poll, the load-window `rowsRead` query, and the baseline derivation. The raw as-sent
+window is kept separately as `requestWindow`, for evidence only, never used to query D1. A
+regression test (`CR-03 (05-16): load and baseline windows are aligned identically`) asserts the
+load window and all 7 baseline windows share identical duration and minute-of-hour boundaries.
+
+**Re-check against real data:** rather than trust the review's own ×10/9 estimate (≈1.87M), this
+plan ran one read-only re-query of the ALIGNED window for the same recorded run —
+`2026-10-01T20:30:00.000Z` .. `21:20:00.000Z`, the same 10-bucket span each baseline window already
+covers:
+
+| Field | Value |
+|---|---|
+| Aligned window | `2026-10-01T20:30:00.000Z` .. `2026-10-01T21:20:00.000Z` |
+| Measured `rowsRead` (aligned, re-queried 2026-10-02) | **2,183,097** |
+| Recorded baseline mean / sample σ | 3,743,139.29 / 2,056,691.00 |
+| Corrected excess (rowsRead − mean) | −1,560,042.29 |
+| Corrected z-score | **−0.7585** |
+| 3σ threshold (mean + 3σ) | 9,913,212.29 |
+| Lowest baseline window | 2,399,162 |
+
+The corrected, measured `rowsRead` (2,183,097) remains below the lowest of the 7 baseline windows
+and far inside the 3σ threshold — a 2026-10-02 re-query for the real aligned window, not an
+estimate. The recorded `ZERO_READS_PROVEN` verdict above therefore stands on corrected, measured
+data.
+
+Evidence: `docs/phase-05/evidence/gate-20261001T203348Z/load-window-aligned-recheck.json` (window,
+`rowsRead`, and the query timestamp only — no credential, no request body beyond the window
+bounds).
+
+No request pass was re-run for this correction (owner directive, 05-16 plan) — only the read-only
+D1 analytics re-query above.
+
 ### ARCH-08 (same window)
 
 | Field | Value |
