@@ -10,6 +10,7 @@ Entries are named `YYYY-MM-DD-HHMM_slug.md` and grouped by month, newest first.
 
 | Date | Entry | Keywords |
 |------|-------|----------|
+| 2026-10-02 | [WR-02 Task 2: deleteObjects reports partial results; every remaining post/pre R2 call made non-fatal](2026-10-02-2315_05-18-task2-deleteobjects-partial-results-nonfatal-writes.md) | `[BUG_FIX]` `[BACKEND]` `[TESTING]` `[SECURITY]` `[CRITICAL]` |
 | 2026-10-02 | [WR-02 Task 1: post-sync index-write failures never crash the run; pre-sync self-heals](2026-10-02-2300_05-18-task1-wr02-post-index-write-alert-pre-self-heal.md) | `[BUG_FIX]` `[BACKEND]` `[TESTING]` `[CRITICAL]` |
 | 2026-10-02 | [Plan 05-15 complete: REND-10/WR-08 re-derivation capability restored](2026-10-02-2225_05-15-complete-rend-10-wr08-rederivation-restored.md) | `[DOCUMENTATION]` `[PLANNING]` `[TESTING]` |
 | 2026-10-02 | [REND-10's re-derivation capability proven live, preview only](2026-10-02-2215_05-15-task2-live-rederivation-preview-proven.md) | `[DOCUMENTATION]` `[TESTING]` `[ARCHITECTURE]` |

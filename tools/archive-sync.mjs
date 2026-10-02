@@ -750,16 +750,26 @@ export async function runPostSync(opts = {}) {
         `archive-sync: live deployment changed during post-sync — skipping ${toDelete.length} deletion(s); index entries kept`
       );
     } else {
-      const delResult = await store.deleteObjects(toDelete);
-      deletedCount = delResult.deleted;
-      if (delResult.errors?.length > 0) {
-        alerts.push(`archive-sync: ${delResult.errors.length} object(s) failed to delete`);
+      try {
+        const delResult = await store.deleteObjects(toDelete);
+        deletedCount = delResult.deleted;
+        if (delResult.errors?.length > 0) {
+          alerts.push(`archive-sync: ${delResult.errors.length} object(s) failed to delete`);
+        }
+        // Only drop an index entry for a key that `deleteObjects` actually confirmed deleted — a
+        // key that errored (R2 outage, NoSuchKey, anything else) must keep its index entry, or the
+        // next run would never retry it and the index would silently lie about what's really in R2.
+        const erroredKeys = new Set((delResult.errors ?? []).map((e) => e.key));
+        actuallyDeleted = toDelete.filter((key) => !erroredKeys.has(key));
+      } catch (err) {
+        // WR-02 (05-18): r2-client's own deleteObjects no longer throws mid-batch, but this call
+        // must stay defensive regardless of the caller — an unexpected throw here must never crash
+        // the run; keep every index entry, since whether any key was actually deleted is unknown.
+        alerts.push(
+          `archive-sync: deleteObjects failed — ${err instanceof Error ? err.message : String(err)}; index entries kept`
+        );
+        actuallyDeleted = [];
       }
-      // Only drop an index entry for a key that `deleteObjects` actually confirmed deleted — a
-      // key that errored (R2 outage, NoSuchKey, anything else) must keep its index entry, or the
-      // next run would never retry it and the index would silently lie about what's really in R2.
-      const erroredKeys = new Set((delResult.errors ?? []).map((e) => e.key));
-      actuallyDeleted = toDelete.filter((key) => !erroredKeys.has(key));
     }
   }
 
@@ -798,12 +808,16 @@ export async function runPostSync(opts = {}) {
     }
     backlogSince = null;
   }
-  await store.putJson(ARCHIVE_STATE_KEY, {
-    backlogCount: deferredCount,
-    backlogSince,
-    lastConvergedAt,
-    updatedAt: nowIso(),
-  });
+  try {
+    await store.putJson(ARCHIVE_STATE_KEY, {
+      backlogCount: deferredCount,
+      backlogSince,
+      lastConvergedAt,
+      updatedAt: nowIso(),
+    });
+  } catch (err) {
+    alerts.push(`archive-sync: archive-state write failed — ${err instanceof Error ? err.message : String(err)}`);
+  }
 
   if (backlogSince) {
     const ageMs = now() - Date.parse(backlogSince);
@@ -832,7 +846,16 @@ export async function runPostSync(opts = {}) {
   const today = denverDateString(new Date(now()));
   let dailyReport;
   if (!dailyReportState || dailyReportState.lastReportDate !== today) {
-    await store.putJson(DAILY_REPORT_KEY, { lastReportDate: today });
+    try {
+      await store.putJson(DAILY_REPORT_KEY, { lastReportDate: today });
+    } catch (err) {
+      // A missed marker write means tomorrow's run will see the same stale lastReportDate and
+      // report again — a duplicate report is preferred over a missed one, so `due` stays true
+      // below regardless of this write's outcome.
+      alerts.push(
+        `archive-sync: daily-report marker write failed — ${err instanceof Error ? err.message : String(err)}; today's report may repeat`
+      );
+    }
     const budget = readStaticBudget(root);
     dailyReport = {
       due: true,
@@ -938,6 +961,18 @@ async function main() {
   process.exitCode = 1;
 }
 
+/** Prefixes `archive-sync: ` only if the message doesn't already carry it — `fail()`'s own thrown
+ * messages already do, and double-prefixing would make the one clean line this exists for look
+ * like two. Used only by the CLI's top-level `.catch` below, for an unexpected throw that escapes
+ * every other non-fatal handling in `runPreSync`/`runPostSync`. */
+function describeTopLevelError(err) {
+  const message = err instanceof Error ? err.message : String(err);
+  return message.startsWith('archive-sync:') ? message : `archive-sync: ${message}`;
+}
+
 if (import.meta.url === `file://${process.argv[1]}`) {
-  main();
+  main().catch((err) => {
+    console.error(describeTopLevelError(err));
+    process.exitCode = 1;
+  });
 }

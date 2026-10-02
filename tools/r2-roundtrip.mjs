@@ -61,7 +61,15 @@ async function main() {
       throw new Error(`r2-roundtrip: get body mismatch for ${key}`);
     }
 
-    await timed('delete', () => store.deleteObjects([key]));
+    const deleteResult = await timed('delete', () => store.deleteObjects([key]));
+    if (deleteResult.errors.length > 0) {
+      // WR-02 (05-18): r2-client's deleteObjects now reports a failing batch as partial errors
+      // instead of throwing — this tool must stay fail-loud on its own probe object regardless,
+      // since a silent "succeeded" here would hide a real deletion failure from the live proof.
+      throw new Error(
+        `r2-roundtrip: delete of ${key} reported errors: ${deleteResult.errors.map((e) => `${e.key}:${e.code}`).join(', ')}`
+      );
+    }
 
     const headAfterDelete = await timed('head-after-delete', () => store.headObject(key));
     if (headAfterDelete !== null) {

@@ -989,6 +989,121 @@ test('archive-sync: WR-02 (05-18): a failed index write can never become a 404 �
 });
 
 // ---------------------------------------------------------------------------
+// Task 2 (05-18): every remaining R2 call in post/pre made non-fatal
+// ---------------------------------------------------------------------------
+
+test('archive-sync: runPostSync — a deleteObjects rejection is an alert, not a thrown error; no index entries removed', async () => {
+  await withTempRoot([], {}, async (root) => {
+    const indexEntries = { 'articles/orphan.html': { sha256: 'x', path: '/cat/orphan-uuid' } };
+    mkdirSync(dirname(clientFileFor(root, '/cat/orphan-uuid')), { recursive: true });
+    writeFileSync(clientFileFor(root, '/cat/orphan-uuid'), '<html>now hot</html>'); // promoted orphan
+    const store = makeFakeStore({
+      seed: { [ARCHIVE_INDEX_KEY]: { body: JSON.stringify({ version: 1, entries: indexEntries }) } },
+      failDeleteObjects: true,
+    });
+
+    const { result, exitCode } = await runPostSync({
+      root,
+      env: {},
+      hasR2CredentialsFn: trueCreds,
+      checkLiveDeploymentFn: liveOk,
+      createStore: async () => store,
+    });
+
+    assert.equal(exitCode, 0, 'a rejecting deleteObjects must never crash the run');
+    assert.equal(result.deleted, 0);
+    assert.ok(
+      result.alerts.some((a) => /deleteObjects failed/.test(a) && /index entries kept/.test(a)),
+      `expected a deleteObjects-failed alert, got: ${JSON.stringify(result.alerts)}`
+    );
+    const index = JSON.parse(store.objects.get(ARCHIVE_INDEX_KEY).body);
+    assert.equal('articles/orphan.html' in index.entries, true, 'the orphan must stay indexed — deletion status is unknown');
+  });
+});
+
+test('archive-sync: runPostSync — a putJson rejection for archive-state.json is an alert, run resolves', async () => {
+  const entries = [{ kind: 'article', key: 'articles/a.html', path: '/cat/a-uuid', body: '<html>v2</html>' }];
+  await withTempRoot(entries, {}, async (root) => {
+    const store = makeFakeStore({
+      seed: {
+        [ARCHIVE_INDEX_KEY]: {
+          body: JSON.stringify({
+            version: 1,
+            entries: { 'articles/a.html': { sha256: sha256Of('<html>v1</html>'), path: '/cat/a-uuid' } },
+          }),
+        },
+      },
+      failPutKeys: new Set([ARCHIVE_STATE_KEY]),
+    });
+
+    const { result, exitCode } = await runPostSync({
+      root,
+      env: {},
+      hasR2CredentialsFn: trueCreds,
+      checkLiveDeploymentFn: liveOk,
+      createStore: async () => store,
+    });
+
+    assert.equal(exitCode, 0);
+    assert.equal(result.uploaded, 1, 'the upload itself must still succeed');
+    assert.ok(
+      result.alerts.some((a) => /archive-state write failed/.test(a)),
+      `expected an archive-state-write alert, got: ${JSON.stringify(result.alerts)}`
+    );
+  });
+});
+
+test('archive-sync: runPostSync — a putJson rejection for daily-report.json is an alert; dailyReport.due stays true', async () => {
+  await withTempRoot([], {}, async (root) => {
+    const store = makeFakeStore({ failPutKeys: new Set([DAILY_REPORT_KEY]) });
+
+    const { result, exitCode } = await runPostSync({
+      root,
+      env: {},
+      hasR2CredentialsFn: trueCreds,
+      checkLiveDeploymentFn: liveOk,
+      createStore: async () => store,
+    });
+
+    assert.equal(exitCode, 0);
+    assert.equal(result.dailyReport.due, true, 'a failed marker write must leave due:true — a duplicate report later beats a missed one');
+    assert.ok(
+      result.alerts.some((a) => /daily-report marker write failed/.test(a)),
+      `expected a daily-report-write alert, got: ${JSON.stringify(result.alerts)}`
+    );
+  });
+});
+
+test('archive-sync: runPreSync — an index write failure after 3 successful uploads is an alert naming the count; exit code 0, nothing moved back', async () => {
+  const entries = Array.from({ length: 3 }, (_, i) => ({
+    kind: 'article',
+    key: `articles/item-${i}.html`,
+    path: `/cat/item-${i}-uuid`,
+  }));
+  await withTempRoot(entries, {}, async (root) => {
+    const store = makeFakeStore({ failPutKeys: new Set([ARCHIVE_INDEX_KEY]) });
+
+    const { result, exitCode } = await runPreSync({
+      root,
+      env: {},
+      hasR2CredentialsFn: trueCreds,
+      createStore: async () => store,
+    });
+
+    assert.equal(exitCode, 0);
+    assert.equal(result.uploaded, 3);
+    assert.equal(result.movedBack, 0, 'uploaded pages are confirmed in R2 and must not be moved back to static');
+    assert.ok(
+      result.alerts.some((a) => /index write failed after 3 upload\(s\)/.test(a)),
+      `expected an index-write-failed alert naming the count, got: ${JSON.stringify(result.alerts)}`
+    );
+    for (const entry of entries) {
+      assert.equal(existsSync(clientFileFor(root, entry.path)), false, `${entry.key} must not be moved back to static`);
+    }
+  });
+});
+
+// ---------------------------------------------------------------------------
 // requestFullReupload
 // ---------------------------------------------------------------------------
 

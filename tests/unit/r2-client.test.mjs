@@ -221,6 +221,37 @@ test('deleteObjects(2500 keys) issues exactly 3 DeleteObjects commands (1000/100
   assert.deepEqual(result.errors, []);
 });
 
+// WR-02 (05-18): deleteObjects must report a failing batch as partial errors, never throw
+// mid-loop — a thrown batch would throw away the deleted-count from batches that already
+// succeeded, and the caller would have no way to know which keys are actually gone from R2.
+test('deleteObjects(2500 keys) — a rejecting middle batch is reported as partial errors, not a throw; batches 1 and 3 still complete', async () => {
+  const keys = Array.from({ length: 2500 }, (_, i) => `_probe/key-${i}.txt`);
+  const err = new Error('simulated throttling embedding a secret value xyz-should-not-leak');
+  err.name = 'ThrottlingException';
+  const client = makeFakeClient([
+    { Deleted: Array.from({ length: 1000 }, () => ({})) },
+    { reject: err },
+    { Deleted: Array.from({ length: 500 }, () => ({})) },
+  ]);
+  const store = createArchiveStore({ client });
+  const result = await store.deleteObjects(keys);
+
+  assert.equal(client.calls.length, 3, 'all 3 batches must be attempted — a failing batch must not stop the loop');
+  assert.equal(result.deleted, 1500, 'batches 1 and 3 (1000 + 500) must still count as deleted');
+
+  const batch2Keys = keys.slice(1000, 2000);
+  assert.equal(result.errors.length, 1000);
+  assert.deepEqual(
+    result.errors.map((e) => e.key).sort(),
+    [...batch2Keys].sort(),
+    'every key in the failing batch must be reported, not just the batch as a whole'
+  );
+  for (const e of result.errors) {
+    assert.equal(e.code, 'ThrottlingException', 'code must come from describeError, not err.message');
+    assert.ok(!e.code.includes('secret'), 'code must never leak err.message text');
+  }
+});
+
 // ---------------------------------------------------------------------------
 // Secret hygiene
 // ---------------------------------------------------------------------------
