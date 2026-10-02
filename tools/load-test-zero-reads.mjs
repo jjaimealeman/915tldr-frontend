@@ -844,20 +844,40 @@ export async function runLoadTest(opts = {}) {
   });
 
   const windowEnd = now();
-  const touchesIngestSlot = windowTouchesIngestSlot(windowStart.toISOString(), windowEnd.toISOString());
 
-  // Wait for analytics to catch up to the window end (injectable sleep; capped wait).
+  // CR-03 (05-16): `comparableWindows()` aligns the 7 baseline windows outward to 5-minute
+  // boundaries (floor the start, ceil the end), but the load window itself was previously passed
+  // into `fetchD1RowsRead` raw — and because `datetimeFiveMinutes` is a bucket START, the bucket
+  // containing the raw window's own start was always excluded from the sum. That meant the load
+  // side of the comparison systematically covered 1-2 fewer 5-minute buckets than every baseline
+  // window, biasing every gate run toward PASS. `alignedLoad` is the single aligned window that now
+  // feeds BOTH sides of the comparison (the ingest-slot check, the catch-up poll, the rowsRead
+  // query and the baseline derivation); `requestWindow` is kept only as the raw, as-sent window for
+  // evidence/transparency, never used to query D1.
+  const requestWindow = { start: windowStart.toISOString(), end: windowEnd.toISOString() };
+  const alignedLoad = {
+    start: floorToFiveMinutes(windowStart).toISOString(),
+    end: ceilToFiveMinutes(windowEnd).toISOString(),
+  };
+  // Evaluated on the ALIGNED (measured) window, not the narrower request window — the ingest-slot
+  // validity rule must reflect what was actually summed, not what was requested.
+  const touchesIngestSlot = windowTouchesIngestSlot(alignedLoad.start, alignedLoad.end);
+
+  // Wait for analytics to catch up to the ALIGNED window end (injectable sleep; capped wait) — the
+  // aligned end is the instant the load-window rowsRead query actually needs ingested, not the raw
+  // windowEnd.
   let analyticsNotCaughtUp = false;
   let waited = 0;
   // A caller-supplied `checkCaughtUp` lets tests drive this loop with a fake signal. When none is
   // supplied — the live CLI path, since `main()` never passes `deps` — this defaults to a REAL
-  // live poll (`checkD1AnalyticsCaughtUp` against `windowEnd`), not an unconditional `true`. Fixed
-  // 2026-10-01 (05-12): the prior unconditional-`true` default meant the documented "analytics
-  // catch-up wait" was dead code on every real `node tools/load-test-zero-reads.mjs` invocation —
-  // `loadRowsRead` was fetched immediately after the pass ended, with no live confirmation the
-  // dataset had actually ingested that window yet, risking an undercounted (falsely low) PASS.
+  // live poll (`checkD1AnalyticsCaughtUp` against `alignedLoad.end`), not an unconditional `true`.
+  // Fixed 2026-10-01 (05-12): the prior unconditional-`true` default meant the documented
+  // "analytics catch-up wait" was dead code on every real `node tools/load-test-zero-reads.mjs`
+  // invocation — `loadRowsRead` was fetched immediately after the pass ended, with no live
+  // confirmation the dataset had actually ingested that window yet, risking an undercounted
+  // (falsely low) PASS.
   const checkCaughtUp =
-    deps.checkCaughtUp ?? (() => checkD1AnalyticsCaughtUp(windowEnd.toISOString(), resolvedDeps));
+    deps.checkCaughtUp ?? (() => checkD1AnalyticsCaughtUp(alignedLoad.end, resolvedDeps));
   // eslint-disable-next-line no-constant-condition
   while (true) {
     const caughtUp = await checkCaughtUp();
@@ -870,10 +890,12 @@ export async function runLoadTest(opts = {}) {
     waited += ANALYTICS_CATCHUP_POLL_MS;
   }
 
-  const loadWindow = { start: windowStart.toISOString(), end: windowEnd.toISOString() };
-  const loadRowsRead = analyticsNotCaughtUp ? null : await fetchD1RowsRead(loadWindow, resolvedDeps);
+  const loadRowsRead = analyticsNotCaughtUp ? null : await fetchD1RowsRead(alignedLoad, resolvedDeps);
 
-  const baselineWindows = comparableWindows(loadWindow, 7);
+  // comparableWindows() re-aligns whatever window it's given outward to 5-minute boundaries — since
+  // alignedLoad is already aligned, this is a no-op on it, but keeping the call unchanged means the
+  // baseline derivation logic itself did not need to change, only its input.
+  const baselineWindows = comparableWindows(alignedLoad, 7);
   const baselineTotals = [];
   for (const window of baselineWindows) {
     baselineTotals.push(await fetchD1RowsRead(window, resolvedDeps));
@@ -885,7 +907,7 @@ export async function runLoadTest(opts = {}) {
 
   await writeEvidence(evidence, 'request-pass.json', pass.results);
   await writeEvidence(evidence, 'baseline-windows.json', { windows: baselineWindows, totals: baselineTotals });
-  await writeEvidence(evidence, 'load-window.json', { window: loadWindow, rowsRead: loadRowsRead });
+  await writeEvidence(evidence, 'load-window.json', { window: alignedLoad, requestWindow, rowsRead: loadRowsRead });
 
   const verdict = decideZeroReadsVerdict({
     baseline,
@@ -896,11 +918,11 @@ export async function runLoadTest(opts = {}) {
     zeroTotalWindow,
     requestsCompletedRatio: pass.completionRatio,
     requests: { sent: pass.sent, completed: pass.completed },
-    window: loadWindow,
+    window: alignedLoad,
   });
 
   const exitCode = verdict.verdict === 'PASS' ? 0 : verdict.verdict === 'FAIL' ? 2 : 3;
-  return { exitCode, result: verdict };
+  return { exitCode, result: { ...verdict, requestWindow } };
 }
 
 async function main() {

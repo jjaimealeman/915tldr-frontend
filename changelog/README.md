@@ -13,6 +13,7 @@ Entries are named `YYYY-MM-DD-HHMM_slug.md` and grouped by month, newest first.
 | 2026-10-02 | [Plan 05-15 complete: REND-10/WR-08 re-derivation capability restored](2026-10-02-2225_05-15-complete-rend-10-wr08-rederivation-restored.md) | `[DOCUMENTATION]` `[PLANNING]` `[TESTING]` |
 | 2026-10-02 | [REND-10's re-derivation capability proven live, preview only](2026-10-02-2215_05-15-task2-live-rederivation-preview-proven.md) | `[DOCUMENTATION]` `[TESTING]` `[ARCHITECTURE]` |
 | 2026-10-02 | [WR-08 fix: hot-window re-derivation can count a partitioned build again](2026-10-02-2200_05-15-task1-wr08-count-both-trees-negative-guard.md) | `[BUG_FIX]` `[BACKEND]` `[TESTING]` |
+| 2026-10-02 | [CR-03 GREEN: one aligned window feeds both sides of the zero-reads comparison](2026-10-02-2130_05-16-task1-cr03-green-align-load-window.md) | `[BUG_FIX]` `[BACKEND]` `[TESTING]` `[CRITICAL]` |
 | 2026-10-02 | [CR-03 RED: load/baseline window alignment regression test](2026-10-02-2129_05-16-task1-cr03-red-window-alignment-test.md) | `[TESTING]` `[BUG_FIX]` `[CRITICAL]` |
 | 2026-10-02 | [Plan 05-14 complete: CR-01/WR-01's archive-sync half closed](2026-10-02-1520_05-14-complete-cr01-wr01-archive-sync-half-closed.md) | `[DOCUMENTATION]` `[PLANNING]` `[TESTING]` `[SECURITY]` |
 | 2026-10-02 | [Document the live-deployment gate in the archive architecture record](2026-10-02-1515_05-14-task3-architecture-doc-live-deployment-gate.md) | `[DOCUMENTATION]` `[ARCHITECTURE]` `[SECURITY]` `[DEPLOYMENT]` |
