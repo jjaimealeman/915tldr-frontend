@@ -1023,3 +1023,108 @@ test('runCi step=deploy: a post spawn that omits the ARCHIVE_SYNC_RESULT line se
   assert.equal(code, 0);
   assert.equal(notifyCalls.length, 1);
 });
+
+// ---------------------------------------------------------------------------
+// CR-01 (05-13): a deploy that deployed nothing never reaches post-sync
+// ---------------------------------------------------------------------------
+
+test('CR-01 (05-13): CI_BUILD_DEPLOY_DRY_RUN=1 never spawns archive-sync post, never calls commitImpl, returns 0, and logs the skip line', async () => {
+  const calls = [];
+  const logLines = [];
+  const spawnImpl = async (cmd, args) => {
+    calls.push({ cmd, args: [...args] });
+    if (args.includes('pre')) return { code: 0, tail: fakeArchiveSyncTail('pre') };
+    if (args.some((a) => String(a).includes('assert-file-count.mjs'))) {
+      return { code: 0, tail: '{"count":100,"ceiling":100000,"failAt":80000,"status":"ok"}' };
+    }
+    if (cmd === 'pnpm' && args.includes('wrangler')) return { code: 0, tail: '' };
+    if (args.includes('post')) return { code: 0, tail: fakeArchiveSyncTail('post') };
+    return { code: 0, tail: '' };
+  };
+  const commitCalls = [];
+  const code = await runCi({
+    step: 'deploy',
+    env: { CI_BUILD_DEPLOY_DRY_RUN: '1' },
+    spawnImpl,
+    notifyImpl: async () => {},
+    commitImpl: async (a) => commitCalls.push(a),
+    loadHotWindowImpl: fakeLoadHotWindow,
+    setTimer: noopTimer,
+    clearTimer: noopClear,
+    log: (...args) => logLines.push(args.join(' ')),
+  });
+
+  assert.equal(code, 0);
+  assert.ok(
+    !calls.some((c) => c.args.some((a) => String(a).includes('archive-sync.mjs')) && c.args.includes('post')),
+    'a dry run must never spawn archive-sync post'
+  );
+  assert.equal(commitCalls.length, 0, 'commitImpl must never be called in a dry run');
+  assert.ok(
+    logLines.some((line) => line.includes('dry run: skipping archive-sync post')),
+    'expected the dry-run skip line to be logged'
+  );
+});
+
+test('CR-01 (05-13): a dry run still delivers every pre-sync alert it gathered', async () => {
+  const notifyCalls = [];
+  const spawnImpl = fakeDeploySpawnImpl({
+    preOverrides: {
+      alerts: ['archive-sync: 2 page(s) failed to upload — previous state (static) still serving'],
+    },
+  });
+  const code = await runCi({
+    step: 'deploy',
+    env: { CI_BUILD_DEPLOY_DRY_RUN: '1', NTFY_TOPIC: 'test-topic' },
+    spawnImpl,
+    notifyImpl: async (a) => notifyCalls.push(a),
+    commitImpl: async () => {
+      throw new Error('commitImpl must never be called in a dry run');
+    },
+    loadHotWindowImpl: fakeLoadHotWindow,
+    setTimer: noopTimer,
+    clearTimer: noopClear,
+    log: noopLog,
+  });
+
+  assert.equal(code, 0);
+  assert.equal(notifyCalls.length, 1, 'the dry-run alert must still be delivered exactly once');
+  assert.match(notifyCalls[0].body, /2 page\(s\) failed/);
+  assert.match(notifyCalls[0].body, /still serving/);
+});
+
+test('CR-01 (05-13): a failed wrangler deploy (non-dry-run) never spawns post, never calls commitImpl, returns non-zero, notifies once naming wrangler deploy', async () => {
+  const calls = [];
+  const notifyCalls = [];
+  const spawnImpl = async (cmd, args) => {
+    calls.push({ cmd, args: [...args] });
+    if (args.includes('pre')) return { code: 0, tail: fakeArchiveSyncTail('pre') };
+    if (args.some((a) => String(a).includes('assert-file-count.mjs'))) {
+      return { code: 0, tail: '{"count":100,"ceiling":100000,"failAt":80000,"status":"ok"}' };
+    }
+    if (cmd === 'pnpm' && args.includes('wrangler')) return { code: 1, tail: 'Error: authentication failed' };
+    if (args.includes('post')) return { code: 0, tail: fakeArchiveSyncTail('post') };
+    return { code: 0, tail: '' };
+  };
+  const commitCalls = [];
+  const code = await runCi({
+    step: 'deploy',
+    env: { NTFY_TOPIC: 'test-topic' },
+    spawnImpl,
+    notifyImpl: async (a) => notifyCalls.push(a),
+    commitImpl: async (a) => commitCalls.push(a),
+    loadHotWindowImpl: fakeLoadHotWindow,
+    setTimer: noopTimer,
+    clearTimer: noopClear,
+    log: noopLog,
+  });
+
+  assert.notEqual(code, 0);
+  assert.ok(
+    !calls.some((c) => c.args.some((a) => String(a).includes('archive-sync.mjs')) && c.args.includes('post')),
+    'a failed wrangler deploy must never spawn archive-sync post'
+  );
+  assert.equal(commitCalls.length, 0);
+  assert.equal(notifyCalls.length, 1);
+  assert.match(notifyCalls[0].title, /wrangler deploy/);
+});

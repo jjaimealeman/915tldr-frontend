@@ -459,14 +459,16 @@ export async function runCi(opts = {}) {
     // 05-08: the real deploy sequence — archive-sync pre (upload new-to-archive pages, move back
     // anything that fails/misses the deadline) -> the file-count gate re-run on the FINAL
     // dist/client (pre may have moved pages back into it) -> wrangler deploy (or a dry run
-    // rehearsal, CI_BUILD_DEPLOY_DRY_RUN=1) -> commitLastGood (skipped in a dry run — no real
-    // deploy happened to commit against) -> archive-sync post (re-upload changed pages, orphan
-    // cleanup, backlog/daily-report bookkeeping). Pre and the file-count gate can abort the whole
-    // deploy (D-13); post never can (D-10/D-12) — a failed or resultless post run is logged, not
-    // treated as a build failure, since `wrangler deploy` (and therefore the site) already
-    // succeeded by the time post runs. Every informational alert gathered along the way (pre's
-    // own alerts, the file-count warn alarm, post's alerts/daily-report) is sent AFTER the deploy
-    // succeeds — never blocking it, never gating it.
+    // rehearsal, CI_BUILD_DEPLOY_DRY_RUN=1) -> commitLastGood -> archive-sync post (re-upload
+    // changed pages, orphan cleanup, backlog/daily-report bookkeeping). commitLastGood AND
+    // archive-sync post are BOTH skipped entirely in a dry run (CI_BUILD_DEPLOY_DRY_RUN=1 deploys
+    // nothing, so nothing may be committed or deleted; CR-01, 05-13). Pre and the file-count gate
+    // can abort the whole deploy (D-13); post never can (D-10/D-12) — a failed or resultless post
+    // run is logged, not treated as a build failure, since `wrangler deploy` (and therefore the
+    // site) already succeeded by the time post runs. Every informational alert gathered along the
+    // way (pre's own alerts, the file-count warn alarm, post's alerts/daily-report) is sent AFTER
+    // the deploy succeeds — never blocking it, never gating it. A dry run still delivers every
+    // alert it gathered before the wrangler step (pre's alerts, the file-count warn alarm).
     const pendingAlerts = [];
 
     const preResult = await spawnImpl('node', ['tools/archive-sync.mjs', 'pre', '--json'], { env });
@@ -515,29 +517,36 @@ export async function runCi(opts = {}) {
       return deployResult.code;
     }
 
-    if (!dryRun) {
-      await commitImpl({ buildHash: commit !== 'local' ? commit.slice(0, 7) : undefined });
-    }
-
-    const postResult = await spawnImpl('node', ['tools/archive-sync.mjs', 'post', '--json'], { env });
-    const postParsed = parseArchiveSyncResult(postResult.tail);
-    if (postResult.code !== 0 || !postParsed) {
-      const check = classifyFailure(postResult.tail, postResult.code);
-      pendingAlerts.push({
-        title: '915 TLDR archive alert: post-deploy sync',
-        body: `archive-sync: post-deploy sync failed or produced no result — ${check}`,
-      });
+    if (dryRun) {
+      // CR-01 (05-13): a dry run deployed nothing — commitLastGood must never commit against a
+      // build that was never actually deployed, and archive-sync post must never mutate the
+      // production bucket (re-upload, orphan deletion) on its behalf. Confining both inside this
+      // branch is the single dry-run predicate; the pendingAlerts loop below still runs for both
+      // branches so pre's alerts and the file-count warn alarm are still delivered.
+      log('[ci-build] dry run: skipping archive-sync post — it mutates the production bucket and this run deployed nothing');
     } else {
-      for (const alert of postParsed.alerts ?? []) {
-        pendingAlerts.push({ title: '915 TLDR archive alert: post-deploy sync', body: alert });
-      }
-      if (postParsed.dailyReport?.due) {
+      await commitImpl({ buildHash: commit !== 'local' ? commit.slice(0, 7) : undefined });
+
+      const postResult = await spawnImpl('node', ['tools/archive-sync.mjs', 'post', '--json'], { env });
+      const postParsed = parseArchiveSyncResult(postResult.tail);
+      if (postResult.code !== 0 || !postParsed) {
+        const check = classifyFailure(postResult.tail, postResult.code);
         pendingAlerts.push({
-          title: '915 TLDR archive daily report',
-          body: formatDailyReportBody(postParsed.dailyReport.body ?? {}),
-          priority: 'low',
-          tags: 'bar_chart',
+          title: '915 TLDR archive alert: post-deploy sync',
+          body: `archive-sync: post-deploy sync failed or produced no result — ${check}`,
         });
+      } else {
+        for (const alert of postParsed.alerts ?? []) {
+          pendingAlerts.push({ title: '915 TLDR archive alert: post-deploy sync', body: alert });
+        }
+        if (postParsed.dailyReport?.due) {
+          pendingAlerts.push({
+            title: '915 TLDR archive daily report',
+            body: formatDailyReportBody(postParsed.dailyReport.body ?? {}),
+            priority: 'low',
+            tags: 'bar_chart',
+          });
+        }
       }
     }
 

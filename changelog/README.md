@@ -10,6 +10,7 @@ Entries are named `YYYY-MM-DD-HHMM_slug.md` and grouped by month, newest first.
 
 | Date | Entry | Keywords |
 |------|-------|----------|
+| 2026-10-02 | [CR-01 fix: dry-run deploys can no longer reach archive-sync post](2026-10-02-2044_05-13-task1-cr01-ci-build-dry-run-post-sync-fix.md) | `[BUG_FIX]` `[BACKEND]` `[TESTING]` `[SECURITY]` `[DEPLOYMENT]` |
 | 2026-10-02 | [Phase 5 gap-closure plans: 9 plans to close the verification gaps](2026-10-02-1105_phase-5-gap-closure-plans.md) | `[PLANNING]` `[ARCHITECTURE]` `[TESTING]` `[DOCUMENTATION]` |
 | 2026-10-01 | [Phase 5 verification: zero-reads premise proven, 3 gaps to close](2026-10-01-1615_phase-5-verification-gaps-found.md) | `[TESTING]` `[ARCHITECTURE]` `[PLANNING]` |
 | 2026-10-01 | [Phase 5 code review: 3 blockers, 9 warnings, 10 info](2026-10-01-1600_phase-5-code-review.md) | `[REVIEW]` `[ARCHITECTURE]` `[TESTING]` |
