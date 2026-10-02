@@ -226,6 +226,10 @@ PROJECT.md's own Context section names as the root cause of the v1 D1-reads inci
 | Dry run reaches post (direct invocation) | Nothing touched — refused before `checkDisabled`, before any network or R2 call, independent of 05-13's own ci-build-side dry-run guard | `disabled: true`, one alert naming `CI_BUILD_DEPLOY_DRY_RUN`; exit code 0 |
 | Live deployment is not this build (overlapping or out-of-order builds, propagation failure, origin unreachable) | No R2 changes — `post` returns before `createStore` is even called; force-full marker kept untouched; daily report deferred to the next live build | One alert per build naming both the local and live commit/builtAt and the reason; exit code 0. **A persistent alert of this kind means post-sync is not running at all for ANY build — the owner must treat it as an incident**, not a one-off skip, since it also means REND-11's daily report and REND-12's re-render are silently not happening |
 | Live deployment changes mid-run (between the initial gate and the delete step) | The run's own uploads/index-adds (already confirmed before the change) still stand; only the delete step is skipped — not partial, every orphan's index entry kept for the next run | One alert naming the skip and the deletion count; `deleted: 0` for this run |
+| Index write fails after post-sync deletions/uploads (WR-02, 05-18) | The deleted object(s) are really gone from R2 and the uploaded object(s) are really there — only the index bookkeeping write failed. The index may now claim a deleted object still exists; the next pre-sync's self-heal (row below) repairs that before any deploy relies on it | One alert naming the deletion/upload counts and that the next pre-sync self-heals; exit code 0 |
+| R2 listing fails at pre-sync (self-heal's own `listKeys` calls, WR-02, 05-18) | The index is trusted as-is for this run — exactly the pre-fix behavior, not a regression — so a transient listing failure never blocks the deploy | One alert naming that the index was trusted without self-heal this run |
+| A DeleteObjects batch fails (WR-02, 05-18) | `deleteObjects` never throws mid-loop: a failing batch reports every one of its keys as an error (code only, never `err.message`) and the loop continues to the next batch; the failed keys' index entries are kept (their deletion status is unknown), every other batch's deletions land and are removed from the index normally | `errors` in the delete result names the keys/codes; one alert naming the failed-delete count |
+| Index write fails after pre-sync uploads (WR-02, 05-18) | The uploaded pages are already confirmed in R2 — the deploy proceeds safely even though the index doesn't yet list them. The next run's self-heal (or a plain re-upload, since the index doesn't list them either) re-indexes them | One alert naming the upload count and that the next run re-indexes them; `exitCode` stays 0 — the docstring's "exits 1 only when the plan is missing" holds again |
 
 ## Live origin
 
@@ -253,6 +257,12 @@ manual `node tools/archive-sync.mjs post` run against a local build is refused o
   corpus from scratch — only pages already archived), bounded by `POST_DEADLINE_SECONDS` per run
   with backlog carry-forward across runs until it converges. Same order-of-magnitude PUT count as
   the initial upload, once.
+- **Pre-sync's index self-heal listing (WR-02, 05-18):** one `listKeys('articles/')` plus one
+  `listKeys('tags/')` call per pre-sync run, each paginating `ListObjectsV2` (Class A, 1,000 keys
+  per page) across the archive tier. At ~30.5k keys that's ~31 `ListObjectsV2` requests per build —
+  about 372/day at 12 builds/day, roughly $0.05/month at $4.50 per million Class A requests. Scales
+  linearly with the archived-key count, so Phase 6 (roughly doubling the archive tier) roughly
+  doubles this line too — still far under the $1/operation approval threshold.
 
 ## Which ceiling governs REND-12
 
