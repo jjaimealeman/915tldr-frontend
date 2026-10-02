@@ -5,15 +5,15 @@ milestone_name: milestone
 current_phase: 05
 current_phase_name: hybrid-archive-zero-reads-proof
 status: executing
-stopped_at: Completed 05-14-PLAN.md -- CR-01/WR-01 archive-sync-side live-deployment gate closed
-last_updated: "2026-10-02T21:07:45.266Z"
+stopped_at: Completed 05-15-PLAN.md -- REND-10/WR-08 re-derivation capability restored and proven live (preview only)
+last_updated: "2026-10-02T21:24:24.465Z"
 last_activity: 2026-10-02
 last_activity_desc: Phase 05 execution started
 progress:
   total_phases: 5
   completed_phases: 4
   total_plans: 73
-  completed_plans: 66
+  completed_plans: 67
 ---
 
 # Project State
@@ -28,11 +28,11 @@ See: .planning/PROJECT.md (updated 2026-09-16)
 ## Current Position
 
 Phase: 05 (hybrid-archive-zero-reads-proof) — EXECUTING
-Plan: 3 of 21
+Plan: 4 of 21
 Status: Ready to execute
 Last activity: 2026-10-02 — Phase 05 execution started
 
-Progress: [█████████░] 90%
+Progress: [█████████░] 92%
 
 ## Performance Metrics
 
@@ -115,6 +115,7 @@ Progress: [█████████░] 90%
 | Phase 05 P12 | ~3h10min | 3 tasks | 11 files |
 | Phase 05 P13 | 35min | 2 tasks | 3 files |
 | Phase 05 P14 | ~21min | 3 tasks | 3 files |
+| Phase 05 P15 | ~35min | 2 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -284,6 +285,8 @@ Recent decisions affecting current work:
 - [Phase ?]: 05-13: Restructured ci-build.mjs's deploy branch so commitImpl AND the entire archive-sync post spawn/parse/alert block run only inside a single !dryRun conditional (not two independent guards) — closes the ci-build half of code-review finding CR-01; proven by 3 red-to-green regression tests plus a credential-free live CLI dry run (pre reported disabled:true, skip line logged once, zero post ARCHIVE_SYNC_RESULT lines).
 - [Phase ?]: 05-14: no override flag for manual archive-sync post against a local build — refused by design, documented rather than worked around
 - [Phase ?]: 05-14: checkLiveDeployment compares commit AND builtAt (not commit alone) — builtAt differs between a local build and the deployed build of the same commit
+- [Phase ?]: 05-15: countOtherFiles now counts both dist/client and dist/archive (WR-08), with a negative-result guard naming all four counts; DEFAULT_DIST_ARCHIVE re-exported from partition-archive.mjs's ARCHIVE_DIR
+- [Phase ?]: 05-15: the real, non-probe derive-hot-window.mjs path was proven live end to end (preview only, no --write) against current Cloudflare Zone Analytics; hot-window.json confirmed byte-identical before/after -- REND-10's only recorded blocking gap (05-VERIFICATION gap 3) is closed, but REQUIREMENTS.md is left for 05-21 to update per convention
 
 ### Pending Todos
 
@@ -340,6 +343,6 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-10-02T21:07:45.245Z
-Stopped at: Completed 05-14-PLAN.md -- CR-01/WR-01 archive-sync-side live-deployment gate closed
+Last session: 2026-10-02T21:24:24.444Z
+Stopped at: Completed 05-15-PLAN.md -- REND-10/WR-08 re-derivation capability restored and proven live (preview only)
 Resume file: None

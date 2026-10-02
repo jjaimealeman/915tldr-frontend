@@ -10,6 +10,7 @@ Entries are named `YYYY-MM-DD-HHMM_slug.md` and grouped by month, newest first.
 
 | Date | Entry | Keywords |
 |------|-------|----------|
+| 2026-10-02 | [Plan 05-15 complete: REND-10/WR-08 re-derivation capability restored](2026-10-02-2225_05-15-complete-rend-10-wr08-rederivation-restored.md) | `[DOCUMENTATION]` `[PLANNING]` `[TESTING]` |
 | 2026-10-02 | [REND-10's re-derivation capability proven live, preview only](2026-10-02-2215_05-15-task2-live-rederivation-preview-proven.md) | `[DOCUMENTATION]` `[TESTING]` `[ARCHITECTURE]` |
 | 2026-10-02 | [WR-08 fix: hot-window re-derivation can count a partitioned build again](2026-10-02-2200_05-15-task1-wr08-count-both-trees-negative-guard.md) | `[BUG_FIX]` `[BACKEND]` `[TESTING]` |
 | 2026-10-02 | [Plan 05-14 complete: CR-01/WR-01's archive-sync half closed](2026-10-02-1520_05-14-complete-cr01-wr01-archive-sync-half-closed.md) | `[DOCUMENTATION]` `[PLANNING]` `[TESTING]` `[SECURITY]` |
