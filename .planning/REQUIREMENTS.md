@@ -7,14 +7,14 @@
 
 ### Architecture & Read Budget
 
-- [ ] **ARCH-01**: A public page request completes with zero D1 row reads, verified against Cloudflare D1 analytics
+- [x] **ARCH-01**: A public page request completes with zero D1 row reads, verified against Cloudflare D1 analytics — *instrument corrected 05-16 (CR-03: load window and baseline windows now aligned identically); verdict re-checked on aligned data — measured rowsRead 2,183,097, z=-0.7585, well within the 3σ threshold (`docs/phase-05/zero-reads-gate.md`)*
 - [x] **ARCH-02**: The build fails if any public route, island component, middleware, or endpoint can reach the D1 binding
 - [x] **ARCH-03**: The D1-import assertion scans island component files and `/_server-islands/*` paths, not only `.astro` pages
 - [x] **ARCH-04**: Bindings are accessed via `import { env } from 'cloudflare:workers'`; no use of the removed `Astro.locals.runtime.env`
 - [x] **ARCH-05**: Astro config uses `output: 'static'` with per-route `export const prerender = false`; `'hybrid'` appears nowhere
 - [x] **ARCH-06**: `imageService` is set explicitly to `{ build: 'compile', runtime: 'passthrough' }` rather than inheriting the `cloudflare-binding` default
 - [ ] **ARCH-07**: Total D1 reads per day stay under 2,000,000 for 7 consecutive days
-- [x] **ARCH-08**: A public request performs at most 1 KV read and under 5ms Worker CPU
+- [ ] **ARCH-08**: A public request performs at most 1 KV read and under 5ms Worker CPU — *Gaps Found (05-21, 2026-10-02): CPU axis failed — per-request re-measurement (05-17, `tools/measure-worker-cpu-outliers.mjs`) settled the 05-12 gate window's outlier count at 4 invocations ≥20ms CPU (not 1 as the aggregate tool implied), 5 ≥5ms, on archived-article paths. Owner decision 05-19 (2026-10-02 ~19:05 MDT): option (c) re-measure a full UTC day of natural `dev.915tldr.com` traffic against a pre-stated criterion (population p99 CPU < 5ms AND invocations ≥20ms CPU under 0.1% of total). Re-measurement mechanically MET the criterion (p99 1.314ms, 0/3 ≥20ms) — but the 3-invocation sample was 100% bot-scan/favicon 404 probes, zero archive-page requests, so it does not test the disputed cold-start/outlier code path. Owner decision 2026-10-02 ~19:30 MDT: defer final judgment to Phase 12's 7-day soak test under real traffic, using the same fixed criterion. KV axis met (202 reads / 8,464 invocations in the original gate window). See `docs/phase-05/arch-08-cpu-outliers.md` and `.planning/WINDOWS.md` #26 (open, pending Phase 12 soak)*
 
 ### Content Loading & Render
 
@@ -24,12 +24,12 @@
 - [x] **REND-04**: Homepage, category pages, tag indexes and static pages regenerate on each cron cycle via a new Worker deployment
 - [x] **REND-05**: Only new and changed articles re-render; unchanged articles are not recomputed
 - [x] **REND-06**: A render manifest in KV records what has been rendered and at which version
-- [ ] **REND-07**: Articles outside the hot window are rendered once to R2 and served from there
-- [x] **REND-08**: A request for an archived article falls through the static-asset layer to the Worker and is served from R2
-- [x] **REND-09**: Tag pages default to the archive tier; only top-N tags by article count are promoted to hot static
-- [x] **REND-10**: The hot-content cutoff is derived from measured request traffic, not a fixed guess
-- [ ] **REND-11**: Total deployed static-asset file count is reported daily and alarms before 100,000
-- [ ] **REND-12**: A full archive re-render completes without exceeding Worker CPU limits
+- [x] **REND-07**: Articles outside the hot window are rendered once to R2 and served from there — *pipeline-safety fixes (CR-01 ci-build half 05-13, CR-01 archive-sync half + WR-01 05-14, WR-02 05-18, CR-02 05-20) all green per their SUMMARYs' unit tests and live/credential-free CLI proofs; these fixes live on `feature/phase-05` and run in Workers Builds only after the owner merges this branch to `main`*
+- [x] **REND-08**: A request for an archived article falls through the static-asset layer to the Worker and is served from R2 — *same pipeline-safety fixes as REND-07 (CR-01, WR-01, WR-02, CR-02); live happy-path serving independently re-confirmed by 05-VERIFICATION.md's curl spot-checks; fixes on `feature/phase-05`, run in Workers Builds only after merge to `main`*
+- [x] **REND-09**: Tag pages default to the archive tier; only top-N tags by article count are promoted to hot static — *verifier SATISFIED 2026-10-01: tag-threshold (9/10/11) boundary tests plus live `/tag/crucero` served as archive-tier*
+- [x] **REND-10**: The hot-content cutoff is derived from measured request traffic, not a fixed guess — *05-15 fixed WR-08 (`countOtherFiles` undercounted partitioned pages) and live-proved the real, non-probe re-derivation path end to end against Cloudflare Zone Analytics (preview only, exit 0); the owner-approved 202-day window is unchanged*
+- [x] **REND-11**: Total deployed static-asset file count is reported daily and alarms before 100,000 — *Complete (2026-10-03): a real production daily report arrived on the owner's ntfy client at 2026-10-03 00:08 MDT (06:08Z) from the 00:06 MDT Workers Builds deploy of `main` — "static files: 29788 / 100000 (fail at 80000) / archived pages: 30836 / hot window: derived, 202 days / backlog: 0" — owner-confirmed by screenshot and read back from ntfy.sh. The 2026-10-02 "not arrived" finding was a measurement error: the Oct 2 report most likely arrived ~00:08 and was missed, and the evening poll could not see it (likely ntfy.sh's short message-cache window — exact retention not verified). Delivery did not depend on quick task 261002-s2r.*
+- [x] **REND-12**: A full archive re-render completes without exceeding Worker CPU limits — *verifier SATISFIED 2026-10-01: real production forced-full-reupload (30,501 objects, 0 failures) measured on Workers Builds; criterion-5 "Worker CPU" reinterpreted as Workers Builds' 20-minute wall-clock ceiling (build-time process, not a per-request Worker invocation), disclosed in `docs/phase-05/archive-architecture.md`*
 
 ### Content Quality
 
@@ -248,26 +248,26 @@ Deferred. Tracked, not in this roadmap.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| ARCH-01 | Phase 5 | Pending |
+| ARCH-01 | Phase 5 | Complete — instrument corrected 05-16 (CR-03), verdict re-checked on aligned data (z=-0.7585) |
 | ARCH-02 | Phase 3 | Complete |
 | ARCH-03 | Phase 3 | Complete |
 | ARCH-04 | Phase 3 | Complete |
 | ARCH-05 | Phase 3 | Complete |
 | ARCH-06 | Phase 3 | Complete |
 | ARCH-07 | Phase 12 | Pending |
-| ARCH-08 | Phase 5 | Complete |
+| ARCH-08 | Phase 5 | Gaps Found — CPU axis failed: 4 invocations ≥20ms in the 05-12 gate window (per-request, 05-17); owner decision 05-19: re-measure NOT conclusive (MET mechanically, but zero archive-page traffic in sample); owner decision 2026-10-02 ~19:30 MDT: defer to Phase 12's 7-day soak; KV axis met |
 | REND-01 | Phase 4 | Complete |
 | REND-02 | Phase 4 | Complete |
 | REND-03 | Phase 4 | Complete |
 | REND-04 | Phase 4 | Complete |
 | REND-05 | Phase 4 | Complete |
 | REND-06 | Phase 3 | Complete |
-| REND-07 | Phase 5 | Pending |
-| REND-08 | Phase 5 | Complete |
-| REND-09 | Phase 5 | Complete |
-| REND-10 | Phase 5 | Complete |
-| REND-11 | Phase 5 | Pending |
-| REND-12 | Phase 5 | Pending |
+| REND-07 | Phase 5 | Complete — pipeline-safety fixes (CR-01, WR-01, WR-02, CR-02) closed by 05-13/05-14/05-18/05-20; on `feature/phase-05`, run in Workers Builds only after merge to `main` |
+| REND-08 | Phase 5 | Complete — same fixes as REND-07; live happy path independently re-confirmed (05-VERIFICATION.md curl spot-checks) |
+| REND-09 | Phase 5 | Complete — verifier SATISFIED 2026-10-01 |
+| REND-10 | Phase 5 | Complete — WR-08 fixed and live-proved (05-15); owner-approved 202-day window unchanged |
+| REND-11 | Phase 5 | Complete — real production report received 2026-10-03 00:08 MDT (owner confirmed) |
+| REND-12 | Phase 5 | Complete — verifier SATISFIED 2026-10-01 |
 | CONT-01 | Phase 2 | Complete |
 | CONT-02 | Phase 2 | Complete |
 | CONT-03 | Phase 2 | Complete |

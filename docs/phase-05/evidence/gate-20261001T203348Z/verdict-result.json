@@ -1,0 +1,22 @@
+{
+  "requests": {
+    "sent": 20000,
+    "completed": 19999
+  },
+  "window": {
+    "start": "2026-10-01T20:34:05.536Z",
+    "end": "2026-10-01T21:16:29.049Z"
+  },
+  "baseline": {
+    "mean": 3743139.285714286,
+    "stdDev": 2056691.0004528891,
+    "median": 3434240,
+    "n": 7
+  },
+  "loadRowsRead": 1684090,
+  "detectionFloorRowsPerRequest": 308.5036500679334,
+  "excess": -2059049.285714286,
+  "zScore": -1.00114664053126,
+  "verdict": "PASS",
+  "reason": "load window rowsRead is within baseline mean + 3*sigma and the deployed Worker has no D1 binding"
+}

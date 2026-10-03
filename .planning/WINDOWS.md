@@ -1,10 +1,10 @@
 ---
 schema_version: 1
-open_count: 12
+open_count: 14
 waived_count: 0
 fixed_count: 13
-total_count: 25
-last_updated: 2026-09-27T15:56:27.187Z
+total_count: 27
+last_updated: 2026-10-01T21:39:54.964Z
 ---
 
 # Broken Windows Ledger
@@ -40,6 +40,8 @@ last_updated: 2026-09-27T15:56:27.187Z
 | 23 | 02 | deviation | 915tldr.com2/server/utils/grounding-check.ts |  | CONT-06 gap closure (02-VERIFICATION.md gap 1, found by /gsd-verify-work 2026-09-21): 253/1,830 (13.8%) of the September backfill's clean rows had LENGTH(summary) > LENGTH(content) because the D-07 attribution wrapper counted toward the length ceiling and the 02-08 Option C decoupling let a clean judge verdict clear a length violation the judge never evaluates. FIXED: stripAttributionWrapper() (text-metrics.ts) excludes the wrapper from the length comparison; checkGrounding() carves the length flag out of Option C as an independent hard gate (grounding-check.ts, commit d77e7ef, 915tldr.com2). REMEDIATED: scripts/cont06-remediate.mjs re-evaluated all 253 rows against production D1 (149 real judge calls, ~$0.22-0.44) -- 113 cleared, 140 held with summary/key_points cleared to NULL (commit 579085f, 915tldr.com2). Verified: raw LENGTH(summary)>LENGTH(content) query now returns 113 (all attribution-wrapper cases, by design -- see next entry), and a wrapper-aware query mirroring the code's actual gate returns 0. Calibration recall held 7/7. Full suite 260/260, typecheck (pre-existing unrelated failure only), lint (0 errors) all pass. | open |  | 2026-09-21T16:04:08.654Z |  |
 | 24 | 02 | unmet-truth | 915tldr.com2/server/utils/text-metrics.ts |  | The RAW production query 'SELECT COUNT(*) FROM articles WHERE ... LENGTH(summary) > LENGTH(content)' (used verbatim in 02-VERIFICATION.md and matching roadmap SC1 clause 2's literal wording) still returns 113, not 0, after the CONT-06 fix (see prior entry) -- BY DESIGN, not a residual defect. All 113 rows are exactly the cases where the required D-07 attribution wrapper text ('According to <outlet>, ') itself accounts for the entire excess (confirmed: 0 of the 113 fail to match the wrapper pattern). The code's actual CONT-06 gate (grounding-check.ts) correctly excludes this wrapper via stripAttributionWrapper() and measures 0 violations. Whoever next re-runs the literal roadmap SC1 raw-SQL check will see a nonzero number and should use the wrapper-aware query instead (documented in 02-11-SUMMARY.md), or the roadmap's own success-criterion wording should be updated to state the wrapper-aware definition explicitly so this is not re-investigated from scratch. | open |  | 2026-09-21T16:04:15.933Z |  |
 | 25 | 04 | unmet-truth | astro.config.mjs |  | SEO-04 sitemap ordering-determinism was not verified across two separate builds (@astrojs/sitemap documents no stable ordering guarantee); single-build correctness (URL count, no leaked non-HTML/404 URLs) was proven instead. | open |  | 2026-09-27T15:56:27.187Z |  |
+| 26 | 05 | unmet-truth | src/worker.ts |  | ARCH-08 CPU-max: a single real request in the 05-12 gate window (2026-10-01T20:34:05.536Z-21:16:29.049Z) measured 49.966ms Worker CPU, over the 20ms hard-fail ceiling, even though p50 (0.764ms) and p99 (2.846ms) are comfortably within the 5ms budget. Disclosed in docs/phase-05/zero-reads-gate.md Result section; not investigated further (out of scope for this plan); tracked for /gsd-verify-work. | open |  | 2026-10-01T21:39:46.909Z |  |
+| 27 | 05 | unmet-truth | docs/phase-05/archive-latency.md |  | Criterion 2 (05-11): canonical lab-LCP measurement reports R2_LATENCY_EXCEEDS_LCP -- archived-article p95 LCP 1,788ms vs the 1,500ms budget. The archive tier's own R2/KV cost is small and not the cause (p95 172ms/155ms); hot pages also sit close to the 1.5s line in this lab proxy (p95 1,484ms), pointing at general page-weight/render cost, not the archive-serving mechanism. Flagged for owner review before Phase 11's real field-LCP release gate; does not block Phase 5 completion (05-12). | open |  | 2026-10-01T21:39:54.964Z |  |
 
 ````json
 [
@@ -341,6 +343,30 @@ last_updated: 2026-09-27T15:56:27.187Z
     "status": "open",
     "reason": "",
     "recorded_at": "2026-09-27T15:56:27.187Z",
+    "resolved_at": null
+  },
+  {
+    "id": 26,
+    "kind": "unmet-truth",
+    "phase": "05",
+    "file": "src/worker.ts",
+    "line": null,
+    "description": "ARCH-08 CPU-max: a single real request in the 05-12 gate window (2026-10-01T20:34:05.536Z-21:16:29.049Z) measured 49.966ms Worker CPU, over the 20ms hard-fail ceiling, even though p50 (0.764ms) and p99 (2.846ms) are comfortably within the 5ms budget. Disclosed in docs/phase-05/zero-reads-gate.md Result section; not investigated further (out of scope for this plan); tracked for /gsd-verify-work.",
+    "status": "open",
+    "reason": "",
+    "recorded_at": "2026-10-01T21:39:46.909Z",
+    "resolved_at": null
+  },
+  {
+    "id": 27,
+    "kind": "unmet-truth",
+    "phase": "05",
+    "file": "docs/phase-05/archive-latency.md",
+    "line": null,
+    "description": "Criterion 2 (05-11): canonical lab-LCP measurement reports R2_LATENCY_EXCEEDS_LCP -- archived-article p95 LCP 1,788ms vs the 1,500ms budget. The archive tier's own R2/KV cost is small and not the cause (p95 172ms/155ms); hot pages also sit close to the 1.5s line in this lab proxy (p95 1,484ms), pointing at general page-weight/render cost, not the archive-serving mechanism. Flagged for owner review before Phase 11's real field-LCP release gate; does not block Phase 5 completion (05-12).",
+    "status": "open",
+    "reason": "",
+    "recorded_at": "2026-10-01T21:39:54.964Z",
     "resolved_at": null
   }
 ]

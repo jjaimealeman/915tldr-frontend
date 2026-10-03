@@ -10,6 +10,71 @@ Entries are named `YYYY-MM-DD-HHMM_slug.md` and grouped by month, newest first.
 
 | Date | Entry | Keywords |
 |------|-------|----------|
+| 2026-10-03 | [Phase 05 complete: Hybrid Archive & Zero-Reads Proof](2026-10-03-0210_phase-05-complete.md) | `[MILESTONE]` `[PLANNING]` `[VERIFICATION]` |
+| 2026-10-03 | [REND-11 complete: real production report received; yesterday's diagnosis corrected](2026-10-03-0205_rend11-complete-diagnosis-corrected.md) | `[MONITORING]` `[PLANNING]` `[DOCUMENTATION]` `[VERIFICATION]` |
+| 2026-10-02 | [Phase 05 re-verification: human_needed (2 owner items), all code gaps closed](2026-10-02-2155_05-re-verification-human-needed.md) | `[VERIFICATION]` `[PLANNING]` `[DOCUMENTATION]` |
+| 2026-10-02 | [Quick task 261002-tl2 docs: pending build-state write race fixed](2026-10-02-2140_quick-261002-tl2-docs.md) | `[PLANNING]` `[DOCUMENTATION]` `[TESTING]` |
+| 2026-10-02 | [Phase 05 re-review after gap closure: all 3 blockers fixed, 1 new warning](2026-10-02-2052_05-re-review-after-gap-closure.md) | `[CODE-REVIEW]` `[DOCUMENTATION]` `[PLANNING]` |
+| 2026-10-02 | [Quick task 261002-s2r docs: ntfy delivery observable and retryable](2026-10-02-2045_quick-261002-s2r-docs.md) | `[PLANNING]` `[DOCUMENTATION]` `[MONITORING]` |
+| 2026-10-02 | [build step's per-page listing reduced to counts (REND-11 follow-up, Task 3)](2026-10-02-2310_rend11-task3-perpage-listing-filtered.md) | `[TESTING]` `[MONITORING]` `[BUG_FIX]` `[BACKEND]` `[PERFORMANCE]` |
+| 2026-10-02 | [daily-report marker written only after a confirmed send (REND-11 follow-up, Task 2)](2026-10-02-2245_rend11-task2-daily-report-marker-confirmed-send.md) | `[TESTING]` `[MONITORING]` `[BUG_FIX]` `[BACKEND]` `[DATABASE]` |
+| 2026-10-02 | [ntfy delivery outcome now observable (REND-11 follow-up, Task 1)](2026-10-02-2225_rend11-task1-ntfy-delivery-outcome-observable.md) | `[TESTING]` `[MONITORING]` `[BUG_FIX]` `[BACKEND]` |
+| 2026-10-02 | [REND-11 follow-up todo: delivery diagnosis and proposed fix](2026-10-02-2015_rend11-todo-diagnosis.md) | `[PLANNING]` `[DOCUMENTATION]` `[MONITORING]` |
+| 2026-10-02 | [robots.txt tests follow the PerplexityBot policy change](2026-10-02-2010_robots-tests-follow-perplexity-policy.md) | `[TESTING]` `[SEO]` `[FIX]` |
+| 2026-10-02 | [Plan 05-21 complete: gap-closure reconciliation](2026-10-02-2010_05-21-complete-gap-closure-reconciliation.md) | `[DOCUMENTATION]` `[PLANNING]` `[TESTING]` `[ARCHITECTURE]` `[CRITICAL]` |
+| 2026-10-02 | [Plan 05-21 Task 3: every Phase 5 requirement status set from evidence](2026-10-02-2003_05-21-task3-requirements-statuses-set-from-evidence.md) | `[DOCUMENTATION]` `[PLANNING]` `[ARCHITECTURE]` `[CRITICAL]` |
+| 2026-10-02 | [Plan 05-21 Task 2: 05-VALIDATION.md brought up to date for gap closure](2026-10-02-1958_05-21-task2-validation-map-updated-gap-closure-rerun.md) | `[DOCUMENTATION]` `[TESTING]` `[PLANNING]` |
+| 2026-10-02 | [Plan 05-19 complete: ARCH-08 CPU-axis owner-decision plan](2026-10-02-1930_05-19-complete-arch08-owner-decision-plan.md) | `[DOCUMENTATION]` `[PLANNING]` `[TESTING]` `[ARCHITECTURE]` |
+| 2026-10-02 | [Plan 05-19: ARCH-08 CPU-axis owner decision (re-measure) recorded, with result](2026-10-02-1923_05-19-arch08-owner-decision-remeasure-result.md) | `[DOCUMENTATION]` `[TESTING]` `[ARCHITECTURE]` `[CRITICAL]` |
+| 2026-10-02 | [robots.txt: allow PerplexityBot and Perplexity-User](2026-10-02-1800_robots-allow-perplexity.md) | `[SEO]` `[CONFIG]` |
+| 2026-10-02 | [Plant SEED-001: personalized news (/me, digests, follow-a-story)](2026-10-02-1757_plant-seed-001-personalized-news.md) | `[PLANNING]` `[DOCUMENTATION]` `[ARCHITECTURE]` |
+| 2026-10-02 | [Plan 05-17 complete: ARCH-08's CPU-outlier dispute settled (4, not 1)](2026-10-02-1709_05-17-complete-arch08-outlier-dispute-settled.md) | `[DOCUMENTATION]` `[PLANNING]` `[TESTING]` `[SECURITY]` `[ARCHITECTURE]` `[CRITICAL]` |
+| 2026-10-02 | [Plan 05-17 Task 2: IN-01 correlation evidence and the ARCH-08 decision doc](2026-10-02-1707_05-17-task2-in01-correlation-and-decision-doc.md) | `[BACKEND]` `[TESTING]` `[SECURITY]` `[ARCHITECTURE]` `[DOCUMENTATION]` `[CRITICAL]` |
+| 2026-10-02 | [Plan 05-20 complete: CR-02 closed (guarded deploy) and IN-06 fixed](2026-10-02-1706_05-20-complete-cr02-closed-guarded-deploy.md) | `[DOCUMENTATION]` `[PLANNING]` `[TESTING]` `[SECURITY]` `[CRITICAL]` |
+| 2026-10-02 | [Plan 05-17 Task 1: per-request CPU-outlier tool, verified live, settles 4 vs 1](2026-10-02-1658_05-17-task1-cpu-outlier-tool-verified-live.md) | `[BACKEND]` `[TESTING]` `[SECURITY]` `[ARCHITECTURE]` `[CRITICAL]` |
+| 2026-10-02 | [Plan 05-20 Task 3: pipeline and architecture docs describe the guarded deploy](2026-10-02-1645_05-20-task3-docs-guarded-deploy-path.md) | `[DOCUMENTATION]` `[ARCHITECTURE]` `[DEPLOYMENT]` `[SECURITY]` |
+| 2026-10-02 | [Plan 05-20 Task 2: deploy routed through the sync guard, IN-06's stale build-start marker fixed](2026-10-02-1625_05-20-task2-deploy-routed-through-guard-in06-stale-marker-fix.md) | `[SECURITY]` `[BUG_FIX]` `[BACKEND]` `[TESTING]` `[DEPLOYMENT]` `[CRITICAL]` |
+| 2026-10-02 | [Plan 05-20 Task 1: archive-sync writes a sync marker, new guard refuses an unconfirmed partitioned build](2026-10-02-1556_05-20-task1-cr02-sync-marker-and-guard.md) | `[SECURITY]` `[TESTING]` `[CRITICAL]` `[ENHANCEMENT]` |
+| 2026-10-02 | [Plan 05-18 complete: WR-02 closed (index self-heal + partial-result deletes)](2026-10-02-2335_05-18-complete-wr02-closed-index-selfheal-partial-deletes.md) | `[DOCUMENTATION]` `[PLANNING]` `[TESTING]` `[CRITICAL]` |
+| 2026-10-02 | [WR-02 Task 3: record the four new failure modes and the self-heal listing cost](2026-10-02-2325_05-18-task3-wr02-failure-modes-and-selfheal-cost-doc.md) | `[DOCUMENTATION]` `[ARCHITECTURE]` `[TESTING]` |
+| 2026-10-02 | [WR-02 Task 2: deleteObjects reports partial results; every remaining post/pre R2 call made non-fatal](2026-10-02-2315_05-18-task2-deleteobjects-partial-results-nonfatal-writes.md) | `[BUG_FIX]` `[BACKEND]` `[TESTING]` `[SECURITY]` `[CRITICAL]` |
+| 2026-10-02 | [WR-02 Task 1: post-sync index-write failures never crash the run; pre-sync self-heals](2026-10-02-2300_05-18-task1-wr02-post-index-write-alert-pre-self-heal.md) | `[BUG_FIX]` `[BACKEND]` `[TESTING]` `[CRITICAL]` |
+| 2026-10-02 | [Plan 05-15 complete: REND-10/WR-08 re-derivation capability restored](2026-10-02-2225_05-15-complete-rend-10-wr08-rederivation-restored.md) | `[DOCUMENTATION]` `[PLANNING]` `[TESTING]` |
+| 2026-10-02 | [REND-10's re-derivation capability proven live, preview only](2026-10-02-2215_05-15-task2-live-rederivation-preview-proven.md) | `[DOCUMENTATION]` `[TESTING]` `[ARCHITECTURE]` |
+| 2026-10-02 | [WR-08 fix: hot-window re-derivation can count a partitioned build again](2026-10-02-2200_05-15-task1-wr08-count-both-trees-negative-guard.md) | `[BUG_FIX]` `[BACKEND]` `[TESTING]` |
+| 2026-10-02 | [Plan 05-16 complete: CR-03 window-alignment bias fixed and re-checked](2026-10-02-2134_05-16-complete-cr03-window-alignment-closed.md) | `[DOCUMENTATION]` `[PLANNING]` `[TESTING]` `[CRITICAL]` |
+| 2026-10-02 | [CR-03 re-checked live: 2026-10-01 ZERO_READS_PROVEN verdict confirmed on corrected data](2026-10-02-2131_05-16-task2-cr03-live-recheck-recorded-correction.md) | `[TESTING]` `[DOCUMENTATION]` `[CRITICAL]` `[PERFORMANCE]` |
+| 2026-10-02 | [CR-03 GREEN: one aligned window feeds both sides of the zero-reads comparison](2026-10-02-2130_05-16-task1-cr03-green-align-load-window.md) | `[BUG_FIX]` `[BACKEND]` `[TESTING]` `[CRITICAL]` |
+| 2026-10-02 | [CR-03 RED: load/baseline window alignment regression test](2026-10-02-2129_05-16-task1-cr03-red-window-alignment-test.md) | `[TESTING]` `[BUG_FIX]` `[CRITICAL]` |
+| 2026-10-02 | [Plan 05-14 complete: CR-01/WR-01's archive-sync half closed](2026-10-02-1520_05-14-complete-cr01-wr01-archive-sync-half-closed.md) | `[DOCUMENTATION]` `[PLANNING]` `[TESTING]` `[SECURITY]` |
+| 2026-10-02 | [Document the live-deployment gate in the archive architecture record](2026-10-02-1515_05-14-task3-architecture-doc-live-deployment-gate.md) | `[DOCUMENTATION]` `[ARCHITECTURE]` `[SECURITY]` `[DEPLOYMENT]` |
+| 2026-10-02 | [Dry-run refusal, propagation polling, and a pre-delete liveness re-check](2026-10-02-1510_05-14-task2-dry-run-refusal-polling-predelete-recheck.md) | `[BUG_FIX]` `[SECURITY]` `[BACKEND]` `[TESTING]` `[DEPLOYMENT]` |
+| 2026-10-02 | [archive-sync post refuses to touch R2 unless the live deployment is this build](2026-10-02-1500_05-14-task1-cr01-wr01-live-deployment-gate.md) | `[BUG_FIX]` `[SECURITY]` `[BACKEND]` `[TESTING]` `[DEPLOYMENT]` |
+| 2026-10-02 | [Plan 05-13 complete: CR-01's ci-build half closed](2026-10-02-2058_05-13-complete-cr01-ci-build-half-closed.md) | `[DOCUMENTATION]` `[PLANNING]` `[TESTING]` `[SECURITY]` |
+| 2026-10-02 | [CR-01 proven live on the real CLI; pipeline doc states the dry-run contract](2026-10-02-2052_05-13-task2-cr01-live-dry-run-proof-and-doc.md) | `[DOCUMENTATION]` `[TESTING]` `[DEPLOYMENT]` `[SECURITY]` |
+| 2026-10-02 | [CR-01 fix: dry-run deploys can no longer reach archive-sync post](2026-10-02-2044_05-13-task1-cr01-ci-build-dry-run-post-sync-fix.md) | `[BUG_FIX]` `[BACKEND]` `[TESTING]` `[SECURITY]` `[DEPLOYMENT]` |
+| 2026-10-02 | [Phase 5 gap-closure plans: 9 plans to close the verification gaps](2026-10-02-1105_phase-5-gap-closure-plans.md) | `[PLANNING]` `[ARCHITECTURE]` `[TESTING]` `[DOCUMENTATION]` |
+| 2026-10-01 | [Phase 5 verification: zero-reads premise proven, 3 gaps to close](2026-10-01-1615_phase-5-verification-gaps-found.md) | `[TESTING]` `[ARCHITECTURE]` `[PLANNING]` |
+| 2026-10-01 | [Phase 5 code review: 3 blockers, 9 warnings, 10 info](2026-10-01-1600_phase-5-code-review.md) | `[REVIEW]` `[ARCHITECTURE]` `[TESTING]` |
+| 2026-10-01 | [Phase 5 complete: ARCH-01 ZERO_READS_PROVEN, the project's core premise verified](2026-10-01-1544_05-12-phase-5-complete-zero-reads-proven.md) | `[DOCUMENTATION]` `[ARCHITECTURE]` `[PERFORMANCE]` `[PLANNING]` `[CRITICAL]` |
+| 2026-10-01 | [Phase 5's validation contract closed: nyquist_compliant, full suite green live](2026-10-01-1612_05-12-phase-5-validation-map-closed.md) | `[DOCUMENTATION]` `[TESTING]` `[ARCHITECTURE]` |
+| 2026-10-01 | [ARCH-01 verdict computed and recorded: ZERO_READS_PROVEN](2026-10-01-1534_05-12-zero-reads-verdict-proven.md) | `[DOCUMENTATION]` `[ARCHITECTURE]` `[PERFORMANCE]` `[CRITICAL]` |
+| 2026-10-01 | [Zero-reads gate + ARCH-08 evidence captured against the real deployed Worker](2026-10-01-1531_05-12-zero-reads-gate-evidence-captured.md) | `[TESTING]` `[PERFORMANCE]` `[DOCUMENTATION]` `[CRITICAL]` |
+| 2026-10-01 | [Fix: the zero-reads gate's --archive-plan CLI flag was parsed but never used](2026-10-01-1433_05-12-fix-archive-plan-wiring-never-connected.md) | `[BUG_FIX]` `[TESTING]` `[CRITICAL]` |
+| 2026-10-01 | [Fix: zero-reads gate's analytics catch-up wait was dead code on the live CLI path](2026-10-01-1243_05-12-fix-dead-analytics-catchup-wait.md) | `[BUG_FIX]` `[TESTING]` `[PERFORMANCE]` `[CRITICAL]` |
+| 2026-10-01 | [Plan 05-10 complete: REND-12 forced full re-upload measured and verified](2026-10-01-1332_05-10-complete-rend-12-forced-full-reupload-plan.md) | `[DOCUMENTATION]` `[PLANNING]` `[ARCHITECTURE]` `[PERFORMANCE]` |
+| 2026-10-01 | [REND-12 verdict computed honestly: ARCHIVE_RERENDER_CONVERGES (today), Phase 6 flagged](2026-10-01-1245_05-10-rend-12-verdict-archive-rerender-converges.md) | `[DOCUMENTATION]` `[ARCHITECTURE]` `[PERFORMANCE]` `[DEPLOYMENT]` |
+| 2026-10-01 | [Forced full archive re-upload observed on the real production platform](2026-10-01-1230_05-10-forced-full-reupload-build-log-evidence.md) | `[DOCUMENTATION]` `[DEPLOYMENT]` `[INFRA]` |
+| 2026-10-01 | [Plan 05-11 complete: live archive-page proof, R2_LATENCY_EXCEEDS_LCP flagged](2026-10-01-1115_05-11-complete-live-archive-proof-plan.md) | `[DOCUMENTATION]` `[PLANNING]` `[TESTING]` `[PERFORMANCE]` |
+| 2026-10-01 | [R2 latency and archived-page LCP measured against the 1.5s budget](2026-10-01-1110_05-11-r2-latency-and-archived-lcp-measured.md) | `[PERFORMANCE]` `[TESTING]` `[DOCUMENTATION]` |
+| 2026-10-01 | [A real reader clicks into archived pages without extra hops](2026-10-01-1055_05-11-real-browser-journeys-into-archived-pages.md) | `[TESTING]` `[FEATURE]` |
+| 2026-10-01 | [Archived pages now prove the same live URL contract as static pages](2026-10-01-1041_05-11-live-url-contract-parity-for-archived-pages.md) | `[TESTING]` `[BUG_FIX]` `[DEPLOYMENT]` |
+| 2026-10-01 | [Fill in 05-09-SUMMARY.md's final self-referential commit hash](2026-10-01-1232_05-09-fill-in-final-self-reference-hash.md) | `[DOCUMENTATION]` `[BUG_FIX]` |
+| 2026-10-01 | [REND-11 fully reconciled against wrangler's own asset count; marked Complete](2026-10-01-1225_05-09-rend-11-wrangler-asset-count-reconciled-complete.md) | `[DOCUMENTATION]` `[DEPLOYMENT]` `[INFRA]` `[BUG_FIX]` |
+| 2026-10-01 | [Fill in 05-09-SUMMARY.md's self-referential commit hash](2026-10-01-1148_05-09-summary-self-reference-hash-fix.md) | `[DOCUMENTATION]` `[BUG_FIX]` |
+| 2026-10-01 | [Real build-log reconciliation; REND-11 still Pending](2026-10-01-1140_05-09-real-build-log-reconciliation-rend-11-still-pending.md) | `[DOCUMENTATION]` `[DEPLOYMENT]` `[INFRA]` `[BUG_FIX]` |
+| 2026-10-01 | [Plan 05-09 complete: first production archive deploy measured](2026-10-01-1105_05-09-complete-first-production-archive-deploy-plan.md) | `[DOCUMENTATION]` `[PLANNING]` `[DEPLOYMENT]` `[INFRA]` |
+| 2026-10-01 | [First production archive deploy measured and recorded](2026-10-01-0953_05-09-first-production-archive-deploy-measured.md) | `[DEPLOYMENT]` `[INFRA]` `[PERFORMANCE]` `[DOCUMENTATION]` |
 | 2026-10-01 | [Plan 05-08 complete: archive tier wired into the real deploy pipeline](2026-10-01-0152_05-08-complete-archive-tier-deploy-pipeline-plan.md) | `[DOCUMENTATION]` `[PLANNING]` `[ARCHITECTURE]` `[TESTING]` |
 | 2026-10-01 | [Phase 3/4 pipeline docs brought in line with the archive tier](2026-10-01-0148_05-08-task3-pipeline-docs-phase5-amendment.md) | `[DOCUMENTATION]` `[ARCHITECTURE]` `[INFRA]` |
 | 2026-10-01 | [Hot-window production guard, archive alerts, file-count alarm, daily report](2026-10-01-0146_05-08-task2-hot-window-guard-alerts-daily-report.md) | `[BACKEND]` `[DEPLOYMENT]` `[INFRA]` `[TESTING]` `[SECURITY]` `[BUG_FIX]` `[FEATURE]` |

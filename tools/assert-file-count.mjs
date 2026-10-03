@@ -11,6 +11,18 @@
 // log, same "measure it or it drifts" discipline PROJECT.md's own Context section names as the
 // root cause of the v1 D1-reads incident. Every thrown message is prefixed
 // `assert-file-count:` (the tools/assert-no-d1.mjs / tools/ci-build.mjs convention).
+//
+// 05-09 reconciliation (docs/phase-05/evidence/first-prod-deploy/rend-11-reconciliation.md):
+// the real production deploy's gate count (29,966) looked 12 short of wrangler's own console
+// line (`✨ Read 29978 files from the assets directory`) — reproduced locally and found to be a
+// quirk in wrangler's OWN debug output, not an under-count here: wrangler's walk prints every
+// top-level directory entry it visits (12 of them — `_astro`, each category dir, `tag`) ALONGSIDE
+// real files, so its "files" tally isn't actually leaf-files-only. Once those 12 directories are
+// subtracted, wrangler's real per-build file total matches this gate's count exactly. Separately,
+// this gate's count is legitimately 4 higher than what wrangler actually serves/uploads — `.
+// assetsignore`, `_headers`, `_redirects` (control files Workers Static Assets reads as config,
+// never serves as content) and `wrangler.json` (explicitly listed inside `.assetsignore`'s own
+// ignore rules) — exactly the documented "over, never under" conservative-superset behavior.
 import { existsSync, readFileSync, readdirSync, statSync, writeFileSync } from 'node:fs';
 import { resolve, join } from 'node:path';
 import { loadHotWindow } from '../src/lib/archive/hot-window.ts';

@@ -1,0 +1,138 @@
+{
+  "verifiedAt": "2026-10-02T22:49:00Z",
+  "verifiedBy": "05-17 Task 1 Step 1, live calls against the real Cloudflare API (no mocks, no training-data assumption)",
+  "accountIdAndTokenNote": "Every body below is the exact body that produced the stated HTTP status, with the token header and account_id path segment omitted. No account id or token value appears anywhere in this file.",
+  "endpoints": {
+    "keys": {
+      "method": "POST",
+      "path": "/accounts/{account_id}/workers/observability/telemetry/keys",
+      "workingRequestBody": {
+        "timeframe": { "from": "epoch-ms number", "to": "epoch-ms number" },
+        "datasets": ["cloudflare-workers"],
+        "filters": [
+          { "key": "$metadata.service", "operation": "eq", "type": "string", "value": "915tldr-v2 (example)" }
+        ]
+      },
+      "notes": "`datasets` and `filters` are both optional. Omitting `datasets` returns keys for a DIFFERENT, narrower default dataset (confirmed: 22 metadata-only keys, see datasetsObserved.workers-trace-events-or-default below) than `datasets: [\"cloudflare-workers\"]` (151 keys, including $workers.cpuTimeMs). This was the single biggest surprise of this verification pass — the orchestrator's prior 200 OK on this endpoint (continuation note) did not by itself prove which dataset's keys it returned.",
+      "responseShape": {
+        "success": "boolean",
+        "errors": "array",
+        "messages": "array (each { message: string })",
+        "result": "array of { key: string, type: 'string'|'number'|'boolean', lastSeenAt: epoch-ms number }"
+      }
+    },
+    "values": {
+      "method": "POST",
+      "path": "/accounts/{account_id}/workers/observability/telemetry/values",
+      "workingRequestBody": {
+        "timeframe": { "from": "epoch-ms number", "to": "epoch-ms number" },
+        "key": "$metadata.service",
+        "type": "string",
+        "datasets": ["cloudflare-workers"]
+      },
+      "notes": "`timeframe`, `key`, `type`, and `datasets` are all required (confirmed via a Zod validation error naming exactly these four as invalid_type when the body was `{}`). `type` must be one of 'string' | 'boolean' | 'number'.",
+      "responseShape": {
+        "success": "boolean",
+        "errors": "array",
+        "messages": "array",
+        "result": "array of { key: string, type: string, value: string|number|boolean, dataset: string }"
+      }
+    },
+    "query": {
+      "method": "POST",
+      "path": "/accounts/{account_id}/workers/observability/telemetry/query",
+      "workingRequestBodyCountView": {
+        "queryId": "any syntactically-valid string, including a literal all-zero UUID — this is an AD-HOC query id, not a reference to a pre-saved query, as long as `parameters` is also supplied (see notes)",
+        "timeframe": { "from": "epoch-ms number", "to": "epoch-ms number" },
+        "limit": "number",
+        "parameters": {
+          "datasets": ["cloudflare-workers"],
+          "filters": [
+            { "key": "$workers.scriptName", "operation": "eq", "type": "string", "value": "915tldr-v2 (example)" }
+          ]
+        }
+      },
+      "workingRequestBodyEventsView": {
+        "queryId": "any syntactically-valid string",
+        "view": "events",
+        "timeframe": { "from": "epoch-ms number", "to": "epoch-ms number" },
+        "limit": "number",
+        "parameters": {
+          "datasets": ["cloudflare-workers"],
+          "filters": [
+            { "key": "$workers.scriptName", "operation": "eq", "type": "string", "value": "915tldr-v2 (example)" },
+            { "key": "$workers.cpuTimeMs", "operation": "gt", "type": "number", "value": "number" }
+          ]
+        }
+      },
+      "notes": [
+        "{queryId, timeframe, limit} alone (no `parameters`) returns 400 'Query not found' — this looks like a saved-query lookup failure, but the real cause is the missing `parameters` object, NOT a missing saved query. Once `parameters.datasets` is present the same arbitrary `queryId` string succeeds and the server treats it as an inline/ad-hoc query (response echoes it back under `result.run.query.id` with `generated: false`) — no prior POST to /accounts/{account_id}/workers/observability/queries (which creates a persisted saved query, and which 403'd for this Read-scoped token) is needed.",
+        "Omitting `view` (or any value other than 'events') runs the default CALCULATION mode: it returns a `count` time-series (`result.calculations[0].aggregates[0].value` = total matching events across the whole window, and a `series` array of per-bucket counts) — NOT a list of individual events. This is what this plan uses for the per-request TOTAL, as an independent cross-check against `tools/measure-worker-kv-cpu.mjs`'s GraphQL aggregate.",
+        "`view: \"events\"` returns `result.events.events` (array of raw event objects, newest first, length capped at `limit`), `result.events.count` (always equal to the NUMBER OF EVENTS ACTUALLY RETURNED in this response, i.e. min(limit, matches) — NOT a total-matches count; verified by sending the identical filter with limit=3 and limit=100 and observing count=3 and count=5 respectively for the same window), and `result.events.fields` (the field catalog for this result set).",
+        "A top-level `offset` key in the request body is REJECTED (400, strict schema) — there is no cursor/offset pagination on this endpoint as verified. The only provable-complete signal this project can rely on is: `events.length < limit` requested (every match fit in the page). If `events.length === limit`, completeness cannot be proven and `fetchInvocationEvents` throws per the plan's behavior spec.",
+        "A server-side numeric filter on `$workers.cpuTimeMs` with operation 'gt' works and is used for the outlier-only fetch, keeping result sets small enough that pagination was not exercised for the gate window's actual run (5 matches for cpuTimeMs > 5, no page-boundary case reached).",
+        "`limit` has a hard server-side ceiling of 2000 (Zod `too_big`, `maximum: 2000`, confirmed both that 2001 is rejected and 2000 is accepted) — a SIGNIFICANT discovery this plan's Step 1 exists to surface: the gate window has ~8,477 total invocations (confirmed via the count-view calculation below), so an UNFILTERED `events`-view fetch of every invocation in this window is NOT achievable in a single page, and since there is no cursor/offset (see above), it is not achievable in any number of pages either — this endpoint cannot enumerate more than 2000 raw events for a given query, full stop. This is why `fetchInvocationEvents` is run with `minCpuMs` set for the real gate-window run (keeping the matched set at 5, far under the 2000 cap) rather than with the literal default (`minCpuMs: 0`), which correctly THROWS for this window instead of silently returning a truncated 'total'. The per-request OUTLIER list (the actual ARCH-08 dispute) is unaffected by this cap; only a hypothetical full per-request enumeration of all ~8,477 invocations would be."
+      ],
+      "responseShapeCountView": {
+        "success": "boolean",
+        "result": {
+          "run": "{ id, query, accountId, timeframe, userId, status, granularity, dry, statistics }",
+          "calculations": "array of { calculation: 'count', aggregates: [{ value: number, interval, sampleInterval, count }], series: [{ time: string, data: [{ value, interval, sampleInterval, count }] }] }",
+          "statistics": "{ elapsed, rows_read, bytes_read, abr_level }"
+        }
+      },
+      "responseShapeEventsView": {
+        "success": "boolean",
+        "result": {
+          "run": "same shape as countView",
+          "events": {
+            "events": "array of raw event objects — see eventFieldsOfInterest below for the allow-listed subset this project normalizes",
+            "fields": "array of { key: string, type: string } — the field catalog actually present in this result set",
+            "count": "number — events.length for THIS page, not a total",
+            "series": "per-bucket count series, same shape as countView's series"
+          },
+          "statistics": "{ elapsed, rows_read, bytes_read, abr_level }"
+        }
+      }
+    },
+    "queriesWriteEndpointCheckedAndRejected": {
+      "method": "POST",
+      "path": "/accounts/{account_id}/workers/observability/queries",
+      "result": "403 { success: false, errors: [{ code: 10000, message: 'Authentication error' }] } — confirms this Read-scoped token cannot create a SAVED query, but (per the `query` endpoint notes above) that capability is not needed: the ad-hoc queryId + parameters path works under Read alone."
+    }
+  },
+  "datasetsObserved": {
+    "cloudflare-workers": {
+      "keyCount": 151,
+      "description": "The per-invocation Worker event dataset — has $workers.cpuTimeMs, $workers.wallTimeMs, $workers.outcome, $workers.scriptName, $workers.scriptVersion.id, $workers.event.path, $workers.event.response.status, $workers.event.request.cf.colo, plus a large set of per-request fields this project NEVER reads or persists (client IP under $workers.event.request.headers.cf-connecting-ip and .x-real-ip, precise geolocation under $workers.event.request.cf.{city,region,postalCode,latitude,longitude}, full header values under $workers.event.request.headers.*, TLS fingerprinting fields, and the account id itself under $metadata.account).",
+      "cpuTimeFieldName": "$workers.cpuTimeMs",
+      "cpuTimeUnit": "milliseconds (observed values: 1, 7, 26, 37, 40, 49 for this dataset's events in the gate window — matches this project's existing <5ms/<20ms budget units directly, no microsecond conversion needed, unlike the GraphQL workersInvocationsAdaptive dataset tools/measure-worker-kv-cpu.mjs reads)",
+      "wallTimeFieldName": "$workers.wallTimeMs",
+      "pathFieldName": "$workers.event.path",
+      "statusFieldName": "$workers.event.response.status",
+      "coloFieldName": "$workers.event.request.cf.colo",
+      "scriptVersionFieldName": "$workers.scriptVersion.id",
+      "outcomeFieldName": "$workers.outcome",
+      "requestIdFieldName": "$metadata.requestId",
+      "coldStartIndicatingKeys": "NONE — a case-insensitive scan of all 151 key names for /cold|isolate|startup|warm/ returned zero matches. This dataset cannot directly confirm or rule out a cold isolate; IN-01 correlation in Task 2 is limited to indirect signals (repeat-path rank, per-colo gap) for exactly this reason."
+    },
+    "defaultOrWorkersTraceEvents": {
+      "keyCount": 22,
+      "description": "What `telemetry/keys` returns when `datasets` is omitted from the request body — structured-log ($metadata.*) fields only (message, level, requestId, spanId, traceId, duration, latency, etc.), no $workers.* invocation fields at all. This is NOT the dataset this plan needs; recorded here specifically because a tool that omits `datasets` would silently query the wrong dataset and report zero CPU data without erroring."
+    }
+  },
+  "retention": {
+    "documented": {
+      "workersPaid": "7 days",
+      "workersFree": "3 days",
+      "sourceUrl": "https://developers.cloudflare.com/workers/observability/logs/workers-logs",
+      "fetchedVia": "Context7 /llmstxt/developers_cloudflare_workers_llms-full_txt, 2026-10-02"
+    },
+    "verifiedAgainstData": "The gate window (2026-10-01T20:34:05.536Z to 21:16:29.049Z) is ~1 day old at verification time (2026-10-02T22:49 UTC) and returned full data on every call above — well within the documented 7-day Paid retention. The precondition's fallback branch (re-run against the freshest available hour) was NOT needed."
+  },
+  "tokenPermission": {
+    "requiredScope": "Account -> Workers Observability -> Read (Cloudflare dashboard custom-token permission group label, Account resource)",
+    "verifiedBehavior": "This exact scope, added to the LOCAL CLOUDFLARE_API_TOKEN by the account owner on 2026-10-02 (never the Workers Builds build token, per Phase 4 T-04-41), was sufficient for telemetry/keys, telemetry/values, and telemetry/query (both count and events views) across both datasets tested. The same token received 403 on POST /accounts/{account_id}/workers/observability/queries (creating a SAVED query), confirming Read does not grant query-save/Edit — a capability this plan does not need, since the ad-hoc queryId path on telemetry/query works under Read alone.",
+    "priorState": "403 before the scope was added (continuation note from the prior executor run); this plan's own first live call after the grant returned 200, re-confirming the fix rather than assuming it from the note alone."
+  }
+}

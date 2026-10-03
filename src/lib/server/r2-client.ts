@@ -131,6 +131,14 @@ export interface HeadObjectResult {
   etag: string | null;
 }
 
+/** Partial-result contract (WR-02, 05-18): `deleteObjects` never throws mid-loop once past its
+ * up-front key validation. Each 1,000-key batch is attempted independently — a batch that the SDK
+ * call itself rejects (not an R2-reported per-key error, a thrown `send()`) reports EVERY key in
+ * that batch in `errors` (code from `describeError`, never `err.message`) and the loop continues
+ * to the next batch; `deleted` accumulates only the counts confirmed by batches that didn't throw.
+ * Callers must drop an index entry ONLY for a key that is absent from `errors` — a key that
+ * errored (for either reason: an R2-reported per-key error, or its whole batch rejecting) must
+ * keep its index entry, since whether it's actually gone from R2 is unknown. */
 export interface DeleteObjectsResult {
   deleted: number;
   errors: Array<{ key: string; code: string }>;
@@ -253,7 +261,11 @@ export function createArchiveStore(
           errors.push({ key: e.Key ?? '', code: e.Code ?? 'UnknownError' });
         }
       } catch (err) {
-        throw new Error(`r2-client: deleteObjects batch failed: ${describeError(err)}`);
+        // WR-02 (05-18): a rejecting batch must not throw away the deleted-count already confirmed
+        // by earlier batches, nor leave the caller unable to tell which keys are unaccounted for —
+        // report every key of THIS batch as an error and keep going.
+        const code = describeError(err);
+        for (const key of batch) errors.push({ key, code });
       }
     }
     return { deleted, errors };

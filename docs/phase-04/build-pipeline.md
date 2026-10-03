@@ -17,6 +17,8 @@ the raw measurements this pipeline's numbers come from.
        v
 Cloudflare Workers Builds (915tldr-frontend repo -> 915tldr-v2 Worker)
   -> `pnpm run build:ci` (tools/ci-build.mjs build)
+       -> node tools/reset-pending-build-state.mjs (quick 261002-tl2 — clears a stale/corrupt
+          pending file left by an earlier run before anything else runs)
        -> guard:config, test:build-gate
        -> astro build
             -> D1 articles loader (src/content/loaders/articles-loader.ts): cold / warm /
@@ -48,6 +50,12 @@ replacing any of the above. Full design record: `docs/phase-05/archive-architect
 BUILD step
   1. write .astro/ci-build-started-at (epoch seconds) — both archive-sync deadlines below
      measure from here
+  1a. node tools/reset-pending-build-state.mjs         — clears a stale/corrupt pending
+                                                          build-state file (and any stray
+                                                          write-temp file) left by an earlier run
+                                                          (quick 261002-tl2); runs before any
+                                                          loader, so it can never discard state
+                                                          written by THIS build
   2. node tools/partition-archive.mjs --clean        — clears stale tier-facts/dist/archive/plan
   3. astro build                                      — renders every page (hot AND archive-tier)
   4. node tools/partition-archive.mjs                  — moves archive-tier pages OUT of
@@ -56,6 +64,25 @@ BUILD step
   5. node tools/assert-file-count.mjs                  — fails the build at 80,000 dist/client
                                                           files, warns at 70,000 (D-13/REND-11)
 ```
+
+**Pending build state (quick 261002-tl2).** Writes to `.astro/build-state.pending.json` are
+serialized per process (a FIFO queue keyed on `globalThis`, so two loaders calling
+`writePendingBuildState` concurrently in one `astro build` never race each other) and replace the
+file atomically (temp file + rename, so no reader ever observes a partially-written file). Step
+1a above exists because Workers Builds caches `.astro/` between builds (D-06): without a
+build-start reset, a stale or corrupt pending file from an earlier run could carry into a new
+build. On 2026-10-02 the unlocked read-merge-write let a shorter concurrent write land over a
+longer one, corrupting the file (`build-state: failed to read pending build state: ...`) and
+crashing `pnpm run test:regression` — and, in the silent failure mode, could have let a stale
+section be recorded as the D-14 never-shrink baseline in KV with nothing flagging it.
+
+**Step 3's output is filtered (REND-11 follow-up, quick 261002-s2r).** `build:ci` replaces Astro's
+own ~60,000-line per-page listing (`├─ /path (+Nms)`/`cached`/`restored`) with a progress line
+every 5,000 pages plus one final `suppressed <N> per-page output lines` summary — the listing alone
+was pushing the deploy step's own output (including the daily-report/ntfy outcome lines below)
+past what the downloadable Workers Builds log retains. stderr, warnings, errors, and the build's
+exit code all pass through completely untouched; `CI_BUILD_FULL_LOG=1` restores the full listing
+for a one-off debugging run. A local `pnpm run build` (not `build:ci`) is unaffected either way.
 
 **Updated pipeline (deploy step, production branch ONLY — `pnpm run deploy:ci`, i.e.
 `tools/ci-build.mjs deploy`):**
@@ -66,26 +93,58 @@ DEPLOY step
      ALLOW_FALLBACK_HOT_WINDOW=1; checked before anything below is spawned
   1. node tools/archive-sync.mjs pre                  — uploads NEW-to-archive pages; anything
                                                           that fails/times out/sits beyond a limit
-                                                          is moved BACK into dist/client first
+                                                          is moved BACK into dist/client first.
+                                                          Writes dist/archive-synced.json on every
+                                                          exit-0 path (CR-02, 05-20) — proof this
+                                                          build's partition has been confirmed.
   2. node tools/assert-file-count.mjs (re-run)         — on the FINAL dist/client, after any
                                                           move-back in step 1
-  3. wrangler deploy --config wrangler.jsonc           — ships dist/client (every page confirmed
+  3. node tools/assert-archive-synced.mjs              — refuses a partitioned dist/ that
+                                                          archive-sync pre has not confirmed for
+                                                          this build (CR-02, 05-20); a refusal
+                                                          aborts the deploy here, before wrangler
+  4. wrangler deploy --config wrangler.jsonc           — ships dist/client (every page confirmed
                                                           static OR confirmed in R2)
-  4. commitLastGood                                    — only after a REAL, successful deploy
-                                                          (unchanged from 04-09)
-  5. node tools/archive-sync.mjs post                  — re-uploads CHANGED archived pages,
+  5. commitLastGood                                    — only after a REAL, successful deploy
+                                                          (unchanged from 04-09) (skipped entirely
+                                                          in a dry run — CI_BUILD_DEPLOY_DRY_RUN=1
+                                                          deploys nothing, so nothing may be
+                                                          committed or deleted; CR-01, 05-13)
+  6. node tools/archive-sync.mjs post                  — re-uploads CHANGED archived pages,
                                                           deletes orphans, tracks backlog, reports
                                                           once/day; NEVER alters the deploy's own
-                                                          exit code (D-10/D-12)
-  6. ntfy alerts/daily report — every archive outcome from steps 1-5 (failed uploads, a disabled
+                                                          exit code (D-10/D-12) (skipped entirely
+                                                          in a dry run — CI_BUILD_DEPLOY_DRY_RUN=1
+                                                          deploys nothing, so nothing may be
+                                                          committed or deleted; CR-01, 05-13)
+  7. ntfy alerts/daily report — every archive outcome from steps 1-6 (failed uploads, a disabled
      tier, a backlog older than 20h, the file-count warn alarm, the once-daily REND-11 report)
-     reaches the owner exactly once, sent AFTER the deploy itself succeeds — never gating it
+     reaches the owner exactly once, sent AFTER the deploy itself succeeds — never gating it.
+     (REND-11 follow-up, quick 261002-s2r) The daily report's own `_meta/daily-report.json` marker
+     advances only once ntfy CONFIRMS a 2xx for that send — step 6 (`post`) itself never writes it
+     any more. A confirmed send spawns `node tools/archive-sync.mjs mark-daily-report --date <d>`
+     right here in step 7; a rejected or thrown send leaves the marker untouched, so the next
+     production deploy's `post` run reports the SAME day due again and the report simply re-sends
+     — a duplicate report is preferred over a silently missed one.
 ```
+
+**Manual deploys (CR-02, 05-20).** `pnpm run deploy` now runs `pnpm run guard:config && node
+tools/ci-build.mjs deploy` — the SAME sequence as Workers Builds' own `deploy:ci`
+(`tools/ci-build.mjs deploy`), not a bare `wrangler deploy`. Before this fix, `pnpm run deploy` was
+`guard:config && wrangler deploy --config wrangler.jsonc`, which skipped steps 1-3, 5 and 6 entirely
+— a `pnpm run build` followed by that command could ship a partitioned `dist/` with every newly
+archived page confirmed neither static nor in R2 (05-REVIEW.md CR-02). A bare `wrangler deploy`
+remains forbidden (wrangler.jsonc's own comment already says so); `pnpm run guard:archive-synced`
+runs step 3's check by hand against any `dist/` without deploying anything.
 
 **Deadlines:** `PRE_DEADLINE_SECONDS` 840 (14 min), `POST_DEADLINE_SECONDS` 1020 (17 min), both
 measured from `.astro/ci-build-started-at` — comfortably inside Workers Builds' 20-minute hard
 ceiling alongside `astro build`/partition/the file-count gate/`wrangler deploy` itself. A backlog
-older than 20h (`BACKLOG_ALERT_HOURS`) alerts every run until it clears (D-10).
+older than 20h (`BACKLOG_ALERT_HOURS`) alerts every run until it clears (D-10). A build-start
+marker older than `BUILD_START_MARKER_MAX_AGE_SECONDS` (1,800s) — or more than 60s in the future —
+is ignored; both deadlines are then measured from this process's own start instead (IN-06, 05-20):
+a standalone `ci-build deploy` run after an earlier `pnpm run build` must never inherit a stale
+marker and treat both deadlines as already expired.
 
 **What non-production (preview) branches do:** the build step (steps 1-5 above) runs
 unconditionally on every branch — partitioning and the file-count gate both run on a preview

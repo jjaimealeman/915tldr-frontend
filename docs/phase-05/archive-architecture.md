@@ -94,30 +94,78 @@ BUILD step (tools/ci-build.mjs, 05-08's wiring — this plan's own tracer ran th
                                                       writes dist/archive-plan.json
   5. node tools/assert-file-count.mjs             — fails the build at 80,000 dist/client files (D-13)
 
-DEPLOY step (tools/ci-build.mjs's deploy path, 05-08's wiring)
+DEPLOY step (tools/ci-build.mjs's deploy path, 05-08's wiring, 05-20's guard addition)
   6. node tools/archive-sync.mjs pre              — uploads NEW-to-archive pages; anything that fails,
                                                       times out, or sits beyond --limit is moved BACK into
-                                                      dist/client (file-count re-check after this, per 05-08)
+                                                      dist/client (file-count re-check after this, per 05-08).
+                                                      Writes dist/archive-synced.json on every exit-0 path
+                                                      (CR-02, 05-20) — see "The sync marker and guard" below.
   7. node tools/assert-file-count.mjs (re-check)   — the move-back in step 6 can only ever LOWER the count
                                                       further from the build step's own number, never raise it
-  8. wrangler deploy                               — ships dist/client (every page confirmed static OR confirmed in R2)
-  9. commitLastGood                                — only after a REAL, successful deploy (04-09's existing guarantee)
- 10. node tools/archive-sync.mjs post             — re-uploads CHANGED archived pages, deletes orphans,
+  8. node tools/assert-archive-synced.mjs          — refuses to proceed if dist/ was partitioned but step 6
+                                                      has not confirmed THIS build (CR-02, 05-20)
+  9. wrangler deploy                               — ships dist/client (every page confirmed static OR confirmed in R2)
+ 10. commitLastGood                                — only after a REAL, successful deploy (04-09's existing guarantee)
+ 11. node tools/archive-sync.mjs post             — re-uploads CHANGED archived pages, deletes orphans,
                                                       tracks backlog, reports once/day; never alters the
                                                       deploy's own exit code (D-10/D-12)
 ```
+
+**The sync marker and guard (CR-02, 05-20).** Before this fix, the documented `pnpm run deploy` was
+a bare `guard:config && wrangler deploy --config wrangler.jsonc` — it skipped steps 6-8 and 11
+entirely, so a `pnpm run build` followed by that command could ship a partitioned `dist/` with
+every page newly crossing the hot cutoff (~90/day at the measured ingest rate) confirmed neither
+static nor in R2, a 404 until the next CI sync. The fix is two layers, used together:
+
+- **`deploy` is now routed through the real sequence**: `pnpm run guard:config && node
+  tools/ci-build.mjs deploy` — the same command Workers Builds' own `deploy:ci` already ran.
+- **Step 6 (pre) writes `dist/archive-synced.json`** on every exit-0 outcome (success, disabled,
+  index-unreadable — never on the plan-missing exit-1 path, since there's no plan to vouch for):
+  `{ planGeneratedAt, syncedAt, phase: 'pre' }`. `planGeneratedAt` is keyed to `dist/archive-
+  plan.json`'s own `generatedAt` (set by `tools/partition-archive.mjs`'s `planPartition`), not a
+  bare boolean — a marker written for an OLDER partition can never vouch for a NEWER one. The file
+  lives inside `dist/` but outside `dist/client`, so it is never itself deployed.
+- **Step 8 (`tools/assert-archive-synced.mjs`) is the new guard**, spawned on the FINAL
+  `dist/client` immediately before wrangler. Five cases: no plan and no archive files -> ok
+  (nothing was partitioned); no plan but a stray file under `dist/archive` -> refuse, naming it
+  (the plan was deleted or never written, but partitioned output is still sitting there); plan
+  present, marker missing -> refuse ("archive-sync pre has not run for this build"); marker's
+  `planGeneratedAt` doesn't match the plan's `generatedAt` -> refuse ("stale"); matching marker ->
+  ok. A refusal aborts the deploy at step 8 — wrangler, `commitLastGood`, and post (steps 9-11)
+  never run, exactly like a file-count-gate failure (D-13) already does.
+- `pnpm run guard:archive-synced` runs step 8's check by hand against any `dist/` without
+  deploying anything. A bare `wrangler deploy` remains forbidden (`wrangler.jsonc`'s own comment
+  already says so, and T-05-69 accepts that a hand-typed one bypasses the guard — out of scope,
+  low severity, no documented path recommends it).
+
+**Step 11's own gate (CR-01/WR-01, 05-14):** before `post` does anything else, it refuses in two
+ways. First, a dry run (`CI_BUILD_DEPLOY_DRY_RUN` set) is refused outright — zero network calls,
+zero R2 calls — independent of 05-13's ci-build-side guard, so a direct
+`CI_BUILD_DEPLOY_DRY_RUN=1 node tools/archive-sync.mjs post` invocation is refused too, not just
+the ci-build-orchestrated path. Second, once past the dry-run check and the existing
+credentials/branch-guard check, `post` requires the live deployment's own `/version.json`
+(`commit` AND `builtAt` — `builtAt` differs between a local build and the deployed build of the
+same commit, so `commit` alone would under-detect) to exactly match this build's own
+`dist/client/version.json`, polling up to 6 attempts 10 seconds apart to absorb post-deploy
+propagation delay. Only once that gate passes does `post` touch R2 at all. Immediately before the
+delete step specifically, it re-checks liveness one more time (a single attempt) — if a deploy
+landed during the upload phase above, the delete is skipped entirely (not partial) and every
+orphan's index entry is kept, while this run's own uploads/index-adds from earlier in the same run
+still stand.
 
 ### The two invariants this sequence exists to hold
 
 1. **A page leaves `dist/client` (the static tier) only after its R2 PUT is confirmed.** Step 4
    (partition) moves every archive-tier page out of `dist/client` unconditionally; step 6 (pre)
    immediately moves back anything it could NOT confirm in R2 — a failed upload, a deadline
-   cutoff, or a page beyond `--limit`. By the time step 8 (`wrangler deploy`) runs, every page in
-   `dist/client` is either genuinely hot, or archive-tier-but-unconfirmed-so-served-static-this-
-   cycle. There is no window where a page is neither static nor in R2 (REND-08's no-404-window
-   guarantee).
-2. **An R2 copy is removed only after the static page replacing it is already live.** Step 10
-   (post) runs AFTER `wrangler deploy` (step 8) and `commitLastGood` (step 9) — a "promoted
+   cutoff, or a page beyond `--limit`. Step 8 (the sync guard, CR-02/05-20) refuses to let the
+   deploy proceed at all if step 6 never ran for this build. By the time step 9 (`wrangler deploy`)
+   runs, every page in `dist/client` is either genuinely hot, or archive-tier-but-unconfirmed-so-
+   served-static-this-cycle. There is no window where a page is neither static nor in R2 (REND-08's
+   no-404-window guarantee) — and, since 05-20, no DOCUMENTED deploy path that can reach that
+   window undetected either.
+2. **An R2 copy is removed only after the static page replacing it is already live.** Step 11
+   (post) runs AFTER `wrangler deploy` (step 9) and `commitLastGood` (step 10) — a "promoted
    orphan" (a page that moved hot this cycle) is only deleted from R2 once the deploy that made it
    static has already shipped. The reverse direction (archive→hot) is exactly how step 6 behaves:
    a page never leaves static before R2 confirms it archived.
@@ -150,7 +198,13 @@ the write credential ever touches `_meta/*`).
 // requestFullReupload({reason}), cleared by post only once a run ends with zero backlog
 { "requestedAt": "2026-10-01T05:00:00.000Z", "reason": "template change — redesign ship" }
 
-// _meta/daily-report.json — one field, the last America/Denver calendar date a report fired
+// _meta/daily-report.json — one field: the last America/Denver calendar date whose daily report
+// ntfy CONFIRMED with a 2xx response (REND-11 follow-up, quick 261002-s2r). Written ONLY by
+// `archive-sync mark-daily-report --date <date>` (exported as commitDailyReport()), which
+// tools/ci-build.mjs's deploy alert loop spawns after sendNotification() confirms delivery of
+// THAT day's report — never by `runPostSync` itself. A rejected or thrown send leaves this file
+// unchanged, so the next production deploy's post run sees the same stale date and reports
+// due:true again (a duplicate report is preferred over a missed one).
 { "lastReportDate": "2026-10-01" }
 ```
 
@@ -165,8 +219,9 @@ changed) — never a lost/corrupted index.
 
 | Constant | Value | Measured from |
 |---|---|---|
-| `PRE_DEADLINE_SECONDS` | 840 (14 min) | `.astro/ci-build-started-at`, or this process's own start if that file is absent (the documented weaker local-run behavior) |
+| `PRE_DEADLINE_SECONDS` | 840 (14 min) | `.astro/ci-build-started-at`, or this process's own start if that file is absent OR stale (the documented weaker local-run behavior; see the 1,800s rule below) |
 | `POST_DEADLINE_SECONDS` | 1020 (17 min) | same |
+| `BUILD_START_MARKER_MAX_AGE_SECONDS` | 1,800 (30 min, IN-06/05-20) | the marker's own age — a marker older than this, or more than 60s in the future, is ignored |
 | `BACKLOG_ALERT_HOURS` | 20 | `archive-state.json`'s `backlogSince` |
 | Platform watchdog warning | 18 min (`tools/ci-build.mjs`'s `DEFAULT_WATCHDOG_MS`) | — |
 | Platform hard ceiling | 20 min (Workers Builds) | `developers.cloudflare.com/workers/ci-cd/builds/limits-and-pricing` |
@@ -174,6 +229,19 @@ changed) — never a lost/corrupted index.
 Both deadlines sit inside the 20-minute hard ceiling with margin for the rest of the build (`astro
 build`, partition, file-count gate, `wrangler deploy` itself) to also fit in the same window —
 they are not "840/1020 seconds of archive work plus however long everything else takes."
+
+**The 1,800s stale build-start marker rule (IN-06, 05-20).** `.astro/ci-build-started-at` is
+written once, at the start of the BUILD step (step 1 above) — but a standalone `node
+tools/ci-build.mjs deploy` (local, or a re-run against an already-built `dist/`) spawns no build
+step at all, so it would otherwise inherit whatever marker an EARLIER `pnpm run build` left
+behind. Before this fix, that stale marker made both `PRE_DEADLINE_SECONDS` and
+`POST_DEADLINE_SECONDS` look already past: pre moved every new page back to static (0 uploaded)
+and post deferred every change, raising a false D-10 backlog alert. `getBuildStartEpochSeconds`
+now ignores a marker whose age exceeds 1,800s or that sits more than 60s in the future, logging one
+`[archive-sync] ignoring stale build-start marker ...` stderr line and falling back to this
+process's own start instead — exactly the existing "marker absent" fallback, now also applied to
+"marker present but stale." 1,800s comfortably exceeds Workers Builds' own 1,200s (20min) hard
+ceiling, so a live CI-written marker is never the one this rule discards.
 
 **The backlog rule (D-10):** when `post`'s deadline is reached mid-run, every still-`changed` key
 that never got a chance to start lands in `notStarted` → reported as `deferred`. `archive-
@@ -208,6 +276,26 @@ PROJECT.md's own Context section names as the root cause of the v1 D1-reads inci
 | Deadline hit mid-run | `pre`: untouched new keys moved back to static (never left static in the first place). `post`: untouched changed keys keep their OLD R2 object serving, tracked as backlog | `movedBack`/`deferred` counts; `post` additionally updates `archive-state.json`'s backlog fields |
 | Concurrent builds (two builds racing the same cycle) | Both builds' own writes land; the merge-on-write index read happens right before each write, so neither build's upload is lost — at worst, a page both builds happened to touch gets uploaded twice (harmless, same bytes either way) | No special alert — this is the accepted, documented race in "Merge-on-write discipline" above |
 | Run interrupted entirely (process killed, container recycled) mid-phase | Whatever had already been confirmed via a successful `putObject`/`deleteObjects` call is real and already in R2; the index merge-write for THIS run's batch never happened (it's the last step), so those confirmed-but-unindexed uploads simply get re-confirmed as "new" (pre) or "changed-looking-unchanged-once-reconciled" on the next run — never lost, at worst redundantly retried | Nothing special — the next run's own diff naturally recovers; no partial/corrupt index state is possible because the index write is a single atomic `putJson` call, never a partial multi-write |
+| Dry run reaches post (direct invocation) | Nothing touched — refused before `checkDisabled`, before any network or R2 call, independent of 05-13's own ci-build-side dry-run guard | `disabled: true`, one alert naming `CI_BUILD_DEPLOY_DRY_RUN`; exit code 0 |
+| Live deployment is not this build (overlapping or out-of-order builds, propagation failure, origin unreachable) | No R2 changes — `post` returns before `createStore` is even called; force-full marker kept untouched; daily report deferred to the next live build | One alert per build naming both the local and live commit/builtAt and the reason; exit code 0. **A persistent alert of this kind means post-sync is not running at all for ANY build — the owner must treat it as an incident**, not a one-off skip, since it also means REND-11's daily report and REND-12's re-render are silently not happening |
+| Live deployment changes mid-run (between the initial gate and the delete step) | The run's own uploads/index-adds (already confirmed before the change) still stand; only the delete step is skipped — not partial, every orphan's index entry kept for the next run | One alert naming the skip and the deletion count; `deleted: 0` for this run |
+| Index write fails after post-sync deletions/uploads (WR-02, 05-18) | The deleted object(s) are really gone from R2 and the uploaded object(s) are really there — only the index bookkeeping write failed. The index may now claim a deleted object still exists; the next pre-sync's self-heal (row below) repairs that before any deploy relies on it | One alert naming the deletion/upload counts and that the next pre-sync self-heals; exit code 0 |
+| R2 listing fails at pre-sync (self-heal's own `listKeys` calls, WR-02, 05-18) | The index is trusted as-is for this run — exactly the pre-fix behavior, not a regression — so a transient listing failure never blocks the deploy | One alert naming that the index was trusted without self-heal this run |
+| A DeleteObjects batch fails (WR-02, 05-18) | `deleteObjects` never throws mid-loop: a failing batch reports every one of its keys as an error (code only, never `err.message`) and the loop continues to the next batch; the failed keys' index entries are kept (their deletion status is unknown), every other batch's deletions land and are removed from the index normally | `errors` in the delete result names the keys/codes; one alert naming the failed-delete count |
+| Index write fails after pre-sync uploads (WR-02, 05-18) | The uploaded pages are already confirmed in R2 — the deploy proceeds safely even though the index doesn't yet list them. The next run's self-heal (or a plain re-upload, since the index doesn't list them either) re-indexes them | One alert naming the upload count and that the next run re-indexes them; `exitCode` stays 0 — the docstring's "exits 1 only when the plan is missing" holds again |
+| Partitioned `dist/` deployed without pre-sync (CR-02, 05-20) | Refused before `wrangler deploy` ever runs — `tools/assert-archive-synced.mjs` (step 8) sees a plan present with the sync marker missing (or stale/mismatched) and exits 1; `runCi` returns that code immediately, same as a file-count-gate failure (D-13) | One failure notification titled with `assert-archive-synced:`; no wrangler spawn, no `commitLastGood`, no archive-sync post this run |
+
+## Live origin
+
+`ARCHIVE_SYNC_LIVE_ORIGIN` (default `https://dev.915tldr.com`, https origins only — anything else
+is refused without a fetch) names the one deployment `post` trusts as "the live site" when deciding
+whether it's allowed to mutate R2. **This MUST be updated at the Phase 12 production cutover** — the
+day `dev.915tldr.com` stops being the deployed origin, every `post` run will start failing its
+liveness check and silently skip (see the failure-mode row above: a persistent skip is an incident,
+not a quiet no-op). There is no override flag to force `post` against a non-live build by design — a
+manual `node tools/archive-sync.mjs post` run against a local build is refused on purpose; run
+`post` only from the build that was actually deployed (normally: never by hand at all, only via
+`tools/ci-build.mjs`'s own deploy step).
 
 ## Cost
 
@@ -223,6 +311,12 @@ PROJECT.md's own Context section names as the root cause of the v1 D1-reads inci
   corpus from scratch — only pages already archived), bounded by `POST_DEADLINE_SECONDS` per run
   with backlog carry-forward across runs until it converges. Same order-of-magnitude PUT count as
   the initial upload, once.
+- **Pre-sync's index self-heal listing (WR-02, 05-18):** one `listKeys('articles/')` plus one
+  `listKeys('tags/')` call per pre-sync run, each paginating `ListObjectsV2` (Class A, 1,000 keys
+  per page) across the archive tier. At ~30.5k keys that's ~31 `ListObjectsV2` requests per build —
+  about 372/day at 12 builds/day, roughly $0.05/month at $4.50 per million Class A requests. Scales
+  linearly with the archived-key count, so Phase 6 (roughly doubling the archive tier) roughly
+  doubles this line too — still far under the $1/operation approval threshold.
 
 ## Which ceiling governs REND-12
 
@@ -247,12 +341,330 @@ already ships the static site, not as a separately-scheduled mechanism at all (R
 ## Measurements
 
 ### 05-09 — first production archive deploy
-*(to be filled by 05-09 — real deploy-step wall-clock time for pre/post against the full corpus,
-first production `ARCHIVE_SYNC_RESULT` lines, actual PUT/DELETE counts)*
 
-### 05-10 — forced full re-upload
-*(to be filled by 05-10 — `request-full` end-to-end wall-clock time, backlog convergence time
-across however many cycles it takes, actual re-upload PUT count)*
+**`ARCHIVE_TIER_LIVE | 29,966 static, 30,494 in R2 (12,912 articles + 17,582 tags), converged in 1 build | merge feature/phase-05 -> develop -> main (push) -> Workers Builds production build**
+
+**Route decision (Task 1, owner checkpoint).** Owner selected **option-a** (merge to main) on
+2026-10-01 ~09:07 MDT, on the orchestrator's recommendation: the archive tier serves persistently
+so later measurement plans (05-10, 05-12) don't race a 2-hourly rebuild, and REND-12 is measured
+on the real Workers Builds platform rather than an operator machine. Consequence for D-03/REND-12:
+the zero-reads gate (05-12) and the forced-full-reupload measurement (05-10) now run against a
+host that stays live between ingest cycles, not a deploy that a future build could silently
+overwrite.
+
+**Ship (Task 2, owner action).** Owner merged `feature/phase-05` -> `develop` (`57c4b05`) ->
+`main` (`57dfa94`) and pushed both, 2026-10-01 ~09:14 MDT. Confirmed locally: `git cat-file -e
+57dfa94` and `git cat-file -e 57c4b05` both resolve.
+
+**Deploy observed (Task 3).** Workers Builds production build `241c97e1-7935-4275-848a-f6bd3f7dd67c`
+(worker tag `228bdc88e86f4a78b51b5bb496af8923`, branch `main`, commit `57dfa94`): created
+`2026-10-01T15:13:17Z`, stopped `2026-10-01T15:23:32Z` — **~10m15s total wall time**, comfortably
+inside the 20-minute Workers Builds hard ceiling and inside both archive-sync deadlines
+(840s/1020s measured from the build's own start marker). The corresponding `develop` build
+(`ac9f5a9b-beaa-4cfa-b749-9d9e860c9d54`, commit `57c4b05`) succeeded separately at `15:22:36Z`.
+Worker version `5d03fe4d-b763-4b18-bdc8-9d57a07e6741` (version #20) deployed at
+`2026-10-01T15:23:04.491Z`, confirmed independently via the Workers Versions API and
+`wrangler deployments list --name 915tldr-v2` (no Workers-Builds-specific scope needed for
+either) — both line up with the build's own stop time to the second.
+
+**Live checks (this session, GET requests, not cached from any prior session):**
+
+| Check | Result |
+|---|---|
+| `/version.json` | `commit: 57dfa94`, `builtAt: 2026-10-01T15:17:12.920Z`, `hashSource: workers-ci` — matches the observed build |
+| `/static-budget.json` | `staticFileCount: 29966`, `status: "ok"` (under the 70,000 warn / 80,000 fail thresholds, 100,000 ceiling); `archivedPages: { articles: 12912, tags: 17582 }`; `hotWindow.provisional: false`, `days: 202` (D-07b, unchanged from 05-05/05-06) |
+| 2 fresh archived articles (`/community/crew-11-astronauts-...`, `/sports/team-usa-mens-hockey-...`) | 200, `Server-Timing: archive;desc=r2, kv;dur=<ms>, r2;dur=<ms>` on first request |
+| 2 fresh archived tags (`/tag/raf`, `/tag/bajas`) | 200, `Server-Timing: archive;desc=r2, r2;dur=<ms>` (no `kv;dur` — the tag branch never reads KV, matching the documented contract above) |
+| Repeat `GET` of the same archived article | `cf-cache-status: HIT`, `age: 1`, `Server-Timing: archive;desc=edge-cache` |
+| Repeat `HEAD` (`curl -I`) of the same archived article | Still 200, but **does not** hit the edge cache — re-reads R2 every time (`archive;desc=r2` again). Disclosed, not fixed: the manual Cache API layer is only populated/matched for `GET`, not `HEAD`; correctness is unaffected (HEAD never serves stale/wrong content), only the cache-hit optimization is GET-only. |
+| 1 hot article (`/sports/yankees-young-core-thrives-...`, linked live from the homepage) | 200, **no** `Server-Timing` header at all — served entirely by the static-assets layer, the Worker is never invoked for a hot page |
+| `pnpm run verify:edge` | 4/4 checks PASS (static-asset noindex, Worker-generated 404 noindex on admin-dev, production negative control, no app-level robots meta) |
+
+**Cold R2/KV latency — the owner-agreed hot-window revisit trigger (orchestrator addition).**
+150 distinct archive-tier URLs (120 articles + 30 tags, evenly sampled across the full 30,478-entry
+local plan) were each requested exactly once this session — confirmed genuinely cold by 0 edge-cache
+hits across all 150 (`cf-cache-status` absent/MISS, `Server-Timing` always `archive;desc=r2`, never
+`edge-cache`, on the first hit of each URL):
+
+| Metric | n | p50 | p95 | min | max | mean |
+|---|---|---|---|---|---|---|
+| R2 `get()` (`r2;dur`) | 150 | 129ms | **215ms** | 97ms | 287ms | 140.4ms |
+| KV manifest read (`kv;dur`, articles only — tags never read KV) | 120 | 148ms | **188ms** | 99ms | 290ms | 149.2ms |
+
+**Verdict: both cold p95 figures (215ms R2, 188ms KV) sit comfortably under the owner-agreed
+~300ms revisit threshold (05-05's decision) → KEEP the 202-day hot window as-is, no action.**
+KV and R2 are comparable in magnitude (mean 149ms vs. 140ms) — KV is not the dominant cost on a
+cold archive hit; both reads sit in the same ~100-300ms band, and together (kv + r2, sequential,
+per the Worker routing diagram above) a cold archived-article response's two-read tax is roughly
+250-300ms at the median, well inside the 1.5s LCP budget (ROADMAP criterion 2).
+
+**Convergence — now confirmed against the real build log, not just a cross-check.** The
+orchestrator pulled the real production build's log (`GET /accounts/{acct}/builds/builds/{uuid}/
+logs`, their own Cloudflare API access — this executor's token independently returned `403
+Forbidden`, see "API access" below) and the filtered archive/deploy lines are committed as
+evidence at [`docs/phase-05/evidence/first-prod-deploy/build-241c97e1-archive-lines.log`](./evidence/first-prod-deploy/build-241c97e1-archive-lines.log).
+The real lines:
+
+```
+[archive] partition: 12912 articles and 17582 tags archived; 27601 articles and 2328 tags static
+[archive] static files: 29966 / 100000 (fail at 80000)
+ARCHIVE_SYNC_RESULT {"phase":"pre","uploaded":19,"failed":0,"deferred":0,"movedBack":0,"deleted":0,"backlog":null,...}
+Current Version ID: 5d03fe4d-b763-4b18-bdc8-9d57a07e6741
+ARCHIVE_SYNC_RESULT {"phase":"post","uploaded":22,"failed":0,"deferred":0,"movedBack":0,"deleted":3,"backlog":{"count":0,"since":null},...}
+```
+
+This **resolves, with an exact explanation, the gap this section originally reported** (when this
+plan could only reach the bucket directly, not the build log):
+
+- **`pre` really uploaded 19 new-to-archive pages with 0 failures** — not the "3 new, 3 failed"
+  this session's own earlier local cross-check found. The real production `astro build` ran a
+  fresh pull against live D1 at `~15:13-15:16Z`, many hours after this executor's own local
+  `dist/archive-plan.json` (generated `07:56 MDT` the same morning); the extra 16 candidates (19
+  real vs. 3 local) are organic corpus drift from hours of ingestion in between, and the 3
+  "failures" this session originally reported were purely a local-dist-staleness artifact (those
+  3 tag pages' rendered HTML didn't exist in this machine's hours-old `dist/archive` — the real
+  build rendered and uploaded them, and 16 others, with zero failures).
+- **`post` really uploaded exactly 22 changed tag pages, 0 failures, `backlog: {count: 0, since:
+  null}`** — an exact match to this session's own earlier cross-check result
+  (`uploaded: 22, failed: 0, deferred: 0`), run ~20-25 minutes after the real build's own `post`
+  phase completed (`Current Version ID` logged at `15:23:07Z`; this session's manual rerun started
+  `~15:44Z`). The match is not a coincidence: this session's local plan (from `07:56Z`, the same
+  era as 05-08's original index population) and the real build's fresh plan disagreed with the
+  *already-fixed* index on the same 22 keys, for the same underlying reason (genuine content
+  drift since 05-08) — this session's manual `post` rerun then re-uploaded the same 22 keys a
+  second time, redundantly but harmlessly (merge-on-write, same bytes, no cost concern).
+- **`post` also deleted 3 vanished orphans** — a data point this session's own cross-check never
+  surfaced (that run only exercised `pre` and a second `post`, after the real orphans had already
+  been cleaned up).
+- **Partition/static-file counts match exactly**, independently, three ways: the real build log
+  (`29966`, `12912 articles + 17582 tags archived`), the live `/static-budget.json` fetched this
+  session, and `27601 + 2328 = 29929` (static articles+tags) + `37` other static pages (home,
+  category pages, static pages, sitemap files, `robots.txt`, `version.json`,
+  `static-budget.json` itself, etc.) `= 29966`. Zero drift between build-time count and what was
+  later served.
+
+**Convergence verdict (confirmed): the corpus converged within the one observed production
+build** — `pre` uploaded all 19 new-to-archive pages with 0 failures, `post` uploaded 22 changed
+pages and deleted 3 orphans with 0 failures and a `0` backlog, both phases logged directly from
+the real build container. No second deploy was needed.
+
+**REND-11 precision reconciliation — now fully closed, every number named.** The orchestrator
+pulled a second log window (the unfiltered span between `ARCHIVE_SYNC_RESULT(pre)` and `Current
+Version ID`), committed as evidence at
+[`docs/phase-05/evidence/first-prod-deploy/build-241c97e1-wrangler-window.log`](./evidence/first-prod-deploy/build-241c97e1-wrangler-window.log),
+and it contains exactly the line the must_haves ask for:
+
+```
+✨ Read 29978 files from the assets directory /opt/buildhome/repo/dist/client
+🌀 Found 2 new or modified static assets to upload. Proceeding with upload...
++ /version.json
++ /index.html
+✨ Success! Uploaded 2 files (29960 already uploaded) (0.64 sec)
+```
+
+This produced a real, three-way numeric mismatch that needed explaining, not assuming: the
+gate's count (`29,966`), wrangler's own "Read N files" line (`29,978`), and wrangler's own
+upload-accounting total (`2 + 29,960 = 29,962`) all disagreed. Both gaps are now reconciled file
+by file — full working at
+[`docs/phase-05/evidence/first-prod-deploy/rend-11-reconciliation.md`](./evidence/first-prod-deploy/rend-11-reconciliation.md),
+reproduced locally this session via `pnpm exec wrangler deploy --dry-run --config wrangler.jsonc
+--outdir .wrangler/ci-dry-run` with `WRANGLER_LOG=debug`:
+
+- **`29,978 − 29,966 = 12`**: wrangler's own `✨ Read N files` console line counts every
+  top-level **directory** entry its walk visits, alongside real files — reproduced locally
+  (the exact same 12-directory gap appeared: `29,952` wrangler vs. `29,940` this session's own
+  local gate count) and the 12 extras identified by classifying each printed path against the
+  real filesystem: `_astro`, `business`, `community`, `crime`, `education`, `fonts`, `health`,
+  `politics`, `source`, `sports`, `tag`, `weather` — all confirmed real directories, not files.
+  This is a cosmetic quirk in wrangler's own log message, not an asset-count discrepancy: once
+  the 12 directories are subtracted, wrangler's real per-build file total (`29,978 − 12 =
+  29,966`) **matches the gate's count exactly, with zero drift.**
+- **`29,966 − 29,962 = 4`**: four root-level control files are read by both the gate and
+  wrangler's directory walk, but deliberately never served as content assets —
+  `.assetsignore` (the ignore-rules file itself), `_headers` and `_redirects` (parsed into the
+  deployed Worker's own `headers`/`redirects` config, confirmed earlier this session via the
+  Workers Versions API — not served as literal response bodies), and `wrangler.json` (an
+  `@astrojs/cloudflare` build-output artifact, explicitly excluded by `.assetsignore`'s own two
+  ignore lines: `wrangler.json`, `.dev.vars`). All four confirmed present on disk at
+  `dist/client`'s root. `29,966 − 4 = 29,962` — **exactly** wrangler's own reported total.
+
+**Verdict: REND-11 is now Complete.** The gate's conservative count is over wrangler's real
+served-asset total by exactly 4, every one of the 4 named above, and never under — precisely the
+shape the must_haves require ("it may only be over, never under," "explained file by file"). No
+code fix was warranted: `assert-file-count.mjs`'s `countStaticFiles()` already counts every
+regular file with no filtering, exactly as its own doc comment claims; the apparent 12-file "gap"
+was a misreading of wrangler's own debug console line, not a defect in this project's code. A doc
+comment was added to `tools/assert-file-count.mjs` pointing future readers at this reconciliation
+so it isn't reopened from scratch.
+
+**API access (disclosed, now partially resolved).** This executor's own Cloudflare API tokens
+(`CLOUDFLARE_API_TOKEN`, `CF_API_TOKEN`) returned `403 Forbidden` (error code `12004`) against the
+Workers Builds API (`GET /accounts/{account}/builds/workers/{tag}/builds`) — an executor-token
+scope issue, not a platform-wide block: **the orchestrator's own Cloudflare API access reached the
+same build's logs successfully** (`GET /accounts/{acct}/builds/builds/{uuid}/logs`), which is how
+the `ARCHIVE_SYNC_RESULT` lines above were obtained. For 05-10/05-12: **ask the orchestrator for
+build-log lines rather than treating this as a blocker** — the gap is specific to this executor's
+token, and the working channel is already known. The Workers Versions/Deployments API (a third,
+separately-accessible endpoint — `wrangler deployments list`, `GET .../workers/scripts/{name}/
+versions/{id}`) remains reachable with this executor's own token and confirmed the deploy's
+existence and exact timing independently, but carries no asset-count or archive-sync-log field.
+
+### 05-10 — forced full re-upload (REND-12)
+
+**`ARCHIVE_RERENDER_CONVERGES | measured: 30,501 pages re-uploaded in 558.2s (54.64 obj/s), converged in 1 build | worst case (649s cold render + 21.0s deploy + re-upload): 19,121 objects fit in the first build's remaining 350.0s post-deadline budget; the ~11,380-object remainder clears in build 2's own 350.0s budget in 208.3s — 2 builds total, 2 x 2h = 4h <= the 24h D-10 promise, 20h of margin | node tools/archive-sync.mjs request-full --reason "..."`**
+
+#### Task 1 — the forced run, observed on the real platform
+
+**Route: option-a** (05-09's own choice — the archive tier serves persistently; 05-10 runs against
+the next real production build rather than racing a 2-hourly rebuild).
+
+**Before state** (this session, 2026-10-01T17:17Z, read directly off the real `915tldr-archive`
+bucket before writing the marker): archive index held **30,498 entries**; 3 sampled keys'
+`headObject` sha256 — `articles/0000e250-e1d1-431c-b2dc-bad7dc7404ce.html` →
+`36d60a0c1807…b31e6`, `tags/operation-metro-surge.html` → `4edd2e72b6c2…7fd9b9`,
+`tags/school-conditions.html` → `09abfd2bf4e9…836991`; `_meta/archive-state.json` reported
+`backlogCount: 0` (converged); no force-full marker present.
+
+**Marker written:** `set -a; . ./.dev.vars; set +a; node tools/archive-sync.mjs request-full
+--reason "REND-12 measurement (05-10)"` at **2026-10-01T17:17:49.235Z** — well inside the 17:55
+UTC deadline for the next production build to pick it up (v1's ingest cron runs on even UTC
+hours and only POSTs the deploy hook if public articles changed).
+
+**The forced build:** Workers Builds production build `2a6f02f5-972e-4959-b2a4-e814090bb5a1`
+(branch `main`, trigger `deploy_hook`), log pulled by the orchestrator (this executor's own
+token still returns `403`/`12004` against the Workers Builds log API — retried live this
+session, same gap 05-09 disclosed, not yet closed) and committed as evidence at
+[`docs/phase-05/evidence/forced-full-reupload/build-2a6f02f5-forced-full.log`](./evidence/forced-full-reupload/build-2a6f02f5-forced-full.log):
+
+```
+created   2026-10-01T18:06:11.972Z
+stopped   2026-10-01T18:18:19.949Z   -> total wall time 727.977s (12m08s)
+
+[archive] partition: 12912 articles and 17589 tags archived; 27612 articles and 2328 tags static
+[archive] static files: 29977 / 100000 (fail at 80000)
+ARCHIVE_SYNC_RESULT {"phase":"pre","uploaded":3,"failed":0,"deferred":0,"movedBack":0,"deleted":0,"backlog":null,...}
+Current Version ID: c7bec43a-a15b-40a4-8232-1253d515c736
+ARCHIVE_SYNC_RESULT {"phase":"post","uploaded":30501,"failed":0,"deferred":0,"movedBack":0,"deleted":0,"backlog":{"count":0,"since":null},"alerts":[],"dailyReport":{"due":false},"disabled":false}
+```
+
+**Phase breakdown (derived from the log's own epoch-ms timestamps):**
+
+| Phase | Window | Duration |
+|---|---|---|
+| Render (`astro build` + partition; build cache **restored**, so this was a *warm*-cache render, not a cold one) | `ci-build build` start (18:06:45.895Z) -> `Build command completed` (18:08:29.987Z) | 104.09s |
+| Deploy (archive-sync `pre`, 3 new-to-archive uploads, + `wrangler deploy`, 41/29,989 changed files) | deploy step start (18:08:30.687Z) -> `Current Version ID` (18:08:52.468Z) | 21.78s |
+| **Forced re-upload (archive-sync `post`, force-full)** | `Current Version ID` (18:08:52.468Z) -> `ARCHIVE_SYNC_RESULT(post)` (18:18:10.673Z) | **558.2s**, **30,501 uploaded, 0 failed, 0 deferred, 0 deleted** |
+| Total | created -> stopped | 727.98s (well under the 20-min/1200s hard ceiling; the 1020s *post* deadline governs only the forced-re-upload phase, measured from the build's own start, and this run finished at 558.2s into a window that had the full 1020s available since render was warm this time) |
+
+**Throughput:** 30,501 / 558.205s = **54.64 objects/sec**.
+
+**Convergence:** confirmed directly via R2 (independent cross-check, matching the build log
+exactly): the force-full marker was cleared and `_meta/archive-state.json` reported
+`backlogCount: 0` at **2026-10-01T18:18:09.487Z** — within 1.2s of the build log's own `post`
+result line. **Converged within the single observed build — no second build was needed for
+THIS run** (today's corpus fit inside the available budget only because this particular build's
+render was warm, leaving the full 1020s post-deadline window open to the re-upload; see the
+worst-case arithmetic below for what happens when render is cold).
+
+**No-404-window held throughout:** `/tag/raf` (a previously-cached archived page) answered 200
+mid-re-upload (18:11:17Z). Two never-recently-requested archived pages, re-checked after
+convergence, both answered 200 via a genuine R2 read (not edge cache): `/tag/outlets` ->
+`Server-Timing: archive;desc=r2, r2;dur=139`; `/tag/carrington-event` -> `r2;dur=131`.
+
+**Byte-identity:** the same 3 sampled keys, re-checked after convergence, reported **identical**
+sha256/size to the before-state (`36d60a0c1807…b31e6`, `4edd2e72b6c2…7fd9b9`,
+`09abfd2bf4e9…836991`) — the forced re-upload re-sent the same bytes, as expected (nothing in
+this build's own content actually changed for those 3 pages; the index grew from 30,498 to
+30,501 entries from ordinary ingest drift, not from the force-full itself).
+
+#### Task 2 — the REND-12 verdict, computed honestly against the real ceilings
+
+**This run's own render was warm (build-cache restored), NOT the cold case REND-12 has to survive.**
+The worst case the must_haves ask for is a **cold** render (when the archive tier's content
+genuinely changes — e.g. a template/redesign ship, D-10's own trigger for `request-full`) landing
+on the SAME build as the forced re-upload. Using this run's own 558.2s/54.64 obj/s number as if it
+proved the cold case fits would be exactly the premise error CLAUDE.md warns against — a warm
+render leaves the *entire* 1020s post-deadline window open to the re-upload; a cold render eats
+most of it first.
+
+**Worst-case arithmetic (today's corpus, 30,501 archived pages):**
+
+| Term | Value | Source |
+|---|---|---|
+| Cold render | **649s** | Phase 4 Build 1 (`docs/phase-04/build-measurements.md`), `WB_COLD_FITS` — the hook-POST-to-deployed-version total for a genuinely cold, first-ever build; carried forward as this project's own established "cold build" figure (also cited this way in "Which ceiling governs REND-12" above) |
+| Deploy | **21.04s** | 05-09's own build `241c97e1` — archive-sync `pre` + `wrangler deploy` combined (`Build command completed` 1790868166538 -> `Current Version ID` 1790868187581), post-archive-split and post-04-11a `BUILD_HASH` fix, so representative of today's static-deploy cost, not Phase 4's inflated pre-fix figure |
+| Full re-upload throughput | **54.64 obj/s** | this plan's own measured `post` result above (30,501 / 558.205s) |
+
+Remaining post-deadline budget once render + deploy are paid: `1020 - 649 - 21.04 = 349.96s`.
+Objects uploadable in that window: `54.64 x 349.96 = ~19,121`.
+
+**30,501 > 19,121 -> the whole re-upload does NOT fit in one build -> the single-build "fits" outcome is ruled out.**
+
+Builds to convergence (worst case — every build in the chain pays the SAME cold-render + deploy
+cost, the pessimistic assumption the must_haves ask for): `ceil(30,501 / 19,121) = 2`.
+- **Build 1:** 649 + 21.04 + 349.96 (post runs to its own deadline, uploading 19,121) = **1020.0s**
+  total — 180s of margin under the 1200s hard ceiling.
+- **Build 2:** remaining `30,501 - 19,121 = 11,380` objects; time needed = `11,380 / 54.64 =
+  208.3s`, well inside the same 349.96s budget — converges without hitting the deadline a second
+  time. Total build 2 time: `649 + 21.04 + 208.3 = 878.3s` — 321.7s of margin.
+
+**Every build in the chain stays under the 20-minute (1200s) hard ceiling. `2 builds x 2h
+(D-02's ingest-cron interval) = 4h <= the 24h D-10 promise`, with 20 hours of margin.**
+
+**Verdict: converges within the 24h D-10 promise (full verdict line above).**
+
+**Disclosed simplification:** Phase 4's 649s "cold render" figure is itself that build's own
+hook-POST-to-deployed-version total, which historically bundled a deploy sub-phase of its own
+(226s, inflated by the since-fixed `BUILD_HASH`-on-every-page bug, 04-11a). Adding 05-09's
+*separate*, post-fix 21.04s deploy figure on top of 649s risks a small double-count of "deploy"
+time. This is the literal formula the plan specifies (`649s cold render + deploy time from 05-09
++ full re-upload`), and it is the CONSERVATIVE direction (over-estimating total time makes the
+verdict harder to reach, not easier) — so it is used as given and disclosed here rather than
+silently adjusted. Re-measuring a real cold build against today's split-archive, post-fix
+codebase (not reusing Phase 4's pre-archive-tier figure) would sharpen this further; left as a
+follow-up, not blocking this verdict.
+
+#### Phase 6 projection (archived pages ~2x, same throughput) — flagged for owner review, not this plan's verdict
+
+Per the must_haves, the same arithmetic is run with archived pages doubled (`30,501 x 2 =
+61,002`) and the cold render scaled by the same corpus ratio (`649 x 2 = 1,298s`), throughput
+held at today's measured 54.64 obj/s (no basis yet to assume otherwise):
+
+- Cold render (**1,298s**) + deploy (21.04s) = **1,319.04s** — **this ALONE already exceeds the
+  1200s/20-minute Workers Builds hard ceiling**, before the re-upload phase even gets a chance to
+  run. A build whose render time alone exceeds the platform's hard timeout cannot complete at
+  all; Workers Builds would kill it mid-render.
+- Full re-upload at the same throughput: `61,002 / 54.64 = 1,116.2s`. Total single-build worst
+  case: `1,298 + 21.04 + 1,116.2 = 2,435.2s` (~40.6 min) — more than double the hard ceiling.
+
+**This is a provisional, linearly-scaled projection (the must_haves' own instruction: "cold
+render scaled by the corpus ratio"), not a verified re-measurement** — real cold-render time is
+dominated by D1 row count and page count, which may not scale 1:1 with the archived-page ratio
+alone. But even as a rough proxy, it says something today's measurement cannot: **the mechanism
+that lets today's corpus converge in 2 builds (chaining the ARCHIVE-SYNC re-upload across
+builds) does nothing to help if the RENDER step itself can no longer complete within one build's
+20-minute ceiling** — that is a different, more structural problem than REND-12 as scoped for
+this phase, and this plan does not attempt to solve it. **Flagged for owner review before Phase
+6 ships**, same disclosure pattern as 05-05's hot-window file-budget cap and 05-11's LCP finding:
+measure a real cold build against Phase 6's actual corpus size before relying on the current
+2-hourly-chained-build mechanism to still converge within 24 hours.
+
+#### Criterion 5 reinterpretation
+
+ROADMAP.md's Phase 5 success criterion 5 reads "no single Worker invocation exceeding the 300s
+CPU ceiling." That figure is the HTTP Worker's `limits.cpu_ms` maximum
+(`docs/phase-03/measurements.md` §3) — the ceiling on a single deployed-Worker *request*, not on
+a build. **The archive re-render this plan measures involves no Worker invocation at all**: it
+runs entirely inside the Workers Builds build container (`tools/archive-sync.mjs`, a Node CLI
+step in the same build that already renders the static site), governed instead by that
+container's own 20-minute wall-clock hard ceiling, with `PRE_DEADLINE_SECONDS`/
+`POST_DEADLINE_SECONDS` (840s/1020s) keeping every individual build comfortably inside it
+(confirmed again by this plan's own measured build: 727.98s total, 558.2s of that inside the
+post-deadline window). The chained-cron mechanism Phase 3 originally measured (~26-33 cycles,
+~2.7 days) is explicitly NOT what REND-12 relies on (RESEARCH Pitfall 2) — the archive re-render
+chains across Workers Builds BUILDS (2-hourly, per D-02's ingest cron), not cron-Worker
+invocations, and the convergence verdict above is the measured answer to criterion 5's
+intent under that corrected reading, not its literal (stale) wording.
 
 ---
 

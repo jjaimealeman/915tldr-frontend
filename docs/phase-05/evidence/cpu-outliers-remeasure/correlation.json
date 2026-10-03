@@ -1,0 +1,4 @@
+{
+  "coloPopulationCaveat": "samePathCount/samePathRank are TRUE full-window counts (fetched per-path via $workers.event.path eq, unaffected by the outlier-only fetch). firstInColoInWindow/gapSincePrevSameColoMs are NOT computed against the full per-colo population — every outlier here shares one colo that likely carries most of this window's ~8,477 invocations, and enumerating all of them is blocked by the verified 2000-row/no-cursor cap. Treat the colo fields as scoped to the known population (outliers + their paths' full history) only, not as a true \"first ever at this colo\" claim.",
+  "outliers": []
+}

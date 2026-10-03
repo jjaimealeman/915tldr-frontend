@@ -1,0 +1,69 @@
+{
+  "window": {
+    "from": "2026-10-01T20:34:05.536Z",
+    "to": "2026-10-01T21:16:29.049Z"
+  },
+  "totalFromCountQuery": 8477,
+  "total": 5,
+  "overBudget": 5,
+  "overHardFail": 4,
+  "p99Ms": 49,
+  "maxMs": 49,
+  "outliers": [
+    {
+      "timestamp": 1790887175065,
+      "path": "/business/airbnb-market-trends-booms-and-collapses-across-the-us-07f79f20-74c6-45a4-826c-fce5448c789d",
+      "status": 200,
+      "cpuTimeMs": 49,
+      "wallTimeMs": 64,
+      "scriptVersion": "e3de22ab-f30d-4d36-a21e-59f57aaa62f4",
+      "colo": "LAX",
+      "outcome": "ok",
+      "requestId": "97fdbb40bff2559e7807590be2e8d3fb"
+    },
+    {
+      "timestamp": 1790888994994,
+      "path": "/politics/new-mexico-republicans-push-for-juvenile-justice-reform-ahead-of-2026-session-311ed73b-0319-47ad-8d2c-847abec73d93",
+      "status": 200,
+      "cpuTimeMs": 40,
+      "wallTimeMs": 249,
+      "scriptVersion": "e3de22ab-f30d-4d36-a21e-59f57aaa62f4",
+      "colo": "LAX",
+      "outcome": "ok",
+      "requestId": "e8864f1021e045582bad201cc91f3ecc"
+    },
+    {
+      "timestamp": 1790887428459,
+      "path": "/business/wall-street-faces-decline-amid-weak-job-data-and-ai-concerns-06574fa7-eca9-4fcd-8d74-8736b915f9c0",
+      "status": 200,
+      "cpuTimeMs": 37,
+      "wallTimeMs": 44,
+      "scriptVersion": "e3de22ab-f30d-4d36-a21e-59f57aaa62f4",
+      "colo": "LAX",
+      "outcome": "ok",
+      "requestId": "1e4dff456d4b4622576f0b2ae8da44a7"
+    },
+    {
+      "timestamp": 1790889231258,
+      "path": "/business/wall-street-faces-decline-amid-weak-job-data-and-ai-concerns-06574fa7-eca9-4fcd-8d74-8736b915f9c0",
+      "status": 200,
+      "cpuTimeMs": 26,
+      "wallTimeMs": 35,
+      "scriptVersion": "e3de22ab-f30d-4d36-a21e-59f57aaa62f4",
+      "colo": "LAX",
+      "outcome": "ok",
+      "requestId": "ce3270db2def79a208e84c9dd6be8cbc"
+    },
+    {
+      "timestamp": 1790886848355,
+      "path": "/business/implications-of-paramounts-merger-on-cnns-editorial-independence-0000e250-e1d1-431c-b2dc-bad7dc7404ce",
+      "status": 200,
+      "cpuTimeMs": 7,
+      "wallTimeMs": 333,
+      "scriptVersion": "e3de22ab-f30d-4d36-a21e-59f57aaa62f4",
+      "colo": "LAX",
+      "outcome": "ok",
+      "requestId": "53f96927f54d99700d924885cbfd2a72"
+    }
+  ]
+}

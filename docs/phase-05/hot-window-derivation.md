@@ -247,3 +247,70 @@ A failed, interrupted, or saturated run throws before writing anything — the p
 `hot-window.json` is left byte-identical (`writeHotWindowAtomic`'s temp-file-plus-rename design).
 Two runs over the same 30-day window produce the same result, since the derivation is a pure
 function of the live traffic data and the build's own tier facts at the time it runs.
+
+## Re-derivation capability (05-15, 2026-10-02)
+
+**The bug (WR-08):** since 05-06, every `pnpm run build` + `tools/partition-archive.mjs` moves
+archive-tier pages OUT of `dist/client` into `dist/archive`. `countOtherFiles` kept walking
+`dist/client` alone, so on the current partitioned tree it computed `walk(dist/client) - all
+article facts - all tag facts`, undercounting by exactly the number of archived pages. 05-REVIEW
+reproduced this live as **-30,467**; the phase verifier independently reproduced the same failure
+and flagged it as a blocking gap (05-VERIFICATION.md gap 3) — any real (non-`--probe-day`) run of
+this tool threw `deriveHotWindow requires a non-negative integer deps.otherFiles` before doing
+anything. D-07b's re-derivation capability was broken.
+
+**The fix:** `countOtherFiles(distDir, facts, archiveDir)` now counts files under BOTH trees
+(`archiveDir` defaults to `DEFAULT_DIST_ARCHIVE`, re-exported from `tools/partition-archive.mjs`'s
+own `ARCHIVE_DIR`) and subtracts the article/tag fact counts from the combined total — a page is
+counted exactly once no matter which tree currently holds it, including mid-move-back. A negative
+result now throws a `derive-hot-window:` error naming all four counts instead of silently reaching
+`deriveHotWindow` as a negative number. Pinned with 5 regression tests (partitioned tree,
+moved-back page, unpartitioned tree, negative guard, the `DEFAULT_DIST_ARCHIVE` constant).
+
+**Measured otherFiles, this build:** `dist/client` 29,867 files + `dist/archive` 30,713 files −
+40,585 article facts − 19,958 tag facts = **37** (05-05 originally recorded 36 on an unpartitioned
+build; the current build's own counts land one higher, both well within the expected small
+non-negative range — not the thousands a facts/build mismatch would produce).
+
+**The command run (preview only, no `--write`):**
+
+```bash
+set -a; . ./.dev.vars; set +a
+node tools/derive-hot-window.mjs --json --evidence docs/phase-05/evidence/hot-window-rederive-20261002 \
+  > .wrangler/rederive-05-15.json
+```
+
+Exited 0. Stdout's first line:
+
+```
+[derive-hot-window] preview (pass --write to commit): [archive] hot window: derived from 2026-09-02 to 2026-10-01, 202 days, 79% coverage (D-07b)
+```
+
+**Preview result** (window 2026-09-02 to 2026-10-01, the 30 UTC days ending the day before this
+run):
+
+| Field | Value |
+|---|---|
+| `days` | 202 |
+| `cappedByFileBudget` | `true` |
+| `uncappedDays` | 261 |
+| `coverageTarget` | 0.95 |
+| `achievedCoverage` (at 202 days) | 0.7859 (78.6%) |
+| `uncappedCoverage` (at 261 days) | 0.9520 (95.2%) |
+| `articleRequestsCounted` | 44,515 |
+
+The preview's `days` (202) is **identical** to the in-force value — the 60,000-file post-Phase-6
+budget still caps the window at exactly 202 days with today's `otherFiles` (37, versus the
+original derivation's 36). The achieved-coverage figure at 202 days reads lower this time (78.6%
+vs. the original 92.7%) because the uncapped cutoff needed to hit 95% coverage grew to 261 days
+(this 30-day sample's traffic skews slightly more toward older articles than the original
+sample); offered for the owner's information only, since the governing constraint at 202 days is
+still the file budget, not the coverage target, exactly as the original derivation's "Cap
+arithmetic" section above already established.
+
+`src/lib/archive/hot-window.json` sha256 before and after this run, confirmed identical:
+`47f20eb5ac8237195a6ad139f448b716ca7f449b10c01a7bd3c74311798e1fcf`. `git diff --exit-code
+src/lib/archive/hot-window.json` exits 0.
+
+**Preview only — not written. The owner-approved 202-day window (2026-10-01) stays in force;
+adopting a different value requires an owner decision and a `--write` run.**

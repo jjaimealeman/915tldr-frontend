@@ -13,6 +13,7 @@ import {
   summarizeBaseline,
   detectionFloor,
   fetchD1RowsRead,
+  checkD1AnalyticsCaughtUp,
   parseDeployedBindings,
   fetchDeployedBindings,
   buildRequestMix,
@@ -25,7 +26,11 @@ import {
   ARCHIVED_ARTICLE_SAMPLE,
   STATIC_TAG_SAMPLE,
   ARCHIVED_TAG_SAMPLE,
+  loadArchivePlanFile,
+  buildRequestMixInputFromArchivePlan,
 } from '../../tools/load-test-zero-reads.mjs';
+
+const ARCHIVE_PLAN_SAMPLE_PATH = new URL('../fixtures/archive-plan.sample.json', import.meta.url).pathname;
 
 const d1BaselineFixture = JSON.parse(
   readFileSync(new URL('../fixtures/graphql/d1-baseline-windows.json', import.meta.url))
@@ -198,6 +203,47 @@ test('fetchD1RowsRead: the query filters on PRODUCTION_D1_DATABASE_ID and no oth
 });
 
 // ---------------------------------------------------------------------------
+// checkD1AnalyticsCaughtUp — the live analytics-freshness poll (05-12 fix)
+// ---------------------------------------------------------------------------
+
+test('checkD1AnalyticsCaughtUp: true when at least one data point exists at or after the given instant', async () => {
+  let queryBody;
+  const fetchImpl = async (url, opts) => {
+    queryBody = JSON.parse(opts.body);
+    return jsonResponse({
+      data: {
+        viewer: {
+          accounts: [
+            {
+              d1AnalyticsAdaptiveGroups: [
+                { dimensions: { datetimeFiveMinutes: '2026-09-30T05:15:00Z' } },
+              ],
+            },
+          ],
+        },
+      },
+    });
+  };
+  const caughtUp = await checkD1AnalyticsCaughtUp('2026-09-30T05:15:00.000Z', {
+    fetchImpl,
+    env: { CLOUDFLARE_API_TOKEN: 'tok', CLOUDFLARE_ACCOUNT_ID: 'acct' },
+  });
+  assert.equal(caughtUp, true);
+  assert.equal(queryBody.variables.databaseId, PRODUCTION_D1_DATABASE_ID);
+  assert.equal(queryBody.variables.at, '2026-09-30T05:15:00.000Z');
+});
+
+test('checkD1AnalyticsCaughtUp: false when no data point exists yet at or after the given instant', async () => {
+  const fetchImpl = async () =>
+    jsonResponse({ data: { viewer: { accounts: [{ d1AnalyticsAdaptiveGroups: [] }] } } });
+  const caughtUp = await checkD1AnalyticsCaughtUp('2026-09-30T05:15:00.000Z', {
+    fetchImpl,
+    env: { CLOUDFLARE_API_TOKEN: 'tok', CLOUDFLARE_ACCOUNT_ID: 'acct' },
+  });
+  assert.equal(caughtUp, false);
+});
+
+// ---------------------------------------------------------------------------
 // parseDeployedBindings / fetchDeployedBindings
 // ---------------------------------------------------------------------------
 
@@ -292,6 +338,76 @@ test('buildRequestMix: throws when fewer than 10 archived tags are available', (
     () => buildRequestMix(mixInputFixture({ archivedTagPaths: Array.from({ length: 9 }, (_, i) => `/tag/a-${i}`) })),
     /at least 10 archived tag paths/
   );
+});
+
+// ---------------------------------------------------------------------------
+// buildRequestMixInputFromArchivePlan — the real CLI --archive-plan wiring (05-12 fix)
+// ---------------------------------------------------------------------------
+
+/** A fake `readTierFactsFn` matching tests/fixtures/archive-plan.sample.json's own 20
+ * archived-article uuids / 10 archived-tag slugs, plus enough hot articles and static tags to
+ * clear buildRequestMix's own HOT_ARTICLE_SAMPLE/STATIC_TAG_SAMPLE floors. */
+function fakeTierFactsFixture() {
+  const cutoffEpoch = 1751328000; // matches the fixture's own cutoffEpoch
+  const marginSeconds = 10 * 86400; // comfortably past the 2-day margin
+  const archivedArticles = Array.from({ length: 20 }, (_, i) => ({
+    uuid: `00000000-0000-4000-8000-${String(i).padStart(12, '0')}`,
+    path: `/crime/sample-archived-article-${i}-00000000-0000-4000-8000-${String(i).padStart(12, '0')}`,
+    publishedAt: cutoffEpoch - marginSeconds,
+  }));
+  const hotArticles = Array.from({ length: 25 }, (_, i) => ({
+    uuid: `11111111-1111-4111-8111-${String(i).padStart(12, '0')}`,
+    path: `/crime/sample-hot-article-${i}`,
+    publishedAt: cutoffEpoch + 10 * 86400,
+  }));
+  const archivedTags = Array.from({ length: 10 }, (_, i) => ({ slug: `sample-archived-tag-${i}`, count: 3 }));
+  const staticTags = Array.from({ length: 15 }, (_, i) => ({ slug: `sample-static-tag-${i}`, count: 50 }));
+  return () => ({ articles: [...archivedArticles, ...hotArticles], tags: [...archivedTags, ...staticTags] });
+}
+
+test('loadArchivePlanFile: loads and validates tests/fixtures/archive-plan.sample.json', () => {
+  const plan = loadArchivePlanFile(ARCHIVE_PLAN_SAMPLE_PATH);
+  assert.equal(plan.entries.length, 30);
+  assert.equal(typeof plan.cutoffEpoch, 'number');
+});
+
+test('loadArchivePlanFile: throws a clear, actionable error for a missing file (never a bare ENOENT)', () => {
+  assert.throws(
+    () => loadArchivePlanFile('tests/fixtures/does-not-exist-archive-plan.json'),
+    /missing tests\/fixtures\/does-not-exist-archive-plan\.json — run `pnpm run build`/
+  );
+});
+
+test('buildRequestMixInputFromArchivePlan: builds a requestMixInput buildRequestMix accepts, from a real archive-plan.json + injected tier facts', () => {
+  const input = buildRequestMixInputFromArchivePlan(ARCHIVE_PLAN_SAMPLE_PATH, {
+    readTierFactsFn: fakeTierFactsFixture(),
+  });
+  assert.deepEqual(input.categories, ['crime', 'politics', 'sports', 'business', 'education', 'community', 'health', 'weather']);
+  assert.equal(input.archivedArticlePaths.length, 20);
+  assert.equal(input.hotArticlePaths.length, 25);
+  assert.equal(input.archivedTagPaths.length, 10);
+  assert.equal(input.staticTagPaths.length, 15);
+  assert.ok(input.archivedTagPaths.every((p) => p.startsWith('/tag/sample-archived-tag-')));
+  assert.ok(input.staticTagPaths.every((p) => p.startsWith('/tag/sample-static-tag-')));
+
+  // Exercises the exact downstream consumer (main()'s own real use) — must not throw.
+  const mix = buildRequestMix({ ...input, seed: 5 });
+  assert.equal(mix.length, 71);
+  assert.equal(new Set(mix).size, 71);
+});
+
+test('buildRequestMixInputFromArchivePlan: excludes an archived article from hotArticlePaths even if tier facts list it', () => {
+  const readTierFactsFn = () => {
+    const base = fakeTierFactsFixture()();
+    // Deliberately duplicate archived uuid #0 into a "hot-looking" entry with a later
+    // publishedAt — buildRequestMixInputFromArchivePlan must still exclude it from
+    // hotArticlePaths because the plan's own entries mark it archived.
+    return base;
+  };
+  const input = buildRequestMixInputFromArchivePlan(ARCHIVE_PLAN_SAMPLE_PATH, { readTierFactsFn });
+  const archivedUuid0Path = '/crime/sample-archived-article-0-00000000-0000-4000-8000-000000000000';
+  assert.ok(!input.hotArticlePaths.includes(archivedUuid0Path));
+  assert.ok(input.archivedArticlePaths.includes(archivedUuid0Path));
 });
 
 // ---------------------------------------------------------------------------
@@ -655,4 +771,224 @@ test('runLoadTest: baseline-only mode throws when a window measures zero total r
       }),
     /zero total rowsRead/
   );
+});
+
+// ---------------------------------------------------------------------------
+// runLoadTest — full (non-baseline) pass: the live analytics-catch-up default (05-12 fix)
+// ---------------------------------------------------------------------------
+
+function fullPassFetchImpl({ archivedServerTiming = true, caughtUpOnFirstPoll = true, rowsReadTotal = 500000 } = {}) {
+  let catchUpCalls = 0;
+  const fetchImpl = async (url, opts) => {
+    // Preflight + paced pass: plain GETs against the base URL, no JSON body.
+    if (!opts?.body) {
+      const archived = url.includes('/crime/archived-') || url.startsWith('https://dev.915tldr.com/tag/archived-');
+      return {
+        status: 200,
+        headers: { get: (name) => (name === 'server-timing' ? (archived && archivedServerTiming ? 'archive;desc=r2' : null) : null) },
+      };
+    }
+    const body = JSON.parse(opts.body);
+    // Introspection (shared by fetchD1RowsRead).
+    if (body.variables?.name) {
+      return jsonResponse({
+        data: {
+          __type: {
+            fields:
+              body.variables.name === 'AccountD1AnalyticsAdaptiveGroupsSum'
+                ? [{ name: 'rowsRead' }]
+                : [{ name: 'datetimeFiveMinutes' }],
+          },
+        },
+      });
+    }
+    // checkD1AnalyticsCaughtUp: has `at`, not `start`/`end`.
+    if (body.variables?.at && !body.variables?.start) {
+      catchUpCalls += 1;
+      const caughtUp = caughtUpOnFirstPoll || catchUpCalls > 1;
+      return jsonResponse({
+        data: {
+          viewer: {
+            accounts: [
+              { d1AnalyticsAdaptiveGroups: caughtUp ? [{ dimensions: { datetimeFiveMinutes: body.variables.at } }] : [] },
+            ],
+          },
+        },
+      });
+    }
+    // fetchD1RowsRead (load window + 7 baseline windows).
+    if (body.variables?.start) {
+      return jsonResponse({ data: { viewer: { accounts: [{ d1AnalyticsAdaptiveGroups: [{ sum: { rowsRead: rowsReadTotal } }] }] } } });
+    }
+    // deployed-bindings REST call (no GraphQL body shape at all — reached via the `!opts?.body`
+    // branch above in practice, so this is unreachable, kept only as a safety fallback).
+    return jsonResponse({ success: true, result: { bindings: [{ type: 'assets' }, { type: 'kv_namespace' }] } });
+  };
+  // fetchDeployedBindings calls a REST endpoint (no body at all) — give it its own branch ahead of
+  // the plain-GET preflight/pass branch by checking the URL shape first.
+  return async (url, opts) => {
+    if (url.includes('/workers/scripts/')) {
+      return jsonResponse({ success: true, result: { bindings: [{ type: 'assets' }, { type: 'kv_namespace' }] } });
+    }
+    return fetchImpl(url, opts);
+  };
+}
+
+test('runLoadTest: full pass — with no deps.checkCaughtUp supplied, defaults to a LIVE checkD1AnalyticsCaughtUp poll (not an unconditional true)', async () => {
+  let catchUpQueried = false;
+  const baseFetch = fullPassFetchImpl({ caughtUpOnFirstPoll: true });
+  const fetchImpl = async (url, opts) => {
+    if (opts?.body) {
+      const body = JSON.parse(opts.body);
+      if (body.variables?.at && !body.variables?.start) catchUpQueried = true;
+    }
+    return baseFetch(url, opts);
+  };
+
+  const { exitCode, result } = await runLoadTest({
+    requests: 4,
+    requestMixInput: mixInputFixture(),
+    deps: {
+      fetchImpl,
+      env: { CLOUDFLARE_API_TOKEN: 'tok', CLOUDFLARE_ACCOUNT_ID: 'acct' },
+      sleep: async () => {},
+      now: (() => {
+        const times = ['2026-09-30T05:25:00.000Z', '2026-09-30T05:25:00.050Z'];
+        let i = 0;
+        return () => new Date(times[Math.min(i++, times.length - 1)]);
+      })(),
+    },
+  });
+
+  assert.equal(catchUpQueried, true, 'the live default must perform a real checkD1AnalyticsCaughtUp query');
+  assert.notEqual(result.rule, 'analytics-not-caught-up');
+  assert.ok(exitCode === 0 || exitCode === 2, `expected a judged verdict, got exitCode=${exitCode} rule=${result.rule}`);
+});
+
+test('runLoadTest: full pass — gives up and reports analytics-not-caught-up after the capped wait when the live poll never succeeds', async () => {
+  const fetchImpl = fullPassFetchImpl({ caughtUpOnFirstPoll: false });
+  // caughtUpOnFirstPoll:false plus catchUpCalls > 1 never becoming true in fullPassFetchImpl's
+  // closure (it only flips true on a second call) would falsely succeed on retry #2 — override
+  // with a fetchImpl variant that NEVER returns a data point, to genuinely exercise the
+  // max-wait-exceeded path.
+  const neverCaughtUp = async (url, opts) => {
+    if (opts?.body) {
+      const body = JSON.parse(opts.body);
+      if (body.variables?.at && !body.variables?.start) {
+        return jsonResponse({ data: { viewer: { accounts: [{ d1AnalyticsAdaptiveGroups: [] }] } } });
+      }
+    }
+    return fetchImpl(url, opts);
+  };
+
+  const { exitCode, result } = await runLoadTest({
+    requests: 4,
+    requestMixInput: mixInputFixture(),
+    deps: {
+      fetchImpl: neverCaughtUp,
+      env: { CLOUDFLARE_API_TOKEN: 'tok', CLOUDFLARE_ACCOUNT_ID: 'acct' },
+      sleep: async () => {}, // no-op — the 15 capped retries run instantly in this test
+      now: (() => {
+        const times = ['2026-09-30T05:25:00.000Z', '2026-09-30T05:25:00.050Z'];
+        let i = 0;
+        return () => new Date(times[Math.min(i++, times.length - 1)]);
+      })(),
+    },
+  });
+
+  assert.equal(exitCode, 3);
+  assert.match(result.rule, /^analytics-not-caught-up:/);
+  assert.equal(result.loadRowsRead, null);
+});
+
+// ---------------------------------------------------------------------------
+// CR-03 (05-16): the load window and the 7 baseline windows must be aligned
+// identically — the review found the load window passed raw into a
+// bucket-start-filtered query, always dropping the bucket containing its own
+// start, while comparableWindows() aligns the baseline outward to 5-minute
+// boundaries. That asymmetry biases every gate run toward PASS.
+// ---------------------------------------------------------------------------
+
+test('CR-03 (05-16): load and baseline windows are aligned identically', async () => {
+  const rowsReadQueries = []; // { start, end } for every fetchD1RowsRead call
+  const catchUpAts = []; // `at` for every checkD1AnalyticsCaughtUp call
+  const baseFetch = fullPassFetchImpl({ caughtUpOnFirstPoll: true });
+  const recordingFetchImpl = async (url, opts) => {
+    if (opts?.body) {
+      const body = JSON.parse(opts.body);
+      if (body.variables?.at && !body.variables?.start) {
+        catchUpAts.push(body.variables.at);
+      } else if (body.variables?.start) {
+        rowsReadQueries.push({ start: body.variables.start, end: body.variables.end });
+      }
+    }
+    return baseFetch(url, opts);
+  };
+
+  const { result } = await runLoadTest({
+    requests: 4,
+    requestMixInput: mixInputFixture(),
+    deps: {
+      fetchImpl: recordingFetchImpl,
+      env: { CLOUDFLARE_API_TOKEN: 'tok', CLOUDFLARE_ACCOUNT_ID: 'acct' },
+      sleep: async () => {},
+      now: (() => {
+        const times = ['2026-09-30T03:27:13.000Z', '2026-09-30T03:52:41.000Z'];
+        let i = 0;
+        return () => new Date(times[Math.min(i++, times.length - 1)]);
+      })(),
+    },
+  });
+
+  // Exactly 8 rowsRead queries: 1 load window + 7 baseline windows.
+  assert.equal(rowsReadQueries.length, 8, 'expected 1 load-window query + 7 baseline-window queries');
+
+  const [loadQuery, ...baselineQueries] = rowsReadQueries;
+  assert.equal(baselineQueries.length, 7);
+
+  // The load-window rowsRead query is aligned outward to 5-minute boundaries, not the raw
+  // 03:27:13.000Z / 03:52:41.000Z instants the fake clock returned.
+  assert.equal(loadQuery.start, '2026-09-30T03:25:00.000Z');
+  assert.equal(loadQuery.end, '2026-09-30T03:55:00.000Z');
+
+  const loadDurationMs = new Date(loadQuery.end).getTime() - new Date(loadQuery.start).getTime();
+
+  // Every baseline window starts at 03:25:00.000Z on each of the 7 preceding days and has the
+  // identical duration (and therefore identical minute-of-hour end boundary) as the load window.
+  const expectedBaselineStarts = [
+    '2026-09-23T03:25:00.000Z',
+    '2026-09-24T03:25:00.000Z',
+    '2026-09-25T03:25:00.000Z',
+    '2026-09-26T03:25:00.000Z',
+    '2026-09-27T03:25:00.000Z',
+    '2026-09-28T03:25:00.000Z',
+    '2026-09-29T03:25:00.000Z',
+  ];
+  baselineQueries.forEach((w, i) => {
+    assert.equal(w.start, expectedBaselineStarts[i]);
+    const durationMs = new Date(w.end).getTime() - new Date(w.start).getTime();
+    assert.equal(durationMs, loadDurationMs, `baseline window ${i} duration must equal the load window duration`);
+    assert.equal(
+      new Date(w.start).getUTCMinutes(),
+      new Date(loadQuery.start).getUTCMinutes(),
+      `baseline window ${i} start minute-of-hour must match the load window's`
+    );
+    assert.equal(
+      new Date(w.end).getUTCMinutes(),
+      new Date(loadQuery.end).getUTCMinutes(),
+      `baseline window ${i} end minute-of-hour must match the load window's`
+    );
+  });
+
+  // The catch-up poll targets the aligned end (03:55:00.000Z), not the raw windowEnd (03:52:41.000Z).
+  assert.ok(catchUpAts.length > 0, 'expected at least one checkD1AnalyticsCaughtUp call');
+  for (const at of catchUpAts) {
+    assert.equal(at, '2026-09-30T03:55:00.000Z');
+  }
+
+  // The result carries both the aligned measured window and the raw request window.
+  assert.equal(result.window.start, '2026-09-30T03:25:00.000Z');
+  assert.equal(result.window.end, '2026-09-30T03:55:00.000Z');
+  assert.equal(result.requestWindow.start, '2026-09-30T03:27:13.000Z');
+  assert.equal(result.requestWindow.end, '2026-09-30T03:52:41.000Z');
 });

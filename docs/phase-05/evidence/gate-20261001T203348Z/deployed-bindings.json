@@ -1,0 +1,8 @@
+{
+  "bindingTypes": [
+    "r2_bucket",
+    "assets",
+    "kv_namespace"
+  ],
+  "hasD1Binding": false
+}

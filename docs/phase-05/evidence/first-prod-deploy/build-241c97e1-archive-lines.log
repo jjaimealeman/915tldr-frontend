@@ -1,0 +1,18 @@
+# Workers Builds production build 241c97e1-7935-4275-848a-f6bd3f7dd67c (915tldr-v2, branch main, commit 57dfa94)
+# Pulled by the orchestrator 2026-10-01 ~10:05 MDT via Cloudflare API GET /accounts/{acct}/builds/builds/{uuid}/logs
+# (60,605 log lines total; filtered to archive/file-count/deploy lines; first column = epoch ms)
+1790867656923 $ pnpm run guard:config && pnpm run test:build-gate && node tools/partition-archive.mjs --clean && astro build && node tools/partition-archive.mjs && node tools/assert-file-count.mjs
+1790867659034 [archive] partition: clean — removed stale tier facts, dist/archive and the plan
+1790867840030 [archive] hot window: derived from 2026-09-01 to 2026-09-30, 202 days, 93% coverage (D-07b)
+1790868165678 [archive] partition: 12912 articles and 17582 tags archived; 27601 articles and 2328 tags static
+1790868165678 [archive] hot window: derived from 2026-09-01 to 2026-09-30, 202 days, 93% coverage (D-07b)
+1790868166341 [archive] static files: 29966 / 100000 (fail at 80000)
+1790868166538 Success: Build command completed
+1790868170383 ARCHIVE_SYNC_RESULT {"phase":"pre","uploaded":19,"failed":0,"deferred":0,"movedBack":0,"deleted":0,"backlog":null,"alerts":[],"dailyReport":null,"disabled":false}
+1790868171039 [archive] static files: 29966 / 100000 (fail at 80000)
+1790868183799 Total Upload: 8.34 KiB / gzip: 2.64 KiB
+1790868185870 Uploaded 915tldr-v2 (12.16 sec)
+1790868187581 Deployed 915tldr-v2 triggers (1.71 sec)
+1790868187581 Current Version ID: 5d03fe4d-b763-4b18-bdc8-9d57a07e6741
+1790868199781 ARCHIVE_SYNC_RESULT {"phase":"post","uploaded":22,"failed":0,"deferred":0,"movedBack":0,"deleted":3,"backlog":{"count":0,"since":null},"alerts":[],"dailyReport":{"due":false},"disabled":false}
+1790868210334 Success: Build output uploaded to build cache.

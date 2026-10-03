@@ -9,12 +9,16 @@
 
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
+import { resolve } from 'node:path';
 import {
   runCi,
   classifyFailure,
   redact,
   toHeaderSafe,
   parseArchiveSyncResult,
+  isPerPageBuildLine,
+  createPageLineFilter,
 } from '../../tools/ci-build.mjs';
 
 const EIGHTEEN_MINUTES_MS = 18 * 60 * 1000;
@@ -32,6 +36,18 @@ function noopTimer() {
 }
 function noopClear() {}
 function noopLog() {}
+
+// ---------------------------------------------------------------------------
+// CR-02 (05-20): package.json contract — deploy routed through ci-build.mjs,
+// never a bare wrangler deploy; guard:archive-synced script present
+// ---------------------------------------------------------------------------
+
+test('package.json (CR-02, 05-20): scripts.deploy routes through tools/ci-build.mjs deploy and never calls a bare wrangler deploy; guard:archive-synced is defined', () => {
+  const pkg = JSON.parse(readFileSync(resolve(process.cwd(), 'package.json'), 'utf8'));
+  assert.match(pkg.scripts.deploy, /tools\/ci-build\.mjs deploy/);
+  assert.doesNotMatch(pkg.scripts.deploy, /\bwrangler\s+deploy\b/);
+  assert.equal(pkg.scripts['guard:archive-synced'], 'node tools/assert-archive-synced.mjs');
+});
 
 // ---------------------------------------------------------------------------
 // classifyFailure
@@ -293,6 +309,7 @@ test('runCi: notification body is passed through redact (no raw token leaks)', a
 test('runCi step=build: WORKERS_CI set with no NTFY_TOPIC fails before spawning, message names NTFY_TOPIC', async () => {
   const spawnCalls = [];
   const logs = [];
+  const notifyCalls = [];
   const code = await runCi({
     step: 'build',
     env: { WORKERS_CI: '1' },
@@ -300,9 +317,9 @@ test('runCi step=build: WORKERS_CI set with no NTFY_TOPIC fails before spawning,
       spawnCalls.push(args);
       return { code: 0, tail: '' };
     },
-    notifyImpl: async () => {
-      throw new Error('notify must not be called — there is no topic to notify to');
-    },
+    // REND-11 follow-up (quick 261002-s2r): sendNotification's new try/catch would swallow a
+    // thrown-to-detect-a-call notifyImpl, silently hiding a regression. Record calls instead.
+    notifyImpl: async (a) => notifyCalls.push(a),
     setTimer: noopTimer,
     clearTimer: noopClear,
     log: (msg) => logs.push(msg),
@@ -310,6 +327,7 @@ test('runCi step=build: WORKERS_CI set with no NTFY_TOPIC fails before spawning,
 
   assert.notEqual(code, 0);
   assert.equal(spawnCalls.length, 0, 'nothing should be spawned before the preflight check passes');
+  assert.equal(notifyCalls.length, 0, 'notify must not be called — there is no topic to notify to');
   assert.ok(logs.some((l) => String(l).includes('NTFY_TOPIC')));
 });
 
@@ -336,13 +354,14 @@ test('runCi step=all: the same WORKERS_CI-without-NTFY_TOPIC preflight also appl
 
 test('runCi step=deploy: wrangler exit 0 calls commitImpl exactly once', async () => {
   const commitCalls = [];
+  const notifyCalls = [];
   const code = await runCi({
     step: 'deploy',
     env: {},
     spawnImpl: async () => ({ code: 0, tail: '' }),
-    notifyImpl: async () => {
-      throw new Error('notify must not be called on a successful deploy');
-    },
+    // REND-11 follow-up (quick 261002-s2r): see the note on the WORKERS_CI-without-NTFY_TOPIC
+    // test above — record calls rather than throw, so the new try/catch can't swallow detection.
+    notifyImpl: async (a) => notifyCalls.push(a),
     commitImpl: async (a) => commitCalls.push(a),
     setTimer: noopTimer,
     clearTimer: noopClear,
@@ -351,6 +370,7 @@ test('runCi step=deploy: wrangler exit 0 calls commitImpl exactly once', async (
 
   assert.equal(code, 0);
   assert.equal(commitCalls.length, 1);
+  assert.equal(notifyCalls.length, 0, 'notify must not be called on a successful deploy');
 });
 
 test('runCi step=deploy: wrangler exit 1 never calls commitImpl, and notifies', async () => {
@@ -544,13 +564,16 @@ function fakeArchiveSyncTail(phase, overrides = {}) {
   return `[archive-sync] ${phase}: ok\nARCHIVE_SYNC_RESULT ${JSON.stringify(base)}`;
 }
 
-test('runCi step=deploy: writes the build-start marker is NOT part of the deploy step (build-only), and spawns archive-sync pre, assert-file-count, wrangler deploy, commitImpl, then archive-sync post, in that order', async () => {
+test('runCi step=deploy: writes the build-start marker is NOT part of the deploy step (build-only), and spawns archive-sync pre, assert-file-count, assert-archive-synced, wrangler deploy, commitImpl, then archive-sync post, in that order (CR-02, 05-20)', async () => {
   const calls = [];
   const spawnImpl = async (cmd, args) => {
     calls.push({ cmd, args: [...args] });
     if (args.includes('pre')) return { code: 0, tail: fakeArchiveSyncTail('pre') };
     if (args.some((a) => String(a).includes('assert-file-count.mjs'))) {
       return { code: 0, tail: '{"count":100,"ceiling":100000,"failAt":80000,"status":"ok"}' };
+    }
+    if (args.some((a) => String(a).includes('assert-archive-synced.mjs'))) {
+      return { code: 0, tail: '[assert-archive-synced] ok: no plan and no archive files' };
     }
     if (cmd === 'pnpm' && args.includes('wrangler')) return { code: 0, tail: '' };
     if (args.includes('post')) return { code: 0, tail: fakeArchiveSyncTail('post') };
@@ -570,12 +593,62 @@ test('runCi step=deploy: writes the build-start marker is NOT part of the deploy
   });
 
   assert.equal(code, 0);
-  assert.equal(calls.length, 4, 'expected exactly 4 spawn calls: archive-sync pre, assert-file-count, wrangler deploy, archive-sync post');
+  assert.equal(
+    calls.length,
+    5,
+    'expected exactly 5 spawn calls: archive-sync pre, assert-file-count, assert-archive-synced, wrangler deploy, archive-sync post'
+  );
   assert.ok(calls[0].args.some((a) => String(a).includes('archive-sync.mjs')) && calls[0].args.includes('pre'));
   assert.ok(calls[1].args.some((a) => String(a).includes('assert-file-count.mjs')));
-  assert.ok(calls[2].cmd === 'pnpm' && calls[2].args.includes('wrangler'));
-  assert.ok(calls[3].args.some((a) => String(a).includes('archive-sync.mjs')) && calls[3].args.includes('post'));
+  assert.ok(calls[2].args.some((a) => String(a).includes('assert-archive-synced.mjs')));
+  assert.ok(calls[3].cmd === 'pnpm' && calls[3].args.includes('wrangler'));
+  assert.ok(calls[4].args.some((a) => String(a).includes('archive-sync.mjs')) && calls[4].args.includes('post'));
   assert.equal(commitCalls.length, 1, 'commitImpl must be called exactly once, after a real deploy');
+});
+
+test('runCi step=deploy (CR-02, 05-20): assert-archive-synced exiting 1 aborts before wrangler/commitImpl/post, notifies exactly once with a title naming assert-archive-synced', async () => {
+  const calls = [];
+  const notifyCalls = [];
+  const commitCalls = [];
+  const spawnImpl = async (cmd, args) => {
+    calls.push({ cmd, args: [...args] });
+    if (args.includes('pre')) return { code: 0, tail: fakeArchiveSyncTail('pre') };
+    if (args.some((a) => String(a).includes('assert-file-count.mjs'))) {
+      return { code: 0, tail: '{"count":100,"ceiling":100000,"failAt":80000,"status":"ok"}' };
+    }
+    if (args.some((a) => String(a).includes('assert-archive-synced.mjs'))) {
+      return {
+        code: 1,
+        tail: 'assert-archive-synced: dist/ was partitioned but archive-sync pre has not run for this build',
+      };
+    }
+    return { code: 0, tail: '' };
+  };
+  const code = await runCi({
+    step: 'deploy',
+    env: { NTFY_TOPIC: 'test-topic' },
+    spawnImpl,
+    notifyImpl: async (a) => notifyCalls.push(a),
+    commitImpl: async (a) => commitCalls.push(a),
+    loadHotWindowImpl: fakeLoadHotWindow,
+    setTimer: noopTimer,
+    clearTimer: noopClear,
+    log: noopLog,
+  });
+
+  assert.notEqual(code, 0);
+  assert.equal(calls.length, 3, 'only pre, assert-file-count, and assert-archive-synced should have spawned');
+  assert.ok(
+    !calls.some((c) => (c.args ?? []).some((a) => String(a).includes('wrangler')) || String(c.cmd).includes('wrangler')),
+    'no wrangler process should ever be spawned after a failing assert-archive-synced'
+  );
+  assert.ok(
+    !calls.some((c) => (c.args ?? []).some((a) => String(a).includes('archive-sync.mjs')) && c.args.includes('post')),
+    'archive-sync post must never spawn after a failing assert-archive-synced'
+  );
+  assert.equal(commitCalls.length, 0);
+  assert.equal(notifyCalls.length, 1);
+  assert.match(notifyCalls[0].title, /assert-archive-synced/);
 });
 
 test('runCi step=deploy: CI_BUILD_DEPLOY_DRY_RUN=1 runs wrangler deploy --dry-run with --outdir and never calls commitImpl', async () => {
@@ -703,7 +776,11 @@ test('runCi step=all: also calls markBuildStart before spawning the build', asyn
 // 70,000 file-count alarm, and the daily report (05-08 Task 2)
 // ---------------------------------------------------------------------------
 
-function fakeDeploySpawnImpl({ preOverrides, countTail, wranglerResult, postOverrides, postResult } = {}) {
+/** `markResult` (Task 2, REND-11 follow-up quick 261002-s2r): the result returned for a
+ * `mark-daily-report` spawn, default `{ code: 0, tail: '' }`. `events`, if given, records
+ * `{ kind: 'mark-daily-report', args }` in call order — pair with a `notifyImpl` that also
+ * pushes into the same array to assert ordering (B1). */
+function fakeDeploySpawnImpl({ preOverrides, countTail, wranglerResult, postOverrides, postResult, markResult, events } = {}) {
   return async (cmd, args) => {
     if (args.includes('pre')) return { code: 0, tail: fakeArchiveSyncTail('pre', preOverrides ?? {}) };
     if (args.some((a) => String(a).includes('assert-file-count.mjs'))) {
@@ -713,6 +790,10 @@ function fakeDeploySpawnImpl({ preOverrides, countTail, wranglerResult, postOver
     if (args.includes('post')) {
       if (postResult) return postResult;
       return { code: 0, tail: fakeArchiveSyncTail('post', postOverrides ?? {}) };
+    }
+    if (args.includes('mark-daily-report')) {
+      events?.push({ kind: 'mark-daily-report', args: [...args] });
+      return markResult ?? { code: 0, tail: '' };
     }
     return { code: 0, tail: '' };
   };
@@ -1022,4 +1103,596 @@ test('runCi step=deploy: a post spawn that omits the ARCHIVE_SYNC_RESULT line se
 
   assert.equal(code, 0);
   assert.equal(notifyCalls.length, 1);
+});
+
+// ---------------------------------------------------------------------------
+// CR-01 (05-13): a deploy that deployed nothing never reaches post-sync
+// ---------------------------------------------------------------------------
+
+test('CR-01 (05-13): CI_BUILD_DEPLOY_DRY_RUN=1 never spawns archive-sync post, never calls commitImpl, returns 0, and logs the skip line', async () => {
+  const calls = [];
+  const logLines = [];
+  const spawnImpl = async (cmd, args) => {
+    calls.push({ cmd, args: [...args] });
+    if (args.includes('pre')) return { code: 0, tail: fakeArchiveSyncTail('pre') };
+    if (args.some((a) => String(a).includes('assert-file-count.mjs'))) {
+      return { code: 0, tail: '{"count":100,"ceiling":100000,"failAt":80000,"status":"ok"}' };
+    }
+    if (cmd === 'pnpm' && args.includes('wrangler')) return { code: 0, tail: '' };
+    if (args.includes('post')) return { code: 0, tail: fakeArchiveSyncTail('post') };
+    return { code: 0, tail: '' };
+  };
+  const commitCalls = [];
+  const code = await runCi({
+    step: 'deploy',
+    env: { CI_BUILD_DEPLOY_DRY_RUN: '1' },
+    spawnImpl,
+    notifyImpl: async () => {},
+    commitImpl: async (a) => commitCalls.push(a),
+    loadHotWindowImpl: fakeLoadHotWindow,
+    setTimer: noopTimer,
+    clearTimer: noopClear,
+    log: (...args) => logLines.push(args.join(' ')),
+  });
+
+  assert.equal(code, 0);
+  assert.ok(
+    !calls.some((c) => c.args.some((a) => String(a).includes('archive-sync.mjs')) && c.args.includes('post')),
+    'a dry run must never spawn archive-sync post'
+  );
+  assert.equal(commitCalls.length, 0, 'commitImpl must never be called in a dry run');
+  assert.ok(
+    logLines.some((line) => line.includes('dry run: skipping archive-sync post')),
+    'expected the dry-run skip line to be logged'
+  );
+});
+
+test('CR-01 (05-13): a dry run still delivers every pre-sync alert it gathered', async () => {
+  const notifyCalls = [];
+  const spawnImpl = fakeDeploySpawnImpl({
+    preOverrides: {
+      alerts: ['archive-sync: 2 page(s) failed to upload — previous state (static) still serving'],
+    },
+  });
+  const code = await runCi({
+    step: 'deploy',
+    env: { CI_BUILD_DEPLOY_DRY_RUN: '1', NTFY_TOPIC: 'test-topic' },
+    spawnImpl,
+    notifyImpl: async (a) => notifyCalls.push(a),
+    commitImpl: async () => {
+      throw new Error('commitImpl must never be called in a dry run');
+    },
+    loadHotWindowImpl: fakeLoadHotWindow,
+    setTimer: noopTimer,
+    clearTimer: noopClear,
+    log: noopLog,
+  });
+
+  assert.equal(code, 0);
+  assert.equal(notifyCalls.length, 1, 'the dry-run alert must still be delivered exactly once');
+  assert.match(notifyCalls[0].body, /2 page\(s\) failed/);
+  assert.match(notifyCalls[0].body, /still serving/);
+});
+
+test('CR-01 (05-13): a failed wrangler deploy (non-dry-run) never spawns post, never calls commitImpl, returns non-zero, notifies once naming wrangler deploy', async () => {
+  const calls = [];
+  const notifyCalls = [];
+  const spawnImpl = async (cmd, args) => {
+    calls.push({ cmd, args: [...args] });
+    if (args.includes('pre')) return { code: 0, tail: fakeArchiveSyncTail('pre') };
+    if (args.some((a) => String(a).includes('assert-file-count.mjs'))) {
+      return { code: 0, tail: '{"count":100,"ceiling":100000,"failAt":80000,"status":"ok"}' };
+    }
+    if (cmd === 'pnpm' && args.includes('wrangler')) return { code: 1, tail: 'Error: authentication failed' };
+    if (args.includes('post')) return { code: 0, tail: fakeArchiveSyncTail('post') };
+    return { code: 0, tail: '' };
+  };
+  const commitCalls = [];
+  const code = await runCi({
+    step: 'deploy',
+    env: { NTFY_TOPIC: 'test-topic' },
+    spawnImpl,
+    notifyImpl: async (a) => notifyCalls.push(a),
+    commitImpl: async (a) => commitCalls.push(a),
+    loadHotWindowImpl: fakeLoadHotWindow,
+    setTimer: noopTimer,
+    clearTimer: noopClear,
+    log: noopLog,
+  });
+
+  assert.notEqual(code, 0);
+  assert.ok(
+    !calls.some((c) => c.args.some((a) => String(a).includes('archive-sync.mjs')) && c.args.includes('post')),
+    'a failed wrangler deploy must never spawn archive-sync post'
+  );
+  assert.equal(commitCalls.length, 0);
+  assert.equal(notifyCalls.length, 1);
+  assert.match(notifyCalls[0].title, /wrangler deploy/);
+});
+
+// ---------------------------------------------------------------------------
+// REND-11 follow-up (quick 261002-s2r): ntfy delivery outcome is logged
+//
+// These tests drive the path runCi -> sendNotification -> the REAL defaultNotify -> an injected
+// fake fetchImpl -> log. None of them passes `notifyImpl`, so the production notifier runs.
+// ---------------------------------------------------------------------------
+
+const REND11_LOGS = [];
+
+test('REND-11 follow-up: a 2xx ntfy response logs exactly one HTTP <status> line, no (not delivered)', async () => {
+  const fetchCalls = [];
+  const fetchImpl = async (url, opts) => {
+    fetchCalls.push({ url, opts });
+    return { status: 200 };
+  };
+  const logs = [];
+  const code = await runCi({
+    step: 'build',
+    env: { NTFY_TOPIC: 'sekrit-topic-123' },
+    spawnImpl: async () => ({ code: 2, tail: '' }),
+    fetchImpl,
+    setTimer: noopTimer,
+    clearTimer: noopClear,
+    log: (...args) => logs.push(args.join(' ')),
+  });
+  REND11_LOGS.push(...logs);
+
+  assert.equal(code, 2);
+  assert.equal(fetchCalls.length, 1);
+  assert.equal(fetchCalls[0].url, 'https://ntfy.sh/sekrit-topic-123');
+  assert.equal(
+    logs.filter((l) => l.startsWith('[ci-build] ntfy ')).length,
+    1,
+    `expected exactly one ntfy outcome line, got: ${JSON.stringify(logs)}`
+  );
+  assert.ok(
+    logs.includes('[ci-build] ntfy "915 TLDR build failed: astro build exited 2": HTTP 200'),
+    `expected the HTTP 200 outcome line, got: ${JSON.stringify(logs)}`
+  );
+});
+
+test('REND-11 follow-up: a non-2xx ntfy response resolves (not reject) and logs HTTP <status> (not delivered)', async () => {
+  const fetchImpl = async () => ({ status: 429 });
+  const logs = [];
+  const code = await runCi({
+    step: 'build',
+    env: { NTFY_TOPIC: 'sekrit-topic-123' },
+    spawnImpl: async () => ({ code: 2, tail: '' }),
+    fetchImpl,
+    setTimer: noopTimer,
+    clearTimer: noopClear,
+    log: (...args) => logs.push(args.join(' ')),
+  });
+  REND11_LOGS.push(...logs);
+
+  assert.equal(code, 2);
+  assert.ok(
+    logs.includes('[ci-build] ntfy "915 TLDR build failed: astro build exited 2": HTTP 429 (not delivered)'),
+    `expected the HTTP 429 (not delivered) line, got: ${JSON.stringify(logs)}`
+  );
+});
+
+test('REND-11 follow-up: a rejected fetch resolves (not reject), logs a (not delivered) line, and never names the topic', async () => {
+  const fetchImpl = async () => {
+    throw new Error('Failed to parse URL from https://ntfy.sh/sekrit-topic-123');
+  };
+  const logs = [];
+  const code = await runCi({
+    step: 'build',
+    env: { NTFY_TOPIC: 'sekrit-topic-123' },
+    spawnImpl: async () => ({ code: 2, tail: '' }),
+    fetchImpl,
+    setTimer: noopTimer,
+    clearTimer: noopClear,
+    log: (...args) => logs.push(args.join(' ')),
+  });
+  REND11_LOGS.push(...logs);
+
+  assert.equal(code, 2);
+  assert.ok(
+    logs.some((l) => l.endsWith('(not delivered)')),
+    `expected a (not delivered) line, got: ${JSON.stringify(logs)}`
+  );
+  assert.ok(
+    !logs.some((l) => l.includes('sekrit-topic-123')),
+    `no log line may contain the topic, got: ${JSON.stringify(logs)}`
+  );
+});
+
+test('REND-11 follow-up: no log line ever contains the topic, token or body text; NTFY_TOKEN is sent as a Bearer header', async () => {
+  const fetchCalls = [];
+  const fetchImpl = async (url, opts) => {
+    fetchCalls.push({ url, opts });
+    return { status: 200 };
+  };
+  const logs = [];
+  const code = await runCi({
+    step: 'build',
+    env: { NTFY_TOPIC: 'sekrit-topic-123', NTFY_TOKEN: 'tok-abc-123' },
+    spawnImpl: async () => ({ code: 2, tail: '' }),
+    fetchImpl,
+    setTimer: noopTimer,
+    clearTimer: noopClear,
+    log: (...args) => logs.push(args.join(' ')),
+  });
+  REND11_LOGS.push(...logs);
+
+  assert.equal(code, 2);
+  assert.equal(fetchCalls.length, 1);
+  assert.equal(fetchCalls[0].opts.headers.Authorization, 'Bearer tok-abc-123');
+
+  // Across every REND-11 follow-up test run so far (tests 1-3 above plus this one): no log line
+  // may contain the topic, the token value, or the notification body text (commit:/branch:).
+  for (const line of REND11_LOGS) {
+    assert.ok(!line.includes('sekrit-topic-123'), `log line leaked the topic: ${line}`);
+    assert.ok(!line.includes('tok-abc-123'), `log line leaked the token: ${line}`);
+    assert.ok(!line.includes('commit:'), `log line leaked body text: ${line}`);
+    assert.ok(!line.includes('branch:'), `log line leaked body text: ${line}`);
+  }
+});
+
+test('REND-11 follow-up: deploy path — a non-2xx daily-report send logs HTTP <status> (not delivered)', async () => {
+  const fetchImpl = async () => ({ status: 503 });
+  const logs = [];
+  const spawnImpl = fakeDeploySpawnImpl({
+    postOverrides: {
+      dailyReport: {
+        due: true,
+        body: {
+          staticFileCount: 29937,
+          ceiling: 100000,
+          failAt: 80000,
+          archivedCount: 30478,
+          hotWindowStatus: 'derived',
+          hotWindowDays: 202,
+          backlog: 0,
+        },
+      },
+    },
+  });
+  const code = await runCi({
+    step: 'deploy',
+    env: { NTFY_TOPIC: 't' },
+    spawnImpl,
+    fetchImpl,
+    commitImpl: async () => {},
+    loadHotWindowImpl: fakeLoadHotWindow,
+    setTimer: noopTimer,
+    clearTimer: noopClear,
+    log: (...args) => logs.push(args.join(' ')),
+  });
+
+  assert.equal(code, 0);
+  assert.ok(
+    logs.includes('[ci-build] ntfy "915 TLDR archive daily report": HTTP 503 (not delivered)'),
+    `expected the daily-report (not delivered) line, got: ${JSON.stringify(logs)}`
+  );
+});
+
+// ---------------------------------------------------------------------------
+// Task 2 (REND-11 follow-up, quick 261002-s2r): daily-report marker written only after a
+// confirmed send (archive-sync `mark-daily-report` handoff)
+// ---------------------------------------------------------------------------
+
+test('B1: a confirmed daily-report send spawns mark-daily-report exactly once, AFTER the notify call, and logs the marker-set line', async () => {
+  const events = [];
+  const spawnImpl = fakeDeploySpawnImpl({
+    postOverrides: { dailyReport: { due: true, date: '2026-10-02', body: {} } },
+    events,
+  });
+  const logs = [];
+  const code = await runCi({
+    step: 'deploy',
+    env: { NTFY_TOPIC: 'test-topic' },
+    spawnImpl,
+    notifyImpl: async (a) => {
+      events.push({ kind: 'notify', title: a.title });
+    },
+    commitImpl: async () => {},
+    loadHotWindowImpl: fakeLoadHotWindow,
+    setTimer: noopTimer,
+    clearTimer: noopClear,
+    log: (...args) => logs.push(args.join(' ')),
+  });
+
+  assert.equal(code, 0);
+  const markEvents = events.filter((e) => e.kind === 'mark-daily-report');
+  assert.equal(markEvents.length, 1, 'expected exactly one mark-daily-report spawn');
+  assert.deepEqual(markEvents[0].args, ['tools/archive-sync.mjs', 'mark-daily-report', '--date', '2026-10-02']);
+  const notifyIdx = events.findIndex((e) => e.kind === 'notify');
+  const markIdx = events.findIndex((e) => e.kind === 'mark-daily-report');
+  assert.ok(notifyIdx >= 0 && markIdx > notifyIdx, 'mark-daily-report must be spawned AFTER the daily-report notify call');
+  assert.ok(logs.includes('[ci-build] daily-report marker set to 2026-10-02'));
+});
+
+test('B2: a thrown daily-report notify never spawns mark-daily-report; logs "marker left unchanged"', async () => {
+  const spawnImpl = fakeDeploySpawnImpl({
+    postOverrides: { dailyReport: { due: true, date: '2026-10-02', body: {} } },
+  });
+  const spawnCalls = [];
+  const wrappedSpawn = async (cmd, args) => {
+    spawnCalls.push({ cmd, args: [...args] });
+    return spawnImpl(cmd, args);
+  };
+  const logs = [];
+  const code = await runCi({
+    step: 'deploy',
+    env: { NTFY_TOPIC: 'test-topic' },
+    spawnImpl: wrappedSpawn,
+    notifyImpl: async (a) => {
+      if (/daily report/i.test(a.title)) throw new Error('simulated ntfy rejection');
+    },
+    commitImpl: async () => {},
+    loadHotWindowImpl: fakeLoadHotWindow,
+    setTimer: noopTimer,
+    clearTimer: noopClear,
+    log: (...args) => logs.push(args.join(' ')),
+  });
+
+  assert.equal(code, 0);
+  assert.ok(
+    !spawnCalls.some((c) => c.args.includes('mark-daily-report')),
+    'no mark-daily-report spawn may happen when the send was not confirmed delivered'
+  );
+  assert.ok(logs.some((l) => l.includes('marker left unchanged')));
+});
+
+test('B3 (the REND-11 regression, end to end): no notifyImpl, a non-2xx fetchImpl never spawns mark-daily-report', async () => {
+  const spawnImpl = fakeDeploySpawnImpl({
+    postOverrides: { dailyReport: { due: true, date: '2026-10-02', body: {} } },
+  });
+  const spawnCalls = [];
+  const wrappedSpawn = async (cmd, args) => {
+    spawnCalls.push({ cmd, args: [...args] });
+    return spawnImpl(cmd, args);
+  };
+  const fetchImpl = async () => ({ status: 429 });
+  const logs = [];
+  const code = await runCi({
+    step: 'deploy',
+    env: { NTFY_TOPIC: 'test-topic' },
+    spawnImpl: wrappedSpawn,
+    fetchImpl,
+    commitImpl: async () => {},
+    loadHotWindowImpl: fakeLoadHotWindow,
+    setTimer: noopTimer,
+    clearTimer: noopClear,
+    log: (...args) => logs.push(args.join(' ')),
+  });
+
+  assert.equal(code, 0);
+  assert.ok(!spawnCalls.some((c) => c.args.includes('mark-daily-report')));
+});
+
+test('B4: a mark-daily-report spawn that exits non-zero logs "daily-report marker not written" and the classified reason, runCi still returns 0', async () => {
+  const spawnImpl = fakeDeploySpawnImpl({
+    postOverrides: { dailyReport: { due: true, date: '2026-10-02', body: {} } },
+    markResult: {
+      code: 1,
+      tail: 'archive-sync: refusing daily-report marker write — R2 credentials are not set in the environment',
+    },
+  });
+  const logs = [];
+  const code = await runCi({
+    step: 'deploy',
+    env: { NTFY_TOPIC: 'test-topic' },
+    spawnImpl,
+    notifyImpl: async () => {},
+    commitImpl: async () => {},
+    loadHotWindowImpl: fakeLoadHotWindow,
+    setTimer: noopTimer,
+    clearTimer: noopClear,
+    log: (...args) => logs.push(args.join(' ')),
+  });
+
+  assert.equal(code, 0);
+  assert.ok(
+    logs.some((l) => l.includes('daily-report marker not written') && l.includes('R2 credentials are not set')),
+    `expected a marker-not-written line naming the reason, got: ${JSON.stringify(logs)}`
+  );
+});
+
+test('B5: dailyReport.due with no date still sends the report, never spawns mark-daily-report, and names the missing date', async () => {
+  const spawnImpl = fakeDeploySpawnImpl({
+    postOverrides: { dailyReport: { due: true, body: {} } }, // no `date` field
+  });
+  const spawnCalls = [];
+  const wrappedSpawn = async (cmd, args) => {
+    spawnCalls.push({ cmd, args: [...args] });
+    return spawnImpl(cmd, args);
+  };
+  const notifyCalls = [];
+  const logs = [];
+  const code = await runCi({
+    step: 'deploy',
+    env: { NTFY_TOPIC: 'test-topic' },
+    spawnImpl: wrappedSpawn,
+    notifyImpl: async (a) => notifyCalls.push(a),
+    commitImpl: async () => {},
+    loadHotWindowImpl: fakeLoadHotWindow,
+    setTimer: noopTimer,
+    clearTimer: noopClear,
+    log: (...args) => logs.push(args.join(' ')),
+  });
+
+  assert.equal(code, 0);
+  assert.ok(notifyCalls.some((c) => /daily report/i.test(c.title)), 'the report must still be sent');
+  assert.ok(!spawnCalls.some((c) => c.args.includes('mark-daily-report')));
+  assert.ok(
+    logs.some((l) => l.includes('daily report has no valid date')),
+    `expected a line naming the missing date, got: ${JSON.stringify(logs)}`
+  );
+});
+
+test('B6: CI_BUILD_DEPLOY_DRY_RUN=1 never spawns post or mark-daily-report, even with a due:true-shaped fake post (extends CR-01, 05-13)', async () => {
+  const calls = [];
+  const spawnImpl = async (cmd, args) => {
+    calls.push({ cmd, args: [...args] });
+    if (args.includes('pre')) return { code: 0, tail: fakeArchiveSyncTail('pre') };
+    if (args.some((a) => String(a).includes('assert-file-count.mjs'))) {
+      return { code: 0, tail: '{"count":100,"ceiling":100000,"failAt":80000,"status":"ok"}' };
+    }
+    if (cmd === 'pnpm' && args.includes('wrangler')) return { code: 0, tail: '' };
+    if (args.includes('post')) {
+      return { code: 0, tail: fakeArchiveSyncTail('post', { dailyReport: { due: true, date: '2026-10-02', body: {} } }) };
+    }
+    return { code: 0, tail: '' };
+  };
+  const code = await runCi({
+    step: 'deploy',
+    env: { CI_BUILD_DEPLOY_DRY_RUN: '1' },
+    spawnImpl,
+    notifyImpl: async () => {},
+    commitImpl: async () => {
+      throw new Error('commitImpl must never be called in a dry run');
+    },
+    loadHotWindowImpl: fakeLoadHotWindow,
+    setTimer: noopTimer,
+    clearTimer: noopClear,
+    log: noopLog,
+  });
+
+  assert.equal(code, 0);
+  assert.ok(!calls.some((c) => c.args.includes('post')), 'a dry run must never spawn archive-sync post');
+  assert.ok(!calls.some((c) => c.args.includes('mark-daily-report')), 'a dry run must never spawn mark-daily-report');
+});
+
+// ---------------------------------------------------------------------------
+// Task 3 (quick 261002-s2r): build step's per-page listing reduced to counts so the deploy
+// step's own output survives in the Workers Builds log
+// ---------------------------------------------------------------------------
+
+test('C1: isPerPageBuildLine is true for every real per-page build-line shape', () => {
+  const trueCases = [
+    '00:07:06   ├─ /404.html (+138ms)',
+    '00:08:20   ├─ /tag/uscis.html (restored)',
+    '00:07:13   ├─ /about.html (cached)',
+    '  ├─ /a.html (+1.23s)',
+    '  ├─ /a.html (+1m 5s)',
+    '\x1b[90m00:07:06   ├─ /404.html (+138ms)\x1b[39m', // ANSI SGR wrapped
+    '00:07:06   ├─ /404.html (+138ms)\r', // trailing \r
+  ];
+  for (const line of trueCases) {
+    assert.equal(isPerPageBuildLine(line), true, `expected true for: ${JSON.stringify(line)}`);
+  }
+});
+
+test('C2: isPerPageBuildLine is false for lines that must survive the filter', () => {
+  const falseCases = [
+    '00:06:51 [WARN] [vite]',
+    '00:06:56 [build] Rearranging server assets...',
+    'tag pages: 19965 tags',
+    '[archive] hot window: derived ...',
+    '00:07:06   ├─ /x.html (+3ms) (file not created, response body was empty)',
+    '00:07:06   ├─ /x.html[archive] note', // page line with console output glued on
+    '✔ Case 1 (ARCH-02): ...',
+    '',
+  ];
+  for (const line of falseCases) {
+    assert.equal(isPerPageBuildLine(line), false, `expected false for: ${JSON.stringify(line)}`);
+  }
+});
+
+test('C3: createPageLineFilter suppresses page lines with periodic progress + a final summary; non-page lines pass through verbatim, across split chunks', () => {
+  const written = [];
+  const filter = createPageLineFilter({ write: (s) => written.push(s), progressEvery: 2 });
+
+  // Split one page line and one normal line across chunk boundaries.
+  filter.push('00:07:06   ├─ /a.html (+1');
+  filter.push('0ms)\n00:06:51 [WARN] [vite] something\n');
+  filter.push('00:07:07   ├─ /b.html (restored)\n');
+  filter.push('00:07:08   ├─ /c.html (cached)\n');
+
+  const n = filter.end();
+  const output = written.join('');
+
+  assert.equal(n, 3);
+  assert.ok(output.includes('00:06:51 [WARN] [vite] something\n'), 'non-page line must survive verbatim with its newline');
+  assert.ok(!output.includes('├─'), 'no raw page line may appear in the output');
+  const progressLines = written.filter((l) => l.includes('pages rendered so far'));
+  assert.equal(progressLines.length, 1, 'expected one progress line per 2 suppressed lines (3 lines -> 1 progress line)');
+  assert.ok(
+    progressLines[0] ===
+      '[ci-build] astro build: 2 pages rendered so far (per-page listing suppressed; CI_BUILD_FULL_LOG=1 shows it)\n'
+  );
+  assert.ok(output.trimEnd().endsWith(`[ci-build] astro build: suppressed ${n} per-page output lines (CI_BUILD_FULL_LOG=1 shows them)`));
+});
+
+test('C3b: a trailing partial line with no newline is written by end() unless it is a page line', () => {
+  const written1 = [];
+  const f1 = createPageLineFilter({ write: (s) => written1.push(s), progressEvery: 5000 });
+  f1.push('00:06:51 [WARN] [vite] trailing no newline');
+  const n1 = f1.end();
+  assert.ok(written1.includes('00:06:51 [WARN] [vite] trailing no newline'), 'the trailing non-page partial line must be written');
+  assert.equal(n1, 0);
+
+  const written2 = [];
+  const f2 = createPageLineFilter({ write: (s) => written2.push(s), progressEvery: 5000 });
+  f2.push('00:07:06   ├─ /trailing.html (+5ms)');
+  const n2 = f2.end();
+  assert.ok(!written2.some((l) => l.includes('/trailing.html')), 'a trailing partial PAGE line must never be written');
+  assert.equal(n2, 1);
+});
+
+test('C4: runCi spawns the build with filterPageLines true by default, false with CI_BUILD_FULL_LOG=1; no deploy-step spawn ever carries it', async () => {
+  const calls1 = [];
+  const spawnImpl1 = async (cmd, args, opts) => {
+    calls1.push({ cmd, args: [...args], opts });
+    return { code: 0, tail: '' };
+  };
+  const code1 = await runCi({ step: 'build', env: {}, spawnImpl: spawnImpl1, setTimer: noopTimer, clearTimer: noopClear, log: noopLog });
+  assert.equal(code1, 0);
+  const buildCall1 = calls1.find((c) => c.cmd === 'pnpm' && c.args.includes('run') && c.args.includes('build'));
+  assert.equal(buildCall1.opts.filterPageLines, true);
+
+  const calls2 = [];
+  const spawnImpl2 = async (cmd, args, opts) => {
+    calls2.push({ cmd, args: [...args], opts });
+    return { code: 0, tail: '' };
+  };
+  const code2 = await runCi({
+    step: 'build',
+    env: { CI_BUILD_FULL_LOG: '1' },
+    spawnImpl: spawnImpl2,
+    setTimer: noopTimer,
+    clearTimer: noopClear,
+    log: noopLog,
+  });
+  assert.equal(code2, 0);
+  const buildCall2 = calls2.find((c) => c.cmd === 'pnpm' && c.args.includes('run') && c.args.includes('build'));
+  assert.equal(buildCall2.opts.filterPageLines, false);
+
+  const calls3 = [];
+  const deploySpawnImpl = async (cmd, args, opts) => {
+    calls3.push({ cmd, args: [...args], opts });
+    if (args.includes('pre')) return { code: 0, tail: fakeArchiveSyncTail('pre') };
+    if (args.some((a) => String(a).includes('assert-file-count.mjs'))) {
+      return { code: 0, tail: '{"count":100,"ceiling":100000,"failAt":80000,"status":"ok"}' };
+    }
+    if (args.some((a) => String(a).includes('assert-archive-synced.mjs'))) {
+      return { code: 0, tail: '[assert-archive-synced] ok' };
+    }
+    if (cmd === 'pnpm' && args.includes('wrangler')) return { code: 0, tail: '' };
+    if (args.includes('post')) {
+      return { code: 0, tail: fakeArchiveSyncTail('post', { dailyReport: { due: true, date: '2026-10-02', body: {} } }) };
+    }
+    if (args.includes('mark-daily-report')) return { code: 0, tail: '' };
+    return { code: 0, tail: '' };
+  };
+  const code3 = await runCi({
+    step: 'deploy',
+    env: { NTFY_TOPIC: 'test-topic' },
+    spawnImpl: deploySpawnImpl,
+    notifyImpl: async () => {},
+    commitImpl: async () => {},
+    loadHotWindowImpl: fakeLoadHotWindow,
+    setTimer: noopTimer,
+    clearTimer: noopClear,
+    log: noopLog,
+  });
+  assert.equal(code3, 0);
+  assert.ok(
+    calls3.every((c) => c.opts?.filterPageLines === undefined),
+    'no deploy-step spawn may ever carry filterPageLines'
+  );
 });
