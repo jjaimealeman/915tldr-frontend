@@ -5,15 +5,15 @@ milestone_name: milestone
 current_phase: 05
 current_phase_name: hybrid-archive-zero-reads-proof
 status: executing
-stopped_at: Completed 05-19-PLAN.md -- ARCH-08 CPU-axis owner decision recorded (re-measure, mechanically MET on a zero-archive-traffic sample); gap remains open for 05-21
-last_updated: "2026-10-03T01:26:39.837Z"
+stopped_at: "Completed 05-21-PLAN.md (gap-closure reconciliation: validation map, requirement statuses, deferred findings)"
+last_updated: "2026-10-03T02:02:20.971Z"
 last_activity: 2026-10-02
 last_activity_desc: Phase 05 execution started
 progress:
   total_phases: 5
-  completed_phases: 4
+  completed_phases: 5
   total_plans: 73
-  completed_plans: 72
+  completed_plans: 73
 ---
 
 # Project State
@@ -28,11 +28,11 @@ See: .planning/PROJECT.md (updated 2026-09-16)
 ## Current Position
 
 Phase: 05 (hybrid-archive-zero-reads-proof) — EXECUTING
-Plan: 9 of 21
+Plan: 10 of 21
 Status: Ready to execute
 Last activity: 2026-10-02 — Phase 05 execution started
 
-Progress: [██████████] 99%
+Progress: [██████████] 100%
 
 ## Performance Metrics
 
@@ -121,6 +121,7 @@ Progress: [██████████] 99%
 | Phase 05 P20 | ~35min | 3 tasks | 9 files |
 | Phase 05 P17 | 27min | 2 tasks | 10 files |
 | Phase 05 P19 | 25min | 1 tasks | 7 files |
+| Phase 05 P21 | ~50min | 3 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -298,6 +299,8 @@ Recent decisions affecting current work:
 - [Phase ?]: ARCH-08: no decision made — docs/phase-05/arch-08-cpu-outliers.md records three labelled options (accept/fix/re-measure) for the owner's 05-19 checkpoint
 - [Phase ?]: ARCH-08 outlier count settled at 4 (>=20ms) / 5 (>=5ms) via a new per-request tool against Workers Observability telemetry (dataset cloudflare-workers), not the aggregate GraphQL workersInvocationsAdaptive dataset
 - [Phase ?]: ARCH-08 CPU axis: owner chose option (c) re-measure (05-19); criterion fixed before measuring (p99<5ms AND >=20ms share <0.1%) mechanically MET on a 24h dev.915tldr.com window, but the 3-invocation sample was 100% bot-scan 404 traffic with zero archive-page requests, so ARCH-08's CPU axis remains an open gap (WINDOWS.md #26 not waived) pending 05-21
+- [Phase ?]: Phase 5 gap closure (05-21): ARCH-08 recorded as Gaps Found (not Complete) despite a mechanically MET re-measurement — owner deferred final judgment to Phase 12's 7-day soak after seeing the sample contained zero archive-page traffic
+- [Phase ?]: Phase 5 gap closure (05-21): REND-11 daily report delivery confirmed NOT observed by the owner after searching all 6 ntfy topics; recorded Gaps Found with a dedicated follow-up todo
 
 ### Pending Todos
 
@@ -354,6 +357,6 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-10-03T01:26:39.814Z
-Stopped at: Completed 05-19-PLAN.md -- ARCH-08 CPU-axis owner decision recorded (re-measure, mechanically MET on a zero-archive-traffic sample); gap remains open for 05-21
+Last session: 2026-10-03T02:02:20.949Z
+Stopped at: Completed 05-21-PLAN.md (gap-closure reconciliation: validation map, requirement statuses, deferred findings)
 Resume file: None
