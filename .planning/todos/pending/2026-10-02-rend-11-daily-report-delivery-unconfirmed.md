@@ -55,3 +55,27 @@ delivery in production is unproven.
 This todo resolves when a real daily report has been confirmed arriving on the owner's phone/ntfy
 client, with its date and count line recorded in 05-VALIDATION.md, replacing REND-11's "Gaps
 Found — daily report delivery not observed" status in `.planning/REQUIREMENTS.md` with "Complete".
+
+## Diagnosis added 2026-10-02 ~20:10 MDT (orchestrator, after the owner's checks)
+
+- Workers Builds' `NTFY_TOPIC` IS set (encrypted secret; owner set it to the same topic the
+  local shell uses). Server is the `ntfy.sh` default, no token, same as the local run whose
+  build-failure alert DID arrive (2026-10-01 01:42). So the topic is not the cause.
+- `main` has carried the daily-report code since the 2026-10-01 merge, so reports were due
+  on both 2026-10-01 and 2026-10-02 — neither arrived. Systematic, not a one-off.
+- `tools/ci-build.mjs` `defaultNotify` never checks the ntfy response status: a non-2xx is
+  neither thrown nor logged. Any rejection is invisible.
+- `tools/archive-sync.mjs` writes `_meta/daily-report.json` BEFORE ci-build sends; a lost
+  send loses the whole day (marker already reads 2026-10-02).
+- The production build log the owner downloaded (build at 2026-10-03T00:06Z, 53,523 lines)
+  ENDS mid-`astro build` page listing — zero `Executing user deploy command`, `[ci-build]`
+  or `archive-sync` lines. Per-page build output (~41k lines) appears to push the deploy
+  step out of the downloadable/viewable log. Where the cut happens is not verified.
+  Consequence: no production post-sync output has been observable at all.
+
+## Proposed fix (test-first, no deploy by Claude)
+
+1. `defaultNotify`: treat non-2xx as failure; log `[ci-build] ntfy <title>: HTTP <status>`.
+2. Write the daily-report marker only after a successful send (retry on next deploy instead
+   of losing the day).
+3. Reduce per-page build output to a summary count so the deploy step's log is visible.
