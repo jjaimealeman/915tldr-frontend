@@ -104,7 +104,7 @@ const alternateLinkList = alternateLinks({
 });
 
 const buildEpoch = Math.floor(new Date(BUILD_TIMESTAMP).getTime() / 1000);
-const datelineText = formatDateline(datelineEpoch ?? buildEpoch);
+const datelineText = formatDateline(datelineEpoch ?? buildEpoch, lang);
 const buildDate = BUILD_TIMESTAMP.slice(0, 10);
 const stampDate = stamp === 'commit' ? BUILD_COMMIT_DATE : buildDate;
 ---
@@ -146,6 +146,7 @@ const stampDate = stamp === 'commit' ? BUILD_COMMIT_DATE : buildDate;
     <script type="application/ld+json" set:html={toSafeJsonLd(organizationNode(origin))} />
     <script type="application/ld+json" set:html={toSafeJsonLd(websiteNode(origin))} />
     {jsonLd.map((node) => <script type="application/ld+json" set:html={toSafeJsonLd(node)} />)}
+    <script is:inline defer src="https://stats.915websites.com/script.js" data-website-id="8e82b1af-925f-4a5a-b0d1-e02f616ae077"></script>
   </head>
   <body data-page={page}>
     <a data-skip-link href="#main">{t('skipLink', lang)}</a>

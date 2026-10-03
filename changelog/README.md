@@ -10,6 +10,7 @@ Entries are named `YYYY-MM-DD-HHMM_slug.md` and grouped by month, newest first.
 
 | Date | Entry | Keywords |
 |------|-------|----------|
+| 2026-10-03 | [06-05 Task 2 (GREEN): Spanish dates, ArticleCard language props, the reserved /es route and the Umami tag](2026-10-03-1048_06-05-task2-green-spanish-dates-card-props-umami-tag.md) | `[FRONTEND]` `[BACKEND]` `[FEATURE]` `[I18N]` `[TESTING]` `[ACCESSIBILITY]` `[SECURITY]` |
 | 2026-10-03 | [06-05 Task 2 (RED): failing coverage for Spanish dates, the Umami tag and the no-auto-language guard](2026-10-03-1048_06-05-task2-red-spanish-dates-umami-noautolang-tests.md) | `[TESTING]` `[I18N]` `[ACCESSIBILITY]` |
 | 2026-10-03 | [06-05 Task 1: /es ships as a reciprocal hreflang pair with Spanish chrome and a plain-link switcher](2026-10-03-1036_06-05-task1-es-hreflang-tracer-dictionary-switcher.md) | `[FRONTEND]` `[FEATURE]` `[I18N]` `[TESTING]` `[ACCESSIBILITY]` |
 | 2026-10-03 | [Plan 06-04 complete: archive-tier build/sync pipeline gains a Spanish dimension](2026-10-03-1021_06-04-complete-archive-tier-spanish-build-sync.md) | `[DOCUMENTATION]` `[PLANNING]` `[I18N]` |

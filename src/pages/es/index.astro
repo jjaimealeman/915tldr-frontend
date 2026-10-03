@@ -44,24 +44,24 @@ function showYearFor(publishedAt: number): boolean {
 >
   {
     lead && (
-      <div lang="en">
-        <ArticleCard
-          uuid={lead.uuid}
-          title={lead.title}
-          href={articlePath(lead.category.slug, lead.slug, lead.uuid, 'es')}
-          categorySlug={lead.category.slug}
-          categoryName={categoryLabel(lead.category.slug, 'es') ?? lead.category.name}
-          sourceName={lead.source.name}
-          publishedAt={lead.publishedAt}
-          variant="lead"
-          summary={lead.summary}
-          showYear={showYearFor(lead.publishedAt)}
-        />
-      </div>
+      <ArticleCard
+        uuid={lead.uuid}
+        title={lead.title}
+        href={articlePath(lead.category.slug, lead.slug, lead.uuid, 'es')}
+        categorySlug={lead.category.slug}
+        categoryName={categoryLabel(lead.category.slug, 'es') ?? lead.category.name}
+        sourceName={lead.source.name}
+        publishedAt={lead.publishedAt}
+        variant="lead"
+        summary={lead.summary}
+        showYear={showYearFor(lead.publishedAt)}
+        lang="es"
+        contentLang="en"
+      />
     )
   }
 
-  <section data-grid aria-label={t('homeGridLabel', 'es')} lang="en">
+  <section data-grid aria-label={t('homeGridLabel', 'es')}>
     {
       rest.map((article) => (
         <ArticleCard
@@ -74,6 +74,8 @@ function showYearFor(publishedAt: number): boolean {
           publishedAt={article.publishedAt}
           summary={article.summary}
           showYear={showYearFor(article.publishedAt)}
+          lang="es"
+          contentLang="en"
         />
       ))
     }
