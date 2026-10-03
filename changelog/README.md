@@ -10,6 +10,7 @@ Entries are named `YYYY-MM-DD-HHMM_slug.md` and grouped by month, newest first.
 
 | Date | Entry | Keywords |
 |------|-------|----------|
+| 2026-10-03 | [Phase 06 context captured: Bilingual](2026-10-03-0255_phase-06-context-captured.md) | `[PLANNING]` `[DOCUMENTATION]` `[I18N]` |
 | 2026-10-03 | [Phase 05 complete: Hybrid Archive & Zero-Reads Proof](2026-10-03-0210_phase-05-complete.md) | `[MILESTONE]` `[PLANNING]` `[VERIFICATION]` |
 | 2026-10-03 | [REND-11 complete: real production report received; yesterday's diagnosis corrected](2026-10-03-0205_rend11-complete-diagnosis-corrected.md) | `[MONITORING]` `[PLANNING]` `[DOCUMENTATION]` `[VERIFICATION]` |
 | 2026-10-02 | [Phase 05 re-verification: human_needed (2 owner items), all code gaps closed](2026-10-02-2155_05-re-verification-human-needed.md) | `[VERIFICATION]` `[PLANNING]` `[DOCUMENTATION]` |
