@@ -17,6 +17,8 @@ the raw measurements this pipeline's numbers come from.
        v
 Cloudflare Workers Builds (915tldr-frontend repo -> 915tldr-v2 Worker)
   -> `pnpm run build:ci` (tools/ci-build.mjs build)
+       -> node tools/reset-pending-build-state.mjs (quick 261002-tl2 — clears a stale/corrupt
+          pending file left by an earlier run before anything else runs)
        -> guard:config, test:build-gate
        -> astro build
             -> D1 articles loader (src/content/loaders/articles-loader.ts): cold / warm /
@@ -48,6 +50,12 @@ replacing any of the above. Full design record: `docs/phase-05/archive-architect
 BUILD step
   1. write .astro/ci-build-started-at (epoch seconds) — both archive-sync deadlines below
      measure from here
+  1a. node tools/reset-pending-build-state.mjs         — clears a stale/corrupt pending
+                                                          build-state file (and any stray
+                                                          write-temp file) left by an earlier run
+                                                          (quick 261002-tl2); runs before any
+                                                          loader, so it can never discard state
+                                                          written by THIS build
   2. node tools/partition-archive.mjs --clean        — clears stale tier-facts/dist/archive/plan
   3. astro build                                      — renders every page (hot AND archive-tier)
   4. node tools/partition-archive.mjs                  — moves archive-tier pages OUT of
@@ -56,6 +64,17 @@ BUILD step
   5. node tools/assert-file-count.mjs                  — fails the build at 80,000 dist/client
                                                           files, warns at 70,000 (D-13/REND-11)
 ```
+
+**Pending build state (quick 261002-tl2).** Writes to `.astro/build-state.pending.json` are
+serialized per process (a FIFO queue keyed on `globalThis`, so two loaders calling
+`writePendingBuildState` concurrently in one `astro build` never race each other) and replace the
+file atomically (temp file + rename, so no reader ever observes a partially-written file). Step
+1a above exists because Workers Builds caches `.astro/` between builds (D-06): without a
+build-start reset, a stale or corrupt pending file from an earlier run could carry into a new
+build. On 2026-10-02 the unlocked read-merge-write let a shorter concurrent write land over a
+longer one, corrupting the file (`build-state: failed to read pending build state: ...`) and
+crashing `pnpm run test:regression` — and, in the silent failure mode, could have let a stale
+section be recorded as the D-14 never-shrink baseline in KV with nothing flagging it.
 
 **Step 3's output is filtered (REND-11 follow-up, quick 261002-s2r).** `build:ci` replaces Astro's
 own ~60,000-line per-page listing (`├─ /path (+Nms)`/`cached`/`restored`) with a progress line

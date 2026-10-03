@@ -9,6 +9,8 @@ import assert from 'node:assert/strict';
 import { mkdtemp, rm, readFile, stat, readdir, writeFile, mkdir } from 'node:fs/promises';
 import path from 'node:path';
 import os from 'node:os';
+import { execFileSync } from 'node:child_process';
+import { fileURLToPath } from 'node:url';
 import {
   LAST_GOOD_KEY,
   readLastGood,
@@ -16,7 +18,10 @@ import {
   readPendingBuildState,
   commitLastGood,
   evaluateShrink,
+  resetPendingBuildState,
 } from '../../src/lib/server/build-state.ts';
+
+const REPO_ROOT = fileURLToPath(new URL('../../', import.meta.url));
 
 const ENV_KEYS = ['CLOUDFLARE_ACCOUNT_ID', 'CLOUDFLARE_API_TOKEN', 'RENDER_MANIFEST_KV_NAMESPACE_ID'];
 const savedEnv = {};
@@ -397,4 +402,82 @@ test('commitLastGood writes to KV when every required section is present', async
   assert.equal(body.buildHash, 'abc1234');
   assert.deepEqual(body.articles, { count: 2, ids: ['a', 'b'] });
   assert.ok(!('expiration' in body) && !('expiration_ttl' in body));
+});
+
+// ---------------------------------------------------------------------------
+// resetPendingBuildState (quick 261002-tl2 Task 2) — the build-start reset that clears a
+// stale/corrupt pending file (and any stray write-temp file) left by an earlier run, so Workers
+// Builds' `.astro/` cache (D-06) can never carry a corrupt or stale file into a new build.
+// ---------------------------------------------------------------------------
+
+test('T9: reset removes the pending file and stray temp files, leaves other .astro/ entries untouched', async () => {
+  const astroDir = path.join(tmpDir, '.astro');
+  await mkdir(astroDir, { recursive: true });
+
+  const corrupt = '{"articles":{}}garbage';
+  await writeFile(pendingFilePath(), corrupt, 'utf8');
+  await writeFile(path.join(astroDir, 'build-state.pending.json.123-abc.tmp'), 'stray', 'utf8');
+
+  const startedAtContent = '1700000000';
+  const dataStoreContent = '{"some":"store"}';
+  await writeFile(path.join(astroDir, 'ci-build-started-at'), startedAtContent, 'utf8');
+  await writeFile(path.join(astroDir, 'data-store.json'), dataStoreContent, 'utf8');
+
+  const result = await resetPendingBuildState();
+  assert.deepEqual(result, { removed: true, bytes: Buffer.byteLength(corrupt, 'utf8'), strayTempFiles: 1 });
+
+  const entries = await readdir(astroDir);
+  assert.ok(!entries.includes('build-state.pending.json'));
+  assert.ok(!entries.includes('build-state.pending.json.123-abc.tmp'));
+
+  assert.equal(await readFile(path.join(astroDir, 'ci-build-started-at'), 'utf8'), startedAtContent);
+  assert.equal(await readFile(path.join(astroDir, 'data-store.json'), 'utf8'), dataStoreContent);
+});
+
+test('T10: reset with no .astro/ directory at all resolves cleanly, does not throw', async () => {
+  await rm(path.join(tmpDir, '.astro'), { recursive: true, force: true });
+  const result = await resetPendingBuildState();
+  assert.deepEqual(result, { removed: false, bytes: 0, strayTempFiles: 0 });
+});
+
+test('T11: a stale section cleared by reset can no longer satisfy a required-section check', async () => {
+  await writePendingBuildState({ articles: { count: 2, ids: ['a', 'b'] }, changelog: { count: 12 } });
+  await resetPendingBuildState();
+  await writePendingBuildState({ articles: { count: 3, ids: ['a', 'b', 'c'] } });
+
+  const fetchImpl = makeStubFetch();
+  await assert.rejects(
+    () => commitLastGood({ buildHash: 'abc1234', requiredSections: ['articles', 'changelog'], fetchImpl }),
+    /changelog/
+  );
+  assert.equal(fetchImpl.calls.length, 0);
+});
+
+test('T12: the real tool removes a corrupt pending file, prints one line, leaves the sentinel intact; a second run says "no previous file"', async () => {
+  const astroDir = path.join(tmpDir, '.astro');
+  await mkdir(astroDir, { recursive: true });
+  await writeFile(pendingFilePath(), '{"articles":{}}garbage', 'utf8');
+  const startedAtContent = '1700000000';
+  await writeFile(path.join(astroDir, 'ci-build-started-at'), startedAtContent, 'utf8');
+
+  const toolPath = path.join(REPO_ROOT, 'tools', 'reset-pending-build-state.mjs');
+  const stdout1 = execFileSync(process.execPath, [toolPath], { cwd: tmpDir, encoding: 'utf8' });
+  const lines1 = stdout1.trim().split('\n');
+  assert.equal(lines1.length, 1);
+  assert.match(lines1[0], /^\[build-state\] reset pending build state: removed previous file \(\d+ bytes\)/);
+
+  const entries = await readdir(astroDir);
+  assert.ok(!entries.includes('build-state.pending.json'));
+  assert.equal(await readFile(path.join(astroDir, 'ci-build-started-at'), 'utf8'), startedAtContent);
+
+  const stdout2 = execFileSync(process.execPath, [toolPath], { cwd: tmpDir, encoding: 'utf8' });
+  assert.match(stdout2, /no previous file/);
+});
+
+test('T13: package.json scripts.build runs the reset first, before astro build', async () => {
+  const pkgPath = path.join(REPO_ROOT, 'package.json');
+  const pkg = JSON.parse(await readFile(pkgPath, 'utf8'));
+  const buildScript = pkg.scripts.build;
+  assert.ok(buildScript.startsWith('node tools/reset-pending-build-state.mjs && '));
+  assert.ok(buildScript.indexOf('reset-pending-build-state') < buildScript.indexOf('astro build'));
 });

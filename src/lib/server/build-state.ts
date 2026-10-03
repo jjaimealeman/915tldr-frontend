@@ -14,7 +14,7 @@
 // Pending-state writes are serialized (a per-process FIFO queue) and atomic (temp file + rename)
 // — see the comment block above `PENDING_WRITE_QUEUE_KEY` below for why, and quick task
 // 261002-tl2 for the 2026-10-02 incident this fixes.
-import { mkdir, readFile, rename, unlink, writeFile } from 'node:fs/promises';
+import { mkdir, readdir, readFile, rename, stat, unlink, writeFile } from 'node:fs/promises';
 import { randomUUID } from 'node:crypto';
 import path from 'node:path';
 import { RENDER_MANIFEST_NAMESPACE_ID } from './kv-manifest.ts';
@@ -264,6 +264,71 @@ export function writePendingBuildState(patch: PendingBuildState): Promise<void> 
   const run = tail.then(() => readMergeReplace(patch));
   setQueueTail(run.then(noop, noop));
   return run;
+}
+
+export interface ResetPendingBuildStateResult {
+  removed: boolean;
+  bytes: number;
+  strayTempFiles: number;
+}
+
+/**
+ * Clears a stale or corrupt pending-state file (and any stray write-temp file) left behind by an
+ * earlier run — Workers Builds caches `.astro/` between builds (D-06), so without this, a
+ * corrupt or stale file can carry over into a new build and either crash it (the 2026-10-02
+ * incident) or, worse, let a leftover section silently satisfy `commitLastGood`'s D-14
+ * required-section check with state the CURRENT build never wrote.
+ *
+ * **Contract: call this only at the very start of a build, before any loader runs.**
+ * `tools/reset-pending-build-state.mjs` is its only intended caller. Never call this from a
+ * loader or anywhere mid-build — doing so would discard the current build's own in-progress
+ * state, exactly the silent-discard failure mode this plan exists to prevent.
+ *
+ * Touches only the pending-state file itself and entries matching the write-temp naming
+ * convention (`PENDING_TEMP_PREFIX`/`PENDING_TEMP_SUFFIX`) — never any other file in `.astro/`,
+ * which also holds Astro's own content-layer data store and `ci-build-started-at`, both required
+ * by the incremental build.
+ */
+export async function resetPendingBuildState(): Promise<ResetPendingBuildStateResult> {
+  const filePath = pendingStatePath();
+  let removed = false;
+  let bytes = 0;
+  try {
+    const stats = await stat(filePath);
+    bytes = stats.size;
+    await unlink(filePath);
+    removed = true;
+  } catch (err) {
+    if ((err as NodeJS.ErrnoException).code !== 'ENOENT') {
+      throw new Error(`build-state: failed to reset pending build state: ${(err as Error).message}`);
+    }
+  }
+
+  const dir = path.dirname(filePath);
+  let entries: string[];
+  try {
+    entries = await readdir(dir);
+  } catch (err) {
+    if ((err as NodeJS.ErrnoException).code === 'ENOENT') {
+      return { removed, bytes, strayTempFiles: 0 };
+    }
+    throw new Error(`build-state: failed to reset pending build state: ${(err as Error).message}`);
+  }
+
+  let strayTempFiles = 0;
+  for (const entry of entries) {
+    if (!entry.startsWith(PENDING_TEMP_PREFIX) || !entry.endsWith(PENDING_TEMP_SUFFIX)) continue;
+    try {
+      await unlink(path.join(dir, entry));
+      strayTempFiles += 1;
+    } catch (err) {
+      if ((err as NodeJS.ErrnoException).code !== 'ENOENT') {
+        throw new Error(`build-state: failed to reset pending build state: ${(err as Error).message}`);
+      }
+    }
+  }
+
+  return { removed, bytes, strayTempFiles };
 }
 
 /**
