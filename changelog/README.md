@@ -10,6 +10,7 @@ Entries are named `YYYY-MM-DD-HHMM_slug.md` and grouped by month, newest first.
 
 | Date | Entry | Keywords |
 |------|-------|----------|
+| 2026-10-02 | [ntfy delivery outcome now observable (REND-11 follow-up, Task 1)](2026-10-02-2225_rend11-task1-ntfy-delivery-outcome-observable.md) | `[TESTING]` `[MONITORING]` `[BUG_FIX]` `[BACKEND]` |
 | 2026-10-02 | [REND-11 follow-up todo: delivery diagnosis and proposed fix](2026-10-02-2015_rend11-todo-diagnosis.md) | `[PLANNING]` `[DOCUMENTATION]` `[MONITORING]` |
 | 2026-10-02 | [robots.txt tests follow the PerplexityBot policy change](2026-10-02-2010_robots-tests-follow-perplexity-policy.md) | `[TESTING]` `[SEO]` `[FIX]` |
 | 2026-10-02 | [Plan 05-21 complete: gap-closure reconciliation](2026-10-02-2010_05-21-complete-gap-closure-reconciliation.md) | `[DOCUMENTATION]` `[PLANNING]` `[TESTING]` `[ARCHITECTURE]` `[CRITICAL]` |

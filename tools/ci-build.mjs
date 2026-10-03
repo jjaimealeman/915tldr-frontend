@@ -294,8 +294,24 @@ export function toHeaderSafe(text) {
  * 05-08 Task 2: `priority`/`tags` are now overridable (defaults unchanged — `high`/
  * `rotating_light`, the original failure-notification shape); the daily report uses
  * `low`/`bar_chart`, the file-count alarm uses `high`/`warning`.
+ *
+ * REND-11 follow-up (quick 261002-s2r): the outcome is no longer silent. `res.status` (not
+ * `res.ok`, so a plain-object fake works in tests with no real `Response`) decides delivery —
+ * 2xx logs exactly `[ci-build] ntfy "<title>": HTTP <status>` via the injected `log` and returns
+ * normally; anything else throws `new Error('HTTP <status>')` with no logging of its own, leaving
+ * the caller (`sendNotification`) to log the failure line with the topic/token scrubbed. The
+ * response body is never read into a log, and the URL/topic/headers/request body never are
+ * either.
  */
-async function defaultNotify({ env, title, body, priority = 'high', tags = 'rotating_light' }) {
+async function defaultNotify({
+  env,
+  title,
+  body,
+  priority = 'high',
+  tags = 'rotating_light',
+  fetchImpl = (...args) => globalThis.fetch(...args),
+  log = () => {},
+}) {
   const server = env.NTFY_SERVER ?? 'https://ntfy.sh';
   const topic = env.NTFY_TOPIC;
   const headers = {
@@ -304,7 +320,13 @@ async function defaultNotify({ env, title, body, priority = 'high', tags = 'rota
     Tags: tags,
   };
   if (env.NTFY_TOKEN) headers.Authorization = `Bearer ${env.NTFY_TOKEN}`;
-  await fetch(`${server}/${encodeURIComponent(topic)}`, { method: 'POST', headers, body });
+  const res = await fetchImpl(`${server}/${encodeURIComponent(topic)}`, { method: 'POST', headers, body });
+  const status = res?.status;
+  if (typeof status === 'number' && status >= 200 && status < 300) {
+    log(`[ci-build] ntfy "${title}": HTTP ${status}`);
+    return;
+  }
+  throw new Error(`HTTP ${status}`);
 }
 
 /**
@@ -355,6 +377,10 @@ async function runWatched({ spawnFn, setTimer, clearTimer, watchdogMs, onWatchdo
  *  - `deploy` only ever calls `commitImpl` after `wrangler deploy` itself exits 0.
  *  - `all` never spawns a deploy step if the build step failed.
  *  - Every notification body/title passes through `redact()`.
+ *  - REND-11 follow-up (quick 261002-s2r): every ntfy send's HTTP outcome is logged (one line per
+ *    send — `HTTP <status>` on success, `<reason> (not delivered)` otherwise), and a notifier
+ *    failure never changes this function's own return value. `fetchImpl` (default: `globalThis
+ *    .fetch`) is the injectable seam the real `defaultNotify` uses.
  */
 export async function runCi(opts = {}) {
   const {
@@ -362,6 +388,7 @@ export async function runCi(opts = {}) {
     env = process.env,
     spawnImpl = defaultSpawn,
     notifyImpl = defaultNotify,
+    fetchImpl = (...args) => globalThis.fetch(...args),
     commitImpl = defaultCommitImpl,
     markBuildStart = defaultMarkBuildStart,
     loadHotWindowImpl = defaultLoadHotWindow,
@@ -376,14 +403,33 @@ export async function runCi(opts = {}) {
   const inCi = isTruthyFlag(env.WORKERS_CI);
   const watchdogMs = Number(env.BUILD_WATCHDOG_MS) > 0 ? Number(env.BUILD_WATCHDOG_MS) : DEFAULT_WATCHDOG_MS;
 
+  /**
+   * REND-11 follow-up (quick 261002-s2r): returns a boolean meaning "confirmed delivered" — true
+   * only once `notifyImpl` resolves (a confirmed 2xx, for the real `defaultNotify`); false both
+   * when there's no topic to send to (logging-only branch, unchanged) and when `notifyImpl`
+   * rejects. A rejection is caught here, never re-thrown — a notifier failure must never change
+   * `runCi`'s own return code (D-10/D-12/D-15) — and logged as exactly one outcome line with the
+   * topic (raw and URL-encoded) and any other secret scrubbed via `redact()` plus split/join.
+   */
   async function sendNotification(title, rawBody, { priority = 'high', tags = 'rotating_light' } = {}) {
     const body = redact(rawBody, env);
     const safeTitle = redact(title, env);
     if (!env.NTFY_TOPIC) {
       log(`[ci-build] NTFY_TOPIC not set — logging only: ${safeTitle}\n${body}`);
-      return;
+      return false;
     }
-    await notifyImpl({ env, title: safeTitle, body, priority, tags });
+    try {
+      await notifyImpl({ env, title: safeTitle, body, priority, tags, fetchImpl, log });
+      return true;
+    } catch (err) {
+      let reason = redact(err instanceof Error ? err.message : String(err), env);
+      if (env.NTFY_TOPIC) {
+        reason = reason.split(env.NTFY_TOPIC).join('[topic]');
+        reason = reason.split(encodeURIComponent(env.NTFY_TOPIC)).join('[topic]');
+      }
+      log(`[ci-build] ntfy "${safeTitle}": ${reason} (not delivered)`);
+      return false;
+    }
   }
 
   async function notifyFailure(check) {

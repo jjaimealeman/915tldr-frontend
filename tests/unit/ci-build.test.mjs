@@ -307,6 +307,7 @@ test('runCi: notification body is passed through redact (no raw token leaks)', a
 test('runCi step=build: WORKERS_CI set with no NTFY_TOPIC fails before spawning, message names NTFY_TOPIC', async () => {
   const spawnCalls = [];
   const logs = [];
+  const notifyCalls = [];
   const code = await runCi({
     step: 'build',
     env: { WORKERS_CI: '1' },
@@ -314,9 +315,9 @@ test('runCi step=build: WORKERS_CI set with no NTFY_TOPIC fails before spawning,
       spawnCalls.push(args);
       return { code: 0, tail: '' };
     },
-    notifyImpl: async () => {
-      throw new Error('notify must not be called — there is no topic to notify to');
-    },
+    // REND-11 follow-up (quick 261002-s2r): sendNotification's new try/catch would swallow a
+    // thrown-to-detect-a-call notifyImpl, silently hiding a regression. Record calls instead.
+    notifyImpl: async (a) => notifyCalls.push(a),
     setTimer: noopTimer,
     clearTimer: noopClear,
     log: (msg) => logs.push(msg),
@@ -324,6 +325,7 @@ test('runCi step=build: WORKERS_CI set with no NTFY_TOPIC fails before spawning,
 
   assert.notEqual(code, 0);
   assert.equal(spawnCalls.length, 0, 'nothing should be spawned before the preflight check passes');
+  assert.equal(notifyCalls.length, 0, 'notify must not be called — there is no topic to notify to');
   assert.ok(logs.some((l) => String(l).includes('NTFY_TOPIC')));
 });
 
@@ -350,13 +352,14 @@ test('runCi step=all: the same WORKERS_CI-without-NTFY_TOPIC preflight also appl
 
 test('runCi step=deploy: wrangler exit 0 calls commitImpl exactly once', async () => {
   const commitCalls = [];
+  const notifyCalls = [];
   const code = await runCi({
     step: 'deploy',
     env: {},
     spawnImpl: async () => ({ code: 0, tail: '' }),
-    notifyImpl: async () => {
-      throw new Error('notify must not be called on a successful deploy');
-    },
+    // REND-11 follow-up (quick 261002-s2r): see the note on the WORKERS_CI-without-NTFY_TOPIC
+    // test above — record calls rather than throw, so the new try/catch can't swallow detection.
+    notifyImpl: async (a) => notifyCalls.push(a),
     commitImpl: async (a) => commitCalls.push(a),
     setTimer: noopTimer,
     clearTimer: noopClear,
@@ -365,6 +368,7 @@ test('runCi step=deploy: wrangler exit 0 calls commitImpl exactly once', async (
 
   assert.equal(code, 0);
   assert.equal(commitCalls.length, 1);
+  assert.equal(notifyCalls.length, 0, 'notify must not be called on a successful deploy');
 });
 
 test('runCi step=deploy: wrangler exit 1 never calls commitImpl, and notifies', async () => {
@@ -1194,4 +1198,163 @@ test('CR-01 (05-13): a failed wrangler deploy (non-dry-run) never spawns post, n
   assert.equal(commitCalls.length, 0);
   assert.equal(notifyCalls.length, 1);
   assert.match(notifyCalls[0].title, /wrangler deploy/);
+});
+
+// ---------------------------------------------------------------------------
+// REND-11 follow-up (quick 261002-s2r): ntfy delivery outcome is logged
+//
+// These tests drive the path runCi -> sendNotification -> the REAL defaultNotify -> an injected
+// fake fetchImpl -> log. None of them passes `notifyImpl`, so the production notifier runs.
+// ---------------------------------------------------------------------------
+
+const REND11_LOGS = [];
+
+test('REND-11 follow-up: a 2xx ntfy response logs exactly one HTTP <status> line, no (not delivered)', async () => {
+  const fetchCalls = [];
+  const fetchImpl = async (url, opts) => {
+    fetchCalls.push({ url, opts });
+    return { status: 200 };
+  };
+  const logs = [];
+  const code = await runCi({
+    step: 'build',
+    env: { NTFY_TOPIC: 'sekrit-topic-123' },
+    spawnImpl: async () => ({ code: 2, tail: '' }),
+    fetchImpl,
+    setTimer: noopTimer,
+    clearTimer: noopClear,
+    log: (...args) => logs.push(args.join(' ')),
+  });
+  REND11_LOGS.push(...logs);
+
+  assert.equal(code, 2);
+  assert.equal(fetchCalls.length, 1);
+  assert.equal(fetchCalls[0].url, 'https://ntfy.sh/sekrit-topic-123');
+  assert.equal(
+    logs.filter((l) => l.startsWith('[ci-build] ntfy ')).length,
+    1,
+    `expected exactly one ntfy outcome line, got: ${JSON.stringify(logs)}`
+  );
+  assert.ok(
+    logs.includes('[ci-build] ntfy "915 TLDR build failed: astro build exited 2": HTTP 200'),
+    `expected the HTTP 200 outcome line, got: ${JSON.stringify(logs)}`
+  );
+});
+
+test('REND-11 follow-up: a non-2xx ntfy response resolves (not reject) and logs HTTP <status> (not delivered)', async () => {
+  const fetchImpl = async () => ({ status: 429 });
+  const logs = [];
+  const code = await runCi({
+    step: 'build',
+    env: { NTFY_TOPIC: 'sekrit-topic-123' },
+    spawnImpl: async () => ({ code: 2, tail: '' }),
+    fetchImpl,
+    setTimer: noopTimer,
+    clearTimer: noopClear,
+    log: (...args) => logs.push(args.join(' ')),
+  });
+  REND11_LOGS.push(...logs);
+
+  assert.equal(code, 2);
+  assert.ok(
+    logs.includes('[ci-build] ntfy "915 TLDR build failed: astro build exited 2": HTTP 429 (not delivered)'),
+    `expected the HTTP 429 (not delivered) line, got: ${JSON.stringify(logs)}`
+  );
+});
+
+test('REND-11 follow-up: a rejected fetch resolves (not reject), logs a (not delivered) line, and never names the topic', async () => {
+  const fetchImpl = async () => {
+    throw new Error('Failed to parse URL from https://ntfy.sh/sekrit-topic-123');
+  };
+  const logs = [];
+  const code = await runCi({
+    step: 'build',
+    env: { NTFY_TOPIC: 'sekrit-topic-123' },
+    spawnImpl: async () => ({ code: 2, tail: '' }),
+    fetchImpl,
+    setTimer: noopTimer,
+    clearTimer: noopClear,
+    log: (...args) => logs.push(args.join(' ')),
+  });
+  REND11_LOGS.push(...logs);
+
+  assert.equal(code, 2);
+  assert.ok(
+    logs.some((l) => l.endsWith('(not delivered)')),
+    `expected a (not delivered) line, got: ${JSON.stringify(logs)}`
+  );
+  assert.ok(
+    !logs.some((l) => l.includes('sekrit-topic-123')),
+    `no log line may contain the topic, got: ${JSON.stringify(logs)}`
+  );
+});
+
+test('REND-11 follow-up: no log line ever contains the topic, token or body text; NTFY_TOKEN is sent as a Bearer header', async () => {
+  const fetchCalls = [];
+  const fetchImpl = async (url, opts) => {
+    fetchCalls.push({ url, opts });
+    return { status: 200 };
+  };
+  const logs = [];
+  const code = await runCi({
+    step: 'build',
+    env: { NTFY_TOPIC: 'sekrit-topic-123', NTFY_TOKEN: 'tok-abc-123' },
+    spawnImpl: async () => ({ code: 2, tail: '' }),
+    fetchImpl,
+    setTimer: noopTimer,
+    clearTimer: noopClear,
+    log: (...args) => logs.push(args.join(' ')),
+  });
+  REND11_LOGS.push(...logs);
+
+  assert.equal(code, 2);
+  assert.equal(fetchCalls.length, 1);
+  assert.equal(fetchCalls[0].opts.headers.Authorization, 'Bearer tok-abc-123');
+
+  // Across every REND-11 follow-up test run so far (tests 1-3 above plus this one): no log line
+  // may contain the topic, the token value, or the notification body text (commit:/branch:).
+  for (const line of REND11_LOGS) {
+    assert.ok(!line.includes('sekrit-topic-123'), `log line leaked the topic: ${line}`);
+    assert.ok(!line.includes('tok-abc-123'), `log line leaked the token: ${line}`);
+    assert.ok(!line.includes('commit:'), `log line leaked body text: ${line}`);
+    assert.ok(!line.includes('branch:'), `log line leaked body text: ${line}`);
+  }
+});
+
+test('REND-11 follow-up: deploy path — a non-2xx daily-report send logs HTTP <status> (not delivered)', async () => {
+  const fetchImpl = async () => ({ status: 503 });
+  const logs = [];
+  const spawnImpl = fakeDeploySpawnImpl({
+    postOverrides: {
+      dailyReport: {
+        due: true,
+        body: {
+          staticFileCount: 29937,
+          ceiling: 100000,
+          failAt: 80000,
+          archivedCount: 30478,
+          hotWindowStatus: 'derived',
+          hotWindowDays: 202,
+          backlog: 0,
+        },
+      },
+    },
+  });
+  const code = await runCi({
+    step: 'deploy',
+    env: { NTFY_TOPIC: 't' },
+    spawnImpl,
+    fetchImpl,
+    commitImpl: async () => {},
+    loadHotWindowImpl: fakeLoadHotWindow,
+    setTimer: noopTimer,
+    clearTimer: noopClear,
+    log: (...args) => logs.push(args.join(' ')),
+  });
+
+  assert.equal(code, 0);
+  assert.ok(
+    logs.includes('[ci-build] ntfy "915 TLDR archive daily report": HTTP 503 (not delivered)'),
+    `expected the daily-report (not delivered) line, got: ${JSON.stringify(logs)}`
+  );
 });
