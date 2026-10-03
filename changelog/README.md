@@ -10,6 +10,7 @@ Entries are named `YYYY-MM-DD-HHMM_slug.md` and grouped by month, newest first.
 
 | Date | Entry | Keywords |
 |------|-------|----------|
+| 2026-10-02 | [Phase 05 re-review after gap closure: all 3 blockers fixed, 1 new warning](2026-10-02-2052_05-re-review-after-gap-closure.md) | `[CODE-REVIEW]` `[DOCUMENTATION]` `[PLANNING]` |
 | 2026-10-02 | [Quick task 261002-s2r docs: ntfy delivery observable and retryable](2026-10-02-2045_quick-261002-s2r-docs.md) | `[PLANNING]` `[DOCUMENTATION]` `[MONITORING]` |
 | 2026-10-02 | [build step's per-page listing reduced to counts (REND-11 follow-up, Task 3)](2026-10-02-2310_rend11-task3-perpage-listing-filtered.md) | `[TESTING]` `[MONITORING]` `[BUG_FIX]` `[BACKEND]` `[PERFORMANCE]` |
 | 2026-10-02 | [daily-report marker written only after a confirmed send (REND-11 follow-up, Task 2)](2026-10-02-2245_rend11-task2-daily-report-marker-confirmed-send.md) | `[TESTING]` `[MONITORING]` `[BUG_FIX]` `[BACKEND]` `[DATABASE]` |
