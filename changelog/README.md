@@ -10,6 +10,7 @@ Entries are named `YYYY-MM-DD-HHMM_slug.md` and grouped by month, newest first.
 
 | Date | Entry | Keywords |
 |------|-------|----------|
+| 2026-10-03 | [Plan 06-04 complete: archive-tier build/sync pipeline gains a Spanish dimension](2026-10-03-1021_06-04-complete-archive-tier-spanish-build-sync.md) | `[DOCUMENTATION]` `[PLANNING]` `[I18N]` |
 | 2026-10-03 | [R2 Key Validation, Archive-Sync Self-Heal and the Language-Aware KV Manifest Key](2026-10-03-1018_06-04-task2-r2-key-validation-and-manifest-language-key.md) | `[BACKEND]` `[FEATURE]` `[TESTING]` `[SECURITY]` `[I18N]` |
 | 2026-10-03 | [Spanish Tier Facts and Partition Entries for the Archive-Tier Build Pipeline](2026-10-03-1725_06-04-task1-spanish-tier-facts-and-partition.md) | `[BACKEND]` `[FEATURE]` `[TESTING]` `[I18N]` |
 | 2026-10-03 | [Plan 06-03 complete: production D1 migration (article_translations, 0008)](2026-10-03-1650_06-03-complete-production-migration.md) | `[DOCUMENTATION]` `[PLANNING]` `[DATABASE]` `[MIGRATION]` `[I18N]` |
