@@ -24,6 +24,7 @@ import {
   isR2WriteBlocked,
   wrapStoreForBranchGuard,
   checkLiveDeployment,
+  commitDailyReport,
 } from '../../tools/archive-sync.mjs';
 
 // ---------------------------------------------------------------------------
@@ -1208,9 +1209,14 @@ test('archive-sync: runPostSync — a putJson rejection for archive-state.json i
   });
 });
 
-test('archive-sync: runPostSync — a putJson rejection for daily-report.json is an alert; dailyReport.due stays true', async () => {
+// REND-11 follow-up (quick 261002-s2r): `runPostSync` no longer writes DAILY_REPORT_KEY at all —
+// that moved to `commitDailyReport`, called by ci-build.mjs only after a confirmed 2xx send. So a
+// `getJson` rejection for the key (not a `putJson` rejection — there is no such write any more)
+// can no longer produce a marker-write alert; it simply means "treat the marker as absent", same
+// as a genuinely-missing key.
+test('archive-sync: runPostSync — a getJson rejection for daily-report.json is treated as absent (due:true), and raises no daily-report alert', async () => {
   await withTempRoot([], {}, async (root) => {
-    const store = makeFakeStore({ failPutKeys: new Set([DAILY_REPORT_KEY]) });
+    const store = makeFakeStore({ failGetJsonKeys: new Set([DAILY_REPORT_KEY]) });
 
     const { result, exitCode } = await runPostSync({
       root,
@@ -1221,10 +1227,45 @@ test('archive-sync: runPostSync — a putJson rejection for daily-report.json is
     });
 
     assert.equal(exitCode, 0);
-    assert.equal(result.dailyReport.due, true, 'a failed marker write must leave due:true — a duplicate report later beats a missed one');
+    assert.equal(result.dailyReport.due, true);
     assert.ok(
-      result.alerts.some((a) => /daily-report marker write failed/.test(a)),
-      `expected a daily-report-write alert, got: ${JSON.stringify(result.alerts)}`
+      !result.alerts.some((a) => /daily-report/i.test(a)),
+      `expected no daily-report alert, got: ${JSON.stringify(result.alerts)}`
+    );
+    assert.equal(
+      store.calls.some((c) => c[0] === 'putJson' && c[1] === DAILY_REPORT_KEY),
+      false,
+      'runPostSync must never write DAILY_REPORT_KEY itself any more'
+    );
+  });
+});
+
+test('archive-sync: runPostSync — a live post with no marker reports dailyReport.due:true with today\'s America/Denver date, and never writes DAILY_REPORT_KEY', async () => {
+  await withTempRoot([], {}, async (root) => {
+    mkdirSync(join(root, 'dist', 'client'), { recursive: true });
+    writeFileSync(
+      join(root, 'dist', 'client', 'static-budget.json'),
+      JSON.stringify({ staticFileCount: 29937, ceiling: 100000, failAt: 80000 })
+    );
+    const store = makeFakeStore();
+    const fixedNow = () => Date.parse('2026-10-02T18:00:00Z'); // 2026-10-02 in America/Denver
+
+    const { result, exitCode } = await runPostSync({
+      root,
+      env: {},
+      now: fixedNow,
+      hasR2CredentialsFn: trueCreds,
+      checkLiveDeploymentFn: liveOk,
+      createStore: async () => store,
+    });
+
+    assert.equal(exitCode, 0);
+    assert.equal(result.dailyReport.due, true);
+    assert.equal(result.dailyReport.date, '2026-10-02');
+    assert.equal(result.dailyReport.body.staticFileCount, 29937);
+    assert.ok(
+      !store.calls.some((c) => c[0] === 'putJson' && c[1] === DAILY_REPORT_KEY),
+      'post must never write DAILY_REPORT_KEY — only commitDailyReport may'
     );
   });
 });
@@ -1283,7 +1324,12 @@ test('archive-sync: requestFullReupload writes the marker; an empty reason is re
 // Daily report
 // ---------------------------------------------------------------------------
 
-test('archive-sync: runPostSync — dailyReport.due is true exactly once per America/Denver calendar date', async () => {
+// REND-11 follow-up (quick 261002-s2r): "a duplicate report is preferred over a missed report" is
+// still the governing principle — only the mechanism moved. `runPostSync` itself never advances
+// the marker any more (that's `commitDailyReport`'s job, called only after a confirmed 2xx), so
+// two consecutive `post` runs with no commit in between are BOTH due:true (retried, not silently
+// deduped) until something actually calls `commitDailyReport`.
+test('archive-sync: runPostSync — two post runs with no commit in between are both due:true; commitDailyReport then makes a third due:false', async () => {
   await withTempRoot([], {}, async (root) => {
     mkdirSync(join(root, 'dist', 'client'), { recursive: true });
     writeFileSync(
@@ -1291,15 +1337,61 @@ test('archive-sync: runPostSync — dailyReport.due is true exactly once per Ame
       JSON.stringify({ staticFileCount: 29937, ceiling: 100000, failAt: 80000 })
     );
     const store = makeFakeStore();
+    const fixedNow = () => Date.parse('2026-10-02T18:00:00Z'); // 2026-10-02 in America/Denver
 
-    const first = await runPostSync({ root, env: {}, hasR2CredentialsFn: trueCreds, checkLiveDeploymentFn: liveOk, createStore: async () => store });
+    const first = await runPostSync({ root, env: {}, now: fixedNow, hasR2CredentialsFn: trueCreds, checkLiveDeploymentFn: liveOk, createStore: async () => store });
     assert.equal(first.result.dailyReport.due, true);
     assert.equal(first.result.dailyReport.body.staticFileCount, 29937);
     assert.equal(first.result.dailyReport.body.ceiling, 100000);
 
-    const second = await runPostSync({ root, env: {}, hasR2CredentialsFn: trueCreds, checkLiveDeploymentFn: liveOk, createStore: async () => store });
-    assert.equal(second.result.dailyReport.due, false);
+    const second = await runPostSync({ root, env: {}, now: fixedNow, hasR2CredentialsFn: trueCreds, checkLiveDeploymentFn: liveOk, createStore: async () => store });
+    assert.equal(second.result.dailyReport.due, true, 'no send was confirmed between runs — the second run must still report due:true');
+
+    await commitDailyReport({ date: '2026-10-02', env: {}, hasR2CredentialsFn: trueCreds, createStore: async () => store });
+
+    const third = await runPostSync({ root, env: {}, now: fixedNow, hasR2CredentialsFn: trueCreds, checkLiveDeploymentFn: liveOk, createStore: async () => store });
+    assert.equal(third.result.dailyReport.due, false, 'commitDailyReport advanced the marker — the next post run is due:false');
   });
+});
+
+// ---------------------------------------------------------------------------
+// commitDailyReport
+// ---------------------------------------------------------------------------
+
+test('commitDailyReport: writes DAILY_REPORT_KEY with the given date', async () => {
+  const store = makeFakeStore();
+  await commitDailyReport({ date: '2026-10-02', env: {}, hasR2CredentialsFn: trueCreds, createStore: async () => store });
+  const marker = JSON.parse(store.objects.get(DAILY_REPORT_KEY).body);
+  assert.equal(marker.lastReportDate, '2026-10-02');
+});
+
+test('commitDailyReport: refuses before createStore is ever called — dry run, non-main CI branch, no R2 credentials, and each malformed date', async () => {
+  const cases = [
+    { opts: { date: '2026-10-02', env: { CI_BUILD_DEPLOY_DRY_RUN: '1' }, hasR2CredentialsFn: trueCreds }, label: 'dry run' },
+    {
+      opts: { date: '2026-10-02', env: { WORKERS_CI: '1', WORKERS_CI_BRANCH: 'develop' }, hasR2CredentialsFn: trueCreds },
+      label: 'non-main CI branch',
+    },
+    { opts: { date: '2026-10-02', env: {}, hasR2CredentialsFn: async () => false }, label: 'no R2 credentials' },
+    { opts: { date: '2026-10-2', env: {}, hasR2CredentialsFn: trueCreds }, label: 'malformed date (single-digit day)' },
+    { opts: { date: '', env: {}, hasR2CredentialsFn: trueCreds }, label: 'malformed date (empty)' },
+    { opts: { date: undefined, env: {}, hasR2CredentialsFn: trueCreds }, label: 'malformed date (undefined)' },
+    { opts: { date: '2026-10-02T00:00', env: {}, hasR2CredentialsFn: trueCreds }, label: 'malformed date (with time)' },
+  ];
+
+  for (const { opts, label } of cases) {
+    let createStoreCalls = 0;
+    const createStore = async () => {
+      createStoreCalls += 1;
+      return makeFakeStore();
+    };
+    await assert.rejects(
+      commitDailyReport({ ...opts, createStore }),
+      /archive-sync: /,
+      `expected a rejection for: ${label}`
+    );
+    assert.equal(createStoreCalls, 0, `createStore must never be called for: ${label}`);
+  }
 });
 
 // ---------------------------------------------------------------------------

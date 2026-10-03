@@ -885,7 +885,13 @@ export async function runPostSync(opts = {}) {
     }
   }
 
-  // Daily report: due at most once per America/Denver calendar date.
+  // Daily report (REND-11 follow-up, quick 261002-s2r): `runPostSync` itself never writes
+  // DAILY_REPORT_KEY any more — only `commitDailyReport` does, called by `tools/ci-build.mjs`'s
+  // deploy alert loop after a CONFIRMED 2xx ntfy response for this exact report. A missing,
+  // unreadable, or stale (not today's America/Denver date) marker all report due:true with
+  // today's date attached; a rejected/thrown send simply means the marker is never advanced, so
+  // the next run reports due:true again — "a duplicate report is preferred over a missed report"
+  // is still the governing principle, the mechanism just moved to the confirmed-send boundary.
   let dailyReportState = null;
   try {
     dailyReportState = await store.getJson(DAILY_REPORT_KEY);
@@ -895,19 +901,10 @@ export async function runPostSync(opts = {}) {
   const today = denverDateString(new Date(now()));
   let dailyReport;
   if (!dailyReportState || dailyReportState.lastReportDate !== today) {
-    try {
-      await store.putJson(DAILY_REPORT_KEY, { lastReportDate: today });
-    } catch (err) {
-      // A missed marker write means tomorrow's run will see the same stale lastReportDate and
-      // report again — a duplicate report is preferred over a missed one, so `due` stays true
-      // below regardless of this write's outcome.
-      alerts.push(
-        `archive-sync: daily-report marker write failed — ${err instanceof Error ? err.message : String(err)}; today's report may repeat`
-      );
-    }
     const budget = readStaticBudget(root);
     dailyReport = {
       due: true,
+      date: today,
       body: {
         staticFileCount: budget?.staticFileCount ?? null,
         ceiling: budget?.ceiling ?? null,
@@ -950,6 +947,40 @@ export async function requestFullReupload({ reason, env = process.env, createSto
   await store.putJson(FORCE_FULL_KEY, { requestedAt: nowIso(), reason });
 }
 
+/**
+ * REND-11 follow-up (quick 261002-s2r): the ONLY code path left in this file that writes
+ * `_meta/daily-report.json`. Called by `tools/ci-build.mjs`'s deploy alert loop, and only after
+ * `sendNotification` has confirmed a 2xx for THAT day's daily report — never from `runPostSync`
+ * itself, so a rejected or thrown send leaves the marker untouched and the next production
+ * deploy's `post` run reports `due: true` again (a duplicate report is preferred over a missed
+ * one, same principle `runPostSync`'s old inline write served, just moved to this confirmed-send
+ * boundary). Refuses — before any store is ever created — in the same four cases `checkDisabled`
+ * plus date validation already cover: a dry run (`CI_BUILD_DEPLOY_DRY_RUN` — a dry run deployed
+ * nothing, so nothing may be marked reported), a non-main `WORKERS_CI` branch, missing R2
+ * credentials, or a malformed `date`. Every write still passes through
+ * `wrapStoreForBranchGuard`, matching every other write in this file.
+ */
+export async function commitDailyReport({
+  date,
+  env = process.env,
+  createStore = defaultCreateStore,
+  hasR2CredentialsFn = defaultHasR2Credentials,
+} = {}) {
+  if (typeof date !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(date)) {
+    fail('commitDailyReport requires a YYYY-MM-DD date');
+  }
+  if (isTruthyFlag(env.CI_BUILD_DEPLOY_DRY_RUN)) {
+    fail('refusing daily-report marker write — CI_BUILD_DEPLOY_DRY_RUN is set (a dry run deployed nothing)');
+  }
+  const { disabled, reason } = await checkDisabled(env, hasR2CredentialsFn);
+  if (disabled) {
+    fail(`refusing daily-report marker write — ${reason}`);
+  }
+  const rawStore = await createStore(env);
+  const store = wrapStoreForBranchGuard(rawStore, env);
+  await store.putJson(DAILY_REPORT_KEY, { lastReportDate: date });
+}
+
 // ---------------------------------------------------------------------------
 // CLI
 // ---------------------------------------------------------------------------
@@ -961,13 +992,15 @@ function parseArgs(args) {
   const limit = limitIdx >= 0 ? Number(args[limitIdx + 1]) : null;
   const reasonIdx = args.indexOf('--reason');
   const reason = reasonIdx >= 0 ? args[reasonIdx + 1] : null;
-  return { jsonMode, forceFullFlag, limit, reason };
+  const dateIdx = args.indexOf('--date');
+  const date = dateIdx >= 0 ? args[dateIdx + 1] : null;
+  return { jsonMode, forceFullFlag, limit, reason, date };
 }
 
 async function main() {
   const args = process.argv.slice(2);
   const sub = args[0];
-  const { jsonMode, forceFullFlag, limit, reason } = parseArgs(args);
+  const { jsonMode, forceFullFlag, limit, reason, date } = parseArgs(args);
 
   if (sub === 'pre') {
     const { result, exitCode } = await runPreSync({ limit });
@@ -1004,8 +1037,19 @@ async function main() {
     return;
   }
 
+  if (sub === 'mark-daily-report') {
+    try {
+      await commitDailyReport({ date });
+      console.log(`archive-sync: daily-report marker set to ${date}`);
+    } catch (err) {
+      console.error(err instanceof Error ? err.message : String(err));
+      process.exitCode = 1;
+    }
+    return;
+  }
+
   console.error(
-    'Usage: node tools/archive-sync.mjs <pre|post|request-full --reason "..."> [--limit n] [--force-full] [--json]'
+    'Usage: node tools/archive-sync.mjs <pre|post|request-full --reason "..."|mark-daily-report --date YYYY-MM-DD> [--limit n] [--force-full] [--json]'
   );
   process.exitCode = 1;
 }

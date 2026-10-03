@@ -774,7 +774,11 @@ test('runCi step=all: also calls markBuildStart before spawning the build', asyn
 // 70,000 file-count alarm, and the daily report (05-08 Task 2)
 // ---------------------------------------------------------------------------
 
-function fakeDeploySpawnImpl({ preOverrides, countTail, wranglerResult, postOverrides, postResult } = {}) {
+/** `markResult` (Task 2, REND-11 follow-up quick 261002-s2r): the result returned for a
+ * `mark-daily-report` spawn, default `{ code: 0, tail: '' }`. `events`, if given, records
+ * `{ kind: 'mark-daily-report', args }` in call order — pair with a `notifyImpl` that also
+ * pushes into the same array to assert ordering (B1). */
+function fakeDeploySpawnImpl({ preOverrides, countTail, wranglerResult, postOverrides, postResult, markResult, events } = {}) {
   return async (cmd, args) => {
     if (args.includes('pre')) return { code: 0, tail: fakeArchiveSyncTail('pre', preOverrides ?? {}) };
     if (args.some((a) => String(a).includes('assert-file-count.mjs'))) {
@@ -784,6 +788,10 @@ function fakeDeploySpawnImpl({ preOverrides, countTail, wranglerResult, postOver
     if (args.includes('post')) {
       if (postResult) return postResult;
       return { code: 0, tail: fakeArchiveSyncTail('post', postOverrides ?? {}) };
+    }
+    if (args.includes('mark-daily-report')) {
+      events?.push({ kind: 'mark-daily-report', args: [...args] });
+      return markResult ?? { code: 0, tail: '' };
     }
     return { code: 0, tail: '' };
   };
@@ -1357,4 +1365,192 @@ test('REND-11 follow-up: deploy path — a non-2xx daily-report send logs HTTP <
     logs.includes('[ci-build] ntfy "915 TLDR archive daily report": HTTP 503 (not delivered)'),
     `expected the daily-report (not delivered) line, got: ${JSON.stringify(logs)}`
   );
+});
+
+// ---------------------------------------------------------------------------
+// Task 2 (REND-11 follow-up, quick 261002-s2r): daily-report marker written only after a
+// confirmed send (archive-sync `mark-daily-report` handoff)
+// ---------------------------------------------------------------------------
+
+test('B1: a confirmed daily-report send spawns mark-daily-report exactly once, AFTER the notify call, and logs the marker-set line', async () => {
+  const events = [];
+  const spawnImpl = fakeDeploySpawnImpl({
+    postOverrides: { dailyReport: { due: true, date: '2026-10-02', body: {} } },
+    events,
+  });
+  const logs = [];
+  const code = await runCi({
+    step: 'deploy',
+    env: { NTFY_TOPIC: 'test-topic' },
+    spawnImpl,
+    notifyImpl: async (a) => {
+      events.push({ kind: 'notify', title: a.title });
+    },
+    commitImpl: async () => {},
+    loadHotWindowImpl: fakeLoadHotWindow,
+    setTimer: noopTimer,
+    clearTimer: noopClear,
+    log: (...args) => logs.push(args.join(' ')),
+  });
+
+  assert.equal(code, 0);
+  const markEvents = events.filter((e) => e.kind === 'mark-daily-report');
+  assert.equal(markEvents.length, 1, 'expected exactly one mark-daily-report spawn');
+  assert.deepEqual(markEvents[0].args, ['tools/archive-sync.mjs', 'mark-daily-report', '--date', '2026-10-02']);
+  const notifyIdx = events.findIndex((e) => e.kind === 'notify');
+  const markIdx = events.findIndex((e) => e.kind === 'mark-daily-report');
+  assert.ok(notifyIdx >= 0 && markIdx > notifyIdx, 'mark-daily-report must be spawned AFTER the daily-report notify call');
+  assert.ok(logs.includes('[ci-build] daily-report marker set to 2026-10-02'));
+});
+
+test('B2: a thrown daily-report notify never spawns mark-daily-report; logs "marker left unchanged"', async () => {
+  const spawnImpl = fakeDeploySpawnImpl({
+    postOverrides: { dailyReport: { due: true, date: '2026-10-02', body: {} } },
+  });
+  const spawnCalls = [];
+  const wrappedSpawn = async (cmd, args) => {
+    spawnCalls.push({ cmd, args: [...args] });
+    return spawnImpl(cmd, args);
+  };
+  const logs = [];
+  const code = await runCi({
+    step: 'deploy',
+    env: { NTFY_TOPIC: 'test-topic' },
+    spawnImpl: wrappedSpawn,
+    notifyImpl: async (a) => {
+      if (/daily report/i.test(a.title)) throw new Error('simulated ntfy rejection');
+    },
+    commitImpl: async () => {},
+    loadHotWindowImpl: fakeLoadHotWindow,
+    setTimer: noopTimer,
+    clearTimer: noopClear,
+    log: (...args) => logs.push(args.join(' ')),
+  });
+
+  assert.equal(code, 0);
+  assert.ok(
+    !spawnCalls.some((c) => c.args.includes('mark-daily-report')),
+    'no mark-daily-report spawn may happen when the send was not confirmed delivered'
+  );
+  assert.ok(logs.some((l) => l.includes('marker left unchanged')));
+});
+
+test('B3 (the REND-11 regression, end to end): no notifyImpl, a non-2xx fetchImpl never spawns mark-daily-report', async () => {
+  const spawnImpl = fakeDeploySpawnImpl({
+    postOverrides: { dailyReport: { due: true, date: '2026-10-02', body: {} } },
+  });
+  const spawnCalls = [];
+  const wrappedSpawn = async (cmd, args) => {
+    spawnCalls.push({ cmd, args: [...args] });
+    return spawnImpl(cmd, args);
+  };
+  const fetchImpl = async () => ({ status: 429 });
+  const logs = [];
+  const code = await runCi({
+    step: 'deploy',
+    env: { NTFY_TOPIC: 'test-topic' },
+    spawnImpl: wrappedSpawn,
+    fetchImpl,
+    commitImpl: async () => {},
+    loadHotWindowImpl: fakeLoadHotWindow,
+    setTimer: noopTimer,
+    clearTimer: noopClear,
+    log: (...args) => logs.push(args.join(' ')),
+  });
+
+  assert.equal(code, 0);
+  assert.ok(!spawnCalls.some((c) => c.args.includes('mark-daily-report')));
+});
+
+test('B4: a mark-daily-report spawn that exits non-zero logs "daily-report marker not written" and the classified reason, runCi still returns 0', async () => {
+  const spawnImpl = fakeDeploySpawnImpl({
+    postOverrides: { dailyReport: { due: true, date: '2026-10-02', body: {} } },
+    markResult: {
+      code: 1,
+      tail: 'archive-sync: refusing daily-report marker write — R2 credentials are not set in the environment',
+    },
+  });
+  const logs = [];
+  const code = await runCi({
+    step: 'deploy',
+    env: { NTFY_TOPIC: 'test-topic' },
+    spawnImpl,
+    notifyImpl: async () => {},
+    commitImpl: async () => {},
+    loadHotWindowImpl: fakeLoadHotWindow,
+    setTimer: noopTimer,
+    clearTimer: noopClear,
+    log: (...args) => logs.push(args.join(' ')),
+  });
+
+  assert.equal(code, 0);
+  assert.ok(
+    logs.some((l) => l.includes('daily-report marker not written') && l.includes('R2 credentials are not set')),
+    `expected a marker-not-written line naming the reason, got: ${JSON.stringify(logs)}`
+  );
+});
+
+test('B5: dailyReport.due with no date still sends the report, never spawns mark-daily-report, and names the missing date', async () => {
+  const spawnImpl = fakeDeploySpawnImpl({
+    postOverrides: { dailyReport: { due: true, body: {} } }, // no `date` field
+  });
+  const spawnCalls = [];
+  const wrappedSpawn = async (cmd, args) => {
+    spawnCalls.push({ cmd, args: [...args] });
+    return spawnImpl(cmd, args);
+  };
+  const notifyCalls = [];
+  const logs = [];
+  const code = await runCi({
+    step: 'deploy',
+    env: { NTFY_TOPIC: 'test-topic' },
+    spawnImpl: wrappedSpawn,
+    notifyImpl: async (a) => notifyCalls.push(a),
+    commitImpl: async () => {},
+    loadHotWindowImpl: fakeLoadHotWindow,
+    setTimer: noopTimer,
+    clearTimer: noopClear,
+    log: (...args) => logs.push(args.join(' ')),
+  });
+
+  assert.equal(code, 0);
+  assert.ok(notifyCalls.some((c) => /daily report/i.test(c.title)), 'the report must still be sent');
+  assert.ok(!spawnCalls.some((c) => c.args.includes('mark-daily-report')));
+  assert.ok(
+    logs.some((l) => l.includes('daily report has no valid date')),
+    `expected a line naming the missing date, got: ${JSON.stringify(logs)}`
+  );
+});
+
+test('B6: CI_BUILD_DEPLOY_DRY_RUN=1 never spawns post or mark-daily-report, even with a due:true-shaped fake post (extends CR-01, 05-13)', async () => {
+  const calls = [];
+  const spawnImpl = async (cmd, args) => {
+    calls.push({ cmd, args: [...args] });
+    if (args.includes('pre')) return { code: 0, tail: fakeArchiveSyncTail('pre') };
+    if (args.some((a) => String(a).includes('assert-file-count.mjs'))) {
+      return { code: 0, tail: '{"count":100,"ceiling":100000,"failAt":80000,"status":"ok"}' };
+    }
+    if (cmd === 'pnpm' && args.includes('wrangler')) return { code: 0, tail: '' };
+    if (args.includes('post')) {
+      return { code: 0, tail: fakeArchiveSyncTail('post', { dailyReport: { due: true, date: '2026-10-02', body: {} } }) };
+    }
+    return { code: 0, tail: '' };
+  };
+  const code = await runCi({
+    step: 'deploy',
+    env: { CI_BUILD_DEPLOY_DRY_RUN: '1' },
+    spawnImpl,
+    notifyImpl: async () => {},
+    commitImpl: async () => {
+      throw new Error('commitImpl must never be called in a dry run');
+    },
+    loadHotWindowImpl: fakeLoadHotWindow,
+    setTimer: noopTimer,
+    clearTimer: noopClear,
+    log: noopLog,
+  });
+
+  assert.equal(code, 0);
+  assert.ok(!calls.some((c) => c.args.includes('post')), 'a dry run must never spawn archive-sync post');
+  assert.ok(!calls.some((c) => c.args.includes('mark-daily-report')), 'a dry run must never spawn mark-daily-report');
 });

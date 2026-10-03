@@ -510,11 +510,16 @@ export async function runCi(opts = {}) {
     // synced.mjs — CR-02, 05-20: refuses a partitioned dist/ that pre has not confirmed for THIS
     // build) -> wrangler deploy (or a dry run rehearsal, CI_BUILD_DEPLOY_DRY_RUN=1) ->
     // commitLastGood -> archive-sync post (re-upload changed pages, orphan cleanup, backlog/
-    // daily-report bookkeeping). commitLastGood AND archive-sync post are BOTH skipped entirely in
+    // daily-report bookkeeping) -> mark-daily-report (REND-11 follow-up, quick 261002-s2r: a
+    // separate `archive-sync mark-daily-report --date` spawn, fired only AFTER the daily-report
+    // ntfy send is CONFIRMED delivered with a 2xx — post itself never advances the marker any
+    // more; a not-delivered or thrown send leaves it untouched so the next deploy's post run
+    // reports due:true again). commitLastGood AND archive-sync post are BOTH skipped entirely in
     // a dry run (CI_BUILD_DEPLOY_DRY_RUN=1 deploys nothing, so nothing may be committed or deleted;
-    // CR-01, 05-13). Pre, the file-count gate, and the sync guard can each abort the whole deploy
-    // (D-13/CR-02); post never can (D-10/D-12) — a failed or resultless post run is logged, not
-    // treated as a build failure, since `wrangler deploy` (and therefore the site) already
+    // CR-01, 05-13) — and with post never spawned, no daily report can be due and mark-daily-report
+    // is never spawned either. Pre, the file-count gate, and the sync guard can each abort the whole
+    // deploy (D-13/CR-02); post never can (D-10/D-12) — a failed or resultless post run is logged,
+    // not treated as a build failure, since `wrangler deploy` (and therefore the site) already
     // succeeded by the time post runs. Every informational alert gathered along the way (pre's own
     // alerts, the file-count warn alarm, post's alerts/daily-report) is sent AFTER the deploy
     // succeeds — never blocking it, never gating it. A dry run still delivers every alert it
@@ -603,11 +608,22 @@ export async function runCi(opts = {}) {
           pendingAlerts.push({ title: '915 TLDR archive alert: post-deploy sync', body: alert });
         }
         if (postParsed.dailyReport?.due) {
+          // REND-11 follow-up (quick 261002-s2r): `dailyReportDate` is attached to the alert only
+          // when it's a valid YYYY-MM-DD — the signal the loop below uses to decide whether a
+          // CONFIRMED send should advance archive-sync's own marker. A missing/malformed date
+          // still sends the report (an operator still wants to see it) but can never spawn
+          // mark-daily-report — there would be nothing valid to pass it.
+          const reportDate = postParsed.dailyReport.date;
+          const validDate = typeof reportDate === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(reportDate);
+          if (!validDate) {
+            log(`[ci-build] daily report has no valid date (got ${JSON.stringify(reportDate ?? null)}) — marker will not be written`);
+          }
           pendingAlerts.push({
             title: '915 TLDR archive daily report',
             body: formatDailyReportBody(postParsed.dailyReport.body ?? {}),
             priority: 'low',
             tags: 'bar_chart',
+            ...(validDate ? { dailyReportDate: reportDate } : {}),
           });
         }
       }
@@ -616,11 +632,46 @@ export async function runCi(opts = {}) {
     // D-10/D-12: every alert above is informational — the deploy itself already succeeded (or
     // never started). A notification failure here (e.g. ntfy unreachable) must never surface as
     // this function's own return value.
+    //
+    // REND-11 follow-up (quick 261002-s2r): an alert carrying `dailyReportDate` is the daily
+    // report — `sendNotification`'s own `delivered` boolean (Task 1) decides what happens next.
+    // Only a CONFIRMED 2xx (`delivered === true`) spawns `mark-daily-report`, and only a
+    // successful marker write is logged as such; every other outcome (not delivered, or the
+    // marker spawn itself failing/throwing) is logged so the next production deploy's re-send is
+    // expected, not a silent mystery. None of this can ever change this function's own return
+    // value of 0.
     for (const alert of pendingAlerts) {
+      let delivered = false;
       try {
-        await sendNotification(alert.title, alert.body, { priority: alert.priority, tags: alert.tags });
+        delivered = await sendNotification(alert.title, alert.body, { priority: alert.priority, tags: alert.tags });
       } catch (err) {
         log(`[ci-build] archive alert notification failed: ${err instanceof Error ? err.message : String(err)}`);
+      }
+
+      if (alert.dailyReportDate) {
+        if (!delivered) {
+          log('[ci-build] daily report not delivered — marker left unchanged; the next production deploy will re-send it');
+        } else {
+          try {
+            const markResult = await spawnImpl(
+              'node',
+              ['tools/archive-sync.mjs', 'mark-daily-report', '--date', alert.dailyReportDate],
+              { env }
+            );
+            if (markResult.code === 0) {
+              log(`[ci-build] daily-report marker set to ${alert.dailyReportDate}`);
+            } else {
+              const check = classifyFailure(markResult.tail, markResult.code);
+              log(
+                `[ci-build] daily-report marker not written (exit ${markResult.code}) — the report will repeat on the next deploy: ${redact(check, env)}`
+              );
+            }
+          } catch (err) {
+            log(
+              `[ci-build] daily-report marker not written (exit 1) — the report will repeat on the next deploy: ${redact(err instanceof Error ? err.message : String(err), env)}`
+            );
+          }
+        }
       }
     }
 

@@ -10,6 +10,7 @@ Entries are named `YYYY-MM-DD-HHMM_slug.md` and grouped by month, newest first.
 
 | Date | Entry | Keywords |
 |------|-------|----------|
+| 2026-10-02 | [daily-report marker written only after a confirmed send (REND-11 follow-up, Task 2)](2026-10-02-2245_rend11-task2-daily-report-marker-confirmed-send.md) | `[TESTING]` `[MONITORING]` `[BUG_FIX]` `[BACKEND]` `[DATABASE]` |
 | 2026-10-02 | [ntfy delivery outcome now observable (REND-11 follow-up, Task 1)](2026-10-02-2225_rend11-task1-ntfy-delivery-outcome-observable.md) | `[TESTING]` `[MONITORING]` `[BUG_FIX]` `[BACKEND]` |
 | 2026-10-02 | [REND-11 follow-up todo: delivery diagnosis and proposed fix](2026-10-02-2015_rend11-todo-diagnosis.md) | `[PLANNING]` `[DOCUMENTATION]` `[MONITORING]` |
 | 2026-10-02 | [robots.txt tests follow the PerplexityBot policy change](2026-10-02-2010_robots-tests-follow-perplexity-policy.md) | `[TESTING]` `[SEO]` `[FIX]` |

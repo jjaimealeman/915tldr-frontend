@@ -198,7 +198,13 @@ the write credential ever touches `_meta/*`).
 // requestFullReupload({reason}), cleared by post only once a run ends with zero backlog
 { "requestedAt": "2026-10-01T05:00:00.000Z", "reason": "template change — redesign ship" }
 
-// _meta/daily-report.json — one field, the last America/Denver calendar date a report fired
+// _meta/daily-report.json — one field: the last America/Denver calendar date whose daily report
+// ntfy CONFIRMED with a 2xx response (REND-11 follow-up, quick 261002-s2r). Written ONLY by
+// `archive-sync mark-daily-report --date <date>` (exported as commitDailyReport()), which
+// tools/ci-build.mjs's deploy alert loop spawns after sendNotification() confirms delivery of
+// THAT day's report — never by `runPostSync` itself. A rejected or thrown send leaves this file
+// unchanged, so the next production deploy's post run sees the same stale date and reports
+// due:true again (a duplicate report is preferred over a missed one).
 { "lastReportDate": "2026-10-01" }
 ```
 
