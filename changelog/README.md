@@ -10,6 +10,7 @@ Entries are named `YYYY-MM-DD-HHMM_slug.md` and grouped by month, newest first.
 
 | Date | Entry | Keywords |
 |------|-------|----------|
+| 2026-10-02 | [Plan 05-19 complete: ARCH-08 CPU-axis owner-decision plan](2026-10-02-1930_05-19-complete-arch08-owner-decision-plan.md) | `[DOCUMENTATION]` `[PLANNING]` `[TESTING]` `[ARCHITECTURE]` |
 | 2026-10-02 | [Plan 05-19: ARCH-08 CPU-axis owner decision (re-measure) recorded, with result](2026-10-02-1923_05-19-arch08-owner-decision-remeasure-result.md) | `[DOCUMENTATION]` `[TESTING]` `[ARCHITECTURE]` `[CRITICAL]` |
 | 2026-10-02 | [robots.txt: allow PerplexityBot and Perplexity-User](2026-10-02-1800_robots-allow-perplexity.md) | `[SEO]` `[CONFIG]` |
 | 2026-10-02 | [Plant SEED-001: personalized news (/me, digests, follow-a-story)](2026-10-02-1757_plant-seed-001-personalized-news.md) | `[PLANNING]` `[DOCUMENTATION]` `[ARCHITECTURE]` |

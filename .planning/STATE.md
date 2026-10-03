@@ -5,15 +5,15 @@ milestone_name: milestone
 current_phase: 05
 current_phase_name: hybrid-archive-zero-reads-proof
 status: executing
-stopped_at: Completed 05-17-PLAN.md -- ARCH-08 CPU-outlier dispute settled (4 outliers, not 1), decision doc written for 05-19
-last_updated: "2026-10-02T23:09:21.977Z"
+stopped_at: Completed 05-19-PLAN.md -- ARCH-08 CPU-axis owner decision recorded (re-measure, mechanically MET on a zero-archive-traffic sample); gap remains open for 05-21
+last_updated: "2026-10-03T01:26:39.837Z"
 last_activity: 2026-10-02
 last_activity_desc: Phase 05 execution started
 progress:
   total_phases: 5
   completed_phases: 4
   total_plans: 73
-  completed_plans: 71
+  completed_plans: 72
 ---
 
 # Project State
@@ -28,11 +28,11 @@ See: .planning/PROJECT.md (updated 2026-09-16)
 ## Current Position
 
 Phase: 05 (hybrid-archive-zero-reads-proof) — EXECUTING
-Plan: 8 of 21
+Plan: 9 of 21
 Status: Ready to execute
 Last activity: 2026-10-02 — Phase 05 execution started
 
-Progress: [██████████] 97%
+Progress: [██████████] 99%
 
 ## Performance Metrics
 
@@ -120,6 +120,7 @@ Progress: [██████████] 97%
 | Phase 05 P18 | 4min | 3 tasks | 6 files |
 | Phase 05 P20 | ~35min | 3 tasks | 9 files |
 | Phase 05 P17 | 27min | 2 tasks | 10 files |
+| Phase 05 P19 | 25min | 1 tasks | 7 files |
 
 ## Accumulated Context
 
@@ -296,6 +297,7 @@ Recent decisions affecting current work:
 - [Phase ?]: 05-20: CR-02 closed — pnpm run deploy routed through tools/ci-build.mjs deploy, gated on a new tools/assert-archive-synced.mjs guard that refuses a partitioned dist/ unless archive-sync pre has confirmed this exact build (marker keyed to the plan's generatedAt). IN-06 fixed alongside (BUILD_START_MARKER_MAX_AGE_SECONDS=1800). Both CR-01 and CR-02 -- the two blockers on REND-07/REND-08 per 05-VERIFICATION.md -- are now closed; REQUIREMENTS.md closure itself deferred to 05-21 per this project's own established pattern.
 - [Phase ?]: ARCH-08: no decision made — docs/phase-05/arch-08-cpu-outliers.md records three labelled options (accept/fix/re-measure) for the owner's 05-19 checkpoint
 - [Phase ?]: ARCH-08 outlier count settled at 4 (>=20ms) / 5 (>=5ms) via a new per-request tool against Workers Observability telemetry (dataset cloudflare-workers), not the aggregate GraphQL workersInvocationsAdaptive dataset
+- [Phase ?]: ARCH-08 CPU axis: owner chose option (c) re-measure (05-19); criterion fixed before measuring (p99<5ms AND >=20ms share <0.1%) mechanically MET on a 24h dev.915tldr.com window, but the 3-invocation sample was 100% bot-scan 404 traffic with zero archive-page requests, so ARCH-08's CPU axis remains an open gap (WINDOWS.md #26 not waived) pending 05-21
 
 ### Pending Todos
 
@@ -352,6 +354,6 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-10-02T23:09:21.956Z
-Stopped at: Completed 05-17-PLAN.md -- ARCH-08 CPU-outlier dispute settled (4 outliers, not 1), decision doc written for 05-19
+Last session: 2026-10-03T01:26:39.814Z
+Stopped at: Completed 05-19-PLAN.md -- ARCH-08 CPU-axis owner decision recorded (re-measure, mechanically MET on a zero-archive-traffic sample); gap remains open for 05-21
 Resume file: None
