@@ -10,6 +10,7 @@ Entries are named `YYYY-MM-DD-HHMM_slug.md` and grouped by month, newest first.
 
 | Date | Entry | Keywords |
 |------|-------|----------|
+| 2026-10-02 | [Plan 05-21 Task 3: every Phase 5 requirement status set from evidence](2026-10-02-2003_05-21-task3-requirements-statuses-set-from-evidence.md) | `[DOCUMENTATION]` `[PLANNING]` `[ARCHITECTURE]` `[CRITICAL]` |
 | 2026-10-02 | [Plan 05-21 Task 2: 05-VALIDATION.md brought up to date for gap closure](2026-10-02-1958_05-21-task2-validation-map-updated-gap-closure-rerun.md) | `[DOCUMENTATION]` `[TESTING]` `[PLANNING]` |
 | 2026-10-02 | [Plan 05-19 complete: ARCH-08 CPU-axis owner-decision plan](2026-10-02-1930_05-19-complete-arch08-owner-decision-plan.md) | `[DOCUMENTATION]` `[PLANNING]` `[TESTING]` `[ARCHITECTURE]` |
 | 2026-10-02 | [Plan 05-19: ARCH-08 CPU-axis owner decision (re-measure) recorded, with result](2026-10-02-1923_05-19-arch08-owner-decision-remeasure-result.md) | `[DOCUMENTATION]` `[TESTING]` `[ARCHITECTURE]` `[CRITICAL]` |
