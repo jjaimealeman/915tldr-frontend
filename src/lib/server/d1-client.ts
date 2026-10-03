@@ -639,3 +639,128 @@ export async function fetchChangedSince(
   );
   return { ids: results.map((row) => row.id), rowsRead };
 }
+
+// ---------------------------------------------------------------------------
+// 06-06 (I18N-01/I18N-04): Spanish translation reads for the `articlesEs` Content Layer
+// collection. `article_translations` (06-01/06-03) is keyed by `(article_id, language)` — every
+// query here is scoped to `language = 'es'` and joins the primary key `articles.id` only (never
+// `articles.uuid` directly — the join exists solely to surface the public-facing uuid identity,
+// D-01: no existing `articles` query/index is touched by this join).
+//
+// REAL FINDING, not in 06-RESEARCH.md/06-PATTERNS.md (Rule 1 fix, found live against production
+// before this ever shipped): a plain `JOIN` here lets D1/SQLite's query planner silently pick
+// `articles` (44,217 rows) as the driving table and probe the nearly-empty `article_translations`
+// per row — `EXPLAIN QUERY PLAN` confirmed `SEARCH a USING INTEGER PRIMARY KEY (rowid>?)` driving,
+// `rows_read: 44218` for a query that returns ZERO rows. Exactly the class of bug
+// `.claude/CLAUDE.md`/MEMORY.md's "D1 index flip made related-articles 26x costlier" entry warns
+// about: an unrelated index/plan choice silently inflates a read-budget-sensitive query. SQLite's
+// `CROSS JOIN` keyword (distinct from an actual cross product here — both tables still carry a
+// real `ON` condition) disables the optimizer's automatic join-order flip and PINS the FROM-clause
+// order: confirmed via a second live `EXPLAIN QUERY PLAN` — `SEARCH t USING INDEX
+// sqlite_autoindex_article_translations_1 (article_id>?)` driving, `SEARCH a USING INTEGER PRIMARY
+// KEY (rowid=?)` probing, `rows_read: 1` for the identical zero-row query. Every query below uses
+// `CROSS JOIN` for this reason — removing it silently reintroduces the 44,000x cost regression.
+// ---------------------------------------------------------------------------
+
+/** One Spanish `article_translations` row, joined to its article's public uuid. `title`/`summary`
+ * are nullable on the raw row — a held (non-`clean`) translation may have never had text written,
+ * or the loader (06-06) nulls them out before they ever reach the content store (D-04/D-05). */
+export interface TranslationRow {
+  uuid: string;
+  source_language: string;
+  title: string | null;
+  summary: string | null;
+  key_points: string | null;
+  grounding_status: string;
+  updated_at: number;
+}
+
+export interface FetchTranslationsResult {
+  rows: TranslationRow[];
+  rowsRead: number;
+}
+
+const TRANSLATION_SELECT = `
+  SELECT
+    a.uuid AS uuid,
+    t.source_language AS source_language,
+    t.title AS title,
+    t.summary AS summary,
+    t.key_points AS key_points,
+    t.grounding_status AS grounding_status,
+    t.updated_at AS updated_at
+  FROM article_translations t
+  CROSS JOIN articles a ON a.id = t.article_id
+`;
+
+/** Internal row shape for the keyset-paginated cold fetch only — carries `article_id` (the
+ * keyset cursor column) alongside every public `TranslationRow` field. Never returned to callers;
+ * stripped before the row is pushed onto the result set below. */
+interface TranslationCursorRow extends TranslationRow {
+  article_id: number;
+}
+
+/**
+ * Full-corpus bulk fetch of every `language = 'es'` row, keyset-paginated at LIMIT 5000 on
+ * `t.article_id` — same page size and meta-accounting discipline as `fetchAllArticlesStitched`
+ * (docs/phase-03/d1-pagination-report.md). The composite primary key is `(article_id, language)`
+ * and `language` is fixed to `'es'` in this query, so a single-column cursor on `article_id` alone
+ * is a correct, gap-free keyset (no two 'es' rows share an `article_id`). `opts.fetchImpl` is
+ * threaded through for test injection, matching every other fetcher in this module.
+ */
+export async function fetchTranslationsAll(
+  opts: { fetchImpl?: typeof fetch } = {}
+): Promise<FetchTranslationsResult> {
+  let rowsRead = 0;
+  const rows: TranslationRow[] = [];
+  let cursor = 0;
+
+  for (;;) {
+    const { results, rowsRead: pageRowsRead } = await queryD1WithMeta<TranslationCursorRow>(
+      `SELECT
+         a.uuid AS uuid,
+         t.article_id AS article_id,
+         t.source_language AS source_language,
+         t.title AS title,
+         t.summary AS summary,
+         t.key_points AS key_points,
+         t.grounding_status AS grounding_status,
+         t.updated_at AS updated_at
+       FROM article_translations t
+       CROSS JOIN articles a ON a.id = t.article_id
+       WHERE t.language = 'es' AND t.article_id > ?
+       ORDER BY t.article_id
+       LIMIT 5000`,
+      [cursor],
+      opts
+    );
+    rowsRead += pageRowsRead;
+    for (const { article_id, ...row } of results) {
+      rows.push(row);
+    }
+    if (results.length === 0) break;
+    cursor = results[results.length - 1].article_id;
+    if (results.length < 5000) break;
+  }
+
+  return { rows, rowsRead };
+}
+
+/**
+ * The warm-mode catch-up signal (06-06): one statement, `t.language = 'es' AND t.updated_at >= ?`
+ * — one bound parameter, unpaginated. After the full backfill writes ~40,000 Spanish rows, a
+ * single warm pass can legitimately return all of them in one response; `ES_ROWS_READ_BUDGET`
+ * (articles-es-loader.ts) is sized to cover that, not a steady trickle.
+ */
+export async function fetchTranslationsChangedSince(
+  sinceEpoch: number,
+  opts: { fetchImpl?: typeof fetch } = {}
+): Promise<FetchTranslationsResult> {
+  const { results, rowsRead } = await queryD1WithMeta<TranslationRow>(
+    `${TRANSLATION_SELECT}
+     WHERE t.language = 'es' AND t.updated_at >= ?`,
+    [sinceEpoch],
+    opts
+  );
+  return { rows: results, rowsRead };
+}
