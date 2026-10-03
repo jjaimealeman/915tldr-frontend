@@ -10,6 +10,7 @@ Entries are named `YYYY-MM-DD-HHMM_slug.md` and grouped by month, newest first.
 
 | Date | Entry | Keywords |
 |------|-------|----------|
+| 2026-10-03 | [Phase 6 tracking updated after wave 2](2026-10-03-1054_phase-06-wave-2-tracking.md) | `[DOCUMENTATION]` `[PLANNING]` |
 | 2026-10-03 | [Plan 06-05 complete: hreflang, Spanish chrome and the first live /es page](2026-10-03-1052_06-05-complete-hreflang-chrome-first-es-page.md) | `[DOCUMENTATION]` `[PLANNING]` `[I18N]` |
 | 2026-10-03 | [06-05 Task 2 (GREEN): Spanish dates, ArticleCard language props, the reserved /es route and the Umami tag](2026-10-03-1048_06-05-task2-green-spanish-dates-card-props-umami-tag.md) | `[FRONTEND]` `[BACKEND]` `[FEATURE]` `[I18N]` `[TESTING]` `[ACCESSIBILITY]` `[SECURITY]` |
 | 2026-10-03 | [06-05 Task 2 (RED): failing coverage for Spanish dates, the Umami tag and the no-auto-language guard](2026-10-03-1048_06-05-task2-red-spanish-dates-umami-noautolang-tests.md) | `[TESTING]` `[I18N]` `[ACCESSIBILITY]` |
