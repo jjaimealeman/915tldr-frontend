@@ -46,12 +46,21 @@ export interface LastGoodChangelogState {
   count: number;
 }
 
+/** 06-06: the Spanish `articlesEs` collection's own last-good baseline — same shape as
+ * `LastGoodArticlesState` (count + the full id set), kept as a distinct type alias rather than a
+ * shared one so a future divergence in shape doesn't silently couple the two collections. */
+export type LastGoodArticlesEsState = LastGoodArticlesState;
+
 export interface LastGoodState {
   schemaVersion: '1';
   buildHash: string;
   recordedAt: string;
   articles: LastGoodArticlesState;
   changelog?: LastGoodChangelogState;
+  /** Optional ONLY for backward compatibility with every pre-Phase-6 baseline already recorded in
+   * KV — a build written by `articles-es-loader.ts` always includes this section (06-06). See
+   * `commitLastGood`'s default `requiredSections`, which now requires it going forward. */
+  articlesEs?: LastGoodArticlesEsState;
 }
 
 function requireEnv(name: string): string {
@@ -101,6 +110,18 @@ function validateLastGoodShape(value: unknown): asserts value is LastGoodState {
       throw new Error(`build-state: "${LAST_GOOD_KEY}" value has a malformed "changelog"`);
     }
   }
+  if (v.articlesEs !== undefined) {
+    const articlesEs = v.articlesEs as Record<string, unknown>;
+    if (
+      typeof articlesEs !== 'object' ||
+      articlesEs === null ||
+      typeof articlesEs.count !== 'number' ||
+      !Array.isArray(articlesEs.ids) ||
+      !articlesEs.ids.every((id) => typeof id === 'string')
+    ) {
+      throw new Error(`build-state: "${LAST_GOOD_KEY}" value has a malformed "articlesEs"`);
+    }
+  }
 }
 
 /**
@@ -138,7 +159,7 @@ export async function readLastGood(opts: { fetchImpl?: FetchImpl } = {}): Promis
 /** Shape of the per-build pending-state file. Every field is optional — the file accumulates
  * sections across a build as different parts of the loader/changelog pipeline call
  * `writePendingBuildState`, and `commitLastGood` only requires the sections it's told to require. */
-export type PendingBuildState = Partial<Pick<LastGoodState, 'articles' | 'changelog'>>;
+export type PendingBuildState = Partial<Pick<LastGoodState, 'articles' | 'changelog' | 'articlesEs'>>;
 
 async function readPendingFileRaw(): Promise<PendingBuildState> {
   try {
@@ -343,7 +364,10 @@ export async function commitLastGood(opts: {
   requiredSections?: Array<keyof PendingBuildState>;
   fetchImpl?: FetchImpl;
 }): Promise<void> {
-  const requiredSections = opts.requiredSections ?? ['articles', 'changelog'];
+  // 06-06: 'articlesEs' is now a required section by default — the Spanish loader writes it on
+  // EVERY build (even when the Spanish collection is empty), so a build that skipped it means
+  // something upstream of this call never ran, and must not be allowed to commit a baseline.
+  const requiredSections = opts.requiredSections ?? ['articles', 'changelog', 'articlesEs'];
   await getQueueTail();
   const pending = await readPendingFileRaw();
 
@@ -361,6 +385,7 @@ export async function commitLastGood(opts: {
     recordedAt: new Date().toISOString(),
     articles: pending.articles as LastGoodArticlesState,
     ...(pending.changelog !== undefined ? { changelog: pending.changelog as LastGoodChangelogState } : {}),
+    ...(pending.articlesEs !== undefined ? { articlesEs: pending.articlesEs as LastGoodArticlesEsState } : {}),
   };
 
   const fetchImpl = opts.fetchImpl ?? fetch;
