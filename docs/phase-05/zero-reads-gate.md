@@ -393,6 +393,25 @@ cost is small and consistent). Recorded as a failed requirement for `/gsd-verify
 per this plan's own Task 2 instruction — **not** a project halt (D-02 applies only to the
 `ZERO_READS_*` verdict, which is `PROVEN`).
 
+#### ARCH-08 per-request correction and decision (05-19)
+
+The "one outlier among 8,464 invocations" framing above was an inference from
+`workersInvocationsAdaptive`'s aggregate `max.cpuTime` field, not a measured count — an aggregate
+maximum can report that a request that slow happened, but has no way to report how many requests
+crossed any threshold. 05-17's per-request tool (`tools/measure-worker-cpu-outliers.mjs`, querying
+the Workers Observability telemetry API directly) settled the true count for this exact window:
+**4 invocations ≥ 20ms CPU, 5 ≥ 5ms CPU** — not 1. Full method, reconciliation, and IN-01
+correlation evidence: `docs/phase-05/arch-08-cpu-outliers.md`.
+
+The owner's 05-19 decision (option c, re-measure, criterion fixed before measuring): a fresh
+24-hour natural-traffic window (`2026-10-02T00:00:00Z`..`2026-10-03T00:00:00Z`) mechanically MET
+the pre-stated criterion (population p99 CPU 1.314ms < 5ms; 0 of 3 invocations ≥ 20ms = 0% < 0.1%)
+— but that window contained zero archive-page requests (all 3 invocations were bot-scan/favicon
+404 probes), so the MET result does not speak to the disputed code path. ARCH-08's CPU axis
+therefore remains an open gap (WINDOWS.md #26 stays open under option c, per plan design — only
+option (a) waives it). Full record: `docs/phase-05/arch-08-cpu-outliers.md`'s "Owner decision
+(05-19, 2026-10-02)" section.
+
 ### Criterion 1 reinterpretation (restated against this result)
 
 Cloudflare's D1 analytics has no `scriptName`/`workerName` dimension — there is no query that can

@@ -220,3 +220,105 @@ informative either way. Evidence against: Workers Logs retention is 7 days; the 
 window is already a day old, so there is a limited runway before this specific evidence
 disappears, and natural traffic may simply not produce enough high-CPU samples in any one
 re-measurement window to be conclusive (0.06% outlier rate on this window).
+
+## Owner decision (05-19, 2026-10-02)
+
+**Jaime's reply, verbatim** (2026-10-02 ~19:05 MDT, in-session; option (c) was recommended by the
+orchestrator, the owner chose it, then picked the rate-based rule over "strict zero" and "p99
+only"):
+
+> re-measure: 2026-10-02T00:00:00Z to 2026-10-03T00:00:00Z (the last full UTC day, natural traffic
+> on dev.915tldr.com / worker 915tldr-v2) + PASS iff population p99 CPU < 5ms AND invocations with
+> CPU >= 20ms are under 0.1% of total invocations in the window
+
+Option chosen: **(c) re-measure.** Pass criterion fixed BEFORE measuring (T-05-64): population p99
+CPU < 5ms (aggregate, `measure-worker-kv-cpu.mjs`) AND the share of invocations with CPU ≥ 20ms
+under 0.1% of total invocations in the window (per-request, `measure-worker-cpu-outliers.mjs`).
+
+### Re-measurement (read-only, $0)
+
+Commands run (credentials via shell-environment `CLOUDFLARE_API_TOKEN`/`CLOUDFLARE_ACCOUNT_ID`,
+per this plan's execution rules — not `.dev.vars`):
+
+```bash
+node tools/measure-worker-kv-cpu.mjs \
+  --from 2026-10-02T00:00:00Z --to 2026-10-03T00:00:00Z \
+  --assume-no-build --json --evidence docs/phase-05/evidence/cpu-outliers-remeasure/aggregate
+
+node tools/measure-worker-cpu-outliers.mjs \
+  --from 2026-10-02T00:00:00Z --to 2026-10-03T00:00:00Z \
+  --correlate --json --evidence docs/phase-05/evidence/cpu-outliers-remeasure
+```
+
+`--assume-no-build` is used for the same reason 05-17 used it for the 05-12 gate window: this
+window is entirely in the past, so a live before/after `/version.json` poll run now cannot confirm
+whether a build happened at any point *during* the window — only `--assume-no-build`'s documented
+weaker method applies to a historical window. (Actual UTC time at measurement, confirmed before
+running: `2026-10-03T01:22:17Z` — the window is a genuinely completed UTC day, not one still in
+progress.)
+
+| Field | Value | Source |
+|---|---|---|
+| Window | `2026-10-02T00:00:00Z` .. `2026-10-03T00:00:00Z` | both tools |
+| Total invocations (aggregate) | 3 | `measure-worker-kv-cpu.mjs` |
+| Total invocations (per-request events-view) | 3 | `measure-worker-cpu-outliers.mjs` (`total`) |
+| Total invocations (per-request COUNT-view, cap-immune) | 3 | `measure-worker-cpu-outliers.mjs` (`totalFromCountQuery`) |
+| Population CPU p50 | 1.133 ms | `measure-worker-kv-cpu.mjs` (GraphQL quantile) |
+| **Population CPU p99** | **1.314 ms** | `measure-worker-kv-cpu.mjs` (GraphQL quantile) |
+| Population CPU max | 1.314 ms (aggregate) / 1 ms (per-request, integer-ms) | both tools |
+| Invocations ≥ 5ms CPU | 0 | `measure-worker-cpu-outliers.mjs` (`overBudget`) |
+| **Invocations ≥ 20ms CPU** | **0** | `measure-worker-cpu-outliers.mjs` (`overHardFail`) |
+| **Share ≥ 20ms CPU** | **0 / 3 = 0%** | computed |
+
+All three raw evidence files (`events.normalized.json`, `summary.json`, `correlation.json`,
+`aggregate/workers-invocations.json`, `aggregate/kv-operations.json`) are under
+`docs/phase-05/evidence/cpu-outliers-remeasure/`. No account id or credential appears in any of
+them (checked directly — `fetchImpl`/`redact` already strip them at the single read boundary, and
+a direct grep for the account id against every evidence file returned 0 matches).
+
+**Mechanical verdict against the pre-stated criterion: MET.**
+- Population p99 CPU: 1.314 ms < 5 ms — **true**.
+- Share of invocations ≥ 20 ms CPU: 0% < 0.1% — **true**.
+- Both clauses of the AND hold → the pre-stated criterion is satisfied by the letter of what was
+  fixed before measuring.
+
+**Disclosed, not hidden — a finding that changes what this MET verdict is actually evidence of:**
+all 3 invocations in this 24-hour window are **not** archive-page traffic at all. The full,
+unfiltered per-request list (`events.normalized.json`) is:
+
+| Path | Status | CPU (ms) | Colo |
+|---|---|---|---|
+| `/.git/HEAD` | 404 | 1 | VIE |
+| `/favicon.ico` | 404 | 1 | LAX |
+| `/favicon.ico` | 404 | 1 | LAX |
+
+These are automated vulnerability-scanner/browser-favicon 404 probes — paths that reach the Worker
+only because they don't match a static asset and fall through to the 404 handler. **Not one
+invocation in this window touched an archived article or archived tag** (the KV-manifest-read,
+cold-isolate-candidate code path this entire ARCH-08 CPU dispute is about). This is a materially
+different situation from "synthetic load traffic" (the gate window's repeated-URL polling that
+05-17's IN-01 correlation flagged) — it is the *absence* of the traffic this criterion was
+designed to characterize. The criterion's own evidence-against note anticipated exactly this risk
+before measuring: "natural traffic may simply not produce enough high-CPU samples in any one
+re-measurement window to be conclusive" — what was not anticipated is that the window would
+contain zero samples of the relevant *code path* at all, independent of CPU cost.
+
+**What this does and does not establish:** the MET verdict is accurate against the literal,
+pre-fixed formula and is not retroactively reinterpreted here (T-05-65 — no softening, no erasing).
+But because the sample contains no archive-page requests, this measurement cannot confirm or deny
+whether the gate window's CPU outliers (49/40/37/26/7 ms, per 05-17) recur, or do not recur, under
+genuine organic archive-reader traffic — it only confirms that this Worker's incidental 404
+bot-scan handling costs ~1ms, which was never in dispute. `dev.915tldr.com` is a low-traffic
+development host (not production), and this result is consistent with 05-17's own baseline
+measurement (94 invocations/24h on this same Worker, pre-archive) — a full UTC day without a
+single real archive-page hit is plausible on this host, not an anomaly in the measurement itself.
+
+**Consequence for ARCH-08's CPU axis:** per this plan's Task 2 instructions, option (c) leaves
+ARCH-08 as a gap regardless of the mechanical MET/NOT-MET result — WINDOWS.md #26 stays **open**
+(not waived; waiving is reserved for option (a) only). The mechanical MET result is recorded
+faithfully above; it is not treated as resolving ARCH-08, both because the plan's own rule reserves
+resolution for option (a) and because the zero-archive-traffic composition of this sample means a
+MET verdict here does not actually speak to the disputed code path. A future measurement that
+confirms it captured genuine archive-article/archive-tag invocations (not just whatever the Worker
+happens to receive) would be the stronger version of this same test, should the owner choose to
+re-run it.

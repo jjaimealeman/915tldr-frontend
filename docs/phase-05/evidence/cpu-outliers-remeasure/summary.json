@@ -1,0 +1,13 @@
+{
+  "window": {
+    "from": "2026-10-02T00:00:00Z",
+    "to": "2026-10-03T00:00:00Z"
+  },
+  "totalFromCountQuery": 3,
+  "total": 3,
+  "overBudget": 0,
+  "overHardFail": 0,
+  "p99Ms": 1,
+  "maxMs": 1,
+  "outliers": []
+}
