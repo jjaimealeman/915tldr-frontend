@@ -387,13 +387,13 @@ Plans:
   4. Spanish-language articles render with `lang="es"` on the correct element and carry the same AI-generation disclosure as their English counterparts.
   5. `Accept-Language` is logged at the edge and a report of Spanish-preferring request share is available to inform the `/es` launch decision on 2-4 weeks of measured data.
 
-**Plans:** 17 plans
+**Plans:** 2/17 plans executed
 
 Plans:
 **Wave 1**
 
-- [ ] 06-01-PLAN.md — Pipeline tracer: one model call → English row + grounded Spanish row in `article_translations` (local wrangler dev); Spanish grounding hardening; measured token budget and live cost delta
-- [ ] 06-02-PLAN.md — Worker request path language-aware: `/es` canonical redirects, Spanish R2 keys, no Accept-Language/cookie/geo selection
+- [x] 06-01-PLAN.md — Pipeline tracer: one model call → English row + grounded Spanish row in `article_translations` (local wrangler dev); Spanish grounding hardening; measured token budget and live cost delta
+- [x] 06-02-PLAN.md — Worker request path language-aware: `/es` canonical redirects, Spanish R2 keys, no Accept-Language/cookie/geo selection
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
@@ -436,6 +436,7 @@ Plans:
 **Wave 10** *(blocked on Wave 9 completion)*
 
 - [ ] 06-17-PLAN.md — Backfill to completion under the ceiling; live convergence of archived Spanish pages
+
 **UI hint**: yes
 
 ### Phase 7: Imagery & Share Cards
@@ -552,7 +553,7 @@ Phase 3 and may run alongside Phases 5-7.
 | 3. Foundation & Read-Budget Guardrails | 7/7 | Complete    | 2026-09-26 |
 | 4. Static Generation, Templates & SEO | 12/12 | In Progress|  |
 | 5. Hybrid Archive & Zero-Reads Proof | 21/21 | Complete    | 2026-10-03 |
-| 6. Bilingual | 0/TBD | Not started | - |
+| 6. Bilingual | 2/17 | In Progress|  |
 | 7. Imagery & Share Cards | 0/TBD | Not started | - |
 | 8. Server Islands & Interactivity | 0/TBD | Not started | - |
 | 9. Search | 0/TBD | Not started | - |

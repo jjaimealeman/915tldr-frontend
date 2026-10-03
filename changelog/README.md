@@ -10,6 +10,7 @@ Entries are named `YYYY-MM-DD-HHMM_slug.md` and grouped by month, newest first.
 
 | Date | Entry | Keywords |
 |------|-------|----------|
+| 2026-10-03 | [Phase 6 tracking updated after wave 1](2026-10-03-1005_phase-06-wave-1-tracking.md) | `[DOCUMENTATION]` `[PLANNING]` |
 | 2026-10-03 | [Plan 06-02 complete: language-aware archive-tier routing for /es](2026-10-03-1645_06-02-complete-language-aware-archive-tier.md) | `[DOCUMENTATION]` `[PLANNING]` `[I18N]` |
 | 2026-10-03 | [Abuse-case tests pin the /es Worker against open redirect, key injection and Accept-Language/Cookie selection](2026-10-03-1630_es-worker-abuse-case-tests.md) | `[BACKEND]` `[TESTING]` `[SECURITY]` |
 | 2026-10-03 | [Plan 06-01 complete: bilingual ingest tracer, article_translations table, Spanish grounding hardening](2026-10-03-1605_06-01-complete-bilingual-ingest-tracer.md) | `[DOCUMENTATION]` `[PLANNING]` `[I18N]` `[AI]` |
