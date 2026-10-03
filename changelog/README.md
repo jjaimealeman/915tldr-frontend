@@ -10,6 +10,7 @@ Entries are named `YYYY-MM-DD-HHMM_slug.md` and grouped by month, newest first.
 
 | Date | Entry | Keywords |
 |------|-------|----------|
+| 2026-10-03 | [Plan 06-08 halted after Task 1: measured translation backfill cost is 28x the assumed figure](2026-10-03-1122_06-08-halted-translation-backfill-dry-run.md) | `[DOCUMENTATION]` `[PLANNING]` `[I18N]` `[TESTING]` |
 | 2026-10-03 | [Plan 06-06 complete: articlesEs content collection](2026-10-03-1117_06-06-complete-articles-es-content-collection.md) | `[DOCUMENTATION]` `[PLANNING]` `[I18N]` |
 | 2026-10-03 | [Plan 06-06 Task 2: Spanish never-shrink baseline, measured budget, loader edge cases](2026-10-03-1118_06-06-task2-articles-es-shrink-baseline-budget.md) | `[BACKEND]` `[DATABASE]` `[FEATURE]` `[I18N]` `[TESTING]` |
 | 2026-10-03 | [Plan 06-06 Task 1: articlesEs tracer — Spanish translations reach the build](2026-10-03-1114_06-06-task1-articles-es-tracer-spanish-view.md) | `[BACKEND]` `[FEATURE]` `[DATABASE]` `[I18N]` `[SECURITY]` `[TESTING]` `[BUG_FIX]` |
