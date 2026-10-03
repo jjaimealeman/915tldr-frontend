@@ -64,7 +64,7 @@ test('resolveRedirect: a non-canonical path with a valid v2 entry redirects to t
 
 test('resolveRedirect: the canonical path itself never redirects — it is a "canonical" decision (possibly archived), not a loop or a not-found (05-03)', () => {
   const decision = resolveRedirect(`/crime/new-title-${UUID}`, validEntry());
-  assert.deepEqual(decision, { type: 'canonical', articleId: UUID });
+  assert.deepEqual(decision, { type: 'canonical', articleId: UUID, language: 'en' });
 });
 
 test('resolveRedirect: a "canonical" decision lowercases the articleId', () => {
@@ -72,7 +72,7 @@ test('resolveRedirect: a "canonical" decision lowercases the articleId', () => {
   // case), so the matching pathname must carry the same (uppercase) case for this to be the
   // canonical-path case rather than a redirect — the returned articleId is still lowercased.
   const decision = resolveRedirect(`/crime/new-title-${UUID_UPPER}`, validEntry({ articleId: UUID_UPPER }));
-  assert.deepEqual(decision, { type: 'canonical', articleId: UUID });
+  assert.deepEqual(decision, { type: 'canonical', articleId: UUID, language: 'en' });
 });
 
 test('resolveRedirect: a null entry is not-found', () => {
@@ -106,4 +106,33 @@ test('resolveRedirect: the Location is built only from validated manifest fields
   assert.deepEqual(decision, { type: 'redirect', location: `/crime/new-title-${UUID}` });
   assert.ok(decision.location.startsWith('/crime/'));
   assert.ok(!decision.location.includes('evil.example.com'));
+});
+
+// ---------------------------------------------------------------------------
+// 06-02: /es language dimension (D-06/D-13)
+// ---------------------------------------------------------------------------
+
+test('resolveRedirect: a canonical /es path is a "canonical" decision with language "es", never redirected to English', () => {
+  const decision = resolveRedirect(`/es/crime/new-title-${UUID}`, validEntry());
+  assert.deepEqual(decision, { type: 'canonical', articleId: UUID, language: 'es' });
+});
+
+test('resolveRedirect: a non-canonical /es path (wrong slug) redirects to the /es canonical, never to English', () => {
+  const decision = resolveRedirect(`/es/politics/old-title-${UUID}`, validEntry());
+  assert.deepEqual(decision, { type: 'redirect', location: `/es/crime/new-title-${UUID}` });
+});
+
+test('resolveRedirect: /es/article/<uuid> (wrong category entirely) redirects to the /es canonical', () => {
+  const decision = resolveRedirect(`/es/article/${UUID}`, validEntry());
+  assert.deepEqual(decision, { type: 'redirect', location: `/es/crime/new-title-${UUID}` });
+});
+
+test('resolveRedirect: a doubled /es/es/ prefix redirects to the single-/es canonical, never English', () => {
+  const decision = resolveRedirect(`/es/es/crime/new-title-${UUID}`, validEntry());
+  assert.deepEqual(decision, { type: 'redirect', location: `/es/crime/new-title-${UUID}` });
+});
+
+test('resolveRedirect: the English canonical path is still a plain "en" canonical decision, unaffected by /es existing', () => {
+  const decision = resolveRedirect(`/crime/new-title-${UUID}`, validEntry());
+  assert.deepEqual(decision, { type: 'canonical', articleId: UUID, language: 'en' });
 });

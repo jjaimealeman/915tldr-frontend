@@ -31,15 +31,19 @@ test('articleArchiveKey: throws on a non-uuid argument', () => {
 // ---------------------------------------------------------------------------
 
 test('matchTagPath: bare canonical tag path', () => {
-  assert.deepEqual(matchTagPath('/tag/el-paso'), { slug: 'el-paso', suffix: '' });
+  assert.deepEqual(matchTagPath('/tag/el-paso'), { slug: 'el-paso', suffix: '', language: 'en' });
 });
 
 test('matchTagPath: trailing slash suffix', () => {
-  assert.deepEqual(matchTagPath('/tag/el-paso/'), { slug: 'el-paso', suffix: '/' });
+  assert.deepEqual(matchTagPath('/tag/el-paso/'), { slug: 'el-paso', suffix: '/', language: 'en' });
 });
 
 test('matchTagPath: .html suffix', () => {
-  assert.deepEqual(matchTagPath('/tag/el-paso.html'), { slug: 'el-paso', suffix: '.html' });
+  assert.deepEqual(matchTagPath('/tag/el-paso.html'), {
+    slug: 'el-paso',
+    suffix: '.html',
+    language: 'en',
+  });
 });
 
 test('matchTagPath: an uppercase slug is rejected', () => {

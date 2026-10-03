@@ -14,10 +14,18 @@
 // archive->hot), where a stored tier flag could disagree with the deployed assets for the length
 // of a build.
 //
-import { TAG_SLUG_RE, UUID_RE } from '../article-url.ts';
+import { TAG_SLUG_RE, UUID_RE, assertLanguage, type Language } from '../article-url.ts';
 
 export const ARCHIVE_ARTICLE_PREFIX = 'articles/';
 export const ARCHIVE_TAG_PREFIX = 'tags/';
+
+/** 06-02 (D-06, assumption-delta decision in 06-02-PLAN.md): English R2 objects keep their
+ * existing unprefixed keys (`articles/<uuid>.html`, `tags/<slug>.html` — unprefixed = default
+ * language, matching the published URLs and `x-default` → English). Spanish objects are
+ * ADD-ALONGSIDE at this prefix: `es/articles/<uuid>.html`, `es/tags/<slug>.html`. Rejected:
+ * "promote" (`en/articles/...` for everything), which would rewrite ~30,500 existing English R2
+ * objects for zero reader-visible gain. See `docs/phase-06/language-key-scheme.md`. */
+export const ARCHIVE_ES_PREFIX = 'es/';
 
 /** Edge-cache TTL (seconds, Task 3) for an R2-served archive response — archived content changes
  * at most once per 2-hour build cycle (D-09/D-11), so a 5-minute edge cache can never serve
@@ -25,37 +33,45 @@ export const ARCHIVE_TAG_PREFIX = 'tags/';
 export const ARCHIVE_EDGE_CACHE_TTL_SECONDS = 300;
 
 /**
- * Builds the R2 key for an archived article's canonical page from a validated articleId.
- * Lowercases before validating (mirrors `extractArticleUuid`'s own lowercase-then-match
- * discipline) and throws — never silently coerces — on anything that isn't a `UUID_RE`-shaped
- * uuid, matching `article-url.ts`'s `assertMatches` convention.
+ * Builds the R2 key for an archived article's canonical page from a validated articleId and
+ * language (06-02, default `'en'` — the existing unprefixed key, unchanged). Lowercases the
+ * articleId before validating (mirrors `extractArticleUuid`'s own lowercase-then-match
+ * discipline) and throws — never silently coerces, no trimming, no case-folding — on anything
+ * that isn't a `UUID_RE`-shaped uuid or a closed-enum language, matching `article-url.ts`'s
+ * `assertMatches`/`assertLanguage` convention.
  */
-export function articleArchiveKey(articleId: string): string {
+export function articleArchiveKey(articleId: string, language: Language = 'en'): string {
   const lower = typeof articleId === 'string' ? articleId.toLowerCase() : articleId;
   if (typeof lower !== 'string' || !UUID_RE.test(lower)) {
     throw new Error(`archive-route: invalid articleId: ${JSON.stringify(articleId)}`);
   }
-  return `${ARCHIVE_ARTICLE_PREFIX}${lower}.html`;
+  assertLanguage(language);
+  const prefix = language === 'es' ? ARCHIVE_ES_PREFIX : '';
+  return `${prefix}${ARCHIVE_ARTICLE_PREFIX}${lower}.html`;
 }
 
-/** A matched `/tag/<slug>` request path: `suffix` is `''` (bare canonical), `'/'` (trailing
- * slash) or `'.html'`. Returned by `matchTagPath`. */
+/** A matched `/tag/<slug>` or `/es/tag/<slug>` request path: `suffix` is `''` (bare canonical),
+ * `'/'` (trailing slash) or `'.html'`; `language` is `'es'` only for the `/es/tag/...` shape.
+ * Returned by `matchTagPath`. */
 export interface TagPathMatch {
   slug: string;
   suffix: '' | '/' | '.html';
+  language: Language;
 }
 
-/** Matches `/tag/<slug>`, where `<slug>` is one or more non-`/` characters, followed by at most
- * one of `/` or `.html` and the end of the string. */
-const TAG_PATH_RE = /^\/tag\/([^/]+?)(\/|\.html)?$/;
+/** Matches `/tag/<slug>` or `/es/tag/<slug>`, where `<slug>` is one or more non-`/` characters,
+ * followed by at most one of `/` or `.html` and the end of the string. The optional `/es` group
+ * is captured so `matchTagPath` can report `language` without a second regex pass. */
+const TAG_PATH_RE = /^(\/es)?\/tag\/([^/]+?)(\/|\.html)?$/;
 
 /**
- * Matches `/tag/<slug>`, optionally followed by exactly one `/` or `.html`, decoding the
- * pathname first (a malformed percent-encoding is treated identically to "no match", mirroring
- * `extractArticleUuid`'s try/catch discipline) and validating `slug` against `TAG_SLUG_RE` before
- * ever accepting it. Returns `null` for anything else — including `/tag/`, `/tag/a/b`, `/tags`,
- * an uppercase or otherwise-invalid slug, and a path-traversal segment like `/tag/%2e%2e`
- * (decodes to `/tag/..`, which `TAG_SLUG_RE` rejects — `.` is not in its character class).
+ * Matches `/tag/<slug>` or `/es/tag/<slug>`, optionally followed by exactly one `/` or `.html`,
+ * decoding the pathname first (a malformed percent-encoding is treated identically to "no
+ * match", mirroring `extractArticleUuid`'s try/catch discipline) and validating `slug` against
+ * `TAG_SLUG_RE` before ever accepting it. Returns `null` for anything else — including `/tag/`,
+ * `/tag/a/b`, `/tags`, `/es/tag/`, `/es/tags`, an uppercase or otherwise-invalid slug, and a
+ * path-traversal segment like `/tag/%2e%2e` (decodes to `/tag/..`, which `TAG_SLUG_RE` rejects —
+ * `.` is not in its character class).
  */
 export function matchTagPath(pathname: string): TagPathMatch | null {
   let decoded: string;
@@ -68,21 +84,29 @@ export function matchTagPath(pathname: string): TagPathMatch | null {
   const match = TAG_PATH_RE.exec(decoded);
   if (!match) return null;
 
-  const slug = match[1];
+  const slug = match[2];
   if (!TAG_SLUG_RE.test(slug)) return null;
 
-  return { slug, suffix: (match[2] ?? '') as TagPathMatch['suffix'] };
+  return {
+    slug,
+    suffix: (match[3] ?? '') as TagPathMatch['suffix'],
+    language: match[1] ? 'es' : 'en',
+  };
 }
 
 /**
- * Builds the R2 key for an archived tag's canonical page from a validated slug. Throws — never
- * silently coerces — on anything that doesn't match `TAG_SLUG_RE`.
+ * Builds the R2 key for an archived tag's canonical page from a validated slug and language
+ * (06-02, default `'en'` — the existing unprefixed key, unchanged). Throws — never silently
+ * coerces, no trimming, no case-folding — on anything that doesn't match `TAG_SLUG_RE` or a
+ * closed-enum language.
  */
-export function tagArchiveKey(slug: string): string {
+export function tagArchiveKey(slug: string, language: Language = 'en'): string {
   if (typeof slug !== 'string' || !TAG_SLUG_RE.test(slug)) {
     throw new Error(`archive-route: invalid tag slug: ${JSON.stringify(slug)}`);
   }
-  return `${ARCHIVE_TAG_PREFIX}${slug}.html`;
+  assertLanguage(language);
+  const prefix = language === 'es' ? ARCHIVE_ES_PREFIX : '';
+  return `${prefix}${ARCHIVE_TAG_PREFIX}${slug}.html`;
 }
 
 /** One `Server-Timing` metric: `desc` is the optional `;desc=` value (e.g. `r2`, `edge-cache`);
