@@ -12,6 +12,7 @@ Entries are named `YYYY-MM-DD-HHMM_slug.md` and grouped by month, newest first.
 |------|-------|----------|
 | 2026-10-03 | [Plan 06-02 complete: language-aware archive-tier routing for /es](2026-10-03-1645_06-02-complete-language-aware-archive-tier.md) | `[DOCUMENTATION]` `[PLANNING]` `[I18N]` |
 | 2026-10-03 | [Abuse-case tests pin the /es Worker against open redirect, key injection and Accept-Language/Cookie selection](2026-10-03-1630_es-worker-abuse-case-tests.md) | `[BACKEND]` `[TESTING]` `[SECURITY]` |
+| 2026-10-03 | [Plan 06-01 complete: bilingual ingest tracer, article_translations table, Spanish grounding hardening](2026-10-03-1605_06-01-complete-bilingual-ingest-tracer.md) | `[DOCUMENTATION]` `[PLANNING]` `[I18N]` `[AI]` |
 | 2026-10-03 | [Language-aware article-url/redirect/archive-route/worker for /es archive-tier serving](2026-10-03-1600_language-aware-es-archive-tier-worker.md) | `[BACKEND]` `[FEATURE]` `[TESTING]` `[SECURITY]` |
 | 2026-10-03 | [Phase 06 marked planned: ready to execute](2026-10-03-0405_phase-06-marked-planned.md) | `[PLANNING]` `[DOCUMENTATION]` |
 | 2026-10-03 | [Phase 06 plans created: Bilingual (17 plans, 10 waves)](2026-10-03-0355_phase-06-plans-created.md) | `[PLANNING]` `[DOCUMENTATION]` `[I18N]` |
