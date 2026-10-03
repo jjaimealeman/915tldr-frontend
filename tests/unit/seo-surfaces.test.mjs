@@ -16,6 +16,11 @@
 // mirroring the live accidental one — a deliberate production policy change, not a bug. See
 // 04-07-SUMMARY.md "Deviations from Plan" for the full writeup. `tests/fixtures/v1-robots.txt`
 // therefore holds that route's rendered body (siteUrl substituted), not a live curl capture.
+//
+// Owner decision 2026-10-02: PerplexityBot moved from the AI-training block to the allowed
+// AI-assistant section (it serves cited search answers, consistent with `ai-input=yes`), and
+// Perplexity-User added beside it. The fixture carries the same change — the one deliberate
+// divergence from the v1 route's body.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync, existsSync } from 'node:fs';
@@ -58,9 +63,13 @@ test('seo-surfaces: robots.txt matches the fixture line-for-line except the Site
 test('seo-surfaces: robots.txt preserves the Content-signal line and the per-bot AI-training blocks', { skip: !DIST_BUILT && SKIP_REASON }, () => {
   const built = readDist('robots.txt');
   assert.match(built, /^Content-signal: search=yes,ai-input=yes,ai-train=no$/m);
-  for (const bot of ['GPTBot', 'ClaudeBot', 'CCBot', 'Google-Extended', 'Bytespider', 'PerplexityBot']) {
+  for (const bot of ['GPTBot', 'ClaudeBot', 'CCBot', 'Google-Extended', 'Bytespider']) {
     const re = new RegExp(`User-agent: ${bot}\\nDisallow: /`, 'i');
     assert.match(built, re, `expected ${bot} to be disallowed`);
+  }
+  for (const bot of ['PerplexityBot', 'Perplexity-User']) {
+    const re = new RegExp(`User-agent: ${bot}\\nAllow: /`, 'i');
+    assert.match(built, re, `expected ${bot} to be allowed (owner decision 2026-10-02)`);
   }
 });
 

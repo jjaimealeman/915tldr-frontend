@@ -10,6 +10,7 @@ Entries are named `YYYY-MM-DD-HHMM_slug.md` and grouped by month, newest first.
 
 | Date | Entry | Keywords |
 |------|-------|----------|
+| 2026-10-02 | [robots.txt tests follow the PerplexityBot policy change](2026-10-02-2010_robots-tests-follow-perplexity-policy.md) | `[TESTING]` `[SEO]` `[FIX]` |
 | 2026-10-02 | [Plan 05-21 complete: gap-closure reconciliation](2026-10-02-2010_05-21-complete-gap-closure-reconciliation.md) | `[DOCUMENTATION]` `[PLANNING]` `[TESTING]` `[ARCHITECTURE]` `[CRITICAL]` |
 | 2026-10-02 | [Plan 05-21 Task 3: every Phase 5 requirement status set from evidence](2026-10-02-2003_05-21-task3-requirements-statuses-set-from-evidence.md) | `[DOCUMENTATION]` `[PLANNING]` `[ARCHITECTURE]` `[CRITICAL]` |
 | 2026-10-02 | [Plan 05-21 Task 2: 05-VALIDATION.md brought up to date for gap closure](2026-10-02-1958_05-21-task2-validation-map-updated-gap-closure-rerun.md) | `[DOCUMENTATION]` `[TESTING]` `[PLANNING]` |

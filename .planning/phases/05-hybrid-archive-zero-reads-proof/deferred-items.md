@@ -28,3 +28,9 @@ unrelated to REND-07/08/09/10/11/12, ARCH-01, or ARCH-08 — out of scope for th
 **Disposition:** Not fixed here. Whoever owns the robots.txt/Perplexity change should update
 `tests/fixtures/v1-robots.txt` (or the test's bot-disallow list) to match the new intentional
 policy, or revert the policy if it was unintentional.
+
+**Resolved 2026-10-02 ~20:10 MDT** (owner of the change fixed it): `tests/fixtures/v1-robots.txt`
+received the same PerplexityBot/Perplexity-User move as `public/robots.txt`, and
+`tests/unit/seo-surfaces.test.mjs` now asserts both bots are *allowed* (PerplexityBot removed
+from the disallow loop), with a header note recording the owner decision. `seo-surfaces` 5/5,
+`pnpm run test:fast` 738/738.
