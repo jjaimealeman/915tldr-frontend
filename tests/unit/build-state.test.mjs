@@ -6,7 +6,7 @@
 
 import { test, before, after, beforeEach, afterEach } from 'node:test';
 import assert from 'node:assert/strict';
-import { mkdtemp, rm, readFile } from 'node:fs/promises';
+import { mkdtemp, rm, readFile, stat, readdir, writeFile, mkdir } from 'node:fs/promises';
 import path from 'node:path';
 import os from 'node:os';
 import {
@@ -237,6 +237,138 @@ test('writePendingBuildState merges sections across calls', async () => {
   const raw = JSON.parse(await readFile(path.join(tmpDir, '.astro', 'build-state.pending.json'), 'utf8'));
   assert.deepEqual(raw.articles, { count: 2, ids: ['a', 'b'] });
   assert.deepEqual(raw.changelog, { count: 12 });
+});
+
+// ---------------------------------------------------------------------------
+// Serialized, atomic pending writes (quick 261002-tl2) — reproduces the 2026-10-02 race:
+// `build-state: failed to read pending build state: Unexpected non-whitespace character after
+// JSON at position 1867519`, found in the real `.astro/build-state.pending.json`
+// (1,867,745 bytes) during `pnpm run test:regression`. T1, T2, T4 and T5 are deterministic RED
+// against the current unlocked read-merge-write. T3, T6, T7 and T8 pin the contract and may
+// already pass.
+// ---------------------------------------------------------------------------
+
+function makeId(i) {
+  return `${String(i).padStart(8, '0')}-0000-4000-8000-000000000000`;
+}
+
+function makeIds(count, offset = 0) {
+  return Array.from({ length: count }, (_, i) => makeId(i + offset));
+}
+
+function pendingFilePath() {
+  return path.join(tmpDir, '.astro', 'build-state.pending.json');
+}
+
+async function readRawPendingFile() {
+  return readFile(pendingFilePath(), 'utf8');
+}
+
+test('T1: concurrent writes of different sections, no file on disk yet — both sections survive (lost-update RED)', async () => {
+  const articleIds = makeIds(50_000);
+  await Promise.all([
+    writePendingBuildState({ articles: { count: articleIds.length, ids: articleIds } }),
+    writePendingBuildState({ changelog: { count: 12 } }),
+  ]);
+
+  const raw = JSON.parse(await readRawPendingFile()); // must parse — no torn/interleaved write
+  assert.deepEqual(raw.articles, { count: articleIds.length, ids: articleIds });
+  assert.deepEqual(raw.changelog, { count: 12 });
+});
+
+test('T2: the observed 2026-10-02 corruption signature — a shorter concurrent write over a longer seeded state (RED)', async () => {
+  const seedIds = makeIds(50_010);
+  await writePendingBuildState({ articles: { count: seedIds.length, ids: seedIds }, changelog: { count: 18 } });
+
+  const newIds = makeIds(50_000);
+  await Promise.all([
+    writePendingBuildState({ articles: { count: newIds.length, ids: newIds } }),
+    writePendingBuildState({ changelog: { count: 18 } }),
+  ]);
+
+  const rawText = await readRawPendingFile();
+  const raw = JSON.parse(rawText); // must parse with no trailing bytes from the stale longer copy
+  assert.deepEqual(raw.articles, { count: newIds.length, ids: newIds });
+});
+
+test('T3: FIFO order — two concurrent writes of the same section land in issue order', async () => {
+  const p1 = writePendingBuildState({ changelog: { count: 1 } });
+  const p2 = writePendingBuildState({ changelog: { count: 2 } });
+  await Promise.all([p1, p2]);
+
+  const pending = await readPendingBuildState();
+  assert.deepEqual(pending.changelog, { count: 2 });
+});
+
+test('T4: read-your-writes — readPendingBuildState waits for an in-flight write issued before it (RED)', async () => {
+  const writePromise = writePendingBuildState({ changelog: { count: 7 } });
+  const pending = await readPendingBuildState();
+  assert.deepEqual(pending.changelog, { count: 7 });
+  await writePromise;
+});
+
+test('T5: every write is an atomic replace — the inode changes, no temp file survives (RED)', async () => {
+  await writePendingBuildState({ changelog: { count: 1 } });
+  const first = await stat(pendingFilePath());
+
+  await writePendingBuildState({ changelog: { count: 2 } });
+  const second = await stat(pendingFilePath());
+
+  assert.notEqual(first.ino, second.ino);
+
+  const entries = await readdir(path.join(tmpDir, '.astro'));
+  assert.deepEqual(entries, ['build-state.pending.json']);
+});
+
+test('T6: no torn reads — a raw poll during a ~3MB in-flight write never sees invalid JSON', async () => {
+  const seedIds = makeIds(1_000);
+  await writePendingBuildState({ articles: { count: seedIds.length, ids: seedIds } });
+
+  const bigIds = makeIds(70_000);
+  const writePromise = writePendingBuildState({ articles: { count: bigIds.length, ids: bigIds } });
+
+  let settled = false;
+  writePromise.then(() => {
+    settled = true;
+  });
+
+  let pollCount = 0;
+  while (!settled) {
+    await new Promise((resolve) => setImmediate(resolve));
+    if (settled) break;
+    pollCount += 1;
+    const text = await readRawPendingFile();
+    JSON.parse(text); // throws on a torn/partial read
+  }
+
+  await writePromise;
+  assert.ok(pollCount > 0);
+});
+
+test('T7: the queue recovers after a rejection — a following write still resolves', async () => {
+  await rm(path.join(tmpDir, '.astro'), { recursive: true, force: true });
+  await writeFile(path.join(tmpDir, '.astro'), 'not a directory'); // .astro is a FILE, not a dir
+
+  await assert.rejects(() => writePendingBuildState({ changelog: { count: 3 } }), /build-state:/);
+
+  await rm(path.join(tmpDir, '.astro'), { force: true });
+
+  await writePendingBuildState({ changelog: { count: 3 } });
+  const pending = await readPendingBuildState();
+  assert.deepEqual(pending.changelog, { count: 3 });
+});
+
+test('T8: a corrupt pending file is never treated as empty — write rejects, file left unchanged', async () => {
+  await mkdir(path.join(tmpDir, '.astro'), { recursive: true });
+  await writeFile(pendingFilePath(), '{"articles":{}}garbage', 'utf8');
+
+  await assert.rejects(
+    () => writePendingBuildState({ changelog: { count: 1 } }),
+    /failed to read pending build state/
+  );
+
+  const raw = await readRawPendingFile();
+  assert.equal(raw, '{"articles":{}}garbage');
 });
 
 // ---------------------------------------------------------------------------
