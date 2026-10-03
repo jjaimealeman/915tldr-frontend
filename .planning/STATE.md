@@ -30,7 +30,7 @@ See: .planning/PROJECT.md (updated 2026-09-16)
 Phase: 05 (hybrid-archive-zero-reads-proof) — EXECUTING
 Plan: 10 of 21
 Status: Ready to execute
-Last activity: 2026-10-02 - Completed quick task 261002-s2r: Make ntfy daily-report delivery observable and retryable (REND-11)
+Last activity: 2026-10-02 - Completed quick task 261002-tl2: Fix pending build-state write race (serialized + atomic writes)
 
 Progress: [██████████] 100%
 
@@ -353,6 +353,7 @@ Recent decisions affecting current work:
 | # | Description | Date | Commit | Directory |
 |---|-------------|------|--------|-----------|
 | 261002-s2r | Make ntfy daily-report delivery observable and retryable (REND-11) | 2026-10-02 | 372e9ca | [261002-s2r-make-ntfy-daily-report-delivery-observab](./quick/261002-s2r-make-ntfy-daily-report-delivery-observab/) |
+| 261002-tl2 | Fix pending build-state write race (serialized + atomic writes) | 2026-10-02 | 2c49dd4 | [261002-tl2-fix-pending-build-state-write-race-seria](./quick/261002-tl2-fix-pending-build-state-write-race-seria/) |
 
 ## Deferred Items
 
