@@ -28,7 +28,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 2: Content Quality & Grounding** - Fix extraction, prompt and grounding so no fabricated summary is ever written in a second language (completed 2026-09-21)
 - [x] **Phase 3: Foundation & Read-Budget Guardrails** - Astro scaffold, the CI D1-import assertion, the render manifest, and the measurements that decide the render step (completed 2026-09-26)
 - [ ] **Phase 4: Static Generation, Templates & SEO** - A fail-loud D1 loader and every public page type generated at build time
-- [ ] **Phase 5: Hybrid Archive & Zero-Reads Proof** - R2 archive tier, tag tiering, and the measured proof of zero D1 reads on the public path
+- [x] **Phase 5: Hybrid Archive & Zero-Reads Proof** - R2 archive tier, tag tiering, and the measured proof of zero D1 reads on the public path (completed 2026-10-03)
 - [ ] **Phase 6: Bilingual** - Spanish summaries at ingest, `/es` routing, hreflang pairs and per-language feeds
 - [ ] **Phase 7: Imagery & Share Cards** - Junk-image filter, generated imagery, and share cards validated on real platforms
 - [ ] **Phase 8: Server Islands & Interactivity** - Weather, forecast and theme islands that degrade visibly instead of failing silently
@@ -503,7 +503,7 @@ Phase 3 and may run alongside Phases 5-7.
 | 2. Content Quality & Grounding | 11/10 | Complete    | 2026-09-21 |
 | 3. Foundation & Read-Budget Guardrails | 7/7 | Complete    | 2026-09-26 |
 | 4. Static Generation, Templates & SEO | 12/12 | In Progress|  |
-| 5. Hybrid Archive & Zero-Reads Proof | 21/21 | In Progress|  |
+| 5. Hybrid Archive & Zero-Reads Proof | 21/21 | Complete    | 2026-10-03 |
 | 6. Bilingual | 0/TBD | Not started | - |
 | 7. Imagery & Share Cards | 0/TBD | Not started | - |
 | 8. Server Islands & Interactivity | 0/TBD | Not started | - |

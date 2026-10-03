@@ -1,19 +1,14 @@
 ---
-status: testing
+status: complete
 phase: 05-hybrid-archive-zero-reads-proof
 source: [05-VERIFICATION.md]
 started: 2026-10-03T03:50:37Z
-updated: 2026-10-03T03:50:37Z
+updated: 2026-10-03T08:03:13Z
 ---
 
 ## Current Test
 
-number: 2
-name: ARCH-08 CPU axis stays tracked at Phase 12's soak (owner acknowledgment)
-expected: |
-  Owner confirms WINDOWS.md #26 stays open and is judged in Phase 12's 7-day soak on real
-  traffic (population p99 CPU < 5ms AND invocations >= 20ms under 0.1%), with no further Phase 5 action.
-awaiting: user response
+[testing complete]
 
 ## Tests
 
@@ -23,14 +18,14 @@ result: pass — real production report arrived 2026-10-03 00:08 MDT from the 00
 
 ### 2. ARCH-08 CPU axis stays tracked at Phase 12's soak (owner acknowledgment)
 expected: Owner confirms WINDOWS.md #26 stays open and is judged in Phase 12's 7-day soak on real traffic (population p99 CPU < 5ms AND invocations >= 20ms under 0.1%), with no further Phase 5 action.
-result: [pending]
+result: pass — owner confirmed 2026-10-03 ~02:05 MDT: WINDOWS.md #26 stays open, judged in Phase 12's 7-day soak.
 
 ## Summary
 
 total: 2
-passed: 1
+passed: 2
 issues: 0
-pending: 1
+pending: 0
 skipped: 0
 blocked: 0
 

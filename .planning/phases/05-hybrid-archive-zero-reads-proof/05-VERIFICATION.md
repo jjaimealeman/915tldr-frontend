@@ -1,8 +1,8 @@
 ---
 phase: 05-hybrid-archive-zero-reads-proof
 verified: 2026-10-03T03:47:44Z
-status: human_needed
-score: 4/5 roadmap success criteria cleanly verified (1 deferred to Phase 11 unchanged; ARCH-08's CPU axis owner-deferred to Phase 12; REND-11 present+wired, delivery not behaviorally confirmed)
+status: passed
+score: 4/5 roadmap success criteria verified; REND-11 delivery confirmed by real production report 2026-10-03 00:08 MDT (05-UAT test 1); ARCH-08 CPU axis owner-deferred to Phase 12 soak (05-UAT test 2, owner-confirmed); 1 criterion deferred to Phase 11 unchanged
 behavior_unverified: 1
 overrides_applied: 0
 re_verification:
@@ -54,6 +54,11 @@ human_verification:
     expected: "An explicit owner acknowledgment that WINDOWS.md #26 stays open and tracked at Phase 12, with no further phase-5 action expected"
     why_human: "This is the owner's own prior decision (2026-10-02 ~19:30 MDT, reported in this verification's task context) — recorded here as a confirmation checkpoint, not re-opened or second-guessed by this verifier, per the binding-decision instruction"
 ---
+
+> **UAT closure (2026-10-03):** both human_verification items passed in `05-UAT.md` — a real
+> production daily report arrived at 00:08 MDT (REND-11), and the owner confirmed ARCH-08's CPU
+> axis is carried to Phase 12's soak. Status moved human_needed → passed on that basis.
+
 
 # Phase 5: Hybrid Archive & Zero-Reads Proof Verification Report (Re-Verification)
 

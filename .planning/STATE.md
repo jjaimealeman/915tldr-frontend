@@ -2,13 +2,13 @@
 gsd_state_version: 1.0
 milestone: v1.5
 milestone_name: milestone
-current_phase: 05
-current_phase_name: hybrid-archive-zero-reads-proof
-status: executing
+current_phase: 6
+current_phase_name: Bilingual
+status: planning
 stopped_at: "Completed 05-21-PLAN.md (gap-closure reconciliation: validation map, requirement statuses, deferred findings)"
-last_updated: "2026-10-03T02:02:20.971Z"
-last_activity: 2026-10-02
-last_activity_desc: Phase 05 execution started
+last_updated: "2026-10-03T08:03:25.698Z"
+last_activity: 2026-10-03
+last_activity_desc: Phase 05 complete, transitioned to Phase 6
 progress:
   total_phases: 5
   completed_phases: 5
@@ -27,10 +27,10 @@ See: .planning/PROJECT.md (updated 2026-09-16)
 
 ## Current Position
 
-Phase: 05 (hybrid-archive-zero-reads-proof) — EXECUTING
-Plan: 10 of 21
-Status: Ready to execute
-Last activity: 2026-10-02 - Completed quick task 261002-tl2: Fix pending build-state write race (serialized + atomic writes)
+Phase: 6 — Bilingual
+Plan: Not started
+Status: Ready to plan
+Last activity: 2026-10-03 — Phase 05 complete, transitioned to Phase 6
 
 Progress: [██████████] 100%
 
@@ -38,7 +38,7 @@ Progress: [██████████] 100%
 
 **Velocity:**
 
-- Total plans completed: 41
+- Total plans completed: 62
 - Average duration: —
 - Total execution time: —
 
@@ -49,6 +49,7 @@ Progress: [██████████] 100%
 | 01 | 23 | - | - |
 | 02 | 11 | - | - |
 | 03 | 7 | - | - |
+| 05 | 21 | - | - |
 
 **Recent Trend:**
 
@@ -346,7 +347,6 @@ Recent decisions affecting current work:
 - **OPEN — Phase 5, 05-11 (owner review needed before Phase 11, not blocking 05-10/05-12).** Criterion 2's lab LCP measurement returned `R2_LATENCY_EXCEEDS_LCP` on its canonical run (archived p95 LCP 1,788ms > 1,500ms budget), with real run-to-run variance across four runs on the operator machine (1200-2108ms). The archive tier's own R2/KV cost is small and not the cause (p95 ~172ms/155ms); hot pages also sit close to the 1.5s line in this lab proxy (p95 1,484ms), pointing at general page-weight/render cost, not the archive-serving mechanism. See `docs/phase-05/archive-latency.md` for full analysis. Does not block 05-10/05-12 (neither depends on this verdict); flagged for owner attention before Phase 11's real field-LCP release gate.
 - **RESOLVED (scope clarified) — 05-09.** The Cloudflare Workers Builds API (GET /accounts/{id}/builds/workers/{tag}/builds) returns 403 Forbidden/12004 for both CLOUDFLARE_API_TOKEN and CF_API_TOKEN *as configured for the executor*. This is an executor-token-scope issue, not a platform-wide block: the orchestrator's own Cloudflare API access reached the same build's logs successfully and supplied the real production build's ARCHIVE_SYNC_RESULT lines (pre: uploaded 19/failed 0; post: uploaded 22/deleted 3/backlog 0), now committed as evidence at docs/phase-05/evidence/first-prod-deploy/build-241c97e1-archive-lines.log. **For 05-10/05-12: ask the orchestrator for build-log lines rather than treating this as a blocker on those plans.** Re-granting the executor's own token's Workers Builds read scope remains a convenience (so a future executor session doesn't need to ask), not a requirement.
 - OPEN -- Phase 6 planning. 05-10's linear-scaling projection (archived pages ~2x, cold render scaled by the same ratio) shows render time ALONE (~1,298s) may already exceed the 20-minute Workers Builds hard ceiling once the corpus roughly doubles -- a different, more structural concern than REND-12's own (converged) upload-side chaining. Does not block 05-12 or Phase 5 completion; flagged for Phase 6 to re-measure a real cold build against its actual corpus size before relying on the current 2-hourly chained-build convergence mechanism. See docs/phase-05/archive-architecture.md's '05-10 -- forced full re-upload (REND-12)' section.
-
 
 ### Quick Tasks Completed
 
