@@ -387,7 +387,55 @@ Plans:
   4. Spanish-language articles render with `lang="es"` on the correct element and carry the same AI-generation disclosure as their English counterparts.
   5. `Accept-Language` is logged at the edge and a report of Spanish-preferring request share is available to inform the `/es` launch decision on 2-4 weeks of measured data.
 
-**Plans**: TBD
+**Plans:** 17 plans
+
+Plans:
+**Wave 1**
+
+- [ ] 06-01-PLAN.md — Pipeline tracer: one model call → English row + grounded Spanish row in `article_translations` (local wrangler dev); Spanish grounding hardening; measured token budget and live cost delta
+- [ ] 06-02-PLAN.md — Worker request path language-aware: `/es` canonical redirects, Spanish R2 keys, no Accept-Language/cookie/geo selection
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
+- [ ] 06-03-PLAN.md — [BLOCKING] Production migration of `article_translations` with owner consent (and pilot-write pre-approval)
+- [ ] 06-04-PLAN.md — Archive build/sync side: Spanish tier facts, partition onto `es/` keys, R2 validation/listing, language-aware manifest key
+- [ ] 06-05-PLAN.md — EN/ES dictionary, category labels, Base `lang`/hreflang/x-default, header switcher, `/es` home, Spanish dates, Umami tag
+
+**Wave 3** *(blocked on Wave 2 completion)*
+
+- [ ] 06-06-PLAN.md — `articlesEs` content collection from `article_translations` (build-time only) with Spanish never-shrink baseline
+- [ ] 06-08-PLAN.md — Measured backfill dry run (30-row sample, two-stage Batch projection) and ≤30-row pilot write
+
+**Wave 4** *(blocked on Wave 3 completion)*
+
+- [ ] 06-07-PLAN.md — Spanish About/Privacy/Terms/Contact (fluent human review), `/es/changelog`, accurate Umami disclosure
+- [ ] 06-09-PLAN.md — Article pages in both languages: `/es` mirror with D-05 fallback, paired hreflang, D-07 label, JSON-LD `inLanguage`
+
+**Wave 5** *(blocked on Wave 4 completion)*
+
+- [ ] 06-10-PLAN.md — `/es` listings (home, category, tag, tags, source) and Spanish 404
+
+**Wave 6** *(blocked on Wave 5 completion)*
+
+- [ ] 06-11-PLAN.md — Per-language feeds: `/es/rss.xml`, Spanish sitemap file, `/es/news-sitemap.xml`
+
+**Wave 7** *(blocked on Wave 6 completion)*
+
+- [ ] 06-12-PLAN.md — Measured build/file/convergence budget and full-corpus hreflang/lang/link invariants (gate)
+
+**Wave 8** *(blocked on Wave 7 completion)*
+
+- [ ] 06-13-PLAN.md — Owner go-live decision (live ingest + backfill ceiling) and pipeline production deploy
+- [ ] 06-15-PLAN.md — Frontend deploy decision, R2 pre-population of Spanish archive keys, ship
+
+**Wave 9** *(blocked on Wave 8 completion)*
+
+- [ ] 06-14-PLAN.md — Live ingest verified; resumable Batch backfill proven on a 200-row tracer chunk
+- [ ] 06-16-PLAN.md — Live verification: real-browser language journeys, Accept-Language → English, `/es` URL contract, Umami language report
+
+**Wave 10** *(blocked on Wave 9 completion)*
+
+- [ ] 06-17-PLAN.md — Backfill to completion under the ceiling; live convergence of archived Spanish pages
 **UI hint**: yes
 
 ### Phase 7: Imagery & Share Cards
