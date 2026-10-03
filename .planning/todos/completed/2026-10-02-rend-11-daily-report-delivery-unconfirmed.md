@@ -79,3 +79,18 @@ Found — daily report delivery not observed" status in `.planning/REQUIREMENTS.
 2. Write the daily-report marker only after a successful send (retry on next deploy instead
    of losing the day).
 3. Reduce per-page build output to a summary count so the deploy step's log is visible.
+
+## Resolution — 2026-10-03 ~02:00 MDT
+
+**Resolved: delivery works; the original diagnosis was wrong.**
+
+- The 00:06 MDT production deploy of `main` (old code — feature/phase-05 not yet merged) sent a real
+  report that arrived at 00:08 MDT: `static files: 29788 / 100000 (fail at 80000)`,
+  `archived pages: 30836`, `hot window: derived, 202 days`, `backlog: 0`. Owner confirmed on device;
+  also read back via ntfy.sh poll.
+- So the "systematic failure" diagnosis above (two missed days) was not established. Most likely the
+  Oct 2 report also arrived ~00:08 and was missed, and the evening poll could not see it — probably
+  ntfy.sh's short message-cache window (exact retention not verified). The premise — "absent from a
+  poll + not noticed = never sent" — was never checked against how far back the poll can see.
+- Quick task 261002-s2r's changes remain useful hardening (status logged per send, marker after a 2xx
+  so a failed send retries, deploy step visible in the build log), but they did not fix a proven defect.

@@ -219,3 +219,10 @@ All 7 modified/created source files confirmed present on disk; all 3 task commit
 ---
 *Quick task: 261002-s2r*
 *Completed: 2026-10-03*
+
+## Correction (2026-10-03)
+
+The premise this task was planned on — that production daily reports were systematically failing —
+turned out to be wrong. A real report from the unchanged `main` code arrived at 2026-10-03 00:08 MDT.
+The changes here are hardening (observability + retry), not the fix for a demonstrated failure.
+See `.planning/todos/completed/2026-10-02-rend-11-daily-report-delivery-unconfirmed.md`.
