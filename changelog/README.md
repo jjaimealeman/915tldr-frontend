@@ -10,6 +10,7 @@ Entries are named `YYYY-MM-DD-HHMM_slug.md` and grouped by month, newest first.
 
 | Date | Entry | Keywords |
 |------|-------|----------|
+| 2026-10-03 | [Spanish Tier Facts and Partition Entries for the Archive-Tier Build Pipeline](2026-10-03-1725_06-04-task1-spanish-tier-facts-and-partition.md) | `[BACKEND]` `[FEATURE]` `[TESTING]` `[I18N]` |
 | 2026-10-03 | [Plan 06-03 complete: production D1 migration (article_translations, 0008)](2026-10-03-1650_06-03-complete-production-migration.md) | `[DOCUMENTATION]` `[PLANNING]` `[DATABASE]` `[MIGRATION]` `[I18N]` |
 | 2026-10-03 | [Phase 6 tracking updated after wave 1](2026-10-03-1005_phase-06-wave-1-tracking.md) | `[DOCUMENTATION]` `[PLANNING]` |
 | 2026-10-03 | [Plan 06-02 complete: language-aware archive-tier routing for /es](2026-10-03-1645_06-02-complete-language-aware-archive-tier.md) | `[DOCUMENTATION]` `[PLANNING]` `[I18N]` |
