@@ -1145,6 +1145,84 @@ test('archive-sync: WR-02 (05-18): a failed index write can never become a 404 �
 });
 
 // ---------------------------------------------------------------------------
+// 06-04 Task 2: self-heal listing covers the two new Spanish archive prefixes
+// ---------------------------------------------------------------------------
+
+test('archive-sync: runPreSync self-heal lists all four archive prefixes (articles/, tags/, es/articles/, es/tags/), so an indexed-but-missing Spanish object re-uploads as new', async () => {
+  const esBody = '<html>Spanish archived article</html>';
+  const esSha = sha256Of(esBody);
+  const store = makeFakeStore({
+    seed: {
+      [ARCHIVE_INDEX_KEY]: {
+        body: JSON.stringify({
+          version: 1,
+          entries: { 'es/articles/es-uuid.html': { sha256: esSha, path: '/es/crime/es-uuid' } },
+        }),
+      },
+      // Deliberately NOT seeded under 'es/articles/' — listKeys('es/articles/') must omit it,
+      // simulating the object having been lost from R2 while the index still claims it.
+    },
+  });
+
+  await withTempRoot(
+    [{ kind: 'article', key: 'es/articles/es-uuid.html', path: '/es/crime/es-uuid', body: esBody }],
+    {},
+    async (root) => {
+      const { result } = await runPreSync({
+        root,
+        env: {},
+        hasR2CredentialsFn: trueCreds,
+        createStore: async () => store,
+      });
+
+      assert.ok(
+        store.calls.some((c) => c[0] === 'listKeys' && c[1] === 'es/articles/'),
+        'expected runPreSync to list the es/articles/ prefix'
+      );
+      assert.ok(
+        store.calls.some((c) => c[0] === 'listKeys' && c[1] === 'es/tags/'),
+        'expected runPreSync to list the es/tags/ prefix'
+      );
+      assert.ok(
+        store.calls.some((c) => c[0] === 'putObject' && c[1] === 'es/articles/es-uuid.html'),
+        'the Spanish key must be re-uploaded — self-heal must classify it as new, not unchanged'
+      );
+      assert.equal(result.uploaded, 1);
+      assert.ok(
+        result.alerts.some(
+          (a) => /indexed page\(s\) were missing from R2/.test(a) && /index self-heal/.test(a)
+        ),
+        `expected a self-heal alert, got: ${JSON.stringify(result.alerts)}`
+      );
+    }
+  );
+});
+
+test('archive-sync: moveEntriesBack restores a Spanish entry to dist/client/es/... (REND-08 no-404-window invariant, Spanish side)', async () => {
+  const entries = [
+    { kind: 'article', key: 'es/articles/item-0.html', path: '/es/cat/item-0-uuid' },
+  ];
+  await withTempRoot(entries, {}, async (root) => {
+    const store = makeFakeStore({ failPutKeys: new Set(['es/articles/item-0.html']) });
+
+    const { result } = await runPreSync({
+      root,
+      env: {},
+      hasR2CredentialsFn: trueCreds,
+      createStore: async () => store,
+    });
+
+    assert.equal(result.movedBack, 1);
+    assert.equal(existsSync(archiveFileFor(root, 'es/articles/item-0.html')), false);
+    assert.equal(
+      existsSync(clientFileFor(root, '/es/cat/item-0-uuid')),
+      true,
+      'expected the Spanish entry to be moved back into dist/client/es/...'
+    );
+  });
+});
+
+// ---------------------------------------------------------------------------
 // Task 2 (05-18): every remaining R2 call in post/pre made non-fatal
 // ---------------------------------------------------------------------------
 

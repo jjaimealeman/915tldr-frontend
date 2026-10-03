@@ -62,13 +62,18 @@ function requireEnv(name: string): string {
 export interface ManifestEntry {
   articleId: string;
   /** Equal to the article's own `articleId` for every entry written today (English-only corpus).
-   * Phase 6's Spanish entries will carry the SAME `translationGroupId` as their English
-   * counterpart — pairing is "same translationGroupId", never "follow a pointer to a specific
-   * record". Never null: see docs/phase-03/render-manifest.md § "Translation identity" for why
-   * this shape was chosen over a derived id (Option A) or a nullable backfill field (Option B). */
+   * Phase 6's Spanish entries (if any are ever written — see `language` below) would carry the
+   * SAME `translationGroupId` as their English counterpart — pairing is "same
+   * translationGroupId", never "follow a pointer to a specific record". Never null: see
+   * docs/phase-03/render-manifest.md § "Translation identity" for why this shape was chosen over
+   * a derived id (Option A) or a nullable backfill field (Option B). */
   translationGroupId: string;
-  /** Always `'en'` today — no Spanish content is ingested yet. Phase 6 writes `'es'` entries
-   * carrying the same `translationGroupId`. */
+  /** Always `'en'` today. 06-04 (docs/phase-06/language-key-scheme.md) decided the KV identity
+   * entry stays `no-change`: `category`/`slug`/`articleId` are untranslated, so the Worker's one
+   * `manifest:<uuid>` read already serves both `/x` and `/es/x` — no Spanish entry is written
+   * this phase. `manifestKey(articleId, language)` is language-aware anyway (`es` keys land at
+   * `manifest:<uuid>:es`), so that if a later writer ever does emit a Spanish entry for some
+   * other purpose, it lands at its own key and can never silently overwrite this English one. */
   language: 'en' | 'es';
   contentHash: string;
   schemaVersion: string;
@@ -162,8 +167,17 @@ export async function buildManifestEntry(
   };
 }
 
-function manifestKey(articleId: string): string {
-  return `manifest:${articleId}`;
+/** 06-04 (docs/phase-06/language-key-scheme.md): the English identity key (`manifest:<uuid>`,
+ * default) is byte-for-byte unchanged; an `'es'` key lands at its own `manifest:<uuid>:es` — so
+ * an entry with `language: 'es'` can NEVER overwrite the English entry at the same articleId,
+ * even though no Spanish entry is written by any caller today. Throws `kv-manifest: invalid
+ * manifest language ...` for anything outside the closed `'en' | 'es'` enum — same never-coerce
+ * discipline as `src/lib/article-url.ts`'s `assertLanguage`. */
+export function manifestKey(articleId: string, language: 'en' | 'es' = 'en'): string {
+  if (language !== 'en' && language !== 'es') {
+    throw new Error(`kv-manifest: invalid manifest language ${JSON.stringify(language)}`);
+  }
+  return language === 'es' ? `manifest:${articleId}:es` : `manifest:${articleId}`;
 }
 
 const CONTENT_HASH_RE = /^[0-9a-f]{64}$/;
@@ -280,7 +294,7 @@ export async function putManifestEntry(
 
   const fetchImpl = opts.fetchImpl ?? fetch;
   const token = requireEnv('CLOUDFLARE_API_TOKEN');
-  const key = manifestKey(entry.articleId);
+  const key = manifestKey(entry.articleId, entry.language);
 
   const response = await fetchImpl(kvValueUrl(key), {
     method: 'PUT',
@@ -322,7 +336,7 @@ export async function putManifestEntriesBulk(
 
   for (const batch of chunk(entries, KV_BULK_WRITE_MAX_PAIRS)) {
     const body = batch.map((entry) => ({
-      key: manifestKey(entry.articleId),
+      key: manifestKey(entry.articleId, entry.language),
       value: JSON.stringify(entry),
       // No `expiration`/`expiration_ttl` here — see the class comment above.
     }));
@@ -402,6 +416,10 @@ export async function deleteManifestEntries(
  * per key, not currently written by `putManifestEntry`/`putManifestEntriesBulk`) instead of
  * reading every value. Documented here rather than solved here: solving it now would mean
  * redesigning the write path for a caller (a Phase-3 dev tool) that does not need it yet.
+ *
+ * 06-04: skips any key name ending `:es` (a hypothetical future Spanish entry's own
+ * `manifest:<uuid>:es` key) — this function's contract is "every written article id", and a
+ * `:es`-suffixed key is the SAME article id as its English counterpart, never a second id.
  */
 export async function listManifestArticleIds(opts: { fetchImpl?: FetchImpl } = {}): Promise<string[]> {
   const fetchImpl = opts.fetchImpl ?? fetch;
@@ -426,6 +444,7 @@ export async function listManifestArticleIds(opts: { fetchImpl?: FetchImpl } = {
 
     const body = (await response.json()) as KvListKeysResponse;
     for (const key of body.result ?? []) {
+      if (key.name.endsWith(':es')) continue;
       ids.push(key.name.slice(prefix.length));
     }
     cursor = body.result_info?.cursor || undefined;
@@ -437,15 +456,16 @@ export async function listManifestArticleIds(opts: { fetchImpl?: FetchImpl } = {
 /**
  * Reads back one manifest entry. Returns `null` if the key does not exist (404). Throws if the
  * stored value is not valid JSON — a malformed stored value and an absent key are different
- * failures, and this function must not conflate them into the same `null` return.
+ * failures, and this function must not conflate them into the same `null` return. `opts.language`
+ * (06-04, default `'en'`) selects which key to read — see `manifestKey`.
  */
 export async function getManifestEntry(
   articleId: string,
-  opts: { fetchImpl?: FetchImpl } = {}
+  opts: { fetchImpl?: FetchImpl; language?: 'en' | 'es' } = {}
 ): Promise<ManifestEntry | null> {
   const fetchImpl = opts.fetchImpl ?? fetch;
   const token = requireEnv('CLOUDFLARE_API_TOKEN');
-  const key = manifestKey(articleId);
+  const key = manifestKey(articleId, opts.language ?? 'en');
 
   const response = await fetchImpl(kvValueUrl(key), {
     headers: { Authorization: `Bearer ${token}` },

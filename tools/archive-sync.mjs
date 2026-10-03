@@ -513,15 +513,22 @@ export async function runPreSync(opts = {}) {
   // then failed leaves the index claiming an object R2 no longer holds. If that key later re-enters
   // the archive tier, trusting the stale index entry here would classify it as `unchanged`/`changed`
   // (not `new`), skip the upload, and the deploy would remove it from static — a permanent 404 for
-  // unchanged content. Once per run, list what R2 actually holds under the two archive prefixes and
-  // treat any indexed-but-missing plan key as `new` instead, so it uploads before the deploy relies
-  // on it. A listing failure is not fatal — the index-only diff runs exactly as it did before this
-  // fix, with its own alert, rather than blocking the deploy over a transient R2 read.
+  // unchanged content. Once per run, list what R2 actually holds under all four archive prefixes
+  // (06-04: the two Spanish `es/articles/`/`es/tags/` prefixes added alongside the original two, so
+  // an indexed-but-missing Spanish object self-heals exactly like an English one) and treat any
+  // indexed-but-missing plan key as `new` instead, so it uploads before the deploy relies on it. A
+  // listing failure is not fatal — the index-only diff runs exactly as it did before this fix, with
+  // its own alert, rather than blocking the deploy over a transient R2 read.
   let diffIndex = index;
   const selfHealAlerts = [];
   try {
-    const [articleKeys, tagKeys] = await Promise.all([store.listKeys('articles/'), store.listKeys('tags/')]);
-    const r2Keys = new Set([...articleKeys, ...tagKeys]);
+    const [articleKeys, tagKeys, esArticleKeys, esTagKeys] = await Promise.all([
+      store.listKeys('articles/'),
+      store.listKeys('tags/'),
+      store.listKeys('es/articles/'),
+      store.listKeys('es/tags/'),
+    ]);
+    const r2Keys = new Set([...articleKeys, ...tagKeys, ...esArticleKeys, ...esTagKeys]);
     const indexEntries = index.entries ?? {};
     const missingFromR2 = planEntries
       .map((entry) => entry.key)
