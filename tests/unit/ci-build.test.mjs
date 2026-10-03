@@ -17,6 +17,8 @@ import {
   redact,
   toHeaderSafe,
   parseArchiveSyncResult,
+  isPerPageBuildLine,
+  createPageLineFilter,
 } from '../../tools/ci-build.mjs';
 
 const EIGHTEEN_MINUTES_MS = 18 * 60 * 1000;
@@ -1553,4 +1555,144 @@ test('B6: CI_BUILD_DEPLOY_DRY_RUN=1 never spawns post or mark-daily-report, even
   assert.equal(code, 0);
   assert.ok(!calls.some((c) => c.args.includes('post')), 'a dry run must never spawn archive-sync post');
   assert.ok(!calls.some((c) => c.args.includes('mark-daily-report')), 'a dry run must never spawn mark-daily-report');
+});
+
+// ---------------------------------------------------------------------------
+// Task 3 (quick 261002-s2r): build step's per-page listing reduced to counts so the deploy
+// step's own output survives in the Workers Builds log
+// ---------------------------------------------------------------------------
+
+test('C1: isPerPageBuildLine is true for every real per-page build-line shape', () => {
+  const trueCases = [
+    '00:07:06   ├─ /404.html (+138ms)',
+    '00:08:20   ├─ /tag/uscis.html (restored)',
+    '00:07:13   ├─ /about.html (cached)',
+    '  ├─ /a.html (+1.23s)',
+    '  ├─ /a.html (+1m 5s)',
+    '\x1b[90m00:07:06   ├─ /404.html (+138ms)\x1b[39m', // ANSI SGR wrapped
+    '00:07:06   ├─ /404.html (+138ms)\r', // trailing \r
+  ];
+  for (const line of trueCases) {
+    assert.equal(isPerPageBuildLine(line), true, `expected true for: ${JSON.stringify(line)}`);
+  }
+});
+
+test('C2: isPerPageBuildLine is false for lines that must survive the filter', () => {
+  const falseCases = [
+    '00:06:51 [WARN] [vite]',
+    '00:06:56 [build] Rearranging server assets...',
+    'tag pages: 19965 tags',
+    '[archive] hot window: derived ...',
+    '00:07:06   ├─ /x.html (+3ms) (file not created, response body was empty)',
+    '00:07:06   ├─ /x.html[archive] note', // page line with console output glued on
+    '✔ Case 1 (ARCH-02): ...',
+    '',
+  ];
+  for (const line of falseCases) {
+    assert.equal(isPerPageBuildLine(line), false, `expected false for: ${JSON.stringify(line)}`);
+  }
+});
+
+test('C3: createPageLineFilter suppresses page lines with periodic progress + a final summary; non-page lines pass through verbatim, across split chunks', () => {
+  const written = [];
+  const filter = createPageLineFilter({ write: (s) => written.push(s), progressEvery: 2 });
+
+  // Split one page line and one normal line across chunk boundaries.
+  filter.push('00:07:06   ├─ /a.html (+1');
+  filter.push('0ms)\n00:06:51 [WARN] [vite] something\n');
+  filter.push('00:07:07   ├─ /b.html (restored)\n');
+  filter.push('00:07:08   ├─ /c.html (cached)\n');
+
+  const n = filter.end();
+  const output = written.join('');
+
+  assert.equal(n, 3);
+  assert.ok(output.includes('00:06:51 [WARN] [vite] something\n'), 'non-page line must survive verbatim with its newline');
+  assert.ok(!output.includes('├─'), 'no raw page line may appear in the output');
+  const progressLines = written.filter((l) => l.includes('pages rendered so far'));
+  assert.equal(progressLines.length, 1, 'expected one progress line per 2 suppressed lines (3 lines -> 1 progress line)');
+  assert.ok(
+    progressLines[0] ===
+      '[ci-build] astro build: 2 pages rendered so far (per-page listing suppressed; CI_BUILD_FULL_LOG=1 shows it)\n'
+  );
+  assert.ok(output.trimEnd().endsWith(`[ci-build] astro build: suppressed ${n} per-page output lines (CI_BUILD_FULL_LOG=1 shows them)`));
+});
+
+test('C3b: a trailing partial line with no newline is written by end() unless it is a page line', () => {
+  const written1 = [];
+  const f1 = createPageLineFilter({ write: (s) => written1.push(s), progressEvery: 5000 });
+  f1.push('00:06:51 [WARN] [vite] trailing no newline');
+  const n1 = f1.end();
+  assert.ok(written1.includes('00:06:51 [WARN] [vite] trailing no newline'), 'the trailing non-page partial line must be written');
+  assert.equal(n1, 0);
+
+  const written2 = [];
+  const f2 = createPageLineFilter({ write: (s) => written2.push(s), progressEvery: 5000 });
+  f2.push('00:07:06   ├─ /trailing.html (+5ms)');
+  const n2 = f2.end();
+  assert.ok(!written2.some((l) => l.includes('/trailing.html')), 'a trailing partial PAGE line must never be written');
+  assert.equal(n2, 1);
+});
+
+test('C4: runCi spawns the build with filterPageLines true by default, false with CI_BUILD_FULL_LOG=1; no deploy-step spawn ever carries it', async () => {
+  const calls1 = [];
+  const spawnImpl1 = async (cmd, args, opts) => {
+    calls1.push({ cmd, args: [...args], opts });
+    return { code: 0, tail: '' };
+  };
+  const code1 = await runCi({ step: 'build', env: {}, spawnImpl: spawnImpl1, setTimer: noopTimer, clearTimer: noopClear, log: noopLog });
+  assert.equal(code1, 0);
+  const buildCall1 = calls1.find((c) => c.cmd === 'pnpm' && c.args.includes('run') && c.args.includes('build'));
+  assert.equal(buildCall1.opts.filterPageLines, true);
+
+  const calls2 = [];
+  const spawnImpl2 = async (cmd, args, opts) => {
+    calls2.push({ cmd, args: [...args], opts });
+    return { code: 0, tail: '' };
+  };
+  const code2 = await runCi({
+    step: 'build',
+    env: { CI_BUILD_FULL_LOG: '1' },
+    spawnImpl: spawnImpl2,
+    setTimer: noopTimer,
+    clearTimer: noopClear,
+    log: noopLog,
+  });
+  assert.equal(code2, 0);
+  const buildCall2 = calls2.find((c) => c.cmd === 'pnpm' && c.args.includes('run') && c.args.includes('build'));
+  assert.equal(buildCall2.opts.filterPageLines, false);
+
+  const calls3 = [];
+  const deploySpawnImpl = async (cmd, args, opts) => {
+    calls3.push({ cmd, args: [...args], opts });
+    if (args.includes('pre')) return { code: 0, tail: fakeArchiveSyncTail('pre') };
+    if (args.some((a) => String(a).includes('assert-file-count.mjs'))) {
+      return { code: 0, tail: '{"count":100,"ceiling":100000,"failAt":80000,"status":"ok"}' };
+    }
+    if (args.some((a) => String(a).includes('assert-archive-synced.mjs'))) {
+      return { code: 0, tail: '[assert-archive-synced] ok' };
+    }
+    if (cmd === 'pnpm' && args.includes('wrangler')) return { code: 0, tail: '' };
+    if (args.includes('post')) {
+      return { code: 0, tail: fakeArchiveSyncTail('post', { dailyReport: { due: true, date: '2026-10-02', body: {} } }) };
+    }
+    if (args.includes('mark-daily-report')) return { code: 0, tail: '' };
+    return { code: 0, tail: '' };
+  };
+  const code3 = await runCi({
+    step: 'deploy',
+    env: { NTFY_TOPIC: 'test-topic' },
+    spawnImpl: deploySpawnImpl,
+    notifyImpl: async () => {},
+    commitImpl: async () => {},
+    loadHotWindowImpl: fakeLoadHotWindow,
+    setTimer: noopTimer,
+    clearTimer: noopClear,
+    log: noopLog,
+  });
+  assert.equal(code3, 0);
+  assert.ok(
+    calls3.every((c) => c.opts?.filterPageLines === undefined),
+    'no deploy-step spawn may ever carry filterPageLines'
+  );
 });

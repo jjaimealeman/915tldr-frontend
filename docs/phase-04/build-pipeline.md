@@ -57,6 +57,14 @@ BUILD step
                                                           files, warns at 70,000 (D-13/REND-11)
 ```
 
+**Step 3's output is filtered (REND-11 follow-up, quick 261002-s2r).** `build:ci` replaces Astro's
+own ~60,000-line per-page listing (`├─ /path (+Nms)`/`cached`/`restored`) with a progress line
+every 5,000 pages plus one final `suppressed <N> per-page output lines` summary — the listing alone
+was pushing the deploy step's own output (including the daily-report/ntfy outcome lines below)
+past what the downloadable Workers Builds log retains. stderr, warnings, errors, and the build's
+exit code all pass through completely untouched; `CI_BUILD_FULL_LOG=1` restores the full listing
+for a one-off debugging run. A local `pnpm run build` (not `build:ci`) is unaffected either way.
+
 **Updated pipeline (deploy step, production branch ONLY — `pnpm run deploy:ci`, i.e.
 `tools/ci-build.mjs deploy`):**
 
@@ -92,7 +100,13 @@ DEPLOY step
                                                           committed or deleted; CR-01, 05-13)
   7. ntfy alerts/daily report — every archive outcome from steps 1-6 (failed uploads, a disabled
      tier, a backlog older than 20h, the file-count warn alarm, the once-daily REND-11 report)
-     reaches the owner exactly once, sent AFTER the deploy itself succeeds — never gating it
+     reaches the owner exactly once, sent AFTER the deploy itself succeeds — never gating it.
+     (REND-11 follow-up, quick 261002-s2r) The daily report's own `_meta/daily-report.json` marker
+     advances only once ntfy CONFIRMS a 2xx for that send — step 6 (`post`) itself never writes it
+     any more. A confirmed send spawns `node tools/archive-sync.mjs mark-daily-report --date <d>`
+     right here in step 7; a rejected or thrown send leaves the marker untouched, so the next
+     production deploy's `post` run reports the SAME day due again and the report simply re-sends
+     — a duplicate report is preferred over a silently missed one.
 ```
 
 **Manual deploys (CR-02, 05-20).** `pnpm run deploy` now runs `pnpm run guard:config && node

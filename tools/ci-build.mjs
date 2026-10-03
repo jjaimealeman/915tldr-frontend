@@ -229,35 +229,161 @@ export function classifyFailure(outputTail, exitCode) {
 }
 
 /**
+ * Task 3 (quick 261002-s2r): matches exactly one `astro build`-emitted per-page progress line,
+ * e.g. `00:07:06   ├─ /404.html (+138ms)`, `00:08:20   ├─ /tag/uscis.html (restored)`, or
+ * `  ├─ /a.html (cached)` (the leading `HH:MM:SS` timestamp prefix is optional — Workers Builds
+ * strips its own timestamp column before this file ever sees the line, but a local `pnpm run
+ * build` never had one to begin with). Matched verbatim against real production log lines
+ * (docs/phase-04/build-pipeline.md's own evidence check script, and this file's own tests)
+ * — 53,425/53,425 real `├─` lines matched, 0/98 other real lines matched.
+ *
+ * Deliberately anchored end-to-end (`^...$`): anything appended after the closing paren — Astro's
+ * own "(file not created, response body was empty)" notice, or a differently-leveled log line's
+ * output glued onto the same line by a partial write — must NOT match, so it stays visible rather
+ * than silently vanishing into the suppressed count. Glyphs are written as `\u` escapes under the
+ * `u` flag rather than typed literally, matching this file's own `toHeaderSafe` convention for
+ * code points outside the ASCII range.
+ */
+export const PER_PAGE_LINE_RE =
+  /^(?:\d{2}:\d{2}:\d{2})?\s*[├└]─ \S+ \((?:\+\d+ms|\+\d+(?:\.\d+)?s|\+\d+m \d+s|cached|restored)\)\s*$/u;
+
+/**
+ * Strips ANSI SGR escape sequences and one trailing `\r` (a line arriving from a PTY-backed child
+ * or copy-pasted from a terminal) before testing `PER_PAGE_LINE_RE` — a real per-page line stays
+ * a real per-page line whether or not a terminal painted color around it.
+ */
+export function isPerPageBuildLine(line) {
+  const stripped = String(line ?? '')
+    .replace(/\x1b\[[0-9;]*m/g, '')
+    .replace(/\r$/, '');
+  return PER_PAGE_LINE_RE.test(stripped);
+}
+
+/**
+ * Task 3 (quick 261002-s2r): a small stateful line filter — `push(text)` feeds it raw stdout
+ * chunks (which may split a line across chunk boundaries, or bundle many lines into one chunk);
+ * every COMPLETE line is either a per-page line (suppressed, counted, and surfaced as one
+ * `progressEvery`-interval progress line) or anything else (written verbatim, with its newline,
+ * in order — warnings, errors, glued console output, and Astro's own non-page summary lines all
+ * survive exactly as `astro build` emitted them). `end()` flushes any still-buffered partial line
+ * (written only if it is NOT itself a page line — the file genuinely ended without a trailing
+ * newline is a possible, if unlikely, Astro build-tool state), writes the final
+ * `suppressed <N> ...` summary, and returns `N`. `write` is the only effectful seam — this
+ * function has no I/O of its own, so `spawnTee` can point it at a capturing array in a test.
+ */
+export function createPageLineFilter({ write, progressEvery = 5000 }) {
+  let buffer = '';
+  let suppressedCount = 0;
+  let sinceLastProgress = 0;
+
+  function handleLine(line) {
+    if (isPerPageBuildLine(line)) {
+      suppressedCount += 1;
+      sinceLastProgress += 1;
+      if (sinceLastProgress >= progressEvery) {
+        write(
+          `[ci-build] astro build: ${suppressedCount} pages rendered so far (per-page listing suppressed; CI_BUILD_FULL_LOG=1 shows it)\n`
+        );
+        sinceLastProgress = 0;
+      }
+    } else {
+      write(`${line}\n`);
+    }
+  }
+
+  return {
+    push(text) {
+      buffer += text;
+      let newlineIdx;
+      // eslint-disable-next-line no-cond-assign
+      while ((newlineIdx = buffer.indexOf('\n')) >= 0) {
+        const line = buffer.slice(0, newlineIdx);
+        buffer = buffer.slice(newlineIdx + 1);
+        handleLine(line);
+      }
+    },
+    end() {
+      if (buffer.length > 0) {
+        if (isPerPageBuildLine(buffer)) {
+          suppressedCount += 1;
+        } else {
+          write(buffer);
+        }
+        buffer = '';
+      }
+      write(`[ci-build] astro build: suppressed ${suppressedCount} per-page output lines (CI_BUILD_FULL_LOG=1 shows them)\n`);
+      return suppressedCount;
+    },
+  };
+}
+
+/**
  * Real process spawn — tees stdout/stderr straight through (so a live Workers Builds log still
  * shows everything a bare `pnpm run build` would) while also keeping the last
  * `NUMBER_OF_TAIL_LINES` lines for `classifyFailure` to scan. Never throws: a spawn error (e.g.
  * the binary is missing) resolves as a failed run rather than rejecting, so `runCi` always gets a
  * `{ code, tail }` result to act on.
+ *
+ * Task 3 (quick 261002-s2r), renamed from `defaultSpawn`: three extra, destructured-out options —
+ * `filterPageLines` (default false), `writeStdout`/`writeStderr` (default: the real
+ * `process.stdout`/`process.stderr`). stderr is NEVER filtered, regardless of `filterPageLines`.
+ * When `filterPageLines` is true, stdout chunks are routed through `createPageLineFilter` instead
+ * of written directly, and the promise resolves on the child's `close` event (after stdio has
+ * fully drained) rather than `exit`, calling the filter's own `end()` first so its summary line is
+ * the last thing written. Tail collection (raw lines, both streams, last `NUMBER_OF_TAIL_LINES`)
+ * is unchanged either way, so `classifyFailure` always sees the real, unfiltered output.
  */
-function defaultSpawn(cmd, args, opts = {}) {
+export function spawnTee(cmd, args, opts = {}) {
+  const {
+    filterPageLines = false,
+    writeStdout = (text) => process.stdout.write(text),
+    writeStderr = (text) => process.stderr.write(text),
+    ...spawnOpts
+  } = opts;
+
   return new Promise((resolve) => {
     let child;
     try {
-      child = spawn(cmd, args, { ...opts, stdio: ['ignore', 'pipe', 'pipe'] });
+      child = spawn(cmd, args, { ...spawnOpts, stdio: ['ignore', 'pipe', 'pipe'] });
     } catch (err) {
       resolve({ code: 1, tail: String(err?.message ?? err) });
       return;
     }
 
     const tailLines = [];
-    const onData = (streamName) => (chunk) => {
-      const text = chunk.toString();
-      (streamName === 'stderr' ? process.stderr : process.stdout).write(text);
+    const pushTail = (text) => {
       for (const line of text.split('\n')) {
         tailLines.push(line);
         if (tailLines.length > NUMBER_OF_TAIL_LINES) tailLines.shift();
       }
     };
-    child.stdout?.on('data', onData('stdout'));
-    child.stderr?.on('data', onData('stderr'));
+
+    const pageFilter = filterPageLines ? createPageLineFilter({ write: writeStdout }) : null;
+
+    child.stdout?.on('data', (chunk) => {
+      const text = chunk.toString();
+      pushTail(text);
+      if (pageFilter) {
+        pageFilter.push(text);
+      } else {
+        writeStdout(text);
+      }
+    });
+    child.stderr?.on('data', (chunk) => {
+      const text = chunk.toString();
+      pushTail(text);
+      writeStderr(text);
+    });
     child.on('error', (err) => resolve({ code: 1, tail: String(err?.message ?? err) }));
-    child.on('exit', (code) => resolve({ code: code ?? 1, tail: tailLines.join('\n') }));
+
+    if (filterPageLines) {
+      child.on('close', (code) => {
+        pageFilter.end();
+        resolve({ code: code ?? 1, tail: tailLines.join('\n') });
+      });
+    } else {
+      child.on('exit', (code) => resolve({ code: code ?? 1, tail: tailLines.join('\n') }));
+    }
   });
 }
 
@@ -386,7 +512,7 @@ export async function runCi(opts = {}) {
   const {
     step,
     env = process.env,
-    spawnImpl = defaultSpawn,
+    spawnImpl = spawnTee,
     notifyImpl = defaultNotify,
     fetchImpl = (...args) => globalThis.fetch(...args),
     commitImpl = defaultCommitImpl,
@@ -464,6 +590,10 @@ export async function runCi(opts = {}) {
       spawnFn: () =>
         spawnImpl('pnpm', ['run', 'build'], {
           env: { ...env, BUILD_STATE_REQUIRE_BASELINE: '1' },
+          // Task 3 (quick 261002-s2r): suppresses astro build's ~60k-line per-page listing so the
+          // deploy step's own output (including Task 1/2's new ntfy-outcome lines) survives in the
+          // Workers Builds log — see spawnTee's own JSDoc. CI_BUILD_FULL_LOG=1 is the escape hatch.
+          filterPageLines: !isTruthyFlag(env.CI_BUILD_FULL_LOG),
         }),
       setTimer,
       clearTimer,
