@@ -1,0 +1,81 @@
+---
+// 06-05 (Task 1): the Spanish home — the first `/es` page to ship (D-09: `/es` is fully public
+// from day one). Mirrors `src/pages/index.astro` exactly (same feed, same selection, same card
+// shapes) with every chrome string and internal link localized to `/es` via `Base`'s `lang="es"`
+// prop. Spanish ARTICLE CONTENT does not exist in the build yet — the `articlesEs` collection and
+// the real Spanish titles/summaries land in 06-06/06-10. Until then this page renders the same
+// English titles/summaries the home page does, with `lang="en"` marking that content as English
+// inside an otherwise-Spanish document (an honest, temporary state — not a translation).
+import { getCollection } from 'astro:content';
+import Base from '../../layouts/Base.astro';
+import ArticleCard from '../../components/ArticleCard.astro';
+import { articlePath } from '../../lib/article-url.ts';
+import { sortNewestFirst, HOME_FEED_COUNT } from '../../lib/listing.ts';
+import { TIME_ZONE } from '../../lib/format.ts';
+import { BUILD_TIMESTAMP } from '../../lib/build-info.ts';
+import { t } from '../../lib/i18n/dictionary.ts';
+import { categoryLabel } from '../../lib/i18n/category-labels.ts';
+
+const entries = await getCollection('articles');
+const allArticles = entries.map((entry) => entry.data);
+const feed = sortNewestFirst(allArticles).slice(0, HOME_FEED_COUNT);
+const [lead, ...rest] = feed;
+
+// Same year-disclosure rule as the English home (src/pages/index.astro) — see that file's own
+// comment for why "this build's year" is a safe, deterministic comparison basis here.
+const buildYear = Number(
+  new Intl.DateTimeFormat('en-US', { timeZone: TIME_ZONE, year: 'numeric' }).format(new Date(BUILD_TIMESTAMP))
+);
+function showYearFor(publishedAt: number): boolean {
+  const articleYear = Number(
+    new Intl.DateTimeFormat('en-US', { timeZone: TIME_ZONE, year: 'numeric' }).format(new Date(publishedAt * 1000))
+  );
+  return articleYear !== buildYear;
+}
+---
+
+<Base
+  page="home"
+  lang="es"
+  title={t('homeTitle', 'es')}
+  description={t('homeDescription', 'es')}
+  canonicalPath="/es"
+  buildStamp={true}
+>
+  {
+    lead && (
+      <div lang="en">
+        <ArticleCard
+          uuid={lead.uuid}
+          title={lead.title}
+          href={articlePath(lead.category.slug, lead.slug, lead.uuid, 'es')}
+          categorySlug={lead.category.slug}
+          categoryName={categoryLabel(lead.category.slug, 'es') ?? lead.category.name}
+          sourceName={lead.source.name}
+          publishedAt={lead.publishedAt}
+          variant="lead"
+          summary={lead.summary}
+          showYear={showYearFor(lead.publishedAt)}
+        />
+      </div>
+    )
+  }
+
+  <section data-grid aria-label={t('homeGridLabel', 'es')} lang="en">
+    {
+      rest.map((article) => (
+        <ArticleCard
+          uuid={article.uuid}
+          title={article.title}
+          href={articlePath(article.category.slug, article.slug, article.uuid, 'es')}
+          categorySlug={article.category.slug}
+          categoryName={categoryLabel(article.category.slug, 'es') ?? article.category.name}
+          sourceName={article.source.name}
+          publishedAt={article.publishedAt}
+          summary={article.summary}
+          showYear={showYearFor(article.publishedAt)}
+        />
+      ))
+    }
+  </section>
+</Base>
