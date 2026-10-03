@@ -722,6 +722,87 @@ test('worker: identical response with and without an Accept-Language: es-MX head
   assert.equal(await responseNoHeader.clone().text(), await responseWithHeader.clone().text());
 });
 
+// ---------------------------------------------------------------------------
+// 06-02 Task 2: abuse cases — malformed encoding fallthrough, broader Accept-Language/Cookie
+// indifference sweep (D-13)
+// ---------------------------------------------------------------------------
+
+test('worker: GET /es/%E0%A4%A (malformed percent-encoding) falls through to env.ASSETS.fetch with zero KV reads', async () => {
+  const { env, kvCalls } = makeEnv();
+
+  const request = new Request('https://dev.915tldr.com/es/%E0%A4%A', { method: 'GET' });
+  const response = await worker.fetch(request, env);
+
+  assert.equal(response, SENTINEL_404);
+  assert.equal(kvCalls.length, 0);
+  assert.equal(assetsCalls.length, 1);
+});
+
+test('worker: response is identical with and without Accept-Language/Cookie across /, English archived article, Spanish archived article and a non-canonical /es path (D-13)', async () => {
+  const snoopHeaders = { 'Accept-Language': 'es-MX,es;q=0.9', Cookie: 'lang=es' };
+
+  const shapes = [
+    {
+      name: 'home page (no uuid, no tag)',
+      url: 'https://dev.915tldr.com/',
+      env: () => makeEnv(),
+    },
+    {
+      name: 'English archived article',
+      url: `https://dev.915tldr.com/crime/man-arrested-${UUID}`,
+      env: () =>
+        makeEnv({
+          kvValue: { schemaVersion: '2', articleId: UUID, category: 'crime', slug: 'man-arrested' },
+          r2GetValue: makeArchiveBody('archived english body'),
+        }),
+    },
+    {
+      name: 'Spanish archived article',
+      url: `https://dev.915tldr.com/es/crime/man-arrested-${UUID}`,
+      env: () =>
+        makeEnv({
+          kvValue: { schemaVersion: '2', articleId: UUID, category: 'crime', slug: 'man-arrested' },
+          r2GetValue: makeArchiveBody('archived spanish body'),
+        }),
+    },
+    {
+      name: 'non-canonical /es path (301)',
+      url: `https://dev.915tldr.com/es/politics/wrong-${UUID}`,
+      env: () =>
+        makeEnv({
+          kvValue: { schemaVersion: '2', articleId: UUID, category: 'crime', slug: 'man-arrested' },
+        }),
+    },
+  ];
+
+  async function describe(response) {
+    return {
+      status: response.status,
+      location: response.headers.get('Location'),
+      body: response === SENTINEL_404 ? 'not found' : await response.clone().text(),
+    };
+  }
+
+  for (const shape of shapes) {
+    const { env: envPlain } = shape.env();
+    const plainResponse = await worker.fetch(new Request(shape.url, { method: 'GET' }), envPlain);
+    const plainResult = await describe(plainResponse);
+
+    const { env: envWithHeaders } = shape.env();
+    const headeredResponse = await worker.fetch(
+      new Request(shape.url, { method: 'GET', headers: snoopHeaders }),
+      envWithHeaders
+    );
+    const headeredResult = await describe(headeredResponse);
+
+    assert.deepEqual(
+      headeredResult,
+      plainResult,
+      `${shape.name}: response must be identical with and without Accept-Language/Cookie`
+    );
+  }
+});
+
 test('worker: with globalThis.caches undefined, archived GETs still serve from R2 with no throw', async () => {
   delete globalThis.caches;
   const { env, r2GetCalls } = makeEnv({

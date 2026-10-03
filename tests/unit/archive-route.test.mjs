@@ -83,6 +83,38 @@ test('tagArchiveKey: throws on an invalid slug', () => {
 });
 
 // ---------------------------------------------------------------------------
+// 06-02 Task 2: abuse cases — malformed language (closed enum, no trimming/case-folding; T-06-07)
+// and /es/tag path traversal (T-06-08)
+// ---------------------------------------------------------------------------
+
+test('matchTagPath: /es/tag/<slug> is a language "es" match', () => {
+  assert.deepEqual(matchTagPath('/es/tag/el-paso'), { slug: 'el-paso', suffix: '', language: 'es' });
+});
+
+test('matchTagPath: /es/tag/%2e%2e (path traversal under /es) is rejected', () => {
+  assert.equal(matchTagPath('/es/tag/%2e%2e'), null);
+});
+
+test('matchTagPath: /es/tag/ (no slug) is rejected', () => {
+  assert.equal(matchTagPath('/es/tag/'), null);
+});
+
+test('matchTagPath: /es/tags (index page, no trailing slash) is rejected', () => {
+  assert.equal(matchTagPath('/es/tags'), null);
+});
+
+test('articleArchiveKey: a language with trailing whitespace throws — no trimming', () => {
+  assert.throws(
+    () => articleArchiveKey('3f2504e0-4f89-11d3-9a0c-0305e82c3301', 'es '),
+    /article-url: invalid language: "es "/
+  );
+});
+
+test('tagArchiveKey: an uppercase language throws — no case-folding', () => {
+  assert.throws(() => tagArchiveKey('a', 'ES'), /article-url: invalid language: "ES"/);
+});
+
+// ---------------------------------------------------------------------------
 // formatServerTiming
 // ---------------------------------------------------------------------------
 

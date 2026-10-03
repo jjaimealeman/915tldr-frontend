@@ -136,3 +136,23 @@ test('resolveRedirect: the English canonical path is still a plain "en" canonica
   const decision = resolveRedirect(`/crime/new-title-${UUID}`, validEntry());
   assert.deepEqual(decision, { type: 'canonical', articleId: UUID, language: 'en' });
 });
+
+// ---------------------------------------------------------------------------
+// 06-02 Task 2: abuse cases — open redirect under /es (T-06-06)
+// ---------------------------------------------------------------------------
+
+test('resolveRedirect: a doubled-slash /es path never leaks "//" or a host into the redirect Location', () => {
+  const decision = resolveRedirect(`/es//evil.example/crime/x-${UUID}`, validEntry());
+  assert.equal(decision.type, 'redirect');
+  assert.ok(decision.location.startsWith('/es/crime/'), decision.location);
+  assert.ok(!decision.location.includes('//evil'), decision.location);
+  assert.ok(!decision.location.includes('evil.example'), decision.location);
+});
+
+test('resolveRedirect: an encoded-slash /es path never leaks "//" or a host into the redirect Location', () => {
+  const decision = resolveRedirect(`/es/%2F%2Fevil.example/x-${UUID}`, validEntry());
+  assert.equal(decision.type, 'redirect');
+  assert.ok(decision.location.startsWith('/es/crime/'), decision.location);
+  assert.ok(!decision.location.includes('//evil'), decision.location);
+  assert.ok(!decision.location.includes('evil.example'), decision.location);
+});
