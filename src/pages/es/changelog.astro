@@ -1,0 +1,114 @@
+---
+// 06-07 Task 2 (D-17, I18N-04): the Spanish mirror of `src/pages/changelog.astro`. Chrome
+// (heading, intro, the one-line "build notes are published in English" note) is Spanish from the
+// fixed dictionary; every changelog entry itself is rendered UNCHANGED from the English page,
+// wrapped in `lang="en"` — entries are never translated, now or in the future (D-17). The rail of
+// the 6 newest articles uses `localizedArticleView` with `/es` hrefs, same as `/es/contact`.
+import { getCollection } from 'astro:content';
+import Base from '../../layouts/Base.astro';
+import ArticleCard from '../../components/ArticleCard.astro';
+import { articlePath } from '../../lib/article-url.ts';
+import { sortNewestFirst } from '../../lib/listing.ts';
+import { buildEsIndex, localizedArticleView, categoryLabel } from '../../lib/i18n/spanish-view.ts';
+import { t } from '../../lib/i18n/dictionary.ts';
+
+/** Matches the English changelog's rail count (04-08-PLAN.md Task 2) — same constant, reused
+ * here for the Spanish mirror. */
+const RAIL_COUNT = 6;
+
+interface ChangelogEntryView {
+  id: string;
+  date: string;
+  title: string;
+  items: string[];
+  source: 'v1-json' | 'd1';
+}
+
+const changelogEntries = await getCollection('changelog');
+const entries: ChangelogEntryView[] = changelogEntries
+  .map((entry) => entry.data as ChangelogEntryView)
+  .sort((a, b) => {
+    if (a.date !== b.date) return a.date < b.date ? 1 : -1; // desc
+    if (a.source !== b.source) return a.source === 'v1-json' ? -1 : 1; // json before d1
+    return 0; // both sources already carry a stable original order from the loader
+  });
+
+const articleEntries = await getCollection('articles');
+const esEntries = await getCollection('articlesEs');
+const esIndex = buildEsIndex(esEntries.map((entry) => entry.data));
+const allArticles = articleEntries.map((entry) => entry.data);
+const railArticles = sortNewestFirst(allArticles).slice(0, RAIL_COUNT);
+
+// Same English-only date rendering as src/pages/changelog.astro — the date belongs to the
+// (never-translated, lang="en") entry itself, not to the page's own Spanish chrome.
+function dispatchDateLabel(date: string): string {
+  const [year, month, day] = date.split('-').map(Number);
+  const monthName = new Intl.DateTimeFormat('en-US', { month: 'long', timeZone: 'UTC' }).format(
+    new Date(Date.UTC(year, month - 1, day))
+  );
+  return `${monthName} ${day}, ${year}`;
+}
+---
+
+<Base
+  page="changelog"
+  lang="es"
+  title={t('changelogTitle', 'es')}
+  description={t('changelogDescription', 'es')}
+  canonicalPath="/es/changelog"
+  layout="with-rail"
+>
+  <div data-reading-column>
+    <h1>{t('changelogHeading', 'es')}</h1>
+    <p data-lede>{t('changelogLede', 'es')}</p>
+    <p data-changelog-english-note>{t('changelogEnglishNote', 'es')}</p>
+
+    {
+      entries.map((entry) => (
+        <article data-dispatch lang="en">
+          <time data-dispatch-date datetime={entry.date}>
+            {dispatchDateLabel(entry.date)}
+          </time>
+          <h2>{entry.title}</h2>
+          <p data-dispatch-body>
+            {entry.items.map((item, index) => (
+              <>
+                <span data-item data-item-sentence>
+                  {item}
+                </span>
+                {index < entry.items.length - 1 && ' '}
+              </>
+            ))}
+          </p>
+        </article>
+      ))
+    }
+  </div>
+
+  <aside data-rail aria-label={t('railLatestAriaLabel', 'es')}>
+    <h2 id="rail-latest-heading" data-grid-heading>
+      {t('railLatestHeading', 'es')}
+    </h2>
+    <section data-grid aria-labelledby="rail-latest-heading">
+      {
+        railArticles.map((article) => {
+          const view = localizedArticleView(article, esIndex.get(article.uuid));
+          return (
+            <ArticleCard
+              uuid={article.uuid}
+              title={view.title}
+              href={articlePath(article.category.slug, article.slug, article.uuid, 'es')}
+              categorySlug={article.category.slug}
+              categoryName={categoryLabel(article.category.slug, 'es') ?? article.category.name}
+              sourceName={article.source.name}
+              publishedAt={article.publishedAt}
+              variant="compact"
+              lang="es"
+              contentLang={view.lang}
+            />
+          );
+        })
+      }
+    </section>
+  </aside>
+</Base>

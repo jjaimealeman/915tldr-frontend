@@ -10,6 +10,7 @@ Entries are named `YYYY-MM-DD-HHMM_slug.md` and grouped by month, newest first.
 
 | Date | Entry | Keywords |
 |------|-------|----------|
+| 2026-10-04 | [Plan 06-07 Task 2 (GREEN): /es/changelog (D-17) ships, full test suite passes](2026-10-04-0200_06-07-task2-green-es-changelog-and-dist-tests.md) | `[FRONTEND]` `[FEATURE]` `[I18N]` `[SEO]` `[TESTING]` |
 | 2026-10-04 | [Plan 06-07 Task 2 (RED): failing coverage for /es/changelog and the five-page hreflang/link contract](2026-10-04-0153_06-07-task2-red-es-static-pages-test.md) | `[TESTING]` `[I18N]` `[SEO]` |
 | 2026-10-04 | [Plan 06-07 Task 1: Spanish trust pages drafted, accurate Umami disclosure](2026-10-04-0149_06-07-task1-spanish-trust-pages-umami-disclosure.md) | `[I18N]` `[PRIVACY]` `[CONTENT]` |
 | 2026-10-04 | [Plan 06-09 complete: the bilingual article page](2026-10-04-0139_06-09-complete-bilingual-article-page.md) | `[DOCUMENTATION]` `[PLANNING]` `[I18N]` `[TESTING]` `[SEO]` |
