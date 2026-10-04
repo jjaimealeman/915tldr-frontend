@@ -10,6 +10,7 @@ Entries are named `YYYY-MM-DD-HHMM_slug.md` and grouped by month, newest first.
 
 | Date | Entry | Keywords |
 |------|-------|----------|
+| 2026-10-04 | [Plan 06-07 complete: Spanish trust pages reviewed and approved](2026-10-04-0632_06-07-complete-spanish-trust-pages-reviewed.md) | `[DOCUMENTATION]` `[PLANNING]` `[I18N]` `[PRIVACY]` |
 | 2026-10-04 | [Plan 06-10 complete: Spanish listing pages and the Spanish 404](2026-10-04-0234_06-10-complete-es-listings-and-404.md) | `[DOCUMENTATION]` `[PLANNING]` `[I18N]` `[SEO]` `[TESTING]` |
 | 2026-10-04 | [/es/tags, /es/source/<slug>, the Spanish 404 and its suggestion index](2026-10-04-0231_06-10-task2-es-tags-source-404-and-suggestion-index.md) | `[FRONTEND]` `[FEATURE]` `[I18N]` `[SEO]` `[SECURITY]` `[TESTING]` `[BUG_FIX]` |
 | 2026-10-04 | [Tracer: /es home, category and tag listings with real Spanish titles](2026-10-04-0227_06-10-task1-tracer-es-home-category-tag-listings.md) | `[FRONTEND]` `[FEATURE]` `[I18N]` `[SEO]` `[TESTING]` |

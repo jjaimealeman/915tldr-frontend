@@ -186,7 +186,9 @@ content is data-driven, not something this packet can show statically.
 
 ## Reviewer decision
 
-- **Reviewer name:** _pending_
-- **Date:** _pending_
-- **Decision:** _pending — approved as-is / approved with edits (list below) / rejected_
-- **Edits requested (if any):** _none recorded yet_
+- **Reviewer name:** Jaime Aleman
+- **Date:** 2026-10-04, 06:30 MDT
+- **Decision:** Approved as-is — reply recorded verbatim: "approved. all."
+- **Scope:** covers all four Spanish pages (About, Privacy, Terms, Contact) and the English
+  Privacy correction (D-11/T-06-26) reviewed in this packet.
+- **Edits requested:** none.
