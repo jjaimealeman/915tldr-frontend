@@ -10,6 +10,7 @@ Entries are named `YYYY-MM-DD-HHMM_slug.md` and grouped by month, newest first.
 
 | Date | Entry | Keywords |
 |------|-------|----------|
+| 2026-10-04 | [Phase 6 tracking updated after 06-13, live ingest deployed](2026-10-04-1425_phase-06-wave-8a-tracking.md) | `[DOCUMENTATION]` `[PLANNING]` `[DEPLOYMENT]` |
 | 2026-10-04 | [Plan 06-13 complete: live Spanish judge chosen, backfill capped, pipeline deployed](2026-10-04-1424_06-13-complete-go-live-decision-and-pipeline-deploy.md) | `[DOCUMENTATION]` `[PLANNING]` `[I18N]` `[DEPLOYMENT]` |
 | 2026-10-04 | [Phase 6 tracking updated after wave 7](2026-10-04-1210_phase-06-wave-7-tracking.md) | `[DOCUMENTATION]` `[PLANNING]` |
 | 2026-10-04 | [Plan 06-12 complete: build budget measured and corrected, full-corpus invariants pass](2026-10-04-1210_06-12-complete-build-budget-and-full-corpus-invariants.md) | `[DOCUMENTATION]` `[PLANNING]` `[PERFORMANCE]` `[I18N]` `[TESTING]` |
