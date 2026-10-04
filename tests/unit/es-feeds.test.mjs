@@ -1,15 +1,14 @@
-// 06-11 (I18N-06), Task 1: proves `/es/rss.xml` and the per-language sitemap chunks against REAL
-// built output under `dist/client`, following `tests/unit/es-listing-pages.test.mjs`'s own
-// "assert on rendered output, skip if unbuilt" convention. The pure helper itself
-// (`sitemapChunks`) also gets direct unit coverage, no build required. Task 2 (same plan) extends
-// this file with `/es/news-sitemap.xml` coverage.
+// 06-11 (I18N-06): proves `/es/rss.xml`, the per-language sitemap chunks and `/es/news-sitemap.xml`
+// against REAL built output under `dist/client`, following `tests/unit/es-listing-pages.test.mjs`'s
+// own "assert on rendered output, skip if unbuilt" convention. The pure helpers themselves
+// (`spanishSitemapExclusions`, `sitemapChunks`) also get direct unit coverage, no build required.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync, existsSync } from 'node:fs';
 import path from 'node:path';
 import { UUID_RE, languageOfPath } from '../../src/lib/article-url.ts';
 import { readTierFacts } from '../../src/lib/archive/tier-facts.ts';
-import { RSS_ITEM_COUNT } from '../../src/lib/seo-feeds.ts';
+import { RSS_ITEM_COUNT, NEWS_WINDOW_SECONDS } from '../../src/lib/seo-feeds.ts';
 import { sitemapChunks } from '../../src/lib/i18n/sitemap.ts';
 
 const REPO_ROOT = path.resolve(import.meta.dirname, '../..');
@@ -183,4 +182,48 @@ test('es-feeds: the excluded endpoints (404, rss.xml, news-sitemap.xml, version.
       assert.ok(!locs.includes(forbiddenPath), `expected ${relPath} to never list ${forbiddenPath}`);
     }
   }
+});
+
+// ---------------------------------------------------------------------------
+// Task 2: Spanish Google News sitemap
+// ---------------------------------------------------------------------------
+
+test('es-feeds: dist/client/es/news-sitemap.xml lists only translated, in-window articles with /es URLs, Spanish titles and <news:language>es</news:language>', { skip: !DIST_BUILT && SKIP_REASON }, () => {
+  assert.ok(distFileExists('es/news-sitemap.xml'), 'expected dist/client/es/news-sitemap.xml to exist');
+  const xml = readDist('es/news-sitemap.xml');
+  assert.match(xml, /<urlset[^>]*>[\s\S]*<\/urlset>/, 'expected es/news-sitemap.xml to parse as a urlset');
+
+  const facts = readTierFacts();
+  const translatedUuids = new Set(facts.articlesEs.filter((entry) => entry.translated).map((entry) => entry.uuid));
+
+  const locs = [...xml.matchAll(/<loc>(.*?)<\/loc>/g)].map((m) => m[1]);
+  const languages = [...xml.matchAll(/<news:language>(.*?)<\/news:language>/g)].map((m) => m[1]);
+  assert.equal(languages.length, locs.length, 'expected one <news:language> per url');
+  for (const lang of languages) assert.equal(lang, 'es');
+
+  const version = JSON.parse(readDist('version.json'));
+  const builtAtMs = new Date(version.builtAt).getTime();
+  const pubDates = [...xml.matchAll(/<news:publication_date>(.*?)<\/news:publication_date>/g)].map(
+    (m) => new Date(m[1]).getTime()
+  );
+
+  for (let i = 0; i < locs.length; i += 1) {
+    const loc = locs[i];
+    assert.match(loc, /^https:\/\/915tldr\.com\/es\//, `expected ${loc} to start with https://915tldr.com/es/`);
+    const uuid = extractUuid(loc);
+    assert.ok(uuid && translatedUuids.has(uuid), `expected ${loc}'s article to be a publishable Spanish translation`);
+    const ageHours = (builtAtMs - pubDates[i]) / (1000 * 60 * 60);
+    assert.ok(ageHours <= NEWS_WINDOW_SECONDS / 3600, `expected ${loc}'s publication_date within the 48h window, got ${ageHours.toFixed(1)}h`);
+  }
+});
+
+test('es-feeds: /es/news-sitemap.xml titles are real Spanish text (not re-translated English fallback)', { skip: !DIST_BUILT && SKIP_REASON }, () => {
+  const xml = readDist('es/news-sitemap.xml');
+  const titles = [...xml.matchAll(/<news:title>(.*?)<\/news:title>/g)].map((m) => m[1]);
+  if (titles.length === 0) return; // a quiet 48h window for Spanish content is valid, nothing to assert per-title
+  // A cheap, non-exhaustive signal that this is Spanish prose, not English: at least one title in
+  // this corpus is expected to carry a Spanish diacritic or the "ó/á/é/í/ú/ñ" family, matching
+  // the same register `spanish-pages-review.md` (06-07) established for this project's Spanish.
+  const hasDiacritic = titles.some((title) => /[áéíóúñÁÉÍÓÚÑ]/.test(title));
+  assert.ok(hasDiacritic, 'expected at least one Spanish news-sitemap title to carry a Spanish diacritic');
 });

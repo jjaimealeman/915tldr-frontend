@@ -73,12 +73,14 @@ test('seo-surfaces: robots.txt preserves the Content-signal line and the per-bot
   }
 });
 
-test('seo-surfaces: robots.txt names the v2 sitemap index and news sitemap, and only those', { skip: !DIST_BUILT && SKIP_REASON }, () => {
+test('seo-surfaces: robots.txt names the v2 sitemap index, the English news sitemap and the Spanish news sitemap, and only those', { skip: !DIST_BUILT && SKIP_REASON }, () => {
   const built = readDist('robots.txt');
   const sitemapLines = built.split('\n').filter((line) => line.startsWith('Sitemap:'));
+  // 06-11 (I18N-06): a third line for /es/news-sitemap.xml, added after the existing two.
   assert.deepEqual(sitemapLines, [
     'Sitemap: https://915tldr.com/sitemap-index.xml',
     'Sitemap: https://915tldr.com/news-sitemap.xml',
+    'Sitemap: https://915tldr.com/es/news-sitemap.xml',
   ]);
 });
 

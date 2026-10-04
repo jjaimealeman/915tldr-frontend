@@ -97,11 +97,21 @@ test('selectNewsWindow: does not mutate its input array', () => {
 
 // ---------------------------------------------------------------------------
 // newsSitemapXml — behavior cases from 04-07-PLAN.md Task 3
+//
+// 06-11 (I18N-06): `newsSitemapXml` now takes already-localised `{ path, title, publishedAt }`
+// entries (not `ArticleData[]`) plus an optional `{ language }` — `newsEntry()` below builds the
+// same `/category/slug-uuid` path the old fixture's `ArticleData` shape implied, so these cases
+// stay otherwise unchanged.
 // ---------------------------------------------------------------------------
+
+/** `{ path, title, publishedAt }` — `newsSitemapXml`'s own input shape post-06-11. */
+function newsEntry({ uuid, publishedAt, title = `Title ${uuid}`, categorySlug = 'crime', slug = `slug-${uuid}` }) {
+  return { path: `/${categorySlug}/${slug}-${uuid}`, title, publishedAt };
+}
 
 test('newsSitemapXml: escapes & and < in titles', () => {
   const xml = newsSitemapXml(
-    [article({ uuid: 'a', publishedAt: 1000, title: 'Crime & Punishment <redacted>' })],
+    [newsEntry({ uuid: 'a', publishedAt: 1000, title: 'Crime & Punishment <redacted>' })],
     'https://915tldr.com'
   );
   assert.match(xml, /<news:title>Crime &amp; Punishment &lt;redacted&gt;<\/news:title>/);
@@ -110,7 +120,7 @@ test('newsSitemapXml: escapes & and < in titles', () => {
 
 test('newsSitemapXml: emits one <url> per entry', () => {
   const xml = newsSitemapXml(
-    [article({ uuid: 'a', publishedAt: 1000 }), article({ uuid: 'b', publishedAt: 900 })],
+    [newsEntry({ uuid: 'a', publishedAt: 1000 }), newsEntry({ uuid: 'b', publishedAt: 900 })],
     'https://915tldr.com'
   );
   const urlCount = (xml.match(/<url>/g) ?? []).length;
@@ -127,6 +137,39 @@ test('newsSitemapXml: uses the sitemap 0.9 and Google News 0.9 namespaces', () =
   const xml = newsSitemapXml([], 'https://915tldr.com');
   assert.match(xml, /xmlns="http:\/\/www\.sitemaps\.org\/schemas\/sitemap\/0\.9"/);
   assert.match(xml, /xmlns:news="http:\/\/www\.google\.com\/schemas\/sitemap-news\/0\.9"/);
+});
+
+test('newsSitemapXml: defaults to <news:language>en</news:language> when no options are passed', () => {
+  const xml = newsSitemapXml([newsEntry({ uuid: 'a', publishedAt: 1000 })], 'https://915tldr.com');
+  assert.match(xml, /<news:language>en<\/news:language>/);
+});
+
+test('newsSitemapXml: { language: "es" } emits <news:language>es</news:language>', () => {
+  const xml = newsSitemapXml(
+    [newsEntry({ uuid: 'a', publishedAt: 1000 })],
+    'https://915tldr.com',
+    { language: 'es' }
+  );
+  assert.match(xml, /<news:language>es<\/news:language>/);
+  assert.doesNotMatch(xml, /<news:language>en<\/news:language>/);
+});
+
+test('newsSitemapXml: an invalid language throws rather than silently coercing', () => {
+  assert.throws(() => {
+    newsSitemapXml([newsEntry({ uuid: 'a', publishedAt: 1000 })], 'https://915tldr.com', {
+      // @ts-expect-error — deliberately invalid for this test
+      language: 'fr',
+    });
+  });
+});
+
+test('newsSitemapXml: loc is built from entry.path, not category/slug/uuid fields', () => {
+  const xml = newsSitemapXml(
+    [{ path: '/es/crime/foo-uuid-1234', title: 'Título', publishedAt: 1000 }],
+    'https://915tldr.com',
+    { language: 'es' }
+  );
+  assert.match(xml, /<loc>https:\/\/915tldr\.com\/es\/crime\/foo-uuid-1234<\/loc>/);
 });
 
 // ---------------------------------------------------------------------------
