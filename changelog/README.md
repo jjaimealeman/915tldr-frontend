@@ -10,6 +10,7 @@ Entries are named `YYYY-MM-DD-HHMM_slug.md` and grouped by month, newest first.
 
 | Date | Entry | Keywords |
 |------|-------|----------|
+| 2026-10-04 | [Plan 06-07 Task 1: Spanish trust pages drafted, accurate Umami disclosure](2026-10-04-0149_06-07-task1-spanish-trust-pages-umami-disclosure.md) | `[I18N]` `[PRIVACY]` `[CONTENT]` |
 | 2026-10-04 | [Plan 06-09 complete: the bilingual article page](2026-10-04-0139_06-09-complete-bilingual-article-page.md) | `[DOCUMENTATION]` `[PLANNING]` `[I18N]` `[TESTING]` `[SEO]` |
 | 2026-10-04 | [Plan 06-09 Task 2: JSON-LD inLanguage, the D-07 label, Spanish rail headings, and two pre-existing tests fixed for the new /es pages](2026-10-04-0135_06-09-task2-inlanguage-d07-label-rail-dictionary.md) | `[FRONTEND]` `[I18N]` `[SEO]` `[TESTING]` `[BUG_FIX]` |
 | 2026-10-04 | [Plan 06-09 Task 1: the /es article route, pure page model, and EN/ES switch links](2026-10-04-0120_06-09-task1-es-article-route-and-switch-links.md) | `[FRONTEND]` `[I18N]` `[SEO]` `[TESTING]` |

@@ -1,0 +1,108 @@
+---
+// 06-07 (D-16, I18N-04): the Spanish mirror of `src/pages/terms.astro`. This is near-legal text —
+// the translation below preserves the exact set of obligations/disclaimers the English page
+// states, adding none and dropping none (06-CONTEXT.md's own instruction for this page). Register:
+// neutral Latin American Spanish, usted forms, no Spain-only vocabulary. Prose pending a fluent
+// human reviewer's approval (Task 3's blocking checkpoint) before this content is considered
+// final — see docs/phase-06/spanish-pages-review.md for the side-by-side EN/ES comparison.
+import Base from '../../layouts/Base.astro';
+import { t } from '../../lib/i18n/dictionary.ts';
+---
+
+<Base
+  page="terms"
+  lang="es"
+  title={t('termsPageTitle', 'es')}
+  description="Términos de servicio de 915 TLDR. Cómo operamos y sus responsabilidades como usuario."
+  canonicalPath="/es/terms"
+>
+  <div data-contact-column>
+    <p data-eyebrow>Última actualización · diciembre de 2025</p>
+    <h1>Términos de servicio</h1>
+    <p data-lede>
+      Las reglas básicas para usar 915 TLDR. En lenguaje claro, sin laberintos legales.
+    </p>
+
+    <h2>El acuerdo</h2>
+    <p>
+      Al usar 915 TLDR, usted acepta estos términos. Los mantenemos sencillos porque a nadie le
+      gusta leer documentos legales densos. Si algo aquí no le funciona, está bien — pero por
+      favor no use el servicio.
+    </p>
+    <p>
+      Somos un agregador de noticias, no un medio de comunicación. Recopilamos historias de
+      fuentes locales de El Paso, usamos inteligencia artificial para crear resúmenes, y
+      organizamos todo en un solo lugar. El reportaje original siempre pertenece a los
+      periodistas que lo crearon.
+    </p>
+
+    <h2>Puntos clave</h2>
+    <p>Lo importante, resumido</p>
+    <dl>
+      <dt>Resúmenes con IA</dt>
+      <dd>El contenido es generado por inteligencia artificial y puede contener errores. Verifique siempre con las fuentes originales.</dd>
+      <dt>Contenido de terceros</dt>
+      <dd>Todas las noticias provienen de editores externos. Nosotros enlazamos, recopilamos y resumimos.</dd>
+      <dt>Uso legítimo</dt>
+      <dd>Los resúmenes tienen fines informativos. El contenido original pertenece a los editores.</dd>
+      <dt>Servicio "tal cual"</dt>
+      <dd>Sin garantías de exactitud ni disponibilidad. Úselo bajo su propio criterio.</dd>
+    </dl>
+
+    <h2>Contenido de IA</h2>
+    <p>
+      Nuestros resúmenes son generados por inteligencia artificial. La IA es útil, pero no es
+      perfecta — puede malinterpretar el contexto, pasar por alto matices, o en ocasiones
+      equivocarse en los hechos. Hacemos lo posible por garantizar la calidad, pero para
+      cualquier asunto importante, consulte el artículo original.
+    </p>
+    <p>
+      Las categorías, etiquetas y asignaciones de tema también son generadas por IA. Si nota algo
+      mal categorizado, es culpa del sistema automático, no de los reporteros originales.
+    </p>
+
+    <h2>Terceros</h2>
+    <p>
+      Cada artículo en 915 TLDR proviene de una fuente de noticias externa. Enlazamos a estas
+      fuentes de manera visible porque merecen el crédito y el tráfico. No controlamos su
+      contenido, su exactitud, ni sus decisiones editoriales.
+    </p>
+    <p>
+      Cuando usted hace clic en un enlace externo, sale de nuestro sitio y entra al de ellos. Sus
+      términos y políticas de privacidad aplican una vez que usted está ahí.
+    </p>
+
+    <h2>Propiedad</h2>
+    <p>
+      El contenido periodístico original pertenece a los editores que lo crearon. Nuestros
+      resúmenes generados por IA existen para ayudarle a descubrir noticias, no para reemplazar la
+      lectura de los artículos reales.
+    </p>
+    <p>El nombre "915 TLDR", el logotipo y el diseño de este sitio web son propiedad intelectual nuestra.</p>
+
+    <h2>Exenciones de responsabilidad</h2>
+    <p>
+      915 TLDR se ofrece "tal cual". No garantizamos el tiempo de actividad, la exactitud, ni que
+      cada resumen de artículo sea perfecto. Somos un proyecto pequeño que intenta ayudar a los
+      habitantes de El Paso a mantenerse informados, no una empresa grande con abogados de
+      planta.
+    </p>
+    <p>
+      No somos responsables de las decisiones que usted tome con base en la información que
+      encuentre aquí. Para asuntos importantes — legales, médicos, financieros — consulte siempre
+      fuentes autorizadas y profesionales.
+    </p>
+
+    <h2>Cambios</h2>
+    <p>
+      Podemos actualizar estos términos a medida que el servicio evoluciona. Cuando hagamos
+      cambios significativos, actualizaremos la fecha de "Última actualización" en la parte
+      superior. Si continúa usando el servicio después de los cambios, significa que acepta los
+      nuevos términos.
+    </p>
+
+    <h2>¿Preguntas sobre estos términos?</h2>
+    <p>Con gusto le aclaramos cualquier duda. Escríbanos y le explicaremos en lenguaje claro.</p>
+    <p><a href="/es/contact">Contáctenos</a></p>
+  </div>
+</Base>
