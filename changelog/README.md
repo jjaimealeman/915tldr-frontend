@@ -10,6 +10,7 @@ Entries are named `YYYY-MM-DD-HHMM_slug.md` and grouped by month, newest first.
 
 | Date | Entry | Keywords |
 |------|-------|----------|
+| 2026-10-04 | [Full-corpus hreflang/lang/link invariant tests](2026-10-04-0733_06-12-task2-full-corpus-hreflang-lang-link-tests.md) | `[TESTING]` `[I18N]` `[SEO]` |
 | 2026-10-04 | [Tracer: measure the full bilingual build against platform ceilings](2026-10-04-0732_06-12-task1-build-budget-measurement.md) | `[BACKEND]` `[PERFORMANCE]` `[DATABASE]` `[TESTING]` |
 | 2026-10-04 | [Plan 06-11 complete: per-language feeds and sitemaps](2026-10-04-0712_06-11-complete-per-language-feeds-sitemaps.md) | `[DOCUMENTATION]` `[PLANNING]` `[I18N]` `[SEO]` |
 | 2026-10-04 | [Spanish Google News sitemap via a parameterised news function](2026-10-04-0709_06-11-task2-es-news-sitemap-and-robots.md) | `[FRONTEND]` `[FEATURE]` `[I18N]` `[SEO]` `[TESTING]` |
