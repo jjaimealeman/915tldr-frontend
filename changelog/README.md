@@ -10,6 +10,7 @@ Entries are named `YYYY-MM-DD-HHMM_slug.md` and grouped by month, newest first.
 
 | Date | Entry | Keywords |
 |------|-------|----------|
+| 2026-10-04 | [Phase 6 tracking updated after wave 6 (paused at 06-12)](2026-10-04-0759_phase-06-wave-6-tracking.md) | `[DOCUMENTATION]` `[PLANNING]` |
 | 2026-10-04 | [Full-corpus hreflang/lang/link invariant tests](2026-10-04-0733_06-12-task2-full-corpus-hreflang-lang-link-tests.md) | `[TESTING]` `[I18N]` `[SEO]` |
 | 2026-10-04 | [Tracer: measure the full bilingual build against platform ceilings](2026-10-04-0732_06-12-task1-build-budget-measurement.md) | `[BACKEND]` `[PERFORMANCE]` `[DATABASE]` `[TESTING]` |
 | 2026-10-04 | [Plan 06-11 complete: per-language feeds and sitemaps](2026-10-04-0712_06-11-complete-per-language-feeds-sitemaps.md) | `[DOCUMENTATION]` `[PLANNING]` `[I18N]` `[SEO]` |
