@@ -1,6 +1,14 @@
 # Phase 6 build/file/convergence budget — measured, not projected
 
-**Verdicts:**
+> **SUPERSEDED (2026-10-04, same day): the build and convergence verdicts below were corrected by a
+> same-day baseline.** Sections 1-7 and the three verdict lines directly below are kept unchanged
+> as history. Their render-time projection rested on a stale Phase 4 figure (the "3.72x per-page
+> cost increase" and the 0.26133 local-to-Workers-Builds factor were both wrong). **The CURRENT
+> verdicts are the last three verdict-token lines in this file, in the "Correction after same-day
+> baseline (2026-10-04)" section at the bottom.** For any script: take the LAST occurrence of each
+> verdict family, not the first. Do not rely on the original numbers or the "3.7x" claim.
+
+**Verdicts (SUPERSEDED — see Correction section at the bottom for the current set):**
 
 ```
 PHASE6_BUILD_DOES_NOT_FIT
@@ -268,3 +276,129 @@ optimization, or both) is a precondition for convergence to even be evaluable, l
 
 **Full build log:** `.gsd/phase06-build.log` (untracked, 121,645+ lines — not committed, per this
 plan's own artifact list).
+
+---
+
+## 8. Correction after same-day baseline (2026-10-04)
+
+Sections 1-7 above are kept as written, as history. This section supersedes their **build** and
+**convergence** conclusions. The file-count result (section 5: 59,572 static files) was a direct
+measurement and stands.
+
+Source: a same-day, same-machine, back-to-back baseline (measurement only, no deploy, KV/R2/D1
+writes stubbed by a write guard). Its full report lives in the session scratchpad
+(`render-baseline-report.md`, not committed); the numbers below are copied from it.
+
+### 8.1 What was wrong
+
+1. **The "3.72x per-page cost increase" was a bad baseline.** Section 3 compared this build's
+   2.6576 ms/page against 0.71465 ms/page, which is the early 04-03 build (commit `6d62b7b`,
+   2026-09-26: 40,049 article-only pages from a minimal template). The Phase 4 template that
+   Workers Builds actually measured (`8decb68`), built locally today, already costs 2.0271 ms/page.
+   That growth happened inside Phase 4, before Phase 5 and Phase 6 began. Same machine, back to
+   back, using section 1's own timing window ("Building static entrypoints" to "page(s) built"):
+
+   | | Baseline `253dbe6` (pre-Phase-6) | HEAD `86aebda` | `8decb68` (Workers Builds anchor, local) |
+   |---|---|---|---|
+   | Pages | 60,777 | 121,554 | 60,777 |
+   | Window | 126.87s = **2.0875 ms/page** | 300.20s = **2.4697 ms/page** | 123.20s = **2.0271 ms/page** |
+   | Render only (entry to "Completed in") | 2.0230 ms/page | 2.0619 ms/page | 1.9609 ms/page |
+   | `astro:build:done` (sitemap hook) | 3.92s | **49.57s** | 4.02s |
+
+   HEAD / baseline: **1.18x** (window), **1.02x** (render only). English and Spanish pages cost the
+   same per page (articles 2.309 vs 2.310 ms, tags 1.500 vs 1.512 ms).
+
+2. **The local-to-Workers-Builds factor was wrong for the same reason.** Section 3's 0.26133
+   divided a 04-03 local number by the Workers Builds number for `8decb68`, charging the template
+   growth twice. Same commit on both sides: `2.0271 / 2.7344 = 0.74133` (Workers Builds is about
+   1.35x slower than this machine, not 3.8x). Per-class cross-check: articles 2.264 / 2.755 =
+   0.822, tags 1.468 / 1.717 = 0.855; the window-based 0.74133 is the most conservative of the
+   three.
+
+### 8.2 The one real Phase 6 cost: the 06-11 sitemap options
+
+Commit `90fda90` (06-11) turned on `@astrojs/sitemap`'s `i18n` and `chunks` options. In
+`node_modules/@astrojs/sitemap@3.7.4/dist/`, `createGetI18nLinks` scans every other URL looking for
+a partner and only caches a hit. The 40,691 English article URLs whose `/es` partner was filtered
+out (untranslated fallback) never get a cache entry, so each one scans all ~80.9k URLs. The `chunks`
+path also does a linear `Array.includes` inside a loop. The hook body is synchronous. Result: the
+`astro:build:done` hook went 3.92s (baseline) to 49.57s (HEAD today), and measured 92s in 06-12's own
+run (the cause of that 92s-vs-50s variance was not measured). That is **98% of HEAD's extra time**
+(+45.65s of the +46.46s excess over baseline's per-page rate). Estimated ~93s after the Spanish
+backfill lands, from an isolated benchmark, not a full build. 06-12's own log, split the same way,
+was ~9s pre-render, ~222s rendering, ~92s sitemap.
+
+Eliminated as Phase 6 causes: compile-time image optimization (the log line also appears in the
+baseline and `8decb68` builds), i18n dictionary/hreflang work, and the third content loader (render
+only moved +2%). This supersedes the "plausible causes" paragraph in section 3.
+
+### 8.3 Corrected projection (section 4 formula; only the two corrected terms change)
+
+`renderEnd = 9 + 206 + esColdSync (18) + pageGenWB + partition (5.14) = 238.14 + pageGenWB`
+
+| Scenario | local ms/page | factor | pageGenWB | renderEnd | vs 780 / 1,080 / 1,200 |
+|---|---|---|---|---|---|
+| Section 4 as written (superseded) | 2.6576 | 0.26133 | 1,235.73 | 1,473.87 | over all three |
+| Today's local number, old factor | 2.4697 | 0.26133 | 1,148.74 | 1,386.88 | over all three (fixing the local number alone does not help) |
+| **Today's HEAD, corrected factor** | **2.4697** | **0.74133** | **404.95** | **643.09** | **under all three** |
+| 06-12's local number, corrected factor | 2.6576 | 0.74133 | 435.76 | 673.90 | under all three |
+| + backfill sitemap growth (bench +33.46s local / 0.74133 = +45.13s) | n/a | 0.74133 | 450.09 | ~688.2 | under all three |
+| Sitemap fixed back to the baseline shape (about -61.6s on Workers Builds) | n/a | 0.74133 | ~343.4 | ~581.5 | under all three |
+
+Break-even factors at 2.4697 ms/page: 0.554 for 780s, 0.357 for 1,080s, 0.312 for 1,200s. The build
+only stops fitting if the real factor is below 0.357 (versus the 0.74133 now used).
+
+Convergence (section 6 formula, **DERIVED, not measured**):
+`perBuild = 54.64 x (1,020 - 643.09 - 21) = 19,447 objects/build`, so
+`builds = ceil(26,580 / 19,447) = 2` (about 4h, well inside 24h).
+
+### 8.4 What is still unmeasured
+
+- **HEAD has not been built on Workers Builds.** 643s is a projection.
+- The factor rests on **one** Workers Builds sample (Build 1, 2026-09-28, first-ever build on an
+  empty cache). Workers Builds container speed variance is unmeasured.
+- The sitemap cost after the Spanish backfill comes from a benchmark, not a full build. The 92s vs
+  50s sitemap variance between 06-12's build and the baseline's HEAD build is unexplained.
+- Corpus differs slightly between the Workers Builds anchor (40,176 articles / 19,782 tags) and
+  today (40,704 / 20,054); per-page normalisation covers this, but any non-linear cost in
+  `getStaticPaths` was not isolated.
+- The baseline's KV writes were stubbed, so its content-sync timings are not comparable to 06-12's
+  (24s vs 107s). Content-sync is not used in the projection (it takes the Workers Builds anchor of
+  206s).
+- Each commit was built once; no repeats.
+- Section 5's file count (59,572) is unaffected, measured directly, and unchanged.
+
+### 8.5 Task 3 decision (recorded)
+
+**Task 3 (budget gate) resolved by Jaime on 2026-10-04, with the corrected premise.** Jaime chose
+"baseline first", the baseline above removed the stale figure, and Jaime then directed "run the
+06-12 close-out. continu." The coordinator relayed this message to this executor; the exact time of
+Jaime's message was not passed along (this correction was written at 12:08 MDT on 2026-10-04).
+Outcome: **proceed on the deploy path**, effectively option-c, but note that option-c as written was
+for AT_RISK; with the corrected premise the build verdict is FITS, so no hot-window change (option-a)
+and no render-cost gap plan (option-b) is needed before 06-13 / 06-15.
+
+### 8.6 Follow-ups
+
+- **(a) Watch real Workers Builds timings at 06-16** against the 643s projection (and the ~688s
+  post-backfill figure). This is the first real measurement of HEAD on the platform.
+- **(b) The 06-11 sitemap quadratic cost is a known, unfixed Phase 6 cost.** Recommend a follow-up
+  that replaces the package's i18n partner scan or precomputes the alternates (not done here). It
+  is the only Phase 6 item that grows super-linearly, and the file budget has only 428 files of
+  headroom, so a fix that adds pages would need the files verdict re-checked.
+- **(c) Possible production KV writes from builds, unverified, for Jaime to check.** During the
+  baseline, a cold local build of the pre-Phase-6 commit attempted ~40.7k writes (5 bulk PUTs,
+  40,704 entries) to the PRODUCTION render-manifest KV namespace; the baseline agent stubbed them.
+  The 06-12 Task 1 build was also a cold build and earlier executor builds may likewise have
+  written to production KV. Whether they did, and whether the entries differ from what production
+  already holds, has not been checked. Not investigated here.
+
+### 8.7 Current verdicts (supersede the set at the top of this file)
+
+CURRENT as of 2026-10-04 after the same-day baseline. Build: corrected, projected 643s
+(about 688s post-backfill), not yet measured on Workers Builds. Files: measured, unchanged.
+Convergence: **DERIVED, not measured** (from the corrected 643s via the section 6 formula).
+
+PHASE6_BUILD_FITS
+PHASE6_FILES_WITHIN_BUDGET
+CONVERGES_24H
