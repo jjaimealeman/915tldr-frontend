@@ -50,12 +50,22 @@ test('not-found: 404.html exists, is noindex, and has at least one static card p
     /<section data-404-suggestions[^>]*hidden[^>]*aria-live="polite"[^>]*>/,
     'expected the initially-hidden suggestions section with aria-live="polite"'
   );
+
+  // 06-10 (Task 2): the suggestions section's index URL is parameterized via data-index-url —
+  // exactly one occurrence, proving the script reads it via `.dataset.indexUrl` rather than a
+  // literal `getAttribute('data-index-url')` string that would double this count.
+  assert.match(html, /data-index-url="\/404-index\.json"/);
+  assert.equal((html.match(/data-index-url/g) ?? []).length, 1);
 });
 
 test('not-found: 404.html\'s inline script uses only textContent, never an HTML-string sink (T-04-25)', { skip: !DIST_BUILT && SKIP_REASON }, () => {
   const html = readDist('404.html');
   const scriptMatches = [...html.matchAll(/<script(?![^>]*type="application\/ld\+json")[^>]*>([\s\S]*?)<\/script>/g)];
-  const pageScript = scriptMatches.map((m) => m[1]).find((body) => body.includes('404-index.json'));
+  // 06-10: the script's index URL is now read from the section's own `data-index-url` attribute
+  // (via `.dataset.indexUrl`), so the literal string '404-index.json' no longer appears inside
+  // the script body itself — located instead by the (unchanged) `[data-404-suggestions]`
+  // selector string the script still queries for.
+  const pageScript = scriptMatches.map((m) => m[1]).find((body) => body.includes('404-suggestions'));
   assert.ok(pageScript, 'expected to find the 404 suggestions inline script');
 
   assert.match(pageScript, /\.textContent\s*=/, 'expected at least one .textContent assignment');

@@ -222,11 +222,16 @@ test('news-sitemap: across all sitemap children, URL count equals built HTML fil
       (plan.counts?.archivedTagsEs ?? 0);
   }
 
-  const htmlFileCount = countHtmlFiles(DIST_CLIENT) - 1; // minus 404.html
+  // 06-10: a Spanish 404 page (`dist/client/es/404.html`) now exists alongside the English one —
+  // the sitemap excludes BOTH (same "never list a 404" rule this test's own closing assertion
+  // checks for the English one), so the subtraction below must count whichever 404 pages this
+  // build actually produced, not a hardcoded "1".
+  const notFoundPageCount = ['404.html', 'es/404.html'].filter((rel) => distFileExists(rel)).length;
+  const htmlFileCount = countHtmlFiles(DIST_CLIENT) - notFoundPageCount;
   assert.equal(
     allSitemapUrls.length,
     htmlFileCount + archivedPageCount,
-    'expected sitemap URL count to equal built HTML page count (minus 404) plus archived page count'
+    'expected sitemap URL count to equal built HTML page count (minus 404 pages) plus archived page count'
   );
 
   for (const url of allSitemapUrls) {
