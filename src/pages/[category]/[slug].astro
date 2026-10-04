@@ -30,6 +30,9 @@ import { loadHotWindow, describeHotWindow } from '../../lib/archive/hot-window';
 import { splitStandfirst, summaryBodyHtml } from '../../lib/summary';
 import { formatBylineTime, isoWithOffset } from '../../lib/format';
 import { newsArticleNode, breadcrumbNode, SITE_ORIGIN } from '../../lib/structured-data';
+import { enArticleLanguageModel } from '../../lib/i18n/article-page.ts';
+import { buildEsIndex, type EsEntryData } from '../../lib/i18n/spanish-view.ts';
+import { t } from '../../lib/i18n/dictionary.ts';
 
 const EMPTY_RAIL: RailResult = { more: [], second: [], secondHeading: 'Earlier' };
 
@@ -40,10 +43,17 @@ const EMPTY_RAIL: RailResult = { more: [], second: [], secondHeading: 'Earlier' 
 export interface Props {
   article: CollectionEntry<'articles'>['data'];
   rail: RailResult;
+  /** 06-09 (I18N-05): this article's own `articlesEs` entry, or `undefined` when none exists —
+   * drives the article-level "Leer en español" link's hreflang pairing and (06-09 Task 2) the
+   * D-07 "Originally reported in Spanish" label. */
+  esEntry: EsEntryData | undefined;
 }
 
 export async function getStaticPaths() {
   const entries = await getCollection('articles');
+  const esEntries = await getCollection('articlesEs');
+  const esIndex = buildEsIndex(esEntries.map((entry) => entry.data));
+  const esDigestByUuid = new Map(esEntries.map((entry) => [entry.data.uuid, entry.digest]));
   const allArticles = entries.map((entry) => entry.data);
   const rails = computeRails(allArticles);
 
@@ -65,20 +75,28 @@ export async function getStaticPaths() {
 
   return entries.map((entry) => {
     const rail = rails.get(entry.data.uuid) ?? EMPTY_RAIL;
+    const esEntry = esIndex.get(entry.data.uuid);
+    const esDigest = esDigestByUuid.get(entry.data.uuid) ?? 'none';
     return {
       params: articleParams(entry.data.category.slug, entry.data.slug, entry.id),
-      props: { article: entry.data, rail },
-      // 04-09 (D-06): the page's full render inputs — its own content-layer digest AND its
-      // rail neighbours (a neighbour's title/slug/category changing re-renders THIS page even
-      // though this article's own digest didn't change; railFingerprint's own doc comment
-      // covers exactly this). Only meaningful once experimental.incrementalBuild is on
+      props: { article: entry.data, rail, esEntry },
+      // 04-09 (D-06): the page's full render inputs — its own content-layer digest, its rail
+      // neighbours (railFingerprint's own doc comment), AND (06-09) its own `articlesEs` digest
+      // — the Spanish entry appearing, changing or disappearing changes this page's rendered
+      // hreflang pairing and switch link, even though neither the article's own digest nor its
+      // rail neighbours changed. Only meaningful once experimental.incrementalBuild is on
       // (astro.config.mjs); harmless when the flag is off.
-      cacheKey: `${entry.digest}|${railFingerprint(rail)}`,
+      cacheKey: `${entry.digest}|${railFingerprint(rail)}|${esDigest}`,
     };
   });
 }
 
-const { article, rail } = Astro.props;
+const { article, rail, esEntry } = Astro.props;
+const enLangModel = enArticleLanguageModel(article, esEntry);
+// D-06/D-12: every English article has an `/es` mirror — translated or an honest D-05
+// fallback — so the "Leer en español" link always points there, unconditionally (unlike
+// `enLangModel.esPath`, which is only set when the hreflang pairing itself is appropriate).
+const esSwitchPath = articlePath(article.category.slug, article.slug, article.uuid, 'es');
 
 const { standfirst } = splitStandfirst(article.summary);
 const bodyHtml = summaryBodyHtml(article.summary, article.keyPoints);
@@ -118,6 +136,7 @@ const hasRail = hasMore || hasSecond;
   title={`${article.title} — 915 TLDR`}
   description={standfirst}
   canonicalPath={canonicalPath}
+  alternates={enLangModel.alternates}
   jsonLd={[newsArticle, breadcrumb]}
   activeCategory={article.category.slug}
   datelineEpoch={article.publishedAt}
@@ -129,6 +148,8 @@ const hasRail = hasMore || hasSecond;
       <p><a href={`/${article.category.slug}`}>{article.category.name}</a></p>
       <p data-byline><span data-source>{article.source.name}</span> · <time datetime={bylineDatetime}>{bylineText}</time></p>
     </header>
+
+    <p data-lang-link><a href={esSwitchPath} hreflang="es" lang="es">{t('articleSwitchLabel', 'en')}</a></p>
 
     <h1>{article.title}</h1>
 
