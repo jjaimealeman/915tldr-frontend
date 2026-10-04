@@ -12,16 +12,18 @@ requires:
   - phase: 06-bilingual (plan 03)
     provides: "article_translations live in production D1, and Jaime's consent record pre-approving a <=30-row pilot write"
 provides:
-  - "server/utils/translation-prompt.ts: a translation-only prompt (titled distinctly from openai.ts's bilingual-summarisation prompt) for translating an already-summarised English row, plus its batch-line/custom-id helpers"
-  - "scripts/backfill-translations.mjs dry-run: a real, measured 30-row stratified production sample (not an estimate) projecting the full ~40,529-row backfill's two-stage (translation + judge) Batch cost"
-  - "docs/phase-06/translation-backfill-dry-run.md: the measured report itself, for 06-13's go-live decision"
+  - "server/utils/translation-prompt.ts: a translation-only prompt (distinct from openai.ts's bilingual-summarisation prompt) for translating an already-summarised English row, plus its batch-line/custom-id helpers"
+  - "scripts/backfill-translations.mjs dry-run + pilot: a real, measured 30-row stratified production sample projecting the full ~40,541-row backfill's two-stage (translation + judge) Batch cost, and the pilot write itself"
+  - "scripts/lib/d1-remote.mjs: the shared sqlString/runRemoteWrite/buildTranslationUpsertSql module, moved out of september-backfill-execute.mjs so both backfill scripts share one escaping path"
+  - "30 real Spanish article_translations rows live in production (origin 'backfill-pilot', 13 clean / 17 held)"
+  - "docs/phase-06/translation-backfill-dry-run.md: the measured report plus the population-mix finding and three costed options, for 06-13's go-live decision"
 affects: [06-13-go-live-decision, 06-14-backfill-execute, 06-17-backfill-run]
 
 # Actuals (#2632)
 actuals:
-  tokens: 15767
-  tasks: 1
-  commits: 1
+  tokens: 22991
+  tasks: 2
+  commits: 2
 
 # Tech tracking
 tech-stack:
@@ -29,25 +31,32 @@ tech-stack:
   patterns:
     - "Instrumented OpenAI client wrapper (monkey-patches client.chat.completions.create to log usage to a side-channel, drained per logical call) — the only way to get MEASURED token usage out of grounding-check.ts's checkGrounding(), whose internal judge call does not expose response.usage in its public return shape"
     - "Wilson score 95% upper bound (not a naive p +/- 1.96*sqrt(p(1-p)/n) interval) for bounding a rare-event rate (grounding-judge escalation) measured from a small (n=30) sample — correctly handles the p=0 edge case, which still has a nonzero real upper bound"
+    - "A pilot/execute subcommand that persists an already-computed, already-paid-for result (the dry run's sample) rather than re-calling the paid API a second time — the pilot write constructs no OpenAI client at all, making its $0-additional-spend property structural, not just observed"
 
 key-files:
   created:
     - ../915tldr.com2/server/utils/translation-prompt.ts
     - ../915tldr.com2/scripts/backfill-translations.mjs
+    - ../915tldr.com2/scripts/lib/d1-remote.mjs
     - ../915tldr.com2/tests/translation/translation-prompt.test.ts
+    - ../915tldr.com2/tests/translation/backfill-sql.test.ts
     - ../915tldr.com2/docs/phase-06/translation-backfill-dry-run.md
   modified:
     - ../915tldr.com2/.gitignore
+    - ../915tldr.com2/scripts/september-backfill-execute.mjs
 
 key-decisions:
-  - "HALTED after Task 1 per the orchestrator's own tracer-feedback gate: the measured mean-case backfill cost ($41.94) exceeds the $5 auto-continue ceiling the orchestrator set for this plan, so Task 2 (shared SQL escaping helper + the <=30-row pilot write) was NOT started — see must_haves below and the Deviations section for the full reasoning."
-  - "backfill-translations.mjs ships in this commit with ONLY the dry-run subcommand — no D1-write code path exists in the committed file at all. The pilot subcommand (and scripts/lib/d1-remote.mjs's sqlString/runRemoteWrite move + buildTranslationUpsertSql) were drafted and unit-tested locally during this session but deliberately NOT committed, since Task 2 itself did not run — committing unexecuted Task-2 code under a Task-1 commit would misrepresent what this commit actually did."
+  - "Task 1 (the dry run) initially HALTED at the orchestrator's own tracer-feedback gate: the measured mean-case backfill cost ($41.94) exceeded the $5 auto-continue ceiling, so Task 2 was not auto-approved. Jaime reviewed the numbers and decided 'write pilot, bulk -> 06-13' — approve the <=30-row pilot write at this cost level and route the BULK backfill's cost decision to 06-13's own go-live gate rather than deciding it here."
   - "Judge-stage usage is captured by wrapping the real OpenAI client (instrumentClient) rather than modifying grounding-check.ts's checkGrounding, which does not expose judge-call usage in its return shape — this keeps the dry run honest (it calls the EXACT same production checkGrounding('backfill') path a real backfill would) while still getting a real measured number instead of an estimate."
+  - "The pilot write makes ZERO new OpenAI calls — it reads the sample dry-run already computed and paid for ($0.0621, already spent in Task 1) and only persists that already-decided result to D1. This was a hard requirement from the resuming instruction (NO new API calls; STOP if pilot would need one) and is true by construction: runPilot() never constructs an OpenAI client."
+  - "Corrected, evidence-based causal claim for the 60% judge-escalation rate: of the 18 escalated rows, the judge itself HELD 17 (agreeing with the deterministic flags) and cleared only 1. This points at old/thin pre-D-06 sources being genuinely hard to ground a faithful translation against (too little source text for the judge to find a verbatim supporting span, in either language) — not at the deterministic checks being over-sensitive specifically to Spanish output, which was this plan's own first-draft (and incorrect) hypothesis."
+  - "Read-only population-mix measurement (95.4% of the eligible set has no key_points/is a legacy pre-D-06 row) corroborates the orchestrator's own independent measurement and confirms the sample's 60% flag rate is representative of the true population, not a stratification artefact of the 30-row draw."
 
 patterns-established:
   - "A dry-run cost report explicitly compares its MEASURED figure against the previously-assumed figure and states the difference and its likely cause in plain language, rather than only reporting the new number — carried forward from september-backfill-dry-run.mjs's own convention."
+  - "When a surprising finding's first-draft causal explanation turns out to be wrong on closer reading of the data the report itself already contains (judge agreement, not Spanish-sensitivity), the report is CORRECTED in place with the evidence shown, not just restated more confidently — matching this project's own 'verify the premise' standard."
 
-requirements-completed: []  # I18N-01/I18N-02 remain Pending — this plan builds and runs the COST-MEASUREMENT instrument (Task 1) on a real sample; it does not write any production translation data (Task 2's pilot write did not run). Matches this phase's own established precedent (06-01, 06-03) of not marking a requirement complete until its full behavior is live.
+requirements-completed: []  # I18N-01/I18N-02 remain Pending — this plan writes 30 real PILOT rows (origin 'backfill-pilot'), proving the write path end-to-end, but the full requirement (the live-ingest/bulk-backfill Spanish coverage across the archive) is still gated behind 06-13's go-live decision on the bulk backfill. Matches this phase's own established precedent (06-01, 06-03) of not marking a requirement complete until its full behavior is live.
 
 coverage:
   - id: D1
@@ -63,30 +72,47 @@ coverage:
     requirement: "I18N-01"
     verification:
       - kind: integration
-        ref: "docs/phase-06/translation-backfill-dry-run.md — 30/30 real translation calls, 18/30 real judge calls, before/after article_translations count unchanged (0/0), total real spend $0.0621 recorded"
+        ref: "docs/phase-06/translation-backfill-dry-run.md — 30/30 real translation calls, 18/30 real judge calls, before/after article_translations count unchanged (0/0) at dry-run time, total real spend $0.0621 recorded"
         status: pass
     human_judgment: false
   - id: D3
-    description: "Whether to proceed to the backfill (or to Task 2's smaller pilot write) at the measured $41.94 mean-case / $99.26 ceiling-case cost — ~28x the previously assumed figure, driven by an unexpectedly high (60%) grounding-judge escalation rate on translated Spanish text"
+    description: "The shared SQL escaping/upsert helper (buildTranslationUpsertSql) validates every field and escapes every text value through one function, matching T-06-29's threat mitigation"
+    requirement: "I18N-01"
+    verification:
+      - kind: unit
+        ref: "tests/translation/backfill-sql.test.ts (9 tests: hostile-string escaping, INSERT/ON CONFLICT shape, every validation failure path) + tests/batch/execute-write.test.ts (23 tests, unchanged after the sqlString/runRemoteWrite move)"
+        status: pass
+    human_judgment: false
+  - id: D4
+    description: "30 real Spanish translation rows (origin 'backfill-pilot') are live in production article_translations, written in one batch with zero additional OpenAI spend, with the read-back status counts and uuids recorded"
+    requirement: "I18N-01"
+    verification:
+      - kind: integration
+        ref: "docs/phase-06/translation-backfill-dry-run.md 'Pilot' section — live read-back: 13 clean / 17 held, 30 uuids listed; article_translations row count confirmed 0 before pilot, 30 after"
+        status: pass
+    human_judgment: false
+  - id: D5
+    description: "Whether to proceed to the FULL BULK backfill (not just the pilot) at the measured $41.94 mean-case / $99.26 ceiling-case cost, and which of the three costed options (full two-stage, translation-only-no-judge, or recent-window) to choose"
     verification: []
     human_judgment: true
-    rationale: "This is exactly the decision the orchestrator's tracer-feedback gate exists to route to a human rather than auto-approve: the measured cost crossed the $5 auto-continue ceiling, and the underlying cause (the grounding judge's deterministic layers triggering far more often on Spanish output than they do on the English text they were tuned against) is itself worth a second look before committing to either the pilot write or a bulk Batch spend."
+    rationale: "Jaime already made the pilot-level decision in this session ('write pilot, bulk -> 06-13'), explicitly routing the BULK cost/option decision to 06-13's own go-live gate rather than deciding it here — this remains an open human decision by design, not an oversight in this plan."
 
-duration: ~45min
-completed: 2026-10-03
-status: halted
+duration: ~90min
+completed: 2026-10-04
+status: complete
 ---
 
-# Phase 6 Plan 8: Translation Backfill Dry Run — Measured Cost Halts at Task 1 Summary
+# Phase 6 Plan 8: Translation Backfill Dry Run, Measured Cost, and the First Real Pilot Write Summary
 
-**A real 30-row production sample measures the Spanish-backfill cost at $41.94 mean-case (vs. PROJECT.md's unvalidated $1.49) — ~28x higher, driven by a 60% grounding-judge escalation rate on translated text — halting the plan before Task 2's pilot write per the orchestrator's own cost-surprise gate.**
+**A real 30-row production sample measures the Spanish-backfill cost at $41.94 mean-case (vs. PROJECT.md's unvalidated $1.49), corrects its own first-draft causal explanation (old/thin sources, not Spanish-sensitive checks), and — per Jaime's decision — writes 30 real Spanish translations to production (13 clean, 17 held) at zero additional spend.**
 
 ## Performance
 
-- **Duration:** ~45 min
-- **Tasks:** 1 of 2 (Task 2 NOT started — see Deviations)
-- **Files modified:** 5 (pipeline repo) + this SUMMARY (frontend repo)
-- **Commits:** 1 (pipeline repo)
+- **Duration:** ~90 min (Task 1 ~45 min, paused for review, Task 2 ~30 min)
+- **Started:** 2026-10-03
+- **Completed:** 2026-10-04
+- **Tasks:** 2 of 2
+- **Files modified:** 7 (pipeline repo) + this SUMMARY (frontend repo)
 
 ## Accomplishments
 
@@ -98,32 +124,47 @@ status: halted
   Latin American Spanish, and handles the legacy "inline `**Key Details:**` block"
   summary shape by splitting it into a prose `summaryEs` plus a real `keyPointsEs` array.
 - Built `scripts/backfill-translations.mjs dry-run` — counted the live eligible set
-  (40,529 public articles with stored content and no Spanish translation yet; 117 more
-  with no stored content, excluded per D-05), drew a 30-row stratified sample (10 newest,
-  10 oldest, a quota-enforced bucket guaranteeing legacy/thin/Spanish-source
-  representation), and ran the REAL translation call plus the REAL production
+  (40,529 public articles with stored content and no Spanish translation yet at the time
+  of the dry run; 117 more with no stored content, excluded per D-05), drew a 30-row
+  stratified sample, and ran the REAL translation call plus the REAL production
   `checkGrounding(..., 'backfill')` grounding check against each sampled row's actual
   stored content — all 30 translations passed validation, 18 of 30 escalated to a real
-  judge call.
-- Measured the full-backfill two-stage Batch cost from that real usage: **mean case
-  $41.94, ceiling case $99.26** — replacing PROJECT.md's unvalidated ~$1.49 estimate
-  (RESEARCH.md Assumption A1) with a real number. The gap is explained, not just stated:
-  60% of sample rows escalated to the grounding judge (Wilson 95% upper bound 75.4%),
-  far higher than the September backfill's English-tuned baseline — the deterministic
-  layers (proper-noun/number/lexicon) trigger more often against Spanish output than
-  against the English text they were calibrated on.
-- Captured REAL judge-call usage (not an estimate) by wrapping the OpenAI client to log
-  `response.usage` from every `chat.completions.create` call, since
-  `grounding-check.ts`'s `checkGrounding()` does not expose judge-call usage in its
-  public return shape — this measures the judge stage honestly while still calling the
-  exact production grounding path a real backfill would use.
+  judge call. Measured the full-backfill two-stage Batch cost from that real usage:
+  **mean case $41.94, ceiling case $99.26** — replacing PROJECT.md's unvalidated ~$1.49
+  estimate (RESEARCH.md Assumption A1).
+- **Corrected the report's own first-draft causal explanation after closer review.** The
+  initial read (this session's own Task 1 pass) attributed the 60% judge-escalation rate
+  to the deterministic checks being "over-sensitive to Spanish text." Re-reading the
+  sample's own judge verdicts refutes that: **the judge itself HELD 17 of the 18 escalated
+  rows**, agreeing with the deterministic flags, and cleared only 1 (article 34812). A
+  read-only population-mix measurement (95.4% of the ~40.5k eligible rows have no
+  `key_points` column — i.e. are legacy, pre-D-06 rows, 38.0% of the TOTAL set additionally
+  thin, <550 stored characters) corroborates the orchestrator's own independent
+  measurement (23,365 not-thin + 15,453 thin vs. 1,824 modern) and shows the sample's 60%
+  flag rate is representative of the true population, not a sampling artefact. The real
+  explanation: **old/thin sources are genuinely hard to ground a faithful translation
+  against** — too little source text for the judge to find a verbatim supporting span, in
+  either language — not a defect specific to the Spanish translation step.
+- Per Jaime's explicit decision ("write pilot, bulk -> 06-13"): moved `sqlString`/
+  `runRemoteWrite` into a new shared `scripts/lib/d1-remote.mjs`, added
+  `buildTranslationUpsertSql` (validates `articleId`/`language`/`groundingStatus`/`origin`,
+  escapes every text value), and added a `pilot` subcommand to
+  `backfill-translations.mjs` that **persists the already-computed sample with zero new
+  OpenAI calls** (no client is even constructed in that code path) — wrote **30 rows to
+  production `article_translations`** (origin `backfill-pilot`): 13 `clean`, 17 `held`,
+  matching the sample's own pre-computed composition exactly. Read back and recorded all
+  30 uuids and statuses in the report.
+- Added **three costed options for 06-13's go-live decision**: (A) full two-stage
+  translation+judge, ~$41.94 mean — highest fidelity, matches live-ingest's D-04 bar; (B)
+  translation-only with flagged rows held without a judge call, ~$13.02 mean — a known,
+  bounded tradeoff (loses only the ~1/18 rows the judge would have cleared); (C) a
+  recent-window backfill — smaller up-front spend, but skips the vast majority of the
+  (95.4%-legacy) archive, the opposite of D-10's full-backfill intent.
 - Fetched the OpenAI Batch API's documented limits directly (not from memory):
   50,000 requests/batch, 200 MB/file (`developers.openai.com/api/docs/guides/batch`,
   fetched 2026-10-03) — and flagged the organisation-specific "queued prompt tokens per
   model" limit as UNVERIFIED, since that figure lives on the OpenAI dashboard's own
   Limits page and could not be read by this script; Jaime needs to check it before 06-13.
-- Confirmed via before/after `COUNT(*)` on `article_translations` (0 -> 0) that the dry
-  run wrote nothing to production D1, as designed.
 
 ## Task Commits
 
@@ -131,8 +172,8 @@ Pipeline repo (`/home/jaime/www/_github/915tldr.com2`, branch `feature/phase-06`
 
 1. **Task 1: Tracer — translation-only prompt, real 30-row sample, measured two-stage
    Batch projection** - `9cb1f25` (feat)
-
-**Task 2 was NOT executed** — see Deviations below. No commit exists for it.
+2. **Task 2: Shared d1-remote helper + translation backfill pilot write** - `e916e7f`
+   (feat)
 
 **This SUMMARY's commit:** recorded separately, frontend repo (`915tldr.com`), branch
 `feature/phase-06`.
@@ -143,136 +184,113 @@ Pipeline repo (`/home/jaime/www/_github/915tldr.com2`, branch `feature/phase-06`
   `TRANSLATION_MODEL`, `TRANSLATION_MAX_COMPLETION_TOKENS`, `buildTranslationPrompt()`,
   `buildTranslationBatchLine()`, `customIdForTranslation()`,
   `articleIdFromTranslationCustomId()`, `countInlineKeyDetails()`.
-- `915tldr.com2/scripts/backfill-translations.mjs` (new) — `dry-run` subcommand only (no
-  D1-write code path in this commit).
+- `915tldr.com2/scripts/backfill-translations.mjs` (new) — `dry-run` and `pilot`
+  subcommands.
+- `915tldr.com2/scripts/lib/d1-remote.mjs` (new) — `sqlString`, `runRemoteWrite`,
+  `buildTranslationUpsertSql`, shared with `september-backfill-execute.mjs`.
+- `915tldr.com2/scripts/september-backfill-execute.mjs` (modified) — imports
+  `sqlString`/`runRemoteWrite` from the new shared module, re-exports `sqlString`.
 - `915tldr.com2/tests/translation/translation-prompt.test.ts` (new) — 15 tests.
-- `915tldr.com2/docs/phase-06/translation-backfill-dry-run.md` (new, generated) — the
-  measured report.
+- `915tldr.com2/tests/translation/backfill-sql.test.ts` (new) — 9 tests.
+- `915tldr.com2/docs/phase-06/translation-backfill-dry-run.md` (new, generated/appended) —
+  the measured report, population-mix finding, cost options, and Pilot section.
 - `915tldr.com2/.gitignore` (modified) — added `.gsd/` (local-only script scratch data;
-  the dry run's own sample output lives there, gitignored, and was not committed).
+  the dry run's sample output lives there, gitignored, feeding the pilot write).
 
 ## Decisions Made
 
-See `key-decisions` in the frontmatter. In brief: this plan halted after Task 1 because
-the measured cost crossed the orchestrator's own $5 auto-continue ceiling; judge-call
-usage was captured by instrumenting the real OpenAI client rather than modifying
-production grounding code; and Task 2's code (drafted and unit-tested locally during
-this session) was deliberately left uncommitted since Task 2 itself did not execute.
+See `key-decisions` in the frontmatter. In brief: Task 1 initially halted at the
+orchestrator's $5 tracer-feedback ceiling; Jaime reviewed the real numbers and decided to
+approve the pilot write while routing the bulk-backfill decision to 06-13; judge-stage
+usage was captured by instrumenting the real OpenAI client; the pilot write was designed
+to make zero new API calls by construction; and the report's own first-draft causal
+explanation for the 60% judge-escalation rate was corrected after re-reading the sample's
+judge verdicts (old/thin sources, not Spanish-sensitive checks).
 
 ## Deviations from Plan
 
-**1. [Tracer-feedback gate, orchestrator-imposed — not a Rule 1-4 deviation] Halted
-before Task 2 because the measured backfill cost exceeded the $5 auto-continue ceiling.**
+**1. [Disclosed, resolved — not a Rule 1-4 deviation] Task 1 initially halted at the
+orchestrator's tracer-feedback gate; resumed and completed after Jaime's review.**
 
 - **Found during:** Task 1's own `<verify>` (the real dry run).
-- **What happened:** The orchestrator's standing instructions for this plan said: "if
-  spend stayed under the guard and all acceptance criteria pass, auto-continue to Task
-  2... If anything is off (spend guard, validation failure rate surprising, projected
-  full-backfill cost > $5), STOP and return a checkpoint instead." Task 1's own spend
-  guard was respected ($0.0621 actual vs. a $0.25 ceiling) and validation was clean
-  (30/30 valid), but the **projected full-backfill mean-case cost ($41.94) is far above
-  the $5 threshold** — so per the orchestrator's explicit instruction, this plan stopped
-  here rather than proceeding automatically to Task 2's shared-SQL-helper-plus-pilot-
-  write task.
-- **Why this is the correct call, not a failure:** The $41.94 figure is not a mechanical
-  false-precision number pointing at nothing actionable — it is explained by a real,
-  specific finding (60% judge-escalation rate on translated Spanish text, far above the
-  English-tuned baseline) that is worth a human's attention before any further spend,
-  pilot or bulk. Proceeding to write pilot rows or — worse — to plan a bulk Batch
-  submission around an unreviewed 28x cost surprise would be exactly the kind of
-  "complete work you have found to be pointless/premature just because it was on the
-  list" this project's own verification standard warns against.
-- **What was NOT done as a result:** Task 2's action items (move `sqlString`/
-  `runRemoteWrite` into `scripts/lib/d1-remote.mjs`, add `buildTranslationUpsertSql`, add
-  the `pilot` subcommand to `backfill-translations.mjs`, run it, read back the result)
-  were drafted and passed their own unit tests locally during this session, but were
-  **deliberately removed/reverted before committing** rather than landed under a Task-1
-  commit — committing unexecuted Task-2 work (including a pilot write that never
-  happened) under a commit that claims only Task 1 would misrepresent what actually
-  shipped. `scripts/september-backfill-execute.mjs` is therefore UNCHANGED (its
-  `sqlString`/`runRemoteWrite` were not moved) — that move is still a sound idea and
-  remains available for whoever picks Task 2 back up.
-- **No production write occurred.** `article_translations` is unchanged (still 0 rows
-  from this plan; 06-03's migration left it empty, and nothing in this plan added rows).
+- **What happened:** The measured mean-case backfill cost ($41.94) exceeded the
+  orchestrator's $5 auto-continue ceiling for this plan, so Task 2 did not auto-start — a
+  checkpoint was returned instead, per the orchestrator's own standing instructions for
+  this plan. Jaime reviewed `docs/phase-06/translation-backfill-dry-run.md` and the
+  orchestrator's own independent population-mix measurement, then decided: **"Write
+  pilot, bulk -> 06-13"** — approve the pilot write at this cost level (the pilot itself
+  is small/cheap regardless of the bulk projection) and hand the bulk-backfill cost
+  decision to 06-13's own go-live gate. Task 2 then ran to completion as resumed.
+- **Why this is the correct sequence, not a failure:** The halt surfaced a real,
+  actionable finding (the population mix and the judge's own 17/18 agreement rate) before
+  any production write happened, and the resulting pilot write happened with full
+  knowledge of that finding rather than on the strength of an unreviewed 28x cost
+  surprise.
+- **No extra OpenAI spend occurred in Task 2.** The pilot write persists Task 1's already-
+  paid-for sample; `runPilot()` never constructs an `OpenAI` client.
 
-**Total deviations:** 1 (orchestrator-imposed tracer-gate halt, not a Rule 1-4
-auto-fix). No code-quality or security deviations occurred — Task 1 was executed exactly
-as planned, and its own `<verify>`/acceptance criteria all passed.
+**Total deviations:** 1 (orchestrator-imposed tracer-gate halt, resolved by Jaime's
+review and decision, not a Rule 1-4 auto-fix). No code-quality or security deviations
+occurred.
 
 ## Issues Encountered
 
 - **The measured grounding-judge escalation rate (60%, sample n=30) is much higher than
-  the live-ingest baseline this grounding check was tuned against.** This is a real
-  finding, not a bug: the deterministic checks (proper-noun-absent, number-absent,
-  lexicon, verbatim-overlap) were calibrated against English faithfulness fixtures
-  (Phase 2), and several of those layers are structurally more likely to fire on
-  Spanish-translated text — e.g. a translated proper-noun phrase written with Spanish
-  capitalisation/word order, or a Spanish-translated number format, can diverge from a
-  literal-substring match against the English source even when the translation itself
-  is perfectly faithful. 10 of the 18 judge calls in this sample's output table resolved
-  to `held` even after the judge ran, meaning the judge agreed something was genuinely
-  unsupported in a meaningful fraction of cases — this is not purely a false-positive
-  artifact of the deterministic layer, though the overall rate is still a real
-  surprise worth investigating before bulk spend. Flagged for 06-13's review, not
-  investigated further in this plan (out of this plan's own scope — Task 1 was the
-  measurement, not a grounding-check redesign).
-- No other issues. Task 1's own acceptance criteria all passed on the first run: the
-  test file passed, the dry-run script exited 0, the report contains every required
-  section, total sample spend was recorded and was under both the plan's $0.50 ceiling
-  and the orchestrator's stricter $0.25 ceiling, and the `article_translations` row
-  count was confirmed unchanged before/after.
+  the live-ingest baseline this grounding check was tuned against — now explained, not
+  just flagged.** This session's own first pass attributed it to the deterministic checks
+  being Spanish-text-sensitive. On review, that explanation does not hold up against the
+  sample's own data: the judge HELD 17 of 18 escalated rows (agreeing with the
+  deterministic flags), and a read-only population-mix measurement shows 95.4% of the
+  eligible archive is legacy/pre-D-06 (and much of that additionally thin), closely
+  matching the sample's own composition. The real driver is old/thin sources being
+  genuinely hard to ground a faithful translation against, in either language — not a
+  Spanish-specific defect. This is recorded in the report's "Population mix" and
+  corrected "Corrected causal claim" subsections with the evidence shown, for 06-13 to
+  rely on directly.
+- No other issues. Both tasks' own acceptance criteria passed on the first run.
 
 ## User Setup Required
 
-**Jaime's input is required before this plan can continue.** Specifically:
+**06-13 still needs Jaime's input on the BULK backfill** (the pilot-level decision is
+already made and executed). Specifically:
 
-1. **Review the measured cost** in
-   `915tldr.com2/docs/phase-06/translation-backfill-dry-run.md` — mean-case $41.94,
-   ceiling-case $99.26, against the previously assumed ~$1.49.
-2. **Decide** whether to: (a) proceed to Task 2's <=30-row pilot write at this cost
-   level (the pilot write itself is small/cheap regardless — it is the FULL BULK
-   backfill implied by this projection that costs $41.94-$99.26, not the pilot), (b)
-   investigate the grounding judge's Spanish-text sensitivity first (possibly reducing
-   the escalation rate and therefore the cost), or (c) some other path.
-3. **Read the organisation's `gpt-5.6-luna` Batch "queued prompt tokens per model" limit**
+1. **Choose one of the three costed options** in
+   `915tldr.com2/docs/phase-06/translation-backfill-dry-run.md`'s "Cost options for
+   06-13" section: (A) full two-stage (~$41.94 mean), (B) translation-only-no-judge
+   (~$13.02 mean, known ~1/18 tradeoff), or (C) a recent-window backfill.
+2. **Read the organisation's `gpt-5.6-luna` Batch "queued prompt tokens per model" limit**
    from the OpenAI dashboard's Limits page (UNVERIFIED in this report) before any bulk
    Batch submission is planned in 06-14/06-17.
 
-No external service CONFIGURATION is required (no new env vars, no new credentials) —
-this is a decision gate, not a setup gap.
+No external service CONFIGURATION is required (no new env vars, no new credentials).
 
 ## Next Phase Readiness
 
-- **06-13 (go-live decision)** now has a real measured figure to show Jaime alongside
-  06-01's live per-day cost delta and 06-12's build-budget verdicts, per that plan's own
-  `must_haves`. The $41.94/$99.26 figures and the 60% judge-escalation finding are ready
-  to cite directly.
-- **Task 2 of THIS plan (06-08) is not done** and should be picked back up — either by a
-  continuation of this plan after Jaime's review, or folded into 06-13's own decision
-  flow — once a path forward on the cost/escalation-rate question is chosen. The
-  `scripts/lib/d1-remote.mjs` move and `buildTranslationUpsertSql` helper described in
-  the plan are straightforward and were already drafted/tested once in this session;
-  redoing them is low-risk, low-effort work, not a blocker.
-- **No blocker exists for 06-06 or any other concurrently-running plan** — this halt is
-  scoped entirely to 06-08's own Task 2, in a separate repo (`915tldr.com2`), and touched
-  no file 06-06 (frontend repo) depends on.
-- **Blocker for 06-14/06-17 (the actual backfill execution plans):** both depend on
-  06-13's go-live decision, which in turn needs the human review described above —
-  this is the real critical path item this halt surfaces.
+- **30 real Spanish translation rows are live in production** (`origin =
+  'backfill-pilot'`), ready for 06-06/the frontend's Spanish loader to render against for
+  real-page verification, and ready as evidence for 06-13's go-live decision.
+- **06-13 (go-live decision)** now has a real measured figure, a corrected causal
+  explanation, and three costed options to choose from, alongside 06-01's live per-day
+  cost delta and 06-12's build-budget verdicts, per that plan's own `must_haves`.
+- **No blocker exists for 06-06 or any other concurrently-running plan** — this plan's
+  work is scoped entirely to the pipeline repo (`915tldr.com2`) and a 30-row pilot write;
+  nothing in 06-06's own file set was touched.
+- **Blocker for 06-14/06-17 (the actual bulk backfill execution plans):** both depend on
+  06-13's go-live decision on which of the three costed options to run at scale.
 
 ---
 *Phase: 06-bilingual*
-*Completed: 2026-10-03*
+*Completed: 2026-10-04*
 
 ## Self-Check: PASSED
 
 - FOUND: `9cb1f25` in `915tldr.com2`'s git log
+- FOUND: `e916e7f` in `915tldr.com2`'s git log
 - FOUND: `915tldr.com2/server/utils/translation-prompt.ts`
 - FOUND: `915tldr.com2/scripts/backfill-translations.mjs`
+- FOUND: `915tldr.com2/scripts/lib/d1-remote.mjs`
 - FOUND: `915tldr.com2/tests/translation/translation-prompt.test.ts`
+- FOUND: `915tldr.com2/tests/translation/backfill-sql.test.ts`
 - FOUND: `915tldr.com2/docs/phase-06/translation-backfill-dry-run.md`
-- CONFIRMED: `915tldr.com2/scripts/lib/d1-remote.mjs` does NOT exist (Task 2 not
-  committed, as stated above) — `915tldr.com2/scripts/september-backfill-execute.mjs`
-  is unchanged from its pre-plan state.
-- CONFIRMED (live D1 read, recorded in the report itself): `article_translations` row
-  count before and after this plan's dry run: 0 and 0.
+- CONFIRMED (live D1 read): `article_translations` row count before the pilot write: 0;
+  after: 30 (13 `clean`, 17 `held`), matching the report's own read-back exactly.
