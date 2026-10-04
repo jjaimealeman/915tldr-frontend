@@ -10,6 +10,7 @@ Entries are named `YYYY-MM-DD-HHMM_slug.md` and grouped by month, newest first.
 
 | Date | Entry | Keywords |
 |------|-------|----------|
+| 2026-10-04 | [Tracer: /es/rss.xml and per-language sitemap files](2026-10-04-0707_06-11-task1-es-rss-and-per-language-sitemaps.md) | `[FRONTEND]` `[FEATURE]` `[I18N]` `[SEO]` `[TESTING]` `[BUG_FIX]` |
 | 2026-10-04 | [Phase 6 tracking updated after waves 4 and 5](2026-10-04-0633_phase-06-waves-4-5-tracking.md) | `[DOCUMENTATION]` `[PLANNING]` |
 | 2026-10-04 | [Plan 06-07 complete: Spanish trust pages reviewed and approved](2026-10-04-0632_06-07-complete-spanish-trust-pages-reviewed.md) | `[DOCUMENTATION]` `[PLANNING]` `[I18N]` `[PRIVACY]` |
 | 2026-10-04 | [Plan 06-10 complete: Spanish listing pages and the Spanish 404](2026-10-04-0234_06-10-complete-es-listings-and-404.md) | `[DOCUMENTATION]` `[PLANNING]` `[I18N]` `[SEO]` `[TESTING]` |

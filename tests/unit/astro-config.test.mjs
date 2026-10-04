@@ -62,8 +62,12 @@ function runGuard({ srcDir, configFile, wranglerFile, generatedWranglerFile }) {
   return { status: result.status, ...parsed };
 }
 
-function extractCloudflareCallArgSource(sourceText) {
-  const marker = 'cloudflare(';
+/** Finds `marker`'s matching closing paren (depth-counted over `(`/`)` only, so nested object
+ * literal `{}`s inside the call's own arguments never confuse it) and returns everything between
+ * the marker's own opening and closing parens. Shared by the ARCH-06 `cloudflare(...)` extraction
+ * below and the 06-11 `sitemap(...)` extraction further down — one depth-counting implementation,
+ * two call sites naming their own marker. */
+function extractCallArgSource(sourceText, marker) {
   const start = sourceText.indexOf(marker);
   if (start === -1) return null;
   let depth = 0;
@@ -79,6 +83,10 @@ function extractCloudflareCallArgSource(sourceText) {
     }
   }
   return null;
+}
+
+function extractCloudflareCallArgSource(sourceText) {
+  return extractCallArgSource(sourceText, 'cloudflare(');
 }
 
 function extractImageService(sourceText) {
@@ -238,4 +246,33 @@ test('ARCH-06 backstop: key order inside the adapter options object does not cha
   const orderB = "cloudflare({ session: false, imageService: { runtime: 'passthrough', build: 'compile' } })";
   assert.equal(imageServiceIsValid(orderA), true);
   assert.equal(imageServiceIsValid(orderB), true);
+});
+
+// --- 06-11 (I18N-06): the sitemap() integration call's own chunks/i18n option shape ---
+//
+// `chunks`'s value (`sitemapChunks()`) is a function CALL, not an inline object literal — unlike
+// ARCH-06's `imageService`, it cannot be `vm`-evaluated out of context (it references an import
+// that only resolves inside astro.config.mjs's own module scope). These are therefore plain
+// string-shape assertions over the real extracted call-argument source, matching
+// `no-auto-language.test.mjs`'s own extraction technique, not a `vm` evaluation.
+
+test('the real astro.config.mjs sitemap() call sets chunks: sitemapChunks() (I18N-06, per-language sitemap files)', () => {
+  const source = readFileSync(REAL_CONFIG_PATH, 'utf8');
+  const sitemapCallArgs = extractCallArgSource(source, 'sitemap(');
+  assert.ok(sitemapCallArgs, 'expected to find a sitemap(...) call in astro.config.mjs');
+  assert.match(sitemapCallArgs, /\bchunks\s*:\s*sitemapChunks\(\)/);
+});
+
+test('the real astro.config.mjs sitemap() call sets i18n: { defaultLocale: "en", locales: { en, es } } (I18N-06, xhtml:link alternates)', () => {
+  const source = readFileSync(REAL_CONFIG_PATH, 'utf8');
+  const sitemapCallArgs = extractCallArgSource(source, 'sitemap(');
+  assert.ok(sitemapCallArgs, 'expected to find a sitemap(...) call in astro.config.mjs');
+  assert.match(sitemapCallArgs, /i18n\s*:\s*\{\s*defaultLocale\s*:\s*'en'\s*,\s*locales\s*:\s*\{\s*en\s*:\s*'en'\s*,\s*es\s*:\s*'es'\s*\}\s*\}/);
+});
+
+test('the real astro.config.mjs sitemap() call excludes untranslated /es paths via spanishSitemapExclusions() inside its filter', () => {
+  const source = readFileSync(REAL_CONFIG_PATH, 'utf8');
+  const sitemapCallArgs = extractCallArgSource(source, 'sitemap(');
+  assert.ok(sitemapCallArgs, 'expected to find a sitemap(...) call in astro.config.mjs');
+  assert.match(sitemapCallArgs, /spanishSitemapExclusions\(\)\.has\(pathname\)/);
 });

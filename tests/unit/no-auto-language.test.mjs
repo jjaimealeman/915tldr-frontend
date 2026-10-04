@@ -119,12 +119,61 @@ test('no-auto-language: the real src/ tree has zero non-comment occurrences of a
 // astro.config.mjs defines no top-level i18n key (research anti-pattern)
 // ---------------------------------------------------------------------------
 
+/** Finds `marker`'s matching closing paren (depth-counted, so nested `{}`/`()` inside the call's
+ * own arguments never confuses it) and returns the `[start, end)` span of everything between the
+ * marker's own opening and closing parens — same technique `astro-config.test.mjs`'s
+ * `extractCloudflareCallArgSource` already uses for the same reason (locating one specific call's
+ * argument object in raw source text, not a regex that could match the wrong call). */
+function findCallArgSpan(sourceText, marker) {
+  const start = sourceText.indexOf(marker);
+  if (start === -1) return null;
+  let depth = 0;
+  let argStart = -1;
+  for (let i = start + marker.length - 1; i < sourceText.length; i++) {
+    const ch = sourceText[i];
+    if (ch === '(') {
+      if (depth === 0) argStart = i + 1;
+      depth++;
+    } else if (ch === ')') {
+      depth--;
+      if (depth === 0) return { start: argStart, end: i };
+    }
+  }
+  return null;
+}
+
 test('astro.config.mjs: defines no top-level "i18n" config key', () => {
   const configSource = readFileSync(path.join(REPO_ROOT, 'astro.config.mjs'), 'utf8');
   const stripped = stripComments(configSource);
   // The config's own top-level keys (output, site, trailingSlash, build, session, adapter,
   // integrations, vite, experimental) are all object properties of the defineConfig({...}) call —
   // an added `i18n:` key would appear the same way. A plain `/\bi18n\s*:/` check (outside
-  // comments) is sufficient since nothing else in this file's real config object is named i18n.
-  assert.doesNotMatch(stripped, /\bi18n\s*:/);
+  // comments) is sufficient since nothing else in this file's real TOP-LEVEL config object is
+  // named i18n.
+  //
+  // 06-11 (Rule 1 fix): `@astrojs/sitemap`'s own `i18n` option (`sitemap({ i18n: {...} })`, per-
+  // language `xhtml:link` alternates — an entirely different, legitimate thing from Astro's own
+  // top-level routing `i18n` this test exists to forbid) is nested inside the `sitemap(...)`
+  // integration call, several lines below this top-level object. A naive `/\bi18n\s*:/` match
+  // over the whole file cannot tell the two apart, so the sitemap call's own argument span is
+  // excised first — this test still catches a REAL top-level `i18n:` key appearing anywhere else
+  // in the file (including a stray one added to `adapter: cloudflare({...})`).
+  const sitemapCallArgs = findCallArgSpan(stripped, 'sitemap(');
+  const withoutSitemapCallArgs = sitemapCallArgs
+    ? stripped.slice(0, sitemapCallArgs.start) + stripped.slice(sitemapCallArgs.end)
+    : stripped;
+  assert.doesNotMatch(withoutSitemapCallArgs, /\bi18n\s*:/);
+});
+
+test('astro.config.mjs: the sitemap() integration call itself DOES set its own i18n option (sanity check for the test above)', () => {
+  const configSource = readFileSync(path.join(REPO_ROOT, 'astro.config.mjs'), 'utf8');
+  const stripped = stripComments(configSource);
+  const sitemapCallArgs = findCallArgSpan(stripped, 'sitemap(');
+  assert.ok(sitemapCallArgs, 'expected to find a sitemap(...) call in astro.config.mjs');
+  const sitemapCallSource = stripped.slice(sitemapCallArgs.start, sitemapCallArgs.end);
+  assert.match(
+    sitemapCallSource,
+    /\bi18n\s*:/,
+    'expected the real sitemap() call to set its own i18n option — if this fails, the exclusion above may be silently hiding a real top-level i18n key instead'
+  );
 });

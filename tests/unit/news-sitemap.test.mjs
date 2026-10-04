@@ -12,6 +12,7 @@ import {
   NEWS_WINDOW_SECONDS,
   NEWS_MAX_URLS,
 } from '../../src/lib/seo-feeds.ts';
+import { readTierFacts } from '../../src/lib/archive/tier-facts.ts';
 
 /** Minimal fixture matching the ArticleData shape's render-relevant fields (tests/unit/listing.test.mjs's own pattern). */
 function article({
@@ -228,10 +229,20 @@ test('news-sitemap: across all sitemap children, URL count equals built HTML fil
   // build actually produced, not a hardcoded "1".
   const notFoundPageCount = ['404.html', 'es/404.html'].filter((rel) => distFileExists(rel)).length;
   const htmlFileCount = countHtmlFiles(DIST_CLIENT) - notFoundPageCount;
+
+  // 06-11 (I18N-06/D-05/T-06-42): an untranslated `/es` article page (English-fallback content
+  // served under `/es`, already `noindex` at the page level) is now correctly EXCLUDED from every
+  // sitemap file (`spanishSitemapExclusions`, `astro.config.mjs`'s `filter`) — a real, intended
+  // drop, not a bug this cross-check should flag. The excluded count is read straight from the
+  // same Spanish tier facts the exclusion itself keys off, covering both the hot (still in
+  // `dist/client`) and archived (already moved to `dist/archive`) portions in one number, since
+  // `writeArticleFactsEs` records every article regardless of tier.
+  const untranslatedEsArticleCount = readTierFacts().articlesEs.filter((entry) => !entry.translated).length;
+
   assert.equal(
     allSitemapUrls.length,
-    htmlFileCount + archivedPageCount,
-    'expected sitemap URL count to equal built HTML page count (minus 404 pages) plus archived page count'
+    htmlFileCount + archivedPageCount - untranslatedEsArticleCount,
+    'expected sitemap URL count to equal built HTML page count (minus 404 pages) plus archived page count, minus untranslated /es fallback articles (06-11 exclusion)'
   );
 
   for (const url of allSitemapUrls) {
