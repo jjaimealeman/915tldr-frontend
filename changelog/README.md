@@ -10,6 +10,7 @@ Entries are named `YYYY-MM-DD-HHMM_slug.md` and grouped by month, newest first.
 
 | Date | Entry | Keywords |
 |------|-------|----------|
+| 2026-10-04 | [Plan 06-11 complete: per-language feeds and sitemaps](2026-10-04-0712_06-11-complete-per-language-feeds-sitemaps.md) | `[DOCUMENTATION]` `[PLANNING]` `[I18N]` `[SEO]` |
 | 2026-10-04 | [Spanish Google News sitemap via a parameterised news function](2026-10-04-0709_06-11-task2-es-news-sitemap-and-robots.md) | `[FRONTEND]` `[FEATURE]` `[I18N]` `[SEO]` `[TESTING]` |
 | 2026-10-04 | [Tracer: /es/rss.xml and per-language sitemap files](2026-10-04-0707_06-11-task1-es-rss-and-per-language-sitemaps.md) | `[FRONTEND]` `[FEATURE]` `[I18N]` `[SEO]` `[TESTING]` `[BUG_FIX]` |
 | 2026-10-04 | [Phase 6 tracking updated after waves 4 and 5](2026-10-04-0633_phase-06-waves-4-5-tracking.md) | `[DOCUMENTATION]` `[PLANNING]` |

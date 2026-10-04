@@ -53,7 +53,7 @@
 - [ ] **I18N-03**: Spanish-language articles render with `lang="es"` on the appropriate element
 - [ ] **I18N-04**: `/es/...` routes exist for every public page type
 - [ ] **I18N-05**: Every page emits correct `hreflang` pairs including `x-default`
-- [ ] **I18N-06**: Separate sitemaps and RSS feeds exist per language
+- [x] **I18N-06**: Separate sitemaps and RSS feeds exist per language
 - [x] **I18N-07**: Card and headline layouts survive Spanish text running 15-25% longer without overflow or clipping
 - [ ] **I18N-08**: Language is chosen by the reader, never by IP or browser auto-redirect
 - [ ] **I18N-09**: Spanish summaries carry the same AI-generation disclosure as English
@@ -285,7 +285,7 @@ Deferred. Tracked, not in this roadmap.
 | I18N-03 | Phase 6 | Pending |
 | I18N-04 | Phase 6 | Pending |
 | I18N-05 | Phase 6 | Pending |
-| I18N-06 | Phase 6 | Pending |
+| I18N-06 | Phase 6 | Complete |
 | I18N-07 | Phase 1 | Complete |
 | I18N-08 | Phase 6 | Pending |
 | I18N-09 | Phase 6 | Pending |
