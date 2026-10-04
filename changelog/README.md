@@ -10,6 +10,7 @@ Entries are named `YYYY-MM-DD-HHMM_slug.md` and grouped by month, newest first.
 
 | Date | Entry | Keywords |
 |------|-------|----------|
+| 2026-10-04 | [Plan 06-12 complete: build budget measured and corrected, full-corpus invariants pass](2026-10-04-1210_06-12-complete-build-budget-and-full-corpus-invariants.md) | `[DOCUMENTATION]` `[PLANNING]` `[PERFORMANCE]` `[I18N]` `[TESTING]` |
 | 2026-10-04 | [06-12 build budget corrected after a same-day baseline](2026-10-04-1208_06-12-build-budget-correction-after-baseline.md) | `[DOCUMENTATION]` `[PERFORMANCE]` `[PLANNING]` |
 | 2026-10-04 | [Phase 6 tracking updated after wave 6 (paused at 06-12)](2026-10-04-0759_phase-06-wave-6-tracking.md) | `[DOCUMENTATION]` `[PLANNING]` |
 | 2026-10-04 | [Full-corpus hreflang/lang/link invariant tests](2026-10-04-0733_06-12-task2-full-corpus-hreflang-lang-link-tests.md) | `[TESTING]` `[I18N]` `[SEO]` |
