@@ -387,7 +387,7 @@ Plans:
   4. Spanish-language articles render with `lang="es"` on the correct element and carry the same AI-generation disclosure as their English counterparts.
   5. `Accept-Language` is logged at the edge and a report of Spanish-preferring request share is available to inform the `/es` launch decision on 2-4 weeks of measured data.
 
-**Plans:** 7/17 plans executed
+**Plans:** 10/17 plans executed
 
 Plans:
 **Wave 1**
@@ -408,12 +408,12 @@ Plans:
 
 **Wave 4** *(blocked on Wave 3 completion)*
 
-- [ ] 06-07-PLAN.md — Spanish About/Privacy/Terms/Contact (fluent human review), `/es/changelog`, accurate Umami disclosure
-- [ ] 06-09-PLAN.md — Article pages in both languages: `/es` mirror with D-05 fallback, paired hreflang, D-07 label, JSON-LD `inLanguage`
+- [x] 06-07-PLAN.md — Spanish About/Privacy/Terms/Contact (fluent human review), `/es/changelog`, accurate Umami disclosure
+- [x] 06-09-PLAN.md — Article pages in both languages: `/es` mirror with D-05 fallback, paired hreflang, D-07 label, JSON-LD `inLanguage`
 
 **Wave 5** *(blocked on Wave 4 completion)*
 
-- [ ] 06-10-PLAN.md — `/es` listings (home, category, tag, tags, source) and Spanish 404
+- [x] 06-10-PLAN.md — `/es` listings (home, category, tag, tags, source) and Spanish 404
 
 **Wave 6** *(blocked on Wave 5 completion)*
 
@@ -553,7 +553,7 @@ Phase 3 and may run alongside Phases 5-7.
 | 3. Foundation & Read-Budget Guardrails | 7/7 | Complete    | 2026-09-26 |
 | 4. Static Generation, Templates & SEO | 12/12 | In Progress|  |
 | 5. Hybrid Archive & Zero-Reads Proof | 21/21 | Complete    | 2026-10-03 |
-| 6. Bilingual | 7/17 | In Progress|  |
+| 6. Bilingual | 10/17 | In Progress|  |
 | 7. Imagery & Share Cards | 0/TBD | Not started | - |
 | 8. Server Islands & Interactivity | 0/TBD | Not started | - |
 | 9. Search | 0/TBD | Not started | - |
