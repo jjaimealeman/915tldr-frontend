@@ -1,11 +1,11 @@
 ---
-// 06-05 (Task 1): the Spanish home — the first `/es` page to ship (D-09: `/es` is fully public
-// from day one). Mirrors `src/pages/index.astro` exactly (same feed, same selection, same card
-// shapes) with every chrome string and internal link localized to `/es` via `Base`'s `lang="es"`
-// prop. Spanish ARTICLE CONTENT does not exist in the build yet — the `articlesEs` collection and
-// the real Spanish titles/summaries land in 06-06/06-10. Until then this page renders the same
-// English titles/summaries the home page does, with `lang="en"` marking that content as English
-// inside an otherwise-Spanish document (an honest, temporary state — not a translation).
+// 06-05 (Task 1) / 06-10 (Task 1, I18N-04): the Spanish home. Mirrors `src/pages/index.astro`
+// exactly (same feed, same selection, same card shapes) with every chrome string and internal
+// link localized to `/es` via `Base`'s `lang="es"` prop. Each card now shows its article's REAL
+// Spanish title/summary when a clean translation exists (`localizedArticleView`, D-05) — the
+// English-fallback-marked-`lang="en"` behavior this page shipped with in 06-05 is now the
+// per-card FALLBACK branch, not the unconditional behavior, now that the `articlesEs` collection
+// (06-06) and `esArticlePageModel` (06-09) exist.
 import { getCollection } from 'astro:content';
 import Base from '../../layouts/Base.astro';
 import ArticleCard from '../../components/ArticleCard.astro';
@@ -14,12 +14,15 @@ import { sortNewestFirst, HOME_FEED_COUNT } from '../../lib/listing.ts';
 import { TIME_ZONE } from '../../lib/format.ts';
 import { BUILD_TIMESTAMP } from '../../lib/build-info.ts';
 import { t } from '../../lib/i18n/dictionary.ts';
-import { categoryLabel } from '../../lib/i18n/category-labels.ts';
+import { buildEsIndex, localizedArticleView, categoryLabel } from '../../lib/i18n/spanish-view.ts';
 
 const entries = await getCollection('articles');
+const esEntries = await getCollection('articlesEs');
+const esIndex = buildEsIndex(esEntries.map((entry) => entry.data));
 const allArticles = entries.map((entry) => entry.data);
 const feed = sortNewestFirst(allArticles).slice(0, HOME_FEED_COUNT);
 const [lead, ...rest] = feed;
+const leadView = lead ? localizedArticleView(lead, esIndex.get(lead.uuid)) : undefined;
 
 // Same year-disclosure rule as the English home (src/pages/index.astro) — see that file's own
 // comment for why "this build's year" is a safe, deterministic comparison basis here.
@@ -43,41 +46,44 @@ function showYearFor(publishedAt: number): boolean {
   buildStamp={true}
 >
   {
-    lead && (
+    lead && leadView && (
       <ArticleCard
         uuid={lead.uuid}
-        title={lead.title}
+        title={leadView.title}
         href={articlePath(lead.category.slug, lead.slug, lead.uuid, 'es')}
         categorySlug={lead.category.slug}
         categoryName={categoryLabel(lead.category.slug, 'es') ?? lead.category.name}
         sourceName={lead.source.name}
         publishedAt={lead.publishedAt}
         variant="lead"
-        summary={lead.summary}
+        summary={leadView.summary}
         showYear={showYearFor(lead.publishedAt)}
         lang="es"
-        contentLang="en"
+        contentLang={leadView.lang}
       />
     )
   }
 
   <section data-grid aria-label={t('homeGridLabel', 'es')}>
     {
-      rest.map((article) => (
-        <ArticleCard
-          uuid={article.uuid}
-          title={article.title}
-          href={articlePath(article.category.slug, article.slug, article.uuid, 'es')}
-          categorySlug={article.category.slug}
-          categoryName={categoryLabel(article.category.slug, 'es') ?? article.category.name}
-          sourceName={article.source.name}
-          publishedAt={article.publishedAt}
-          summary={article.summary}
-          showYear={showYearFor(article.publishedAt)}
-          lang="es"
-          contentLang="en"
-        />
-      ))
+      rest.map((article) => {
+        const view = localizedArticleView(article, esIndex.get(article.uuid));
+        return (
+          <ArticleCard
+            uuid={article.uuid}
+            title={view.title}
+            href={articlePath(article.category.slug, article.slug, article.uuid, 'es')}
+            categorySlug={article.category.slug}
+            categoryName={categoryLabel(article.category.slug, 'es') ?? article.category.name}
+            sourceName={article.source.name}
+            publishedAt={article.publishedAt}
+            summary={view.summary}
+            showYear={showYearFor(article.publishedAt)}
+            lang="es"
+            contentLang={view.lang}
+          />
+        );
+      })
     }
   </section>
 </Base>

@@ -1,0 +1,107 @@
+---
+// 06-10 (Task 1, I18N-04): the Spanish mirror of `src/pages/tag/[slug].astro`. Tag MEMBERSHIP
+// and the full per-tag article count come from the SAME `groupByTag(allArticles)` call as the
+// English route — tags are never translated (D-02: identity, like category slugs), so the set of
+// `/es/tag/<slug>` pages, and each one's full article count, is BY CONSTRUCTION identical to the
+// English route's own tag pages/counts. `writeTagFactsEs` records that same full count per slug
+// so `tools/partition-archive.mjs` tiers a Spanish tag page archive-tier exactly when its English
+// counterpart is. Card titles/summaries show each listed article's REAL Spanish title/summary
+// when a clean translation exists (`localizedArticleView`, D-05); the tag's own (untranslated)
+// name is marked `lang="en"` in the Spanish heading.
+import { getCollection } from 'astro:content';
+import Base from '../../../layouts/Base.astro';
+import ArticleCard from '../../../components/ArticleCard.astro';
+import { articlePath, TAG_SLUG_RE } from '../../../lib/article-url.ts';
+import { groupByTag, TAG_PAGE_COUNT } from '../../../lib/listing.ts';
+import { breadcrumbNode } from '../../../lib/structured-data.ts';
+import { writeTagFactsEs } from '../../../lib/archive/tier-facts.ts';
+import { t } from '../../../lib/i18n/dictionary.ts';
+import { buildEsIndex, localizedArticleView, categoryLabel } from '../../../lib/i18n/spanish-view.ts';
+import type { EsEntryData } from '../../../lib/i18n/spanish-view.ts';
+
+export async function getStaticPaths() {
+  const entries = await getCollection('articles');
+  const esEntries = await getCollection('articlesEs');
+  const digestByUuid = new Map(entries.map((entry) => [entry.data.uuid, entry.digest]));
+  const esDigestByUuid = new Map(esEntries.map((entry) => [entry.data.uuid, entry.digest]));
+  const esIndexData = esEntries.map((entry) => entry.data);
+
+  const allArticles = entries.map((entry) => entry.data);
+  const grouped = groupByTag(allArticles);
+
+  // 06-04/06-10 must-have: the Spanish tag-facts count equals the English tag-facts count for
+  // every slug, by construction — both are the FULL (uncapped) article count from the SAME
+  // `groupByTag` result, never a separate Spanish derivation.
+  writeTagFactsEs(
+    [...grouped.entries()].map(([slug, entry]) => ({ slug, count: entry.articles.length }))
+  );
+
+  return [...grouped.entries()].map(([slug, entry]) => {
+    if (!TAG_SLUG_RE.test(slug)) {
+      throw new Error(`es/tag/[slug]: invalid tag slug "${slug}" — must match ${TAG_SLUG_RE}`);
+    }
+    const pageArticles = entry.articles.slice(0, TAG_PAGE_COUNT);
+    return {
+      params: { slug },
+      props: {
+        slug,
+        name: entry.name,
+        articles: pageArticles,
+        esEntries: esIndexData,
+      },
+      // 04-09 (D-06) extended for 06-10: a listed article gaining/losing a Spanish translation
+      // must re-render this page even when the listed set/order and every English digest are
+      // unchanged.
+      cacheKey: pageArticles
+        .map((article) => `${digestByUuid.get(article.uuid) ?? ''}|${esDigestByUuid.get(article.uuid) ?? 'none'}`)
+        .join('|'),
+    };
+  });
+}
+
+const { slug, name, articles, esEntries } = Astro.props as {
+  slug: string;
+  name: string;
+  articles: Awaited<ReturnType<typeof getCollection<'articles'>>>[number]['data'][];
+  esEntries: EsEntryData[];
+};
+const esIndex = buildEsIndex(esEntries);
+---
+
+<Base
+  page="tag"
+  lang="es"
+  title={t('tagPageTitle', 'es', { tag: name })}
+  description={t('tagPageDescription', 'es', { tag: name })}
+  canonicalPath={`/es/tag/${slug}`}
+  jsonLd={[breadcrumbNode([{ name: t('home', 'es'), path: '/es' }, { name, path: `/es/tag/${slug}` }])]}
+>
+  <header data-block>
+    <h1 lang="en">{name}</h1>
+    <p data-story-count>
+      {articles.length} {articles.length === 1 ? t('storyCountSingular', 'es') : t('storyCountPlural', 'es')} {t('tagStoryCountSuffix', 'es')}
+    </p>
+  </header>
+
+  <section data-grid aria-label={t('storiesTaggedLabel', 'es', { tag: name })}>
+    {
+      articles.map((article) => {
+        const view = localizedArticleView(article, esIndex.get(article.uuid));
+        return (
+          <ArticleCard
+            uuid={article.uuid}
+            title={view.title}
+            href={articlePath(article.category.slug, article.slug, article.uuid, 'es')}
+            categorySlug={article.category.slug}
+            categoryName={categoryLabel(article.category.slug, 'es') ?? article.category.name}
+            sourceName={article.source.name}
+            publishedAt={article.publishedAt}
+            summary={view.summary}
+            lang="es"
+            contentLang={view.lang}
+          />
+        );
+      })
+    }
+  </section>
+</Base>
