@@ -10,6 +10,7 @@ Entries are named `YYYY-MM-DD-HHMM_slug.md` and grouped by month, newest first.
 
 | Date | Entry | Keywords |
 |------|-------|----------|
+| 2026-10-04 | [Phase 6 tracking updated after wave 3](2026-10-04-0100_phase-06-wave-3-tracking.md) | `[DOCUMENTATION]` `[PLANNING]` |
 | 2026-10-04 | [Plan 06-08 complete: translation backfill pilot write, and a corrected cost explanation](2026-10-04-0058_06-08-complete-pilot-write-and-cost-correction.md) | `[DOCUMENTATION]` `[PLANNING]` `[I18N]` `[TESTING]` `[DATABASE]` |
 | 2026-10-03 | [Plan 06-08 halted after Task 1: measured translation backfill cost is 28x the assumed figure](2026-10-03-1122_06-08-halted-translation-backfill-dry-run.md) | `[DOCUMENTATION]` `[PLANNING]` `[I18N]` `[TESTING]` |
 | 2026-10-03 | [Plan 06-06 complete: articlesEs content collection](2026-10-03-1117_06-06-complete-articles-es-content-collection.md) | `[DOCUMENTATION]` `[PLANNING]` `[I18N]` |
