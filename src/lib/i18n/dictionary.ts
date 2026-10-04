@@ -65,6 +65,9 @@ export const DICTIONARY = {
     es: 'Puede omitir detalles — lea la nota original.',
   },
   attributionLabel: { en: 'Original reporting:', es: 'Reportaje original:' },
+  /** 06-09 (Task 2): the breadcrumb's first item on every page — `/es` pages pass Spanish
+   * names/paths for ALL three BreadcrumbList items, this one included. */
+  home: { en: 'Home', es: 'Inicio' },
   tagsSectionHeading: { en: 'Tags', es: 'Etiquetas' },
   railMoreIn: { en: 'More in {category}', es: 'Más en {category}' },
   railEarlier: { en: 'Earlier', es: 'Anteriores' },

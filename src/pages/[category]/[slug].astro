@@ -77,16 +77,22 @@ export async function getStaticPaths() {
     const rail = rails.get(entry.data.uuid) ?? EMPTY_RAIL;
     const esEntry = esIndex.get(entry.data.uuid);
     const esDigest = esDigestByUuid.get(entry.data.uuid) ?? 'none';
+    // 06-09 Task 2 (D-07): the held-OR-missing `sourceLanguage` already lives inside `esEntry`
+    // (and therefore inside `esDigest` above) whenever an entry exists at all — but a transition
+    // from "no entry" to "a held entry whose sourceLanguage is 'und'" (not possible from the real
+    // loader, but defensive) is still worth naming explicitly here, since it's the one field that
+    // changes this page's own markup (the D-07 label) independent of translated/available.
+    const sourceLanguage = esEntry?.sourceLanguage ?? 'und';
     return {
       params: articleParams(entry.data.category.slug, entry.data.slug, entry.id),
       props: { article: entry.data, rail, esEntry },
       // 04-09 (D-06): the page's full render inputs — its own content-layer digest, its rail
       // neighbours (railFingerprint's own doc comment), AND (06-09) its own `articlesEs` digest
-      // — the Spanish entry appearing, changing or disappearing changes this page's rendered
-      // hreflang pairing and switch link, even though neither the article's own digest nor its
-      // rail neighbours changed. Only meaningful once experimental.incrementalBuild is on
-      // (astro.config.mjs); harmless when the flag is off.
-      cacheKey: `${entry.digest}|${railFingerprint(rail)}|${esDigest}`,
+      // plus sourceLanguage — the Spanish entry appearing, changing or disappearing changes this
+      // page's rendered hreflang pairing, switch link and D-07 label, even though neither the
+      // article's own digest nor its rail neighbours changed. Only meaningful once
+      // experimental.incrementalBuild is on (astro.config.mjs); harmless when the flag is off.
+      cacheKey: `${entry.digest}|${railFingerprint(rail)}|${esDigest}|${sourceLanguage}`,
     };
   });
 }
@@ -97,6 +103,10 @@ const enLangModel = enArticleLanguageModel(article, esEntry);
 // fallback — so the "Leer en español" link always points there, unconditionally (unlike
 // `enLangModel.esPath`, which is only set when the hreflang pairing itself is appropriate).
 const esSwitchPath = articlePath(article.category.slug, article.slug, article.uuid, 'es');
+// D-07: about the ORIGINAL article's source, not the translation — true whether the Spanish
+// translation itself is available, held, or doesn't exist yet (enArticleLanguageModel reads
+// sourceLanguage off the held entry too, per spanish-view.ts's own localizedArticleView contract).
+const isSpanishSource = enLangModel.sourceLanguage === 'es';
 
 const { standfirst } = splitStandfirst(article.summary);
 const bodyHtml = summaryBodyHtml(article.summary, article.keyPoints);
@@ -157,9 +167,9 @@ const hasRail = hasMore || hasSecond;
 
     <div data-article-body set:html={bodyHtml} />
 
-    <p data-ai-disclosure>This summary was written by AI from reporting by {article.source.name}. <a href={article.url} rel="noopener external" target="_blank">It may leave out detail — read the original story.<svg data-new-tab-icon aria-hidden="true" focusable="false" width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.1" stroke-linecap="round" stroke-linejoin="round"><path d="M5 1H1v10h10V7"></path><path d="M7 1h4v4"></path><path d="M11 1 5 7"></path></svg><span data-new-tab-cue data-visually-hidden> (opens in a new tab)</span></a></p>
+    <p data-ai-disclosure>This summary was written by AI from reporting by {article.source.name}. <a href={article.url} rel="noopener external" target="_blank" hreflang={isSpanishSource ? 'es' : undefined}>It may leave out detail — read the original story.<svg data-new-tab-icon aria-hidden="true" focusable="false" width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.1" stroke-linecap="round" stroke-linejoin="round"><path d="M5 1H1v10h10V7"></path><path d="M7 1h4v4"></path><path d="M11 1 5 7"></path></svg><span data-new-tab-cue data-visually-hidden> (opens in a new tab)</span></a></p>
 
-    <p data-attribution>Original reporting: <a href={article.url} rel="noopener external" target="_blank">{article.source.name}<svg data-new-tab-icon aria-hidden="true" focusable="false" width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.1" stroke-linecap="round" stroke-linejoin="round"><path d="M5 1H1v10h10V7"></path><path d="M7 1h4v4"></path><path d="M11 1 5 7"></path></svg><span data-new-tab-cue data-visually-hidden> (opens in a new tab)</span></a></p>
+    <p data-attribution>Original reporting: <a href={article.url} rel="noopener external" target="_blank" lang={isSpanishSource ? 'es' : undefined} hreflang={isSpanishSource ? 'es' : undefined}>{article.source.name}<svg data-new-tab-icon aria-hidden="true" focusable="false" width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.1" stroke-linecap="round" stroke-linejoin="round"><path d="M5 1H1v10h10V7"></path><path d="M7 1h4v4"></path><path d="M11 1 5 7"></path></svg><span data-new-tab-cue data-visually-hidden> (opens in a new tab)</span></a>{isSpanishSource && <> · <span data-source-language>{t('originallySpanish', 'en')}</span></>}</p>
 
     {
       article.tags.length > 0 && (
@@ -175,11 +185,11 @@ const hasRail = hasMore || hasSecond;
 
   {
     hasRail && (
-      <aside data-rail aria-label="More stories">
+      <aside data-rail aria-label={t('railMoreStoriesLabel', 'en')}>
         {hasMore && (
           <>
             <h2 id="rail-more-heading" data-grid-heading>
-              More in {article.category.name}
+              {t('railMoreIn', 'en', { category: article.category.name })}
             </h2>
             <section data-grid aria-labelledby="rail-more-heading">
               {rail.more.map((neighbor) => (
@@ -200,7 +210,7 @@ const hasRail = hasMore || hasSecond;
         {hasSecond && (
           <>
             <h2 id="rail-second-heading" data-grid-heading>
-              {rail.secondHeading}
+              {t('railEarlier', 'en')}
             </h2>
             <section data-grid aria-labelledby="rail-second-heading">
               {rail.second.map((neighbor) => (

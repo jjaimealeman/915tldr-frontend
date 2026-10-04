@@ -71,22 +71,35 @@ function loadArchivePlan() {
   return JSON.parse(readFileSync(ARCHIVE_PLAN_PATH, 'utf8'));
 }
 
-/** The set of uuids named by every archived ARTICLE entry in the plan (parsed from the entry's
- * own `key`, e.g. `articles/<uuid>.html` — the plan's own contract, not re-derived from a fact). */
+/** The set of uuids named by every archived ENGLISH ARTICLE entry in the plan (parsed from the
+ * entry's own `key`, e.g. `articles/<uuid>.html` — the plan's own contract, not re-derived from a
+ * fact). 06-09: `dist/archive-plan.json`'s article entries now include BOTH languages (06-04's
+ * `articleArchiveKey(uuid, 'es')` entries carry an `/es/`-prefixed `path`, unlike their English
+ * counterparts), so every cross-check in this file that compares against the ENGLISH-only
+ * `articles` tier facts (never `articlesEs`) must exclude the `/es/` entries explicitly — this
+ * file never mixes languages in its own English-scoped assertions. */
 function archivedArticleUuids(plan) {
   const uuids = new Set();
   for (const entry of plan.entries) {
-    if (entry.kind !== 'article') continue;
+    if (entry.kind !== 'article' || entry.path.startsWith('/es/')) continue;
     const match = ARCHIVED_ARTICLE_KEY_RE.exec(entry.key);
     if (match) uuids.add(match[1].toLowerCase());
   }
   return uuids;
 }
 
-/** The set of canonical paths named by every archived ARTICLE entry in the plan — used by the
- * "every fact path maps to an existing page" cross-check's archived branch. */
+/** The set of canonical paths named by every archived ENGLISH ARTICLE entry in the plan — used by
+ * the "every fact path maps to an existing page" cross-check's archived branch. See
+ * `archivedArticleUuids`'s doc comment above for why `/es/` entries are excluded here. */
 function archivedArticlePaths(plan) {
-  return new Set(plan.entries.filter((e) => e.kind === 'article').map((e) => e.path));
+  return new Set(
+    plan.entries.filter((e) => e.kind === 'article' && !e.path.startsWith('/es/')).map((e) => e.path)
+  );
+}
+
+/** Count of archived ENGLISH article entries only — see `archivedArticleUuids`'s doc comment. */
+function archivedEnglishArticleCount(plan) {
+  return plan.entries.filter((e) => e.kind === 'article' && !e.path.startsWith('/es/')).length;
 }
 
 test(
@@ -96,7 +109,7 @@ test(
     const { articles } = readTierFacts();
     const staticFiles = findArticleHtmlFiles(DIST_CLIENT);
     const plan = loadArchivePlan();
-    const archivedCount = plan.entries.filter((e) => e.kind === 'article').length;
+    const archivedCount = archivedEnglishArticleCount(plan);
     assert.equal(
       articles.length,
       staticFiles.length + archivedCount,

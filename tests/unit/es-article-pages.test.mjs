@@ -155,3 +155,38 @@ test(
     assert.match(h1Match[1], /lang="en"/, 'expected the fallback h1 to carry lang="en"');
   }
 );
+
+test(
+  'es-article-pages: rail headings on /es pages are Spanish from the dictionary — no English rail heading text leaks through',
+  { skip: !DIST_BUILT && SKIP_REASON },
+  () => {
+    const facts = readTierFacts();
+    const sorted = [...facts.articlesEs].sort((a, b) => a.uuid.localeCompare(b.uuid));
+    // Evenly-spaced sample across the sorted list, same discipline as article-markup.test.mjs's
+    // sampleEvenly — not the first N (same handful of categories/dates) and not random.
+    const sampleSize = 15;
+    const step = Math.max(1, Math.floor(sorted.length / sampleSize));
+    let railPagesChecked = 0;
+
+    for (let i = 0; i < sorted.length && railPagesChecked < sampleSize; i += step) {
+      const html = readBuiltPage(sorted[i].path);
+      if (!html) continue;
+      if (!html.includes('data-rail')) continue; // this article has no rail neighbours at all
+      railPagesChecked++;
+
+      assert.ok(
+        !html.includes('More in ') && !/>\s*Earlier\s*</.test(html),
+        `expected no English rail heading text on ${sorted[i].path}`
+      );
+      if (html.includes('id="rail-more-heading"')) {
+        assert.match(html, /Más en /, 'expected the Spanish "Más en {category}" heading');
+      }
+      if (html.includes('id="rail-second-heading"')) {
+        assert.match(html, />\s*Anteriores\s*</, 'expected the Spanish "Anteriores" heading');
+      }
+      assert.match(html, /aria-label="Más historias"/, 'expected the Spanish rail aria-label');
+    }
+
+    assert.ok(railPagesChecked > 0, 'expected to find at least one sampled /es page with a rail');
+  }
+);

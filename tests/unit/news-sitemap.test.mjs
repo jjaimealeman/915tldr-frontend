@@ -204,11 +204,22 @@ test('news-sitemap: across all sitemap children, URL count equals built HTML fil
   // (dist/archive). "Static or archived" (same rule the other tests in this task apply): the
   // expected count is the static HTML file count PLUS the archived page count from
   // dist/archive-plan.json, not dist/client's file count alone.
+  // 06-09: `plan.counts` keeps English and Spanish archived counts in SEPARATE fields
+  // (`archivedArticles`/`archivedTags` vs. `archivedArticlesEs`/`archivedTagsEs` —
+  // tools/partition-archive.mjs's own `planPartition` never merges them, since every other
+  // consumer of the English-named fields expects an English-only count). `countHtmlFiles` above
+  // recurses into every subdirectory, so it already counts BOTH languages' static files — the
+  // archived-page addend must include both languages too, or this cross-check undercounts by
+  // exactly the Spanish archived-page total.
   const planPath = path.join(REPO_ROOT, 'dist', 'archive-plan.json');
   let archivedPageCount = 0;
   if (existsSync(planPath)) {
     const plan = JSON.parse(readFileSync(planPath, 'utf8'));
-    archivedPageCount = (plan.counts?.archivedArticles ?? 0) + (plan.counts?.archivedTags ?? 0);
+    archivedPageCount =
+      (plan.counts?.archivedArticles ?? 0) +
+      (plan.counts?.archivedTags ?? 0) +
+      (plan.counts?.archivedArticlesEs ?? 0) +
+      (plan.counts?.archivedTagsEs ?? 0);
   }
 
   const htmlFileCount = countHtmlFiles(DIST_CLIENT) - 1; // minus 404.html

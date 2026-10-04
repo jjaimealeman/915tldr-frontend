@@ -5,6 +5,12 @@
 // the script element. `toSafeJsonLd` is the one function that renders a node safe to embed. This
 // is a pure module with no dependency on the D1-access boundary the rest of this project
 // enforces.
+//
+// 06-09 (I18N-02): `NewsArticleNode.inLanguage` carries the real language of `headline`/
+// `description` (type-only import — `article-url.ts` is itself bundled directly into the Worker
+// and must never pull in the D1/KV chokepoint directory; this module stays on that same side of
+// the boundary).
+import type { Language } from './article-url.ts';
 
 export const SITE_NAME = '915 TLDR';
 
@@ -102,6 +108,12 @@ export interface NewsArticleNodeInput {
   tags?: string[];
   sourceName: string;
   sourceUrl: string;
+  /** 06-09 (I18N-02): the language of `headline`/`description` themselves — `'es'` only on a
+   * translated `/es` page (`esArticlePageModel`'s `contentLang`); every other page (the English
+   * article, and a `/es` page serving the D-05 English fallback, which is still English TEXT
+   * even though its URL is `/es`) is `'en'`. Defaults to `'en'` — every pre-06-09 call site
+   * renders byte-identically to before. */
+  inLanguage?: Language;
 }
 
 export interface NewsArticleNode {
@@ -122,7 +134,7 @@ export interface NewsArticleNode {
   };
   articleSection: string;
   keywords?: string;
-  inLanguage: 'en';
+  inLanguage: Language;
 }
 
 /**
@@ -141,6 +153,7 @@ export function newsArticleNode(input: NewsArticleNodeInput): NewsArticleNode {
     tags = [],
     sourceName,
     sourceUrl,
+    inLanguage = 'en',
   } = input;
 
   const canonicalUrl = `${origin}${canonicalPath}`;
@@ -167,7 +180,7 @@ export function newsArticleNode(input: NewsArticleNodeInput): NewsArticleNode {
       publisher: { '@type': 'Organization', name: sourceName },
     },
     articleSection: section,
-    inLanguage: 'en',
+    inLanguage,
   };
 
   if (description) {
