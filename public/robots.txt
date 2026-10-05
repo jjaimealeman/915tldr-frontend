@@ -117,10 +117,6 @@ Disallow: /
 User-agent: PetalBot
 Disallow: /
 
-# Perplexity AI
-User-agent: PerplexityBot
-Disallow: /
-
 # Cohere
 User-agent: cohere-ai
 Disallow: /
@@ -142,12 +138,21 @@ Allow: /
 User-agent: DuckAssistBot
 Allow: /
 
+# Perplexity - search index + user-triggered fetches for cited answers
+# (allowed 2026-10-02: ai-input=yes; training remains opted out via ai-train=no)
+User-agent: PerplexityBot
+Allow: /
+
+User-agent: Perplexity-User
+Allow: /
+
 # =============================================================================
 # SITEMAP
 # =============================================================================
 
 Sitemap: https://915tldr.com/sitemap-index.xml
 Sitemap: https://915tldr.com/news-sitemap.xml
+Sitemap: https://915tldr.com/es/news-sitemap.xml
 
 # Crawl-delay for polite crawling (respected by some bots)
 Crawl-delay: 1

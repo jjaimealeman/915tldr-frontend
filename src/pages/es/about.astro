@@ -1,0 +1,86 @@
+---
+// 06-07 (D-16, I18N-04): the Spanish mirror of `src/pages/about.astro`. Structure, data-* hooks
+// and props mirrored exactly; the prose itself is a Claude-drafted Spanish translation reviewed
+// side-by-side against the English original in docs/phase-06/spanish-pages-review.md, pending a
+// fluent human reviewer's approval (Task 3's blocking checkpoint) before this content is
+// considered final. Register: neutral Latin American Spanish, usted forms, no Spain-only
+// vocabulary, per 06-CONTEXT.md.
+//
+// The English page's "Our Sources" paragraph omits a dead `/sources` link (04-08) — the Spanish
+// paragraph below preserves that same omission, not a new decision.
+import Base from '../../layouts/Base.astro';
+import { t } from '../../lib/i18n/dictionary.ts';
+---
+
+<Base
+  page="about"
+  lang="es"
+  title={t('aboutPageTitle', 'es')}
+  description="Conozca 915 TLDR, el agregador de noticias de El Paso, Texas, impulsado por inteligencia artificial. Cómo trabajamos y nuestra misión de simplificar las noticias locales."
+  canonicalPath="/es/about"
+>
+  <div data-contact-column>
+    <p data-eyebrow>Fundado en 2025 · El Paso, Texas</p>
+    <h1>Acerca de 915 TLDR</h1>
+    <p data-lede>
+      Su ventana a las noticias de El Paso, impulsada por inteligencia artificial — recopiladas,
+      resumidas y organizadas para la forma en que usted lee hoy.
+    </p>
+
+    <h2>¿Qué significa "TLDR"?</h2>
+    <p>
+      <strong>TLDR</strong> son las siglas en inglés de <strong>"Too Long; Didn't Read"</strong>{' '}
+      ("muy largo; no lo leí") — una expresión de internet para pedir un resumen rápido. Cuando
+      algo es demasiado largo para leerlo por completo, usted pide el TLDR: solo los puntos
+      esenciales.
+    </p>
+    <p>
+      Eso es exactamente lo que hacemos con las noticias de El Paso. Nosotros las leemos todas
+      para que usted no tenga que hacerlo, y luego le damos el TLDR.
+    </p>
+
+    <h2>Nuestra misión</h2>
+    <p>
+      Creemos que mantenerse informado sobre su comunidad no debería sentirse como una tarea
+      pesada. 915 TLDR recopila automáticamente noticias de las fuentes locales más confiables de
+      El Paso, usa inteligencia artificial para extraer los puntos clave, y presenta todo en un
+      formato claro y fácil de recorrer.
+    </p>
+    <p>
+      Sin saltar de un sitio web a otro. Sin titulares sensacionalistas. Solo las noticias que le
+      importan a El Paso, entregadas como los lectores de hoy las quieren: rápidas, claras y
+      completas.
+    </p>
+
+    <h2>Cómo funciona</h2>
+    <p>Funciones inteligentes que hacen accesibles las noticias locales</p>
+    <dl>
+      <dt>Resúmenes con IA</dt>
+      <dd>Obtenga los puntos clave de cada historia sin leer el artículo completo.</dd>
+      <dt>Cobertura de múltiples fuentes</dt>
+      <dd>Vea cómo distintos medios cubren la misma historia, todo en un solo lugar.</dd>
+      <dt>Contenido por categorías</dt>
+      <dd>Explore por tema: política, crimen, deportes, negocios y más.</dd>
+      <dt>Búsqueda de texto completo</dt>
+      <dd>Encuentre cualquier artículo sobre cualquier tema con una búsqueda potente.</dd>
+      <dt>Compatible con móviles</dt>
+      <dd>Lea cómodamente desde cualquier dispositivo, en cualquier lugar.</dd>
+      <dt>Siempre actualizado</dt>
+      <dd>Noticias nuevas recopiladas automáticamente cada pocas horas.</dd>
+    </dl>
+
+    <h2>Nuestras fuentes</h2>
+    <p>
+      Recopilamos contenido de las organizaciones de noticias locales más confiables de El Paso.
+      Cada historia enlaza a su fuente original — estamos aquí para ayudarle a descubrir noticias,
+      no para reemplazar a los periodistas que las reportan.
+    </p>
+
+    <h2>¿Preguntas o comentarios?</h2>
+    <p>
+      Nos encantaría saber de usted. Si tiene sugerencias de nuevas fuentes, encontró un error, o
+      solo quiere saludar — escríbanos.
+    </p>
+    <p><a href="/es/contact">Póngase en contacto</a></p>
+  </div>
+</Base>

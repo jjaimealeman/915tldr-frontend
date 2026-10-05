@@ -1,0 +1,35 @@
+[
+  {
+    "timestamp": 1790923820118,
+    "path": "/.git/HEAD",
+    "status": 404,
+    "cpuTimeMs": 1,
+    "wallTimeMs": 191,
+    "scriptVersion": "8596931a-a299-47e4-9e41-cd54838a06f8",
+    "colo": "VIE",
+    "outcome": "ok",
+    "requestId": "6353c197f941976e7fd4109e9da52ee9"
+  },
+  {
+    "timestamp": 1790900495005,
+    "path": "/favicon.ico",
+    "status": 404,
+    "cpuTimeMs": 1,
+    "wallTimeMs": 131,
+    "scriptVersion": "96998c2d-1d52-4b5d-9777-f2dcf2d65beb",
+    "colo": "LAX",
+    "outcome": "ok",
+    "requestId": "b23d4545241d2be6b2f04aa725fe2256"
+  },
+  {
+    "timestamp": 1790900495004,
+    "path": "/favicon.ico",
+    "status": 404,
+    "cpuTimeMs": 1,
+    "wallTimeMs": 129,
+    "scriptVersion": "96998c2d-1d52-4b5d-9777-f2dcf2d65beb",
+    "colo": "LAX",
+    "outcome": "ok",
+    "requestId": "58213e7f60e6397cdf1457cdf1894062"
+  }
+]

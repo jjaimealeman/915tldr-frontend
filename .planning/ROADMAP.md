@@ -28,7 +28,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 2: Content Quality & Grounding** - Fix extraction, prompt and grounding so no fabricated summary is ever written in a second language (completed 2026-09-21)
 - [x] **Phase 3: Foundation & Read-Budget Guardrails** - Astro scaffold, the CI D1-import assertion, the render manifest, and the measurements that decide the render step (completed 2026-09-26)
 - [ ] **Phase 4: Static Generation, Templates & SEO** - A fail-loud D1 loader and every public page type generated at build time
-- [ ] **Phase 5: Hybrid Archive & Zero-Reads Proof** - R2 archive tier, tag tiering, and the measured proof of zero D1 reads on the public path
+- [x] **Phase 5: Hybrid Archive & Zero-Reads Proof** - R2 archive tier, tag tiering, and the measured proof of zero D1 reads on the public path (completed 2026-10-03)
 - [ ] **Phase 6: Bilingual** - Spanish summaries at ingest, `/es` routing, hreflang pairs and per-language feeds
 - [ ] **Phase 7: Imagery & Share Cards** - Junk-image filter, generated imagery, and share cards validated on real platforms
 - [ ] **Phase 8: Server Islands & Interactivity** - Weather, forecast and theme islands that degrade visibly instead of failing silently
@@ -317,7 +317,7 @@ Plans:
   4. Tag pages default to the R2 archive tier with only a measured top-N by article count promoted to hot static; total deployed static-asset file count is reported daily, the current count is recorded against the 100,000 ceiling, and the build fails at an 80,000-file safety margin.
   5. The hot-content cutoff is derived from measured request traffic over a stated window — not a fixed guess — and a full archive re-render completes with no single Worker invocation exceeding the 300 s CPU ceiling.
 
-**Plans**: 8/12 plans executed in 7 waves
+**Plans**: 21/21 plans executed — 12 executed in 7 waves; 9 gap-closure plans (05-13..05-21, from 05-VERIFICATION.md + 05-REVIEW.md) in 4 waves
 
 Plans:
 **Wave 1**
@@ -342,16 +342,37 @@ Plans:
 
 **Wave 5** *(blocked on Wave 4 completion)*
 
-- [ ] 05-09-PLAN.md — Owner decides the route to dev.915tldr.com (costly decision: merge to main vs local deploy); first archive-tier deploy observed and live-checked (wave 5)
+- [x] 05-09-PLAN.md — Owner decides the route to dev.915tldr.com (costly decision: merge to main vs local deploy); first archive-tier deploy observed and live-checked (wave 5)
 
 **Wave 6** *(blocked on Wave 5 completion)*
 
-- [ ] 05-10-PLAN.md — REND-12: forced full re-upload through the real pipeline; verdict with the criterion-5 (300 s) reinterpretation (wave 6)
-- [ ] 05-11-PLAN.md — Live URL contract and real-browser journeys for archived pages; R2 latency p50/p95 and archived LCP vs 1.5 s (wave 6)
+- [x] 05-10-PLAN.md — REND-12: forced full re-upload through the real pipeline; verdict with the criterion-5 (300 s) reinterpretation (wave 6)
+- [x] 05-11-PLAN.md — Live URL contract and real-browser journeys for archived pages; R2 latency p50/p95 and archived LCP vs 1.5 s (wave 6)
 
 **Wave 7** *(blocked on Wave 6 completion)*
 
-- [ ] 05-12-PLAN.md — The zero-reads gate (D-01..D-03, halt on failure) and ARCH-08 on the deployed Worker; validation map closed (wave 7)
+- [x] 05-12-PLAN.md — The zero-reads gate (D-01..D-03, halt on failure) and ARCH-08 on the deployed Worker; validation map closed (wave 7)
+
+**Gap closure — Wave 1** *(2026-10-02, owner scope: verifier gaps + safety warnings)*
+
+- [x] 05-13-PLAN.md — CR-01 (ci-build): a dry-run or failed deploy never spawns archive-sync post; credential-free real-CLI rehearsal
+- [x] 05-14-PLAN.md — CR-01 + WR-01 (archive-sync): post refuses a dry run and any build that is not the live deployment; pre-delete re-check
+- [x] 05-15-PLAN.md — WR-08 / REND-10: countOtherFiles counts dist/client + dist/archive; real re-derivation run end to end, preview only
+- [x] 05-16-PLAN.md — CR-03: load window aligned exactly like the baseline; 2026-10-01 verdict re-checked with a read-only aligned re-query
+- [x] 05-17-PLAN.md — ARCH-08: repeatable per-request CPU tool on Workers Observability (API verified live); 1-vs-4 reconciliation; IN-01 correlation
+
+**Gap closure — Wave 2** *(blocked on Gap closure Wave 1 completion)*
+
+- [x] 05-18-PLAN.md — WR-02: R2 failures can't leave the index lying; pre self-heals via listKeys; deleteObjects partial results
+- [x] 05-19-PLAN.md — ARCH-08 owner decision (accept with definition / fix code / re-measure) recorded; WINDOWS #26 per decision
+
+**Gap closure — Wave 3** *(blocked on Gap closure Wave 2 completion)*
+
+- [x] 05-20-PLAN.md — CR-02 (+ IN-06 part): `pnpm run deploy` routed through ci-build; sync marker + guard before wrangler; stale build-start marker ignored
+
+**Gap closure — Wave 4** *(blocked on Gap closure Wave 3 completion)*
+
+- [x] 05-21-PLAN.md — REND-11 daily-report human check; 05-VALIDATION.md and evidence-based REQUIREMENTS.md statuses; deferred review findings parked
 
 ### Phase 6: Bilingual
 
@@ -366,7 +387,56 @@ Plans:
   4. Spanish-language articles render with `lang="es"` on the correct element and carry the same AI-generation disclosure as their English counterparts.
   5. `Accept-Language` is logged at the edge and a report of Spanish-preferring request share is available to inform the `/es` launch decision on 2-4 weeks of measured data.
 
-**Plans**: TBD
+**Plans:** 13/17 plans executed
+
+Plans:
+**Wave 1**
+
+- [x] 06-01-PLAN.md — Pipeline tracer: one model call → English row + grounded Spanish row in `article_translations` (local wrangler dev); Spanish grounding hardening; measured token budget and live cost delta
+- [x] 06-02-PLAN.md — Worker request path language-aware: `/es` canonical redirects, Spanish R2 keys, no Accept-Language/cookie/geo selection
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
+- [x] 06-03-PLAN.md — [BLOCKING] Production migration of `article_translations` with owner consent (and pilot-write pre-approval)
+- [x] 06-04-PLAN.md — Archive build/sync side: Spanish tier facts, partition onto `es/` keys, R2 validation/listing, language-aware manifest key
+- [x] 06-05-PLAN.md — EN/ES dictionary, category labels, Base `lang`/hreflang/x-default, header switcher, `/es` home, Spanish dates, Umami tag
+
+**Wave 3** *(blocked on Wave 2 completion)*
+
+- [x] 06-06-PLAN.md — `articlesEs` content collection from `article_translations` (build-time only) with Spanish never-shrink baseline
+- [x] 06-08-PLAN.md — Measured backfill dry run (30-row sample, two-stage Batch projection) and ≤30-row pilot write
+
+**Wave 4** *(blocked on Wave 3 completion)*
+
+- [x] 06-07-PLAN.md — Spanish About/Privacy/Terms/Contact (fluent human review), `/es/changelog`, accurate Umami disclosure
+- [x] 06-09-PLAN.md — Article pages in both languages: `/es` mirror with D-05 fallback, paired hreflang, D-07 label, JSON-LD `inLanguage`
+
+**Wave 5** *(blocked on Wave 4 completion)*
+
+- [x] 06-10-PLAN.md — `/es` listings (home, category, tag, tags, source) and Spanish 404
+
+**Wave 6** *(blocked on Wave 5 completion)*
+
+- [x] 06-11-PLAN.md — Per-language feeds: `/es/rss.xml`, Spanish sitemap file, `/es/news-sitemap.xml`
+
+**Wave 7** *(blocked on Wave 6 completion)*
+
+- [x] 06-12-PLAN.md — Measured build/file/convergence budget and full-corpus hreflang/lang/link invariants (gate)
+
+**Wave 8** *(blocked on Wave 7 completion)*
+
+- [x] 06-13-PLAN.md — Owner go-live decision (live ingest + backfill ceiling) and pipeline production deploy
+- [ ] 06-15-PLAN.md — Frontend deploy decision, R2 pre-population of Spanish archive keys, ship
+
+**Wave 9** *(blocked on Wave 8 completion)*
+
+- [ ] 06-14-PLAN.md — Live ingest verified; resumable Batch backfill proven on a 200-row tracer chunk
+- [ ] 06-16-PLAN.md — Live verification: real-browser language journeys, Accept-Language → English, `/es` URL contract, Umami language report
+
+**Wave 10** *(blocked on Wave 9 completion)*
+
+- [ ] 06-17-PLAN.md — Backfill to completion under the ceiling; live convergence of archived Spanish pages
+
 **UI hint**: yes
 
 ### Phase 7: Imagery & Share Cards
@@ -482,8 +552,8 @@ Phase 3 and may run alongside Phases 5-7.
 | 2. Content Quality & Grounding | 11/10 | Complete    | 2026-09-21 |
 | 3. Foundation & Read-Budget Guardrails | 7/7 | Complete    | 2026-09-26 |
 | 4. Static Generation, Templates & SEO | 12/12 | In Progress|  |
-| 5. Hybrid Archive & Zero-Reads Proof | 8/12 | In Progress|  |
-| 6. Bilingual | 0/TBD | Not started | - |
+| 5. Hybrid Archive & Zero-Reads Proof | 21/21 | Complete    | 2026-10-03 |
+| 6. Bilingual | 13/17 | In Progress|  |
 | 7. Imagery & Share Cards | 0/TBD | Not started | - |
 | 8. Server Islands & Interactivity | 0/TBD | Not started | - |
 | 9. Search | 0/TBD | Not started | - |

@@ -7,7 +7,18 @@
 // out-prioritized a correctly-reassigned Custom Domain for 3+ minutes). This script is the
 // only thing in this repo that checks the header actually arrives.
 //
-// Four checks, each independent and individually reported:
+// 05-11 added a fifth check: an ARCHIVED article (served by the Worker's R2-serving branch, not
+// the static-asset layer) also carries the noindex header — proving the Transform Rule's
+// hostname match covers Worker-generated archive responses, not just the static-asset class
+// check 1 already covers. The archived path comes from `--archived-path`, or (default) is
+// discovered from the local build's own `dist/archive-plan.json` via `tests/helpers/
+// archive-sample.mjs` — the same discovery check 4 already does for a live homepage link, just
+// sourced from the local build instead (an archived page is no longer linked from the live
+// homepage once partitioned out of the static output, so there is no "live page" to crawl this
+// one from). Missing input (no `--archived-path` AND no local `dist/archive-plan.json`) reports
+// the check as SKIPPED with a reason — never silently reported as passed.
+//
+// Five checks, each independent and individually reported:
 //
 //   1. Static asset response on the dev host — GET https://dev.915tldr.com/version.json.
 //      This is a real static file Astro emits at build time (dist/client/version.json), served
@@ -107,6 +118,7 @@ function parseArgs(argv) {
     // and fall through to admin-dev's Nuxt SSR 404 handler.
     workerNotFoundPath: '/__verify-edge-headers-worker-check__',
     articlePath: null, // auto-discovered from the live homepage (discoverLiveArticlePath) when not given
+    archivedPath: null, // auto-discovered from the local build's dist/archive-plan.json when not given
     json: false,
   };
   for (let i = 0; i < argv.length; i++) {
@@ -117,6 +129,7 @@ function parseArgs(argv) {
     if (arg === '--dev-asset-path') { args.devAssetPath = argv[++i]; continue; }
     if (arg === '--worker-not-found-path') { args.workerNotFoundPath = argv[++i]; continue; }
     if (arg === '--article-path') { args.articlePath = argv[++i]; continue; }
+    if (arg === '--archived-path') { args.archivedPath = argv[++i]; continue; }
     if (arg === '--json') { args.json = true; continue; }
     if (arg.startsWith('--dev-host=')) { args.devHost = arg.slice('--dev-host='.length); continue; }
     if (arg.startsWith('--admin-host=')) { args.adminHost = arg.slice('--admin-host='.length); continue; }
@@ -124,8 +137,32 @@ function parseArgs(argv) {
     if (arg.startsWith('--dev-asset-path=')) { args.devAssetPath = arg.slice('--dev-asset-path='.length); continue; }
     if (arg.startsWith('--worker-not-found-path=')) { args.workerNotFoundPath = arg.slice('--worker-not-found-path='.length); continue; }
     if (arg.startsWith('--article-path=')) { args.articlePath = arg.slice('--article-path='.length); continue; }
+    if (arg.startsWith('--archived-path=')) { args.archivedPath = arg.slice('--archived-path='.length); continue; }
   }
   return args;
+}
+
+/**
+ * Discovers one archived article's canonical path from the local build's own `dist/
+ * archive-plan.json` (via `tests/helpers/archive-sample.mjs`) — NOT from crawling the live
+ * homepage, since an archived page is deliberately partitioned out of the static output and is
+ * never linked from it. Returns `{ path }` on success or `{ error }` with a human-readable
+ * reason (never throws), mirroring `discoverLiveArticlePath`'s own contract.
+ */
+export async function discoverArchivedArticlePath() {
+  let helper;
+  try {
+    helper = await import('../tests/helpers/archive-sample.mjs');
+  } catch (err) {
+    return { error: `could not load tests/helpers/archive-sample.mjs: ${err.message}` };
+  }
+  try {
+    const plan = helper.loadArchivePlan();
+    const [sample] = helper.pickArchivedArticles(plan, 1, { marginDays: 2 });
+    return { path: sample.path };
+  } catch (err) {
+    return { error: err instanceof Error ? err.message : String(err) };
+  }
 }
 
 /**
@@ -247,6 +284,39 @@ export async function runChecks(args) {
     }
   }
 
+  // 5. An ARCHIVED article (Worker's R2-serving branch, not the static-asset layer) also carries
+  //    noindex — see this file's header comment for why discovery differs from check 4's.
+  //    Missing input is reported as SKIPPED with a reason, never as passed.
+  {
+    const name = 'archived article response carries noindex (dev host, Worker-served from R2)';
+    let archivedPath = args.archivedPath;
+    let discoveryError = null;
+    if (!archivedPath) {
+      const discovered = await discoverArchivedArticlePath();
+      archivedPath = discovered.path ?? null;
+      discoveryError = discovered.error ?? null;
+    }
+    if (!archivedPath) {
+      checks.push({
+        name,
+        url: null,
+        expected: 'x-robots-tag: noindex, status 200',
+        observed: `skipped — no --archived-path given and could not discover one locally: ${discoveryError}`,
+        pass: false,
+        skipped: true,
+      });
+    } else {
+      const url = `https://${args.devHost}${archivedPath}`;
+      try {
+        const { status, headerValue } = await fetchHeader(url, 'x-robots-tag');
+        const pass = status === 200 && /noindex/i.test(headerValue || '');
+        checks.push({ name, url, expected: 'x-robots-tag: noindex, status 200', observed: `status ${status}, x-robots-tag: ${headerValue ?? '(absent)'}`, pass });
+      } catch (err) {
+        checks.push({ name, url, expected: 'x-robots-tag: noindex, status 200', observed: `network error: ${err.message}`, pass: false });
+      }
+    }
+  }
+
   return checks;
 }
 
@@ -255,19 +325,31 @@ async function main() {
   const start = Date.now();
   const checks = await runChecks(args);
   const durationMs = Date.now() - start;
-  const ok = checks.every((c) => c.pass);
+  // A skipped check (missing input, e.g. no local dist/archive-plan.json and no --archived-path)
+  // is neither a pass nor a failure — it never counts toward "all checks passed" being reported
+  // true, but it also doesn't fail the whole run the way a genuine FAIL does, matching the
+  // must_have's "reports the check as skipped ... never as passed" (not "never blocks the run").
+  const ok = checks.every((c) => c.pass || c.skipped);
+  const allPassed = checks.every((c) => c.pass);
 
   if (args.json) {
-    console.log(JSON.stringify({ ok, durationMs, checks }, null, 2));
+    console.log(JSON.stringify({ ok, allPassed, durationMs, checks }, null, 2));
   } else {
     console.log(`[verify-edge] ${checks.length} checks, ${durationMs}ms`);
     for (const c of checks) {
-      console.log(`  ${c.pass ? 'PASS' : 'FAIL'}  ${c.name}`);
-      console.log(`        url:      ${c.url}`);
+      const label = c.skipped ? 'SKIP' : c.pass ? 'PASS' : 'FAIL';
+      console.log(`  ${label}  ${c.name}`);
+      console.log(`        url:      ${c.url ?? '(none — see observed)'}`);
       console.log(`        expected: ${c.expected}`);
       console.log(`        observed: ${c.observed}`);
     }
-    console.log(ok ? '[verify-edge] all checks passed' : '[verify-edge] one or more checks FAILED');
+    console.log(
+      allPassed
+        ? '[verify-edge] all checks passed'
+        : ok
+          ? '[verify-edge] all checks passed or skipped (no failures)'
+          : '[verify-edge] one or more checks FAILED'
+    );
   }
 
   process.exitCode = ok ? 0 : 1;

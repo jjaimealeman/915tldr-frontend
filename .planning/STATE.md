@@ -2,18 +2,18 @@
 gsd_state_version: 1.0
 milestone: v1.5
 milestone_name: milestone
-current_phase: 05
-current_phase_name: Hybrid Archive & Zero-Reads Proof
+current_phase: 06
+current_phase_name: bilingual
 status: executing
-stopped_at: Completed 05-08-PLAN.md
-last_updated: "2026-10-01T07:52:10.600Z"
-last_activity: 2026-09-30
-last_activity_desc: Phase 05 plan 01 executed (tag tiering, hot window, build-time tier facts)
+stopped_at: Phase 6 context gathered
+last_updated: "2026-10-03T16:54:02.454Z"
+last_activity: 2026-10-03
+last_activity_desc: Phase 05 complete, transitioned to Phase 6
 progress:
-  total_phases: 5
-  completed_phases: 4
-  total_plans: 64
-  completed_plans: 60
+  total_phases: 6
+  completed_phases: 5
+  total_plans: 90
+  completed_plans: 78
 ---
 
 # Project State
@@ -23,22 +23,22 @@ progress:
 See: .planning/PROJECT.md (updated 2026-09-16)
 
 **Core value:** Zero D1 reads on the public request path — architecturally zero, enforced structurally at build time.
-**Current focus:** Phase 05 — Hybrid Archive & Zero-Reads Proof
+**Current focus:** Phase 06 — bilingual
 
 ## Current Position
 
-Phase: 05 (Hybrid Archive & Zero-Reads Proof) — EXECUTING
-Plan: 9 of 12
+Phase: 06 (bilingual) — EXECUTING
+Plan: 2 of 17
 Status: Ready to execute
-Last activity: 2026-09-30 — Phase 05 plan 01 executed (tag tiering, hot window, tier facts)
+Last activity: 2026-10-03 — Phase 06 execution started
 
-Progress: [█████████░] 94%
+Progress: [██████████] 100%
 
 ## Performance Metrics
 
 **Velocity:**
 
-- Total plans completed: 41
+- Total plans completed: 62
 - Average duration: —
 - Total execution time: —
 
@@ -49,6 +49,7 @@ Progress: [█████████░] 94%
 | 01 | 23 | - | - |
 | 02 | 11 | - | - |
 | 03 | 7 | - | - |
+| 05 | 21 | - | - |
 
 **Recent Trend:**
 
@@ -109,6 +110,19 @@ Progress: [█████████░] 94%
 | Phase 05 P06 | ~40min | 3 tasks | 12 files |
 | Phase 05 P07 | ~40min | 3 tasks | 5 files |
 | Phase 05 P08 | ~55min | 3 tasks | 7 files |
+| Phase 05 P09 | ~90min | 3 tasks | 1 files |
+| Phase 05 P11 | ~110min | 3 tasks | 14 files |
+| Phase 05 P10 | ~76min | 2 tasks | 3 files |
+| Phase 05 P12 | ~3h10min | 3 tasks | 11 files |
+| Phase 05 P13 | 35min | 2 tasks | 3 files |
+| Phase 05 P14 | ~21min | 3 tasks | 3 files |
+| Phase 05 P15 | ~35min | 2 tasks | 3 files |
+| Phase 05 P16 | 25min | 2 tasks | 4 files |
+| Phase 05 P18 | 4min | 3 tasks | 6 files |
+| Phase 05 P20 | ~35min | 3 tasks | 9 files |
+| Phase 05 P17 | 27min | 2 tasks | 10 files |
+| Phase 05 P19 | 25min | 1 tasks | 7 files |
+| Phase 05 P21 | ~50min | 3 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -264,6 +278,30 @@ Recent decisions affecting current work:
 - [Phase ?]: 05-08: isProductionDeploy(env) in tools/ci-build.mjs is deliberately the exact inverse of archive-sync.mjs's own isR2WriteBlocked predicate, kept in sync so the two guards never disagree about what counts as production.
 - [Phase ?]: 05-08: found and fixed a real bug in tools/assert-file-count.mjs (not in this plan's file list) — the gate's own +1-for-static-budget.json assumption breaks the second time it runs in one build, which is this plan's own Task 1 requirement; fixed, pinned with a regression test, re-verified live.
 - [Phase ?]: 05-08: REND-07, REND-11 and REND-12 are intentionally left Pending in REQUIREMENTS.md — the full archive sequence is proven live at full corpus scale (30,478 entries) but through a CI_BUILD_DEPLOY_DRY_RUN=1 run, not a real production deploy through Workers Builds CI; that is 05-09's job.
+- [Phase ?]: 05-09: Owner selected option-a (merge to main) at Task 1's checkpoint, 2026-10-01 ~09:07 MDT; merge/push executed ~09:14 MDT (57c4b05 -> 57dfa94), triggering the real Workers Builds production deploy this plan observed.
+- [Phase ?]: 05-09: Archive tier confirmed live on dev.915tldr.com production (build 241c97e1, commit 57dfa94); cold R2 p95=215ms / KV p95=188ms, both under the ~300ms hot-window revisit threshold -> 202-day window kept as-is.
+- [Phase ?]: 05-09: REND-07 and REND-11 both marked Complete, confirmed by the real production build log's own lines (orchestrator-supplied, this executor's own token returns 403/12004 against the Builds API). REND-11's three-way count mismatch (gate 29,966 vs wrangler's "Read N files" 29,978 vs wrangler's own upload accounting 29,962) is fully reconciled file by file: the 12-file gap is wrangler's own console line counting top-level directories alongside files (reproduced locally, not a real asset-count discrepancy); the 4-file gap is four root control files (.assetsignore, _headers, _redirects, wrangler.json) the gate correctly counts but wrangler correctly never serves. No code fix was needed -- assert-file-count.mjs's conservative-superset design was already correct; see docs/phase-05/evidence/first-prod-deploy/rend-11-reconciliation.md.
+- [Phase ?]: 05-11: dev.915tldr.com's deployed commit had drifted from local HEAD (a scheduled/ingest-triggered Workers Builds rebuild reports the literal branch name "main", not a sha, for a non-push-triggered build; plus 05-09's own post-deploy doc commits were unmerged) -- redeployed directly from local HEAD via `pnpm run deploy:ci` (`node tools/ci-build.mjs deploy`, idempotent, $0 cost) three times across this plan's three task commits to keep /version.json matching HEAD exactly for the T-04-48 stale-deploy guard; the guard itself was widened to accept an ancestor relationship in either direction with zero diff on guarded paths (not just "HEAD ancestor of deployed"), matching this project's real per-phase-branch workflow.
+- [Phase ?]: 05-11: Live proof complete -- 81/81 tests pass (url-shapes.test.mjs 71, browser-journeys.test.mjs 10) against the real deployed site, verify:edge 5/5 (new check 5: archived-page noindex), real-Chromium clicks into both an archived article and an archived tag with no extra redirects.
+- [Phase ?]: 05-11: Criterion 2 measured, NOT met on the canonical run -- `R2_LATENCY_EXCEEDS_LCP` (archived p95 LCP 1,788ms vs the 1,500ms budget; 200-sample R2 get() p95=172ms, KV p95=155ms, both small and well within budget). Four back-to-back runs on the operator machine showed real variance (archived p95 LCP 1200/1212/2108/1788ms) -- the archive tier's own R2/KV cost is NOT the bottleneck; hot (never-archived) pages also sit close to the 1.5s line (p95 1,484ms) in this lab proxy, pointing at general page-weight/render cost as the real lever, not the archive-serving mechanism. Flagged for owner review in docs/phase-05/archive-latency.md; field LCP at mobile p75 (PROJECT.md's actual release gate) is unaffected and still pending Phase 11. Also corrects ROADMAP.md Phase 5 criterion 2's "~30 KB objects" assumption -- measured archived-article objects are ~13KB (median 13,070 bytes), not ~30KB.
+- [Phase ?]: 05-10: REND-12 marked Complete -- forced full re-upload (30,501 pages) measured live on Workers Builds at 54.64 obj/s; worst-case arithmetic computed against a genuinely cold render (Phase 4's 649s), not this run's own warm-cache render, converges in 2 builds (4h) against the 24h D-10 promise.
+- [Phase ?]: 05-10: Phase 6 projection flagged, not fixed -- at ~2x today's archived-page count, cold render time alone may already exceed the 20-minute Workers Builds hard ceiling; needs a real re-measurement before Phase 6 ships.
+- [Phase ?]: 05-12: ARCH-01 verdict ZERO_READS_PROVEN -- a real 20,000-request pass against the deployed Worker measured load-window rowsRead (1,684,090) within v1's own 7-day background (z=-1.0011), and the deployed Worker carries no D1 binding. Phase 5's core premise is proven, not assumed; Phase 6 may proceed per D-02.
+- [Phase ?]: 05-12: Found and fixed two real, pre-existing bugs in load-test-zero-reads.mjs (05-04's own gate instrument) before the real gate could run: the documented analytics catch-up wait was dead code on the live CLI path, and --archive-plan was parsed but never used to build a request mix -- the documented CLI usage had never actually worked, on any invocation, before 05-12.
+- [Phase ?]: 05-12: ARCH-08 measured on the deployed Worker over the gate's own window -- KV reads within budget (202/8464 invocations), CPU p50/p99 excellent (0.764ms/2.846ms), but a single real request spiked to 49.966ms, over the 20ms hard-fail ceiling. Disclosed, not hidden; recorded as a failed requirement for /gsd-verify-work, not a project halt (D-02 applies only to the ZERO_READS_* verdict). Logged to WINDOWS.md #26.
+- [Phase ?]: 05-13: Restructured ci-build.mjs's deploy branch so commitImpl AND the entire archive-sync post spawn/parse/alert block run only inside a single !dryRun conditional (not two independent guards) — closes the ci-build half of code-review finding CR-01; proven by 3 red-to-green regression tests plus a credential-free live CLI dry run (pre reported disabled:true, skip line logged once, zero post ARCHIVE_SYNC_RESULT lines).
+- [Phase ?]: 05-14: no override flag for manual archive-sync post against a local build — refused by design, documented rather than worked around
+- [Phase ?]: 05-14: checkLiveDeployment compares commit AND builtAt (not commit alone) — builtAt differs between a local build and the deployed build of the same commit
+- [Phase ?]: 05-15: countOtherFiles now counts both dist/client and dist/archive (WR-08), with a negative-result guard naming all four counts; DEFAULT_DIST_ARCHIVE re-exported from partition-archive.mjs's ARCHIVE_DIR
+- [Phase ?]: 05-15: the real, non-probe derive-hot-window.mjs path was proven live end to end (preview only, no --write) against current Cloudflare Zone Analytics; hot-window.json confirmed byte-identical before/after -- REND-10's only recorded blocking gap (05-VERIFICATION gap 3) is closed, but REQUIREMENTS.md is left for 05-21 to update per convention
+- [Phase ?]: 05-16: fixed zero-reads gate's CR-03 window-alignment bias structurally (one aligned window feeds both sides); re-checked the 2026-10-01 ZERO_READS_PROVEN verdict with a real read-only re-query (2,183,097 rowsRead, z=-0.7585), confirming it on measured data rather than the review's own estimate
+- [Phase ?]: WR-02 closed: post-sync index-write failures are non-fatal alerts; pre-sync self-heals any index entry R2 doesn't actually hold; deleteObjects reports partial results instead of throwing away confirmed deletions
+- [Phase ?]: 05-20: CR-02 closed — pnpm run deploy routed through tools/ci-build.mjs deploy, gated on a new tools/assert-archive-synced.mjs guard that refuses a partitioned dist/ unless archive-sync pre has confirmed this exact build (marker keyed to the plan's generatedAt). IN-06 fixed alongside (BUILD_START_MARKER_MAX_AGE_SECONDS=1800). Both CR-01 and CR-02 -- the two blockers on REND-07/REND-08 per 05-VERIFICATION.md -- are now closed; REQUIREMENTS.md closure itself deferred to 05-21 per this project's own established pattern.
+- [Phase ?]: ARCH-08: no decision made — docs/phase-05/arch-08-cpu-outliers.md records three labelled options (accept/fix/re-measure) for the owner's 05-19 checkpoint
+- [Phase ?]: ARCH-08 outlier count settled at 4 (>=20ms) / 5 (>=5ms) via a new per-request tool against Workers Observability telemetry (dataset cloudflare-workers), not the aggregate GraphQL workersInvocationsAdaptive dataset
+- [Phase ?]: ARCH-08 CPU axis: owner chose option (c) re-measure (05-19); criterion fixed before measuring (p99<5ms AND >=20ms share <0.1%) mechanically MET on a 24h dev.915tldr.com window, but the 3-invocation sample was 100% bot-scan 404 traffic with zero archive-page requests, so ARCH-08's CPU axis remains an open gap (WINDOWS.md #26 not waived) pending 05-21
+- [Phase ?]: Phase 5 gap closure (05-21): ARCH-08 recorded as Gaps Found (not Complete) despite a mechanically MET re-measurement — owner deferred final judgment to Phase 12's 7-day soak after seeing the sample contained zero archive-page traffic
+- [Phase ?]: Phase 5 gap closure (05-21): REND-11 daily report delivery confirmed NOT observed by the owner after searching all 6 ntfy topics; recorded Gaps Found with a dedicated follow-up todo
 
 ### Pending Todos
 
@@ -306,6 +344,16 @@ Recent decisions affecting current work:
 - 04-07: production robots.txt behavior changes on next deploy -- v1's AI-crawler-blocking policy (Content-signal, GPTBot/ClaudeBot/CCBot/etc. Disallow) has never actually been served (v1's static public/robots.txt shadowed its own server route); v2 ships the intended policy, an owner-approved but real change to what's been crawlable. Also flagged: SEO-04 sitemap ordering-determinism unverified across two builds (@astrojs/sitemap documents no stable ordering guarantee) -- see 04-07-SUMMARY.md coverage D4.
 - **RESOLVED — Phase 4, 04-10 Task 2.** The owner chose option (a) and pushed `cc1b050` on 2026-09-30. Builds 3-4 ran on the real Workers Builds platform: Build 3 (flag-on, first toggle) was cold again as 04-09 already documented, 0/60,349 pages restored (expected); Build 4 (flag-on, no toggle) confirmed at least 34,871/~60,349 pages restored via `experimental.incrementalBuild` on a genuinely fresh Workers Builds container, wall time collapsing from 554s to 147s. **Verdict: `WB_REUSE_PROVEN`** — contradicts and supersedes 04-09's local `REUSE_WARM_ONLY` finding; likely explained by Workers Builds restoring both a dependencies cache and a build-output cache from the prior build, which 04-09's local fresh-clone simulation never fully reproduced. A new cost-relevant finding surfaced along the way: Build 3's deploy re-uploaded 60,355/60,355 assets (only 7 deduplicated), root-caused to `src/layouts/Base.astro` unconditionally printing `BUILD_HASH` in every page's footer — reported for 04-11, not fixed (Rule 4). The temporary `incrementalBuild=true` hardcode was reverted (`99795e3`) once both spike builds completed. See `04-10-SUMMARY.md` and `docs/phase-04/build-measurements.md` for full detail. 04-10 is complete.
 - STATE.md frontmatter current_phase was stale at 04 despite Phase 5 context/research/plan already existing on disk (05-CONTEXT.md, 05-RESEARCH.md, 12 PLAN.md files) — corrected to 05 during 05-01 execution; the body Current Position section had the same staleness and was corrected alongside it.
+- **OPEN — Phase 5, 05-11 (owner review needed before Phase 11, not blocking 05-10/05-12).** Criterion 2's lab LCP measurement returned `R2_LATENCY_EXCEEDS_LCP` on its canonical run (archived p95 LCP 1,788ms > 1,500ms budget), with real run-to-run variance across four runs on the operator machine (1200-2108ms). The archive tier's own R2/KV cost is small and not the cause (p95 ~172ms/155ms); hot pages also sit close to the 1.5s line in this lab proxy (p95 1,484ms), pointing at general page-weight/render cost, not the archive-serving mechanism. See `docs/phase-05/archive-latency.md` for full analysis. Does not block 05-10/05-12 (neither depends on this verdict); flagged for owner attention before Phase 11's real field-LCP release gate.
+- **RESOLVED (scope clarified) — 05-09.** The Cloudflare Workers Builds API (GET /accounts/{id}/builds/workers/{tag}/builds) returns 403 Forbidden/12004 for both CLOUDFLARE_API_TOKEN and CF_API_TOKEN *as configured for the executor*. This is an executor-token-scope issue, not a platform-wide block: the orchestrator's own Cloudflare API access reached the same build's logs successfully and supplied the real production build's ARCHIVE_SYNC_RESULT lines (pre: uploaded 19/failed 0; post: uploaded 22/deleted 3/backlog 0), now committed as evidence at docs/phase-05/evidence/first-prod-deploy/build-241c97e1-archive-lines.log. **For 05-10/05-12: ask the orchestrator for build-log lines rather than treating this as a blocker on those plans.** Re-granting the executor's own token's Workers Builds read scope remains a convenience (so a future executor session doesn't need to ask), not a requirement.
+- OPEN -- Phase 6 planning. 05-10's linear-scaling projection (archived pages ~2x, cold render scaled by the same ratio) shows render time ALONE (~1,298s) may already exceed the 20-minute Workers Builds hard ceiling once the corpus roughly doubles -- a different, more structural concern than REND-12's own (converged) upload-side chaining. Does not block 05-12 or Phase 5 completion; flagged for Phase 6 to re-measure a real cold build against its actual corpus size before relying on the current 2-hourly chained-build convergence mechanism. See docs/phase-05/archive-architecture.md's '05-10 -- forced full re-upload (REND-12)' section.
+
+### Quick Tasks Completed
+
+| # | Description | Date | Commit | Directory |
+|---|-------------|------|--------|-----------|
+| 261002-s2r | Make ntfy daily-report delivery observable and retryable (REND-11) | 2026-10-02 | 372e9ca | [261002-s2r-make-ntfy-daily-report-delivery-observab](./quick/261002-s2r-make-ntfy-daily-report-delivery-observab/) |
+| 261002-tl2 | Fix pending build-state write race (serialized + atomic writes) | 2026-10-02 | 2c49dd4 | [261002-tl2-fix-pending-build-state-write-race-seria](./quick/261002-tl2-fix-pending-build-state-write-race-seria/) |
 
 ## Deferred Items
 
@@ -317,6 +365,6 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-10-01T07:52:10.580Z
-Stopped at: Completed 05-08-PLAN.md
-Resume file: None
+Last session: 2026-10-03T08:48:10.225Z
+Stopped at: Phase 6 context gathered
+Resume file: .planning/phases/06-bilingual/06-CONTEXT.md

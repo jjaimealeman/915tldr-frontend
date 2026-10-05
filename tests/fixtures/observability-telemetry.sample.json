@@ -1,0 +1,1164 @@
+{
+  "_comment": "Synthetic fixture reproducing the VERIFIED raw shape of the Workers Observability telemetry API (dataset=cloudflare-workers), recorded in docs/phase-05/evidence/cpu-outliers-gate-20261001/api-shape.json on 2026-10-02. All values are synthetic — no real client IP, user agent, account id, or request ever appears here.",
+  "window": {
+    "from": 1700000000000,
+    "to": 1700000400000
+  },
+  "rawEvents": [
+    {
+      "source": {
+        "level": "info",
+        "message": "GET https://dev.915tldr.com/tag/el-paso"
+      },
+      "dataset": "cloudflare-workers",
+      "timestamp": 1700000010000,
+      "$workers": {
+        "truncated": false,
+        "event": {
+          "request": {
+            "cf": {
+              "colo": "LAX",
+              "country": "US",
+              "asOrganization": "Synthetic ISP"
+            },
+            "headers": {
+              "user-agent": "SyntheticAgent/1.0 (fixture, not a real client)",
+              "cf-connecting-ip": "192.0.2.10",
+              "x-real-ip": "192.0.2.10",
+              "host": "dev.915tldr.com"
+            },
+            "method": "GET",
+            "url": "https://dev.915tldr.com/tag/el-paso"
+          },
+          "path": "/tag/el-paso",
+          "response": {
+            "status": 200
+          }
+        },
+        "scriptName": "915tldr-v2",
+        "scriptVersion": {
+          "id": "11111111-1111-1111-1111-111111111111"
+        },
+        "eventType": "fetch",
+        "executionModel": "stateless",
+        "outcome": "ok",
+        "wallTimeMs": 5,
+        "cpuTimeMs": 0.7
+      },
+      "$metadata": {
+        "id": "fixture-id-0",
+        "requestId": "fixture-request-id-0",
+        "rayId": "fixture-ray-0",
+        "traceId": "fixture-trace-0",
+        "trigger": "GET /tag/el-paso",
+        "timestampNs": "1700000010000000000",
+        "service": "915tldr-v2",
+        "level": "info",
+        "message": "GET https://dev.915tldr.com/tag/el-paso",
+        "account": "fixture-account-id-never-real",
+        "type": "cf-worker-event",
+        "origin": "fetch"
+      }
+    },
+    {
+      "source": {
+        "level": "info",
+        "message": "GET https://dev.915tldr.com/business/airbnb-market-trends-outlier-d-22222222-2222-2222-2222-222222222222"
+      },
+      "dataset": "cloudflare-workers",
+      "timestamp": 1700000050000,
+      "$workers": {
+        "truncated": false,
+        "event": {
+          "request": {
+            "cf": {
+              "colo": "DFW",
+              "country": "US",
+              "asOrganization": "Synthetic ISP"
+            },
+            "headers": {
+              "user-agent": "SyntheticAgent/1.0 (fixture, not a real client)",
+              "cf-connecting-ip": "192.0.2.10",
+              "x-real-ip": "192.0.2.10",
+              "host": "dev.915tldr.com"
+            },
+            "method": "GET",
+            "url": "https://dev.915tldr.com/business/airbnb-market-trends-outlier-d-22222222-2222-2222-2222-222222222222"
+          },
+          "path": "/business/airbnb-market-trends-outlier-d-22222222-2222-2222-2222-222222222222",
+          "response": {
+            "status": 200
+          }
+        },
+        "scriptName": "915tldr-v2",
+        "scriptVersion": {
+          "id": "11111111-1111-1111-1111-111111111111"
+        },
+        "eventType": "fetch",
+        "executionModel": "stateless",
+        "outcome": "ok",
+        "wallTimeMs": 31,
+        "cpuTimeMs": 26
+      },
+      "$metadata": {
+        "id": "fixture-id-1",
+        "requestId": "fixture-request-id-1",
+        "rayId": "fixture-ray-1",
+        "traceId": "fixture-trace-1",
+        "trigger": "GET /business/airbnb-market-trends-outlier-d-22222222-2222-2222-2222-222222222222",
+        "timestampNs": "1700000050000000000",
+        "service": "915tldr-v2",
+        "level": "info",
+        "message": "GET https://dev.915tldr.com/business/airbnb-market-trends-outlier-d-22222222-2222-2222-2222-222222222222",
+        "account": "fixture-account-id-never-real",
+        "type": "cf-worker-event",
+        "origin": "fetch"
+      }
+    },
+    {
+      "source": {
+        "level": "info",
+        "message": "GET https://dev.915tldr.com/business/wall-street-outlier-a-33333333-3333-3333-3333-333333333333"
+      },
+      "dataset": "cloudflare-workers",
+      "timestamp": 1700000100000,
+      "$workers": {
+        "truncated": false,
+        "event": {
+          "request": {
+            "cf": {
+              "colo": "LAX",
+              "country": "US",
+              "asOrganization": "Synthetic ISP"
+            },
+            "headers": {
+              "user-agent": "SyntheticAgent/1.0 (fixture, not a real client)",
+              "cf-connecting-ip": "192.0.2.10",
+              "x-real-ip": "192.0.2.10",
+              "host": "dev.915tldr.com"
+            },
+            "method": "GET",
+            "url": "https://dev.915tldr.com/business/wall-street-outlier-a-33333333-3333-3333-3333-333333333333"
+          },
+          "path": "/business/wall-street-outlier-a-33333333-3333-3333-3333-333333333333",
+          "response": {
+            "status": 200
+          }
+        },
+        "scriptName": "915tldr-v2",
+        "scriptVersion": {
+          "id": "11111111-1111-1111-1111-111111111111"
+        },
+        "eventType": "fetch",
+        "executionModel": "stateless",
+        "outcome": "ok",
+        "wallTimeMs": 44,
+        "cpuTimeMs": 37
+      },
+      "$metadata": {
+        "id": "fixture-id-2",
+        "requestId": "fixture-request-id-2",
+        "rayId": "fixture-ray-2",
+        "traceId": "fixture-trace-2",
+        "trigger": "GET /business/wall-street-outlier-a-33333333-3333-3333-3333-333333333333",
+        "timestampNs": "1700000100000000000",
+        "service": "915tldr-v2",
+        "level": "info",
+        "message": "GET https://dev.915tldr.com/business/wall-street-outlier-a-33333333-3333-3333-3333-333333333333",
+        "account": "fixture-account-id-never-real",
+        "type": "cf-worker-event",
+        "origin": "fetch"
+      }
+    },
+    {
+      "source": {
+        "level": "info",
+        "message": "GET https://dev.915tldr.com/politics/new-mexico-outlier-b-44444444-4444-4444-4444-444444444444"
+      },
+      "dataset": "cloudflare-workers",
+      "timestamp": 1700000150000,
+      "$workers": {
+        "truncated": false,
+        "event": {
+          "request": {
+            "cf": {
+              "colo": "DFW",
+              "country": "US",
+              "asOrganization": "Synthetic ISP"
+            },
+            "headers": {
+              "user-agent": "SyntheticAgent/1.0 (fixture, not a real client)",
+              "cf-connecting-ip": "192.0.2.10",
+              "x-real-ip": "192.0.2.10",
+              "host": "dev.915tldr.com"
+            },
+            "method": "GET",
+            "url": "https://dev.915tldr.com/politics/new-mexico-outlier-b-44444444-4444-4444-4444-444444444444"
+          },
+          "path": "/politics/new-mexico-outlier-b-44444444-4444-4444-4444-444444444444",
+          "response": {
+            "status": 200
+          }
+        },
+        "scriptName": "915tldr-v2",
+        "scriptVersion": {
+          "id": "11111111-1111-1111-1111-111111111111"
+        },
+        "eventType": "fetch",
+        "executionModel": "stateless",
+        "outcome": "ok",
+        "wallTimeMs": 55,
+        "cpuTimeMs": 40
+      },
+      "$metadata": {
+        "id": "fixture-id-3",
+        "requestId": "fixture-request-id-3",
+        "rayId": "fixture-ray-3",
+        "traceId": "fixture-trace-3",
+        "trigger": "GET /politics/new-mexico-outlier-b-44444444-4444-4444-4444-444444444444",
+        "timestampNs": "1700000150000000000",
+        "service": "915tldr-v2",
+        "level": "info",
+        "message": "GET https://dev.915tldr.com/politics/new-mexico-outlier-b-44444444-4444-4444-4444-444444444444",
+        "account": "fixture-account-id-never-real",
+        "type": "cf-worker-event",
+        "origin": "fetch"
+      }
+    },
+    {
+      "source": {
+        "level": "info",
+        "message": "GET https://dev.915tldr.com/business/wall-street-outlier-a-33333333-3333-3333-3333-333333333333"
+      },
+      "dataset": "cloudflare-workers",
+      "timestamp": 1700000200000,
+      "$workers": {
+        "truncated": false,
+        "event": {
+          "request": {
+            "cf": {
+              "colo": "LAX",
+              "country": "US",
+              "asOrganization": "Synthetic ISP"
+            },
+            "headers": {
+              "user-agent": "SyntheticAgent/1.0 (fixture, not a real client)",
+              "cf-connecting-ip": "192.0.2.10",
+              "x-real-ip": "192.0.2.10",
+              "host": "dev.915tldr.com"
+            },
+            "method": "GET",
+            "url": "https://dev.915tldr.com/business/wall-street-outlier-a-33333333-3333-3333-3333-333333333333"
+          },
+          "path": "/business/wall-street-outlier-a-33333333-3333-3333-3333-333333333333",
+          "response": {
+            "status": 200
+          }
+        },
+        "scriptName": "915tldr-v2",
+        "scriptVersion": {
+          "id": "11111111-1111-1111-1111-111111111111"
+        },
+        "eventType": "fetch",
+        "executionModel": "stateless",
+        "outcome": "ok",
+        "wallTimeMs": 61,
+        "cpuTimeMs": 49.966
+      },
+      "$metadata": {
+        "id": "fixture-id-4",
+        "requestId": "fixture-request-id-4",
+        "rayId": "fixture-ray-4",
+        "traceId": "fixture-trace-4",
+        "trigger": "GET /business/wall-street-outlier-a-33333333-3333-3333-3333-333333333333",
+        "timestampNs": "1700000200000000000",
+        "service": "915tldr-v2",
+        "level": "info",
+        "message": "GET https://dev.915tldr.com/business/wall-street-outlier-a-33333333-3333-3333-3333-333333333333",
+        "account": "fixture-account-id-never-real",
+        "type": "cf-worker-event",
+        "origin": "fetch"
+      }
+    },
+    {
+      "source": {
+        "level": "info",
+        "message": "GET https://dev.915tldr.com/business/paramount-outlier-e-55555555-5555-5555-5555-555555555555"
+      },
+      "dataset": "cloudflare-workers",
+      "timestamp": 1700000250000,
+      "$workers": {
+        "truncated": false,
+        "event": {
+          "request": {
+            "cf": {
+              "colo": "DFW",
+              "country": "US",
+              "asOrganization": "Synthetic ISP"
+            },
+            "headers": {
+              "user-agent": "SyntheticAgent/1.0 (fixture, not a real client)",
+              "cf-connecting-ip": "192.0.2.10",
+              "x-real-ip": "192.0.2.10",
+              "host": "dev.915tldr.com"
+            },
+            "method": "GET",
+            "url": "https://dev.915tldr.com/business/paramount-outlier-e-55555555-5555-5555-5555-555555555555"
+          },
+          "path": "/business/paramount-outlier-e-55555555-5555-5555-5555-555555555555",
+          "response": {
+            "status": 200
+          }
+        },
+        "scriptName": "915tldr-v2",
+        "scriptVersion": {
+          "id": "11111111-1111-1111-1111-111111111111"
+        },
+        "eventType": "fetch",
+        "executionModel": "stateless",
+        "outcome": "ok",
+        "wallTimeMs": 12,
+        "cpuTimeMs": 7
+      },
+      "$metadata": {
+        "id": "fixture-id-5",
+        "requestId": "fixture-request-id-5",
+        "rayId": "fixture-ray-5",
+        "traceId": "fixture-trace-5",
+        "trigger": "GET /business/paramount-outlier-e-55555555-5555-5555-5555-555555555555",
+        "timestampNs": "1700000250000000000",
+        "service": "915tldr-v2",
+        "level": "info",
+        "message": "GET https://dev.915tldr.com/business/paramount-outlier-e-55555555-5555-5555-5555-555555555555",
+        "account": "fixture-account-id-never-real",
+        "type": "cf-worker-event",
+        "origin": "fetch"
+      }
+    },
+    {
+      "source": {
+        "level": "info",
+        "message": "GET https://dev.915tldr.com/business/implications-outlier-f-66666666-6666-6666-6666-666666666666"
+      },
+      "dataset": "cloudflare-workers",
+      "timestamp": 1700000390000,
+      "$workers": {
+        "truncated": false,
+        "event": {
+          "request": {
+            "cf": {
+              "colo": "LAX",
+              "country": "US",
+              "asOrganization": "Synthetic ISP"
+            },
+            "headers": {
+              "user-agent": "SyntheticAgent/1.0 (fixture, not a real client)",
+              "cf-connecting-ip": "192.0.2.10",
+              "x-real-ip": "192.0.2.10",
+              "host": "dev.915tldr.com"
+            },
+            "method": "GET",
+            "url": "https://dev.915tldr.com/business/implications-outlier-f-66666666-6666-6666-6666-666666666666"
+          },
+          "path": "/business/implications-outlier-f-66666666-6666-6666-6666-666666666666",
+          "response": {
+            "status": 200
+          }
+        },
+        "scriptName": "915tldr-v2",
+        "scriptVersion": {
+          "id": "11111111-1111-1111-1111-111111111111"
+        },
+        "eventType": "fetch",
+        "executionModel": "stateless",
+        "outcome": "ok",
+        "wallTimeMs": 6,
+        "cpuTimeMs": 2.8
+      },
+      "$metadata": {
+        "id": "fixture-id-6",
+        "requestId": "fixture-request-id-6",
+        "rayId": "fixture-ray-6",
+        "traceId": "fixture-trace-6",
+        "trigger": "GET /business/implications-outlier-f-66666666-6666-6666-6666-666666666666",
+        "timestampNs": "1700000390000000000",
+        "service": "915tldr-v2",
+        "level": "info",
+        "message": "GET https://dev.915tldr.com/business/implications-outlier-f-66666666-6666-6666-6666-666666666666",
+        "account": "fixture-account-id-never-real",
+        "type": "cf-worker-event",
+        "origin": "fetch"
+      }
+    }
+  ],
+  "eventsViewApiResponse": {
+    "success": true,
+    "errors": [],
+    "messages": [
+      {
+        "message": "Successful request"
+      }
+    ],
+    "result": {
+      "run": {
+        "id": "fixture-run-id",
+        "query": {
+          "id": "00000000-0000-0000-0000-000000000000",
+          "generated": false
+        },
+        "accountId": "fixture-account-id-never-real",
+        "timeframe": {
+          "from": 1700000000000,
+          "to": 1700000400000
+        },
+        "status": "COMPLETED",
+        "granularity": 43000,
+        "dry": false
+      },
+      "events": {
+        "events": [
+          {
+            "source": {
+              "level": "info",
+              "message": "GET https://dev.915tldr.com/tag/el-paso"
+            },
+            "dataset": "cloudflare-workers",
+            "timestamp": 1700000010000,
+            "$workers": {
+              "truncated": false,
+              "event": {
+                "request": {
+                  "cf": {
+                    "colo": "LAX",
+                    "country": "US",
+                    "asOrganization": "Synthetic ISP"
+                  },
+                  "headers": {
+                    "user-agent": "SyntheticAgent/1.0 (fixture, not a real client)",
+                    "cf-connecting-ip": "192.0.2.10",
+                    "x-real-ip": "192.0.2.10",
+                    "host": "dev.915tldr.com"
+                  },
+                  "method": "GET",
+                  "url": "https://dev.915tldr.com/tag/el-paso"
+                },
+                "path": "/tag/el-paso",
+                "response": {
+                  "status": 200
+                }
+              },
+              "scriptName": "915tldr-v2",
+              "scriptVersion": {
+                "id": "11111111-1111-1111-1111-111111111111"
+              },
+              "eventType": "fetch",
+              "executionModel": "stateless",
+              "outcome": "ok",
+              "wallTimeMs": 5,
+              "cpuTimeMs": 0.7
+            },
+            "$metadata": {
+              "id": "fixture-id-0",
+              "requestId": "fixture-request-id-0",
+              "rayId": "fixture-ray-0",
+              "traceId": "fixture-trace-0",
+              "trigger": "GET /tag/el-paso",
+              "timestampNs": "1700000010000000000",
+              "service": "915tldr-v2",
+              "level": "info",
+              "message": "GET https://dev.915tldr.com/tag/el-paso",
+              "account": "fixture-account-id-never-real",
+              "type": "cf-worker-event",
+              "origin": "fetch"
+            }
+          },
+          {
+            "source": {
+              "level": "info",
+              "message": "GET https://dev.915tldr.com/business/airbnb-market-trends-outlier-d-22222222-2222-2222-2222-222222222222"
+            },
+            "dataset": "cloudflare-workers",
+            "timestamp": 1700000050000,
+            "$workers": {
+              "truncated": false,
+              "event": {
+                "request": {
+                  "cf": {
+                    "colo": "DFW",
+                    "country": "US",
+                    "asOrganization": "Synthetic ISP"
+                  },
+                  "headers": {
+                    "user-agent": "SyntheticAgent/1.0 (fixture, not a real client)",
+                    "cf-connecting-ip": "192.0.2.10",
+                    "x-real-ip": "192.0.2.10",
+                    "host": "dev.915tldr.com"
+                  },
+                  "method": "GET",
+                  "url": "https://dev.915tldr.com/business/airbnb-market-trends-outlier-d-22222222-2222-2222-2222-222222222222"
+                },
+                "path": "/business/airbnb-market-trends-outlier-d-22222222-2222-2222-2222-222222222222",
+                "response": {
+                  "status": 200
+                }
+              },
+              "scriptName": "915tldr-v2",
+              "scriptVersion": {
+                "id": "11111111-1111-1111-1111-111111111111"
+              },
+              "eventType": "fetch",
+              "executionModel": "stateless",
+              "outcome": "ok",
+              "wallTimeMs": 31,
+              "cpuTimeMs": 26
+            },
+            "$metadata": {
+              "id": "fixture-id-1",
+              "requestId": "fixture-request-id-1",
+              "rayId": "fixture-ray-1",
+              "traceId": "fixture-trace-1",
+              "trigger": "GET /business/airbnb-market-trends-outlier-d-22222222-2222-2222-2222-222222222222",
+              "timestampNs": "1700000050000000000",
+              "service": "915tldr-v2",
+              "level": "info",
+              "message": "GET https://dev.915tldr.com/business/airbnb-market-trends-outlier-d-22222222-2222-2222-2222-222222222222",
+              "account": "fixture-account-id-never-real",
+              "type": "cf-worker-event",
+              "origin": "fetch"
+            }
+          },
+          {
+            "source": {
+              "level": "info",
+              "message": "GET https://dev.915tldr.com/business/wall-street-outlier-a-33333333-3333-3333-3333-333333333333"
+            },
+            "dataset": "cloudflare-workers",
+            "timestamp": 1700000100000,
+            "$workers": {
+              "truncated": false,
+              "event": {
+                "request": {
+                  "cf": {
+                    "colo": "LAX",
+                    "country": "US",
+                    "asOrganization": "Synthetic ISP"
+                  },
+                  "headers": {
+                    "user-agent": "SyntheticAgent/1.0 (fixture, not a real client)",
+                    "cf-connecting-ip": "192.0.2.10",
+                    "x-real-ip": "192.0.2.10",
+                    "host": "dev.915tldr.com"
+                  },
+                  "method": "GET",
+                  "url": "https://dev.915tldr.com/business/wall-street-outlier-a-33333333-3333-3333-3333-333333333333"
+                },
+                "path": "/business/wall-street-outlier-a-33333333-3333-3333-3333-333333333333",
+                "response": {
+                  "status": 200
+                }
+              },
+              "scriptName": "915tldr-v2",
+              "scriptVersion": {
+                "id": "11111111-1111-1111-1111-111111111111"
+              },
+              "eventType": "fetch",
+              "executionModel": "stateless",
+              "outcome": "ok",
+              "wallTimeMs": 44,
+              "cpuTimeMs": 37
+            },
+            "$metadata": {
+              "id": "fixture-id-2",
+              "requestId": "fixture-request-id-2",
+              "rayId": "fixture-ray-2",
+              "traceId": "fixture-trace-2",
+              "trigger": "GET /business/wall-street-outlier-a-33333333-3333-3333-3333-333333333333",
+              "timestampNs": "1700000100000000000",
+              "service": "915tldr-v2",
+              "level": "info",
+              "message": "GET https://dev.915tldr.com/business/wall-street-outlier-a-33333333-3333-3333-3333-333333333333",
+              "account": "fixture-account-id-never-real",
+              "type": "cf-worker-event",
+              "origin": "fetch"
+            }
+          },
+          {
+            "source": {
+              "level": "info",
+              "message": "GET https://dev.915tldr.com/politics/new-mexico-outlier-b-44444444-4444-4444-4444-444444444444"
+            },
+            "dataset": "cloudflare-workers",
+            "timestamp": 1700000150000,
+            "$workers": {
+              "truncated": false,
+              "event": {
+                "request": {
+                  "cf": {
+                    "colo": "DFW",
+                    "country": "US",
+                    "asOrganization": "Synthetic ISP"
+                  },
+                  "headers": {
+                    "user-agent": "SyntheticAgent/1.0 (fixture, not a real client)",
+                    "cf-connecting-ip": "192.0.2.10",
+                    "x-real-ip": "192.0.2.10",
+                    "host": "dev.915tldr.com"
+                  },
+                  "method": "GET",
+                  "url": "https://dev.915tldr.com/politics/new-mexico-outlier-b-44444444-4444-4444-4444-444444444444"
+                },
+                "path": "/politics/new-mexico-outlier-b-44444444-4444-4444-4444-444444444444",
+                "response": {
+                  "status": 200
+                }
+              },
+              "scriptName": "915tldr-v2",
+              "scriptVersion": {
+                "id": "11111111-1111-1111-1111-111111111111"
+              },
+              "eventType": "fetch",
+              "executionModel": "stateless",
+              "outcome": "ok",
+              "wallTimeMs": 55,
+              "cpuTimeMs": 40
+            },
+            "$metadata": {
+              "id": "fixture-id-3",
+              "requestId": "fixture-request-id-3",
+              "rayId": "fixture-ray-3",
+              "traceId": "fixture-trace-3",
+              "trigger": "GET /politics/new-mexico-outlier-b-44444444-4444-4444-4444-444444444444",
+              "timestampNs": "1700000150000000000",
+              "service": "915tldr-v2",
+              "level": "info",
+              "message": "GET https://dev.915tldr.com/politics/new-mexico-outlier-b-44444444-4444-4444-4444-444444444444",
+              "account": "fixture-account-id-never-real",
+              "type": "cf-worker-event",
+              "origin": "fetch"
+            }
+          },
+          {
+            "source": {
+              "level": "info",
+              "message": "GET https://dev.915tldr.com/business/wall-street-outlier-a-33333333-3333-3333-3333-333333333333"
+            },
+            "dataset": "cloudflare-workers",
+            "timestamp": 1700000200000,
+            "$workers": {
+              "truncated": false,
+              "event": {
+                "request": {
+                  "cf": {
+                    "colo": "LAX",
+                    "country": "US",
+                    "asOrganization": "Synthetic ISP"
+                  },
+                  "headers": {
+                    "user-agent": "SyntheticAgent/1.0 (fixture, not a real client)",
+                    "cf-connecting-ip": "192.0.2.10",
+                    "x-real-ip": "192.0.2.10",
+                    "host": "dev.915tldr.com"
+                  },
+                  "method": "GET",
+                  "url": "https://dev.915tldr.com/business/wall-street-outlier-a-33333333-3333-3333-3333-333333333333"
+                },
+                "path": "/business/wall-street-outlier-a-33333333-3333-3333-3333-333333333333",
+                "response": {
+                  "status": 200
+                }
+              },
+              "scriptName": "915tldr-v2",
+              "scriptVersion": {
+                "id": "11111111-1111-1111-1111-111111111111"
+              },
+              "eventType": "fetch",
+              "executionModel": "stateless",
+              "outcome": "ok",
+              "wallTimeMs": 61,
+              "cpuTimeMs": 49.966
+            },
+            "$metadata": {
+              "id": "fixture-id-4",
+              "requestId": "fixture-request-id-4",
+              "rayId": "fixture-ray-4",
+              "traceId": "fixture-trace-4",
+              "trigger": "GET /business/wall-street-outlier-a-33333333-3333-3333-3333-333333333333",
+              "timestampNs": "1700000200000000000",
+              "service": "915tldr-v2",
+              "level": "info",
+              "message": "GET https://dev.915tldr.com/business/wall-street-outlier-a-33333333-3333-3333-3333-333333333333",
+              "account": "fixture-account-id-never-real",
+              "type": "cf-worker-event",
+              "origin": "fetch"
+            }
+          },
+          {
+            "source": {
+              "level": "info",
+              "message": "GET https://dev.915tldr.com/business/paramount-outlier-e-55555555-5555-5555-5555-555555555555"
+            },
+            "dataset": "cloudflare-workers",
+            "timestamp": 1700000250000,
+            "$workers": {
+              "truncated": false,
+              "event": {
+                "request": {
+                  "cf": {
+                    "colo": "DFW",
+                    "country": "US",
+                    "asOrganization": "Synthetic ISP"
+                  },
+                  "headers": {
+                    "user-agent": "SyntheticAgent/1.0 (fixture, not a real client)",
+                    "cf-connecting-ip": "192.0.2.10",
+                    "x-real-ip": "192.0.2.10",
+                    "host": "dev.915tldr.com"
+                  },
+                  "method": "GET",
+                  "url": "https://dev.915tldr.com/business/paramount-outlier-e-55555555-5555-5555-5555-555555555555"
+                },
+                "path": "/business/paramount-outlier-e-55555555-5555-5555-5555-555555555555",
+                "response": {
+                  "status": 200
+                }
+              },
+              "scriptName": "915tldr-v2",
+              "scriptVersion": {
+                "id": "11111111-1111-1111-1111-111111111111"
+              },
+              "eventType": "fetch",
+              "executionModel": "stateless",
+              "outcome": "ok",
+              "wallTimeMs": 12,
+              "cpuTimeMs": 7
+            },
+            "$metadata": {
+              "id": "fixture-id-5",
+              "requestId": "fixture-request-id-5",
+              "rayId": "fixture-ray-5",
+              "traceId": "fixture-trace-5",
+              "trigger": "GET /business/paramount-outlier-e-55555555-5555-5555-5555-555555555555",
+              "timestampNs": "1700000250000000000",
+              "service": "915tldr-v2",
+              "level": "info",
+              "message": "GET https://dev.915tldr.com/business/paramount-outlier-e-55555555-5555-5555-5555-555555555555",
+              "account": "fixture-account-id-never-real",
+              "type": "cf-worker-event",
+              "origin": "fetch"
+            }
+          },
+          {
+            "source": {
+              "level": "info",
+              "message": "GET https://dev.915tldr.com/business/implications-outlier-f-66666666-6666-6666-6666-666666666666"
+            },
+            "dataset": "cloudflare-workers",
+            "timestamp": 1700000390000,
+            "$workers": {
+              "truncated": false,
+              "event": {
+                "request": {
+                  "cf": {
+                    "colo": "LAX",
+                    "country": "US",
+                    "asOrganization": "Synthetic ISP"
+                  },
+                  "headers": {
+                    "user-agent": "SyntheticAgent/1.0 (fixture, not a real client)",
+                    "cf-connecting-ip": "192.0.2.10",
+                    "x-real-ip": "192.0.2.10",
+                    "host": "dev.915tldr.com"
+                  },
+                  "method": "GET",
+                  "url": "https://dev.915tldr.com/business/implications-outlier-f-66666666-6666-6666-6666-666666666666"
+                },
+                "path": "/business/implications-outlier-f-66666666-6666-6666-6666-666666666666",
+                "response": {
+                  "status": 200
+                }
+              },
+              "scriptName": "915tldr-v2",
+              "scriptVersion": {
+                "id": "11111111-1111-1111-1111-111111111111"
+              },
+              "eventType": "fetch",
+              "executionModel": "stateless",
+              "outcome": "ok",
+              "wallTimeMs": 6,
+              "cpuTimeMs": 2.8
+            },
+            "$metadata": {
+              "id": "fixture-id-6",
+              "requestId": "fixture-request-id-6",
+              "rayId": "fixture-ray-6",
+              "traceId": "fixture-trace-6",
+              "trigger": "GET /business/implications-outlier-f-66666666-6666-6666-6666-666666666666",
+              "timestampNs": "1700000390000000000",
+              "service": "915tldr-v2",
+              "level": "info",
+              "message": "GET https://dev.915tldr.com/business/implications-outlier-f-66666666-6666-6666-6666-666666666666",
+              "account": "fixture-account-id-never-real",
+              "type": "cf-worker-event",
+              "origin": "fetch"
+            }
+          }
+        ],
+        "fields": [
+          {
+            "type": "number",
+            "key": "$workers.cpuTimeMs"
+          },
+          {
+            "type": "number",
+            "key": "$workers.wallTimeMs"
+          },
+          {
+            "type": "string",
+            "key": "$workers.event.path"
+          },
+          {
+            "type": "number",
+            "key": "$workers.event.response.status"
+          },
+          {
+            "type": "string",
+            "key": "$workers.event.request.cf.colo"
+          },
+          {
+            "type": "string",
+            "key": "$workers.scriptVersion.id"
+          },
+          {
+            "type": "string",
+            "key": "$workers.outcome"
+          }
+        ],
+        "count": 7,
+        "series": []
+      },
+      "statistics": {
+        "elapsed": 0.05,
+        "rows_read": 7,
+        "bytes_read": 1024,
+        "abr_level": 1
+      }
+    }
+  },
+  "eventsViewApiResponseFullPage": {
+    "success": true,
+    "errors": [],
+    "messages": [
+      {
+        "message": "Successful request"
+      }
+    ],
+    "result": {
+      "run": {
+        "id": "fixture-run-id-2",
+        "status": "COMPLETED"
+      },
+      "events": {
+        "events": [
+          {
+            "source": {
+              "level": "info",
+              "message": "GET https://dev.915tldr.com/tag/el-paso"
+            },
+            "dataset": "cloudflare-workers",
+            "timestamp": 1700000010000,
+            "$workers": {
+              "truncated": false,
+              "event": {
+                "request": {
+                  "cf": {
+                    "colo": "LAX",
+                    "country": "US",
+                    "asOrganization": "Synthetic ISP"
+                  },
+                  "headers": {
+                    "user-agent": "SyntheticAgent/1.0 (fixture, not a real client)",
+                    "cf-connecting-ip": "192.0.2.10",
+                    "x-real-ip": "192.0.2.10",
+                    "host": "dev.915tldr.com"
+                  },
+                  "method": "GET",
+                  "url": "https://dev.915tldr.com/tag/el-paso"
+                },
+                "path": "/tag/el-paso",
+                "response": {
+                  "status": 200
+                }
+              },
+              "scriptName": "915tldr-v2",
+              "scriptVersion": {
+                "id": "11111111-1111-1111-1111-111111111111"
+              },
+              "eventType": "fetch",
+              "executionModel": "stateless",
+              "outcome": "ok",
+              "wallTimeMs": 5,
+              "cpuTimeMs": 0.7
+            },
+            "$metadata": {
+              "id": "fixture-id-0",
+              "requestId": "fixture-request-id-0",
+              "rayId": "fixture-ray-0",
+              "traceId": "fixture-trace-0",
+              "trigger": "GET /tag/el-paso",
+              "timestampNs": "1700000010000000000",
+              "service": "915tldr-v2",
+              "level": "info",
+              "message": "GET https://dev.915tldr.com/tag/el-paso",
+              "account": "fixture-account-id-never-real",
+              "type": "cf-worker-event",
+              "origin": "fetch"
+            }
+          },
+          {
+            "source": {
+              "level": "info",
+              "message": "GET https://dev.915tldr.com/business/airbnb-market-trends-outlier-d-22222222-2222-2222-2222-222222222222"
+            },
+            "dataset": "cloudflare-workers",
+            "timestamp": 1700000050000,
+            "$workers": {
+              "truncated": false,
+              "event": {
+                "request": {
+                  "cf": {
+                    "colo": "DFW",
+                    "country": "US",
+                    "asOrganization": "Synthetic ISP"
+                  },
+                  "headers": {
+                    "user-agent": "SyntheticAgent/1.0 (fixture, not a real client)",
+                    "cf-connecting-ip": "192.0.2.10",
+                    "x-real-ip": "192.0.2.10",
+                    "host": "dev.915tldr.com"
+                  },
+                  "method": "GET",
+                  "url": "https://dev.915tldr.com/business/airbnb-market-trends-outlier-d-22222222-2222-2222-2222-222222222222"
+                },
+                "path": "/business/airbnb-market-trends-outlier-d-22222222-2222-2222-2222-222222222222",
+                "response": {
+                  "status": 200
+                }
+              },
+              "scriptName": "915tldr-v2",
+              "scriptVersion": {
+                "id": "11111111-1111-1111-1111-111111111111"
+              },
+              "eventType": "fetch",
+              "executionModel": "stateless",
+              "outcome": "ok",
+              "wallTimeMs": 31,
+              "cpuTimeMs": 26
+            },
+            "$metadata": {
+              "id": "fixture-id-1",
+              "requestId": "fixture-request-id-1",
+              "rayId": "fixture-ray-1",
+              "traceId": "fixture-trace-1",
+              "trigger": "GET /business/airbnb-market-trends-outlier-d-22222222-2222-2222-2222-222222222222",
+              "timestampNs": "1700000050000000000",
+              "service": "915tldr-v2",
+              "level": "info",
+              "message": "GET https://dev.915tldr.com/business/airbnb-market-trends-outlier-d-22222222-2222-2222-2222-222222222222",
+              "account": "fixture-account-id-never-real",
+              "type": "cf-worker-event",
+              "origin": "fetch"
+            }
+          },
+          {
+            "source": {
+              "level": "info",
+              "message": "GET https://dev.915tldr.com/business/wall-street-outlier-a-33333333-3333-3333-3333-333333333333"
+            },
+            "dataset": "cloudflare-workers",
+            "timestamp": 1700000100000,
+            "$workers": {
+              "truncated": false,
+              "event": {
+                "request": {
+                  "cf": {
+                    "colo": "LAX",
+                    "country": "US",
+                    "asOrganization": "Synthetic ISP"
+                  },
+                  "headers": {
+                    "user-agent": "SyntheticAgent/1.0 (fixture, not a real client)",
+                    "cf-connecting-ip": "192.0.2.10",
+                    "x-real-ip": "192.0.2.10",
+                    "host": "dev.915tldr.com"
+                  },
+                  "method": "GET",
+                  "url": "https://dev.915tldr.com/business/wall-street-outlier-a-33333333-3333-3333-3333-333333333333"
+                },
+                "path": "/business/wall-street-outlier-a-33333333-3333-3333-3333-333333333333",
+                "response": {
+                  "status": 200
+                }
+              },
+              "scriptName": "915tldr-v2",
+              "scriptVersion": {
+                "id": "11111111-1111-1111-1111-111111111111"
+              },
+              "eventType": "fetch",
+              "executionModel": "stateless",
+              "outcome": "ok",
+              "wallTimeMs": 44,
+              "cpuTimeMs": 37
+            },
+            "$metadata": {
+              "id": "fixture-id-2",
+              "requestId": "fixture-request-id-2",
+              "rayId": "fixture-ray-2",
+              "traceId": "fixture-trace-2",
+              "trigger": "GET /business/wall-street-outlier-a-33333333-3333-3333-3333-333333333333",
+              "timestampNs": "1700000100000000000",
+              "service": "915tldr-v2",
+              "level": "info",
+              "message": "GET https://dev.915tldr.com/business/wall-street-outlier-a-33333333-3333-3333-3333-333333333333",
+              "account": "fixture-account-id-never-real",
+              "type": "cf-worker-event",
+              "origin": "fetch"
+            }
+          }
+        ],
+        "fields": [],
+        "count": 3,
+        "series": []
+      },
+      "statistics": {
+        "elapsed": 0.02,
+        "rows_read": 3,
+        "bytes_read": 512,
+        "abr_level": 1
+      }
+    }
+  },
+  "countViewApiResponse": {
+    "success": true,
+    "errors": [],
+    "messages": [
+      {
+        "message": "Successful request"
+      }
+    ],
+    "result": {
+      "run": {
+        "id": "fixture-run-id-3",
+        "status": "COMPLETED"
+      },
+      "calculations": [
+        {
+          "calculation": "count",
+          "aggregates": [
+            {
+              "value": 7,
+              "interval": 1,
+              "sampleInterval": 1,
+              "count": 7
+            }
+          ],
+          "series": [
+            {
+              "time": "2026-10-01 20:33:53",
+              "data": [
+                {
+                  "value": 7,
+                  "interval": 1,
+                  "sampleInterval": 1,
+                  "count": 7
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "statistics": {
+        "elapsed": 0.03,
+        "rows_read": 7,
+        "bytes_read": 1024,
+        "abr_level": 1
+      }
+    }
+  },
+  "keysApiResponse": {
+    "success": true,
+    "errors": [],
+    "messages": [
+      {
+        "message": "Successful request"
+      }
+    ],
+    "result": [
+      {
+        "key": "$metadata.service",
+        "type": "string",
+        "lastSeenAt": 1700000400000
+      },
+      {
+        "key": "$metadata.requestId",
+        "type": "string",
+        "lastSeenAt": 1700000400000
+      },
+      {
+        "key": "$workers.cpuTimeMs",
+        "type": "number",
+        "lastSeenAt": 1700000400000
+      },
+      {
+        "key": "$workers.wallTimeMs",
+        "type": "number",
+        "lastSeenAt": 1700000400000
+      },
+      {
+        "key": "$workers.event.path",
+        "type": "string",
+        "lastSeenAt": 1700000400000
+      },
+      {
+        "key": "$workers.event.response.status",
+        "type": "number",
+        "lastSeenAt": 1700000400000
+      },
+      {
+        "key": "$workers.event.request.cf.colo",
+        "type": "string",
+        "lastSeenAt": 1700000400000
+      },
+      {
+        "key": "$workers.scriptVersion.id",
+        "type": "string",
+        "lastSeenAt": 1700000400000
+      },
+      {
+        "key": "$workers.outcome",
+        "type": "string",
+        "lastSeenAt": 1700000400000
+      },
+      {
+        "key": "$workers.event.request.headers.user-agent",
+        "type": "string",
+        "lastSeenAt": 1700000400000
+      },
+      {
+        "key": "$workers.event.request.headers.cf-connecting-ip",
+        "type": "string",
+        "lastSeenAt": 1700000400000
+      }
+    ]
+  },
+  "errorApiResponse": {
+    "success": false,
+    "errors": [
+      {
+        "code": 10000,
+        "message": "Authentication error"
+      }
+    ],
+    "messages": [],
+    "result": null
+  }
+}

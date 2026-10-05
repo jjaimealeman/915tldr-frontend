@@ -1,0 +1,75 @@
+{
+  "devHost": "dev.915tldr.com",
+  "device": "Pixel 7",
+  "measuredAt": "2026-10-01T17:07:13.498Z",
+  "r2": {
+    "sampleCount": 200,
+    "coldSampleCount": 200,
+    "stats": {
+      "sampleCount": 200,
+      "min": 78,
+      "p50": 104,
+      "p95": 172,
+      "max": 447
+    },
+    "sizeBytes": {
+      "median": 13070,
+      "p95": 13605
+    }
+  },
+  "kv": {
+    "sampleCount": 200,
+    "stats": {
+      "sampleCount": 200,
+      "min": 78,
+      "p50": 113,
+      "p95": 155,
+      "max": 201
+    }
+  },
+  "ttfb": {
+    "archivedColdMiss": {
+      "sampleCount": 200,
+      "stats": {
+        "sampleCount": 200,
+        "min": 289.4628329999978,
+        "p50": 352.41267999999764,
+        "p95": 464.6939060000004,
+        "max": 713.5158549999978
+      }
+    },
+    "archivedEdgeHit": {
+      "sampleCount": 50,
+      "stats": {
+        "sampleCount": 50,
+        "min": 109.38350099998934,
+        "p50": 125.76074599999993,
+        "p95": 148.95055900000443,
+        "max": 171.9254210000072
+      }
+    },
+    "hotStatic": {
+      "sampleCount": 50,
+      "stats": {
+        "sampleCount": 50,
+        "min": 136.30310300001292,
+        "p50": 165.6086159999977,
+        "p95": 188.28781200000958,
+        "max": 203.73897599999327
+      }
+    }
+  },
+  "lcp": {
+    "archived": {
+      "sampleCount": 20,
+      "p75": 1400,
+      "p95": 1788
+    },
+    "hot": {
+      "sampleCount": 20,
+      "p75": 1168,
+      "p95": 1484
+    }
+  },
+  "verdict": "R2_LATENCY_EXCEEDS_LCP"
+}

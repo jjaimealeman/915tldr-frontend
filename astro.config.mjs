@@ -19,6 +19,7 @@ import cloudflare from '@astrojs/cloudflare';
 import vue from '@astrojs/vue';
 import sitemap from '@astrojs/sitemap';
 import { assertNoD1Plugin } from './tools/assert-no-d1.mjs';
+import { spanishSitemapExclusions, sitemapChunks } from './src/lib/i18n/sitemap.ts';
 
 export default defineConfig({
   output: 'static',
@@ -69,6 +70,18 @@ export default defineConfig({
     // built sitemap output (04-07-PLAN.md Task 3), not assumed. `/404` is also excluded by the
     // integration's own internal STATUS_CODE_PAGES set; named here too for clarity since this
     // filter already has to reason about every other non-page route.
+    // 06-11 (I18N-06/D-08): `i18n` turns on per-path `xhtml:link` alternates — computed by the
+    // package itself from whichever URLs survive `filter` below, paired by stripping each URL's
+    // locale segment (its own `utils/parse-i18n-url.js`) and matching on the remaining path. An
+    // untranslated `/es` fallback page is excluded by `filter` BEFORE that pairing step runs, so
+    // its English counterpart is left with no Spanish URL to pair with and gets no alternate link
+    // at all — confirmed against the real build, no `serialize` step needed (Assumption A2,
+    // recorded in 06-11-SUMMARY.md). `locales` uses language-only codes (`en`, `es`), matching the
+    // page-level hreflang values 06-05's `Base.astro` already emits. `chunks` partitions the
+    // written sitemap files by language (`sitemapChunks()`) — this is `@astrojs/sitemap`'s OWN
+    // `i18n` option, not Astro's top-level i18n routing config `no-auto-language.test.mjs` (06-05,
+    // D-13) forbids; that test's regex is scoped to exclude this integration's own argument object
+    // (06-11 fix) specifically so this legitimate, unrelated option does not trip it.
     sitemap({
       filter: (page) => {
         if (/\/404$/.test(page)) return false;
@@ -76,8 +89,14 @@ export default defineConfig({
         // Every real HTML route in this project (home, category, article, tag, source, tags)
         // is extensionless under trailingSlash:'never' + build.format:'file'; a dotted final
         // path segment is this project's own reliable "not an HTML page" signal.
-        return !/\.[a-z0-9]+$/i.test(pathname);
+        if (/\.[a-z0-9]+$/i.test(pathname)) return false;
+        // D-05/T-06-42: an untranslated `/es` article page (English-fallback content served
+        // under `/es`, already `noindex`) must never appear in any sitemap file.
+        if (spanishSitemapExclusions().has(pathname)) return false;
+        return true;
       },
+      chunks: sitemapChunks(),
+      i18n: { defaultLocale: 'en', locales: { en: 'en', es: 'es' } },
     }),
   ],
   vite: {

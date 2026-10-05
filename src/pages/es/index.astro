@@ -1,0 +1,89 @@
+---
+// 06-05 (Task 1) / 06-10 (Task 1, I18N-04): the Spanish home. Mirrors `src/pages/index.astro`
+// exactly (same feed, same selection, same card shapes) with every chrome string and internal
+// link localized to `/es` via `Base`'s `lang="es"` prop. Each card now shows its article's REAL
+// Spanish title/summary when a clean translation exists (`localizedArticleView`, D-05) — the
+// English-fallback-marked-`lang="en"` behavior this page shipped with in 06-05 is now the
+// per-card FALLBACK branch, not the unconditional behavior, now that the `articlesEs` collection
+// (06-06) and `esArticlePageModel` (06-09) exist.
+import { getCollection } from 'astro:content';
+import Base from '../../layouts/Base.astro';
+import ArticleCard from '../../components/ArticleCard.astro';
+import { articlePath } from '../../lib/article-url.ts';
+import { sortNewestFirst, HOME_FEED_COUNT } from '../../lib/listing.ts';
+import { TIME_ZONE } from '../../lib/format.ts';
+import { BUILD_TIMESTAMP } from '../../lib/build-info.ts';
+import { t } from '../../lib/i18n/dictionary.ts';
+import { buildEsIndex, localizedArticleView, categoryLabel } from '../../lib/i18n/spanish-view.ts';
+
+const entries = await getCollection('articles');
+const esEntries = await getCollection('articlesEs');
+const esIndex = buildEsIndex(esEntries.map((entry) => entry.data));
+const allArticles = entries.map((entry) => entry.data);
+const feed = sortNewestFirst(allArticles).slice(0, HOME_FEED_COUNT);
+const [lead, ...rest] = feed;
+const leadView = lead ? localizedArticleView(lead, esIndex.get(lead.uuid)) : undefined;
+
+// Same year-disclosure rule as the English home (src/pages/index.astro) — see that file's own
+// comment for why "this build's year" is a safe, deterministic comparison basis here.
+const buildYear = Number(
+  new Intl.DateTimeFormat('en-US', { timeZone: TIME_ZONE, year: 'numeric' }).format(new Date(BUILD_TIMESTAMP))
+);
+function showYearFor(publishedAt: number): boolean {
+  const articleYear = Number(
+    new Intl.DateTimeFormat('en-US', { timeZone: TIME_ZONE, year: 'numeric' }).format(new Date(publishedAt * 1000))
+  );
+  return articleYear !== buildYear;
+}
+---
+
+<Base
+  page="home"
+  lang="es"
+  title={t('homeTitle', 'es')}
+  description={t('homeDescription', 'es')}
+  canonicalPath="/es"
+  buildStamp={true}
+>
+  {
+    lead && leadView && (
+      <ArticleCard
+        uuid={lead.uuid}
+        title={leadView.title}
+        href={articlePath(lead.category.slug, lead.slug, lead.uuid, 'es')}
+        categorySlug={lead.category.slug}
+        categoryName={categoryLabel(lead.category.slug, 'es') ?? lead.category.name}
+        sourceName={lead.source.name}
+        publishedAt={lead.publishedAt}
+        variant="lead"
+        summary={leadView.summary}
+        showYear={showYearFor(lead.publishedAt)}
+        lang="es"
+        contentLang={leadView.lang}
+      />
+    )
+  }
+
+  <section data-grid aria-label={t('homeGridLabel', 'es')}>
+    {
+      rest.map((article) => {
+        const view = localizedArticleView(article, esIndex.get(article.uuid));
+        return (
+          <ArticleCard
+            uuid={article.uuid}
+            title={view.title}
+            href={articlePath(article.category.slug, article.slug, article.uuid, 'es')}
+            categorySlug={article.category.slug}
+            categoryName={categoryLabel(article.category.slug, 'es') ?? article.category.name}
+            sourceName={article.source.name}
+            publishedAt={article.publishedAt}
+            summary={view.summary}
+            showYear={showYearFor(article.publishedAt)}
+            lang="es"
+            contentLang={view.lang}
+          />
+        );
+      })
+    }
+  </section>
+</Base>

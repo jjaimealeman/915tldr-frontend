@@ -13,7 +13,13 @@ export interface RailResult {
   more: ArticleData[];
   /** Up to `secondCount` site-wide stories published before this article, newest first. */
   second: ArticleData[];
-  /** Heading for the second group — always "Earlier" for the owner-selected option-a rail. */
+  /** Heading for the second group — always "Earlier" for the owner-selected option-a rail.
+   * 06-09 (Task 2): kept as the English literal for backward compatibility, but neither article
+   * template (`src/pages/[category]/[slug].astro`, `src/pages/es/[category]/[slug].astro`)
+   * actually renders this field — each looks up its own language's heading text directly via
+   * `t('railEarlier'/'railMoreIn', lang)` (`src/lib/i18n/dictionary.ts`), so the Spanish page
+   * renders "Anteriores"/"Más en..." without this module needing a language parameter of its
+   * own, and the English page's rendered text stays byte-identical. */
   secondHeading: string;
 }
 

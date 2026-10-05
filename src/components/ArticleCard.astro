@@ -8,6 +8,7 @@
 // No image frame here — imagery is Phase 7; the approved CSS already handles the no-image card
 // (01-18's `:not(:has([data-frame] img))` rule).
 import { formatBylineTime, isoWithOffset } from '../lib/format';
+import type { Language } from '../lib/article-url.ts';
 
 export type ArticleCardVariant = 'default' | 'lead' | 'compact';
 
@@ -27,6 +28,15 @@ export interface Props {
   headingLevel?: 'h2' | 'h3';
   /** Appends the year to the byline time — used where cards may span more than one year. */
   showYear?: boolean;
+  /** 06-05 (Task 2): the PAGE's language — drives `formatBylineTime`'s Spanish/English shape.
+   * Defaults to `'en'`, matching every pre-06-05 caller. */
+  lang?: Language;
+  /** 06-05 (Task 2, D-05): the language the TITLE/SUMMARY text is actually written in, when it
+   * differs from `lang` — e.g. a Spanish page showing English fallback content pending a real
+   * translation. When given and different from `lang`, the title and summary elements carry
+   * their own `lang={contentLang}` so assistive tech still announces the right language for that
+   * specific text, even though the rest of the card (byline, chrome) is in `lang`. */
+  contentLang?: Language;
 }
 
 const {
@@ -41,12 +51,15 @@ const {
   summary,
   headingLevel,
   showYear = false,
+  lang = 'en',
+  contentLang,
 } = Astro.props;
 
 const Heading = headingLevel ?? (variant === 'lead' ? 'h2' : 'h3');
 const bylineDatetime = isoWithOffset(publishedAt);
-const bylineText = formatBylineTime(publishedAt, { withYear: showYear });
+const bylineText = formatBylineTime(publishedAt, { withYear: showYear, language: lang });
 const showSummary = variant !== 'compact' && Boolean(summary);
+const contentLangAttr = contentLang && contentLang !== lang ? contentLang : undefined;
 ---
 
 {
@@ -54,12 +67,12 @@ const showSummary = variant !== 'compact' && Boolean(summary);
     <article data-lead data-lead-variant="type" data-uuid={uuid} data-category={categorySlug}>
       <span data-stripe />
       <p data-category-name>{categoryName}</p>
-      <Heading>
+      <Heading lang={contentLangAttr}>
         <a href={href}>{title}</a>
       </Heading>
       {showSummary && (
         <div data-summary>
-          <p>{summary}</p>
+          <p lang={contentLangAttr}>{summary}</p>
         </div>
       )}
       <p data-byline>
@@ -75,12 +88,12 @@ const showSummary = variant !== 'compact' && Boolean(summary);
     >
       <span data-stripe />
       <p data-category-name>{categoryName}</p>
-      <Heading>
+      <Heading lang={contentLangAttr}>
         <a href={href}>{title}</a>
       </Heading>
       {showSummary && (
         <div data-summary>
-          <p>{summary}</p>
+          <p lang={contentLangAttr}>{summary}</p>
         </div>
       )}
       <p data-byline>

@@ -85,6 +85,36 @@ test('assertArchiveKey accepts a _probe key', () => {
   assert.equal(assertArchiveKey('_probe/roundtrip-1.txt'), '_probe/roundtrip-1.txt');
 });
 
+test('assertArchiveKey accepts a lowercase-uuid Spanish article key', () => {
+  assert.equal(
+    assertArchiveKey('es/articles/3f2504e0-4f89-11d3-9a0c-0305e82c3301.html'),
+    'es/articles/3f2504e0-4f89-11d3-9a0c-0305e82c3301.html'
+  );
+});
+
+test('assertArchiveKey accepts a Spanish tag key', () => {
+  assert.equal(assertArchiveKey('es/tags/a-b.html'), 'es/tags/a-b.html');
+});
+
+test('assertArchiveKey rejects a Spanish traversal attempt', () => {
+  assert.throws(() => assertArchiveKey('es/articles/../x.html'), /r2-client: invalid archive key/);
+});
+
+test('assertArchiveKey rejects a Spanish tag key with a leading slash', () => {
+  assert.throws(() => assertArchiveKey('/es/tags/a.html'), /r2-client: invalid archive key/);
+});
+
+test('assertArchiveKey rejects a Spanish tag key with trailing path garbage', () => {
+  assert.throws(() => assertArchiveKey('es/tags/a.html/../../b'), /r2-client: invalid archive key/);
+});
+
+test('assertArchiveKey rejects a Spanish article key with the wrong extension', () => {
+  assert.throws(
+    () => assertArchiveKey('es/articles/3f2504e0-4f89-11d3-9a0c-0305e82c3301.htm'),
+    /r2-client: invalid archive key/
+  );
+});
+
 test('assertArchiveKey rejects a traversal attempt', () => {
   assert.throws(() => assertArchiveKey('articles/../x.html'), /r2-client: invalid archive key/);
 });
@@ -143,11 +173,21 @@ test('a rejected key never reaches send() — deleteObjects', async () => {
   assert.equal(client.calls.length, 0);
 });
 
-test('listKeys rejects a prefix outside the four allowed archive prefixes', async () => {
+test('listKeys rejects a prefix outside the six allowed archive prefixes', async () => {
   const client = makeFakeClient([]);
   const store = createArchiveStore({ client });
   await assert.rejects(() => store.listKeys('other/'), /r2-client: invalid archive key prefix/);
   assert.equal(client.calls.length, 0);
+});
+
+test('listKeys accepts "es/articles/" and "es/tags/" — the two Spanish archive prefixes', async () => {
+  const client = makeFakeClient([{ Contents: [] }, { Contents: [] }]);
+  const store = createArchiveStore({ client });
+  await store.listKeys('es/articles/');
+  await store.listKeys('es/tags/');
+  assert.equal(client.calls.length, 2);
+  assert.equal(client.calls[0].input.Prefix, 'es/articles/');
+  assert.equal(client.calls[1].input.Prefix, 'es/tags/');
 });
 
 // ---------------------------------------------------------------------------
@@ -219,6 +259,37 @@ test('deleteObjects(2500 keys) issues exactly 3 DeleteObjects commands (1000/100
   assert.equal(client.calls[2].input.Delete.Objects.length, 500);
   assert.equal(result.deleted, 2500);
   assert.deepEqual(result.errors, []);
+});
+
+// WR-02 (05-18): deleteObjects must report a failing batch as partial errors, never throw
+// mid-loop — a thrown batch would throw away the deleted-count from batches that already
+// succeeded, and the caller would have no way to know which keys are actually gone from R2.
+test('deleteObjects(2500 keys) — a rejecting middle batch is reported as partial errors, not a throw; batches 1 and 3 still complete', async () => {
+  const keys = Array.from({ length: 2500 }, (_, i) => `_probe/key-${i}.txt`);
+  const err = new Error('simulated throttling embedding a secret value xyz-should-not-leak');
+  err.name = 'ThrottlingException';
+  const client = makeFakeClient([
+    { Deleted: Array.from({ length: 1000 }, () => ({})) },
+    { reject: err },
+    { Deleted: Array.from({ length: 500 }, () => ({})) },
+  ]);
+  const store = createArchiveStore({ client });
+  const result = await store.deleteObjects(keys);
+
+  assert.equal(client.calls.length, 3, 'all 3 batches must be attempted — a failing batch must not stop the loop');
+  assert.equal(result.deleted, 1500, 'batches 1 and 3 (1000 + 500) must still count as deleted');
+
+  const batch2Keys = keys.slice(1000, 2000);
+  assert.equal(result.errors.length, 1000);
+  assert.deepEqual(
+    result.errors.map((e) => e.key).sort(),
+    [...batch2Keys].sort(),
+    'every key in the failing batch must be reported, not just the batch as a whole'
+  );
+  for (const e of result.errors) {
+    assert.equal(e.code, 'ThrottlingException', 'code must come from describeError, not err.message');
+    assert.ok(!e.code.includes('secret'), 'code must never leak err.message text');
+  }
 });
 
 // ---------------------------------------------------------------------------

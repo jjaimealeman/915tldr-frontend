@@ -16,6 +16,9 @@ import assert from 'node:assert/strict';
 import { readFileSync, readdirSync, statSync, existsSync } from 'node:fs';
 import path from 'node:path';
 import { textOf, decodeEntities } from '../helpers/html-text.mjs';
+import { readBuiltPage } from '../helpers/built-page.mjs';
+import { readTierFacts } from '../../src/lib/archive/tier-facts.ts';
+import { t } from '../../src/lib/i18n/dictionary.ts';
 
 const REPO_ROOT = path.resolve(import.meta.dirname, '../..');
 const DIST_CLIENT = path.join(REPO_ROOT, 'dist', 'client');
@@ -168,6 +171,109 @@ test(
         assert.ok(datetimes.length > 0, 'expected at least one <time datetime> element');
         for (const dt of datetimes) {
           assert.match(dt, /-0[67]:00$/, `datetime "${dt}" should end in -06:00 or -07:00`);
+        }
+      });
+    }
+  }
+);
+
+// ---------------------------------------------------------------------------
+// 06-09 Task 2: disclosure parity across BOTH languages and BOTH tiers (static + archived).
+// English pages are enumerated from dist/client directly (above); Spanish pages — and any
+// archived page of either language — are read through tests/helpers/built-page.mjs, which
+// checks dist/client first and falls back to dist/archive via dist/archive-plan.json. Sampled
+// (not exhaustive — ~81k built article pages exist) the same way the suite above samples English
+// pages, for the same runtime reason.
+// ---------------------------------------------------------------------------
+
+const ES_SAMPLE_SIZE = 20;
+
+test(
+  'article-markup: disclosure parity — sampled /es article pages (static or archived) carry exactly one Spanish [data-ai-disclosure], naming the outlet and linking the original URL',
+  { skip: !DIST_BUILT && SKIP_REASON },
+  async (t) => {
+    const facts = readTierFacts();
+    const sortedEs = [...facts.articlesEs].sort((a, b) => a.uuid.localeCompare(b.uuid));
+    const sample = sampleEvenly(sortedEs, ES_SAMPLE_SIZE);
+    assert.ok(sample.length > 0, 'expected at least one /es tier fact');
+
+    const articleByUuid = new Map(facts.articles.map((f) => [f.uuid, f]));
+
+    for (const esFact of sample) {
+      await t.test(esFact.path, () => {
+        const html = readBuiltPage(esFact.path);
+        assert.ok(html, `expected a built page at ${esFact.path} (static or archived)`);
+
+        const articleHtml = extractArticleRegion(html);
+        const disclosureMatches = articleHtml.match(/<p data-ai-disclosure>/g) ?? [];
+        assert.equal(disclosureMatches.length, 1, 'expected exactly one AI disclosure inside the article');
+
+        const jsonLdNodes = extractJsonLdNodes(html);
+        const newsArticleNodes = jsonLdNodes.filter((n) => n['@type'] === 'NewsArticle');
+        assert.equal(newsArticleNodes.length, 1, 'expected exactly one NewsArticle node');
+        const sourceUrl = newsArticleNodes[0].isBasedOn.url;
+
+        const disclosureHrefMatch = articleHtml.match(/<p data-ai-disclosure>[\s\S]*?<a href="([^"]+)"/);
+        assert.ok(disclosureHrefMatch, 'expected an href on the disclosure link');
+        assert.equal(disclosureHrefMatch[1], sourceUrl);
+
+        // Spanish text present only when the page is actually translated; the D-05 fallback
+        // still carries the SPANISH disclosure (I18N-09) even though its headline/body are
+        // English — this phrase is rendered on every /es page, translated or not.
+        assert.ok(
+          articleHtml.includes('redactado por IA'),
+          'expected the Spanish AI-disclosure phrase on every /es page'
+        );
+
+        const englishFact = articleByUuid.get(esFact.uuid);
+        assert.ok(englishFact, `expected an English tier fact for ${esFact.uuid}`);
+      });
+    }
+  }
+);
+
+// ---------------------------------------------------------------------------
+// 06-09 Task 2 (D-07): "Originally reported in Spanish" — a structural consistency check
+// across a sample of built English pages. Which specific production uuids carry
+// sourceLanguage: 'es' is not knowable from this unit test (no D1 access here) — this proves
+// internal consistency (the label and the lang/hreflang attributes always appear TOGETHER or
+// NOT AT ALL), which is what the pure `enArticleLanguageModel` unit tests
+// (tests/unit/article-page-model.test.mjs) already prove for the underlying decision logic.
+// ---------------------------------------------------------------------------
+
+test(
+  'article-markup: D-07 — the "Originally reported in Spanish" label and the source link\'s lang/hreflang="es" always appear together, never independently',
+  { skip: !DIST_BUILT && SKIP_REASON },
+  async (t) => {
+    const files = findArticleHtmlFiles(DIST_CLIENT).sort();
+    const sample = sampleEvenly(files, SAMPLE_SIZE);
+
+    for (const filePath of sample) {
+      const relPath = path.relative(DIST_CLIENT, filePath);
+      await t.test(relPath, () => {
+        const html = readFileSync(filePath, 'utf8');
+        const articleHtml = extractArticleRegion(html);
+
+        const hasLabel = articleHtml.includes('data-source-language');
+        const attributionMatch = articleHtml.match(/<p data-attribution>[\s\S]*?<\/p>/);
+        assert.ok(attributionMatch, 'expected an attribution paragraph');
+        const sourceLinkMatch = attributionMatch[0].match(/<a href="[^"]+"([^>]*)>/);
+        assert.ok(sourceLinkMatch, 'expected a source link inside the attribution paragraph');
+        const sourceLinkAttrs = sourceLinkMatch[1];
+        const hasSourceLangAttrs =
+          sourceLinkAttrs.includes('lang="es"') && sourceLinkAttrs.includes('hreflang="es"');
+
+        assert.equal(
+          hasLabel,
+          hasSourceLangAttrs,
+          `D-07 label presence (${hasLabel}) must match source-link lang/hreflang="es" presence (${hasSourceLangAttrs})`
+        );
+
+        if (hasLabel) {
+          assert.ok(
+            articleHtml.includes(t('originallySpanish', 'en')),
+            'expected the exact dictionary string when the label is present'
+          );
         }
       });
     }

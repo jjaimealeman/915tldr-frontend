@@ -39,6 +39,7 @@ import { UUID_RE } from '../src/lib/article-url.ts';
 import { readTierFacts } from '../src/lib/archive/tier-facts.ts';
 import { isHotTag, projectStaticCount } from '../src/lib/archive/tiering.ts';
 import { parseHotWindow, HOT_WINDOW_PATH, describeHotWindow } from '../src/lib/archive/hot-window.ts';
+import { ARCHIVE_DIR } from './partition-archive.mjs';
 
 export const ZONE_TAG_915TLDR = '70a6176e850ecde50ab6f41d56ffddb4'; // 915tldr.com, v1 production, Free plan
 export const WINDOW_DAYS = 30; // D-05
@@ -46,6 +47,10 @@ export const HOT_COVERAGE_TARGET = 0.95;
 export const HOT_WINDOW_STATIC_CAP = 60_000; // 75% of the 80,000 fail line, post-Phase-6
 export const SECONDS_PER_DAY = 86_400;
 export const DEFAULT_DIST_CLIENT = 'dist/client';
+// WR-08 (05-15): since 05-06 every `pnpm run build` partitions archive-tier pages out of
+// `dist/client` into `dist/archive` (`tools/partition-archive.mjs`'s own `ARCHIVE_DIR`,
+// re-exported here so this tool never hardcodes a second copy of that path).
+export const DEFAULT_DIST_ARCHIVE = ARCHIVE_DIR;
 
 const DEFAULT_PACING_MS = 1000; // "paced at no more than 1 per second" (project rule)
 const ROW_LIMIT = 9999;
@@ -668,15 +673,40 @@ async function walkFileCount(dir) {
   return count;
 }
 
-/** `otherFiles` for `projectStaticCount` — every file under `dist/client` that is neither an
- * article page nor a tag page, counted from the last build (one HTML file per tier-facts entry,
- * so `total - articles - tags` is exact, not an estimate). */
-export async function countOtherFiles(distDir = DEFAULT_DIST_CLIENT, facts = readTierFacts()) {
+/** `otherFiles` for `projectStaticCount` — every file under BOTH `dist/client` AND `dist/archive`
+ * that is neither an article page nor a tag page (one HTML file per tier-facts entry, counted
+ * from the last build, so `clientCount + archiveCount - articles - tags` is exact, not an
+ * estimate). Both trees must be counted together (WR-08): since 05-06, `pnpm run build` +
+ * `tools/partition-archive.mjs` moves archive-tier pages OUT of `dist/client` into `dist/archive`
+ * — walking `dist/client` alone undercounts by exactly the number of archived pages (reproduced
+ * live as -30,467 against the real partitioned build). Counting both trees means a page is
+ * counted exactly once wherever it currently sits — including mid-move-back (archive-sync pre's
+ * move-back, or a half-finished partition), since the page simply shifts from one tree's count to
+ * the other with no change to the sum. `archiveDir` need not exist (an unpartitioned tree, or a
+ * build that predates partitioning) — `walkFileCount` already returns 0 on ENOENT. Throws
+ * (never returns a negative) if the facts claim more pages than both trees together hold — that
+ * means the build output and the tier facts disagree, not that otherFiles is legitimately
+ * negative. */
+export async function countOtherFiles(
+  distDir = DEFAULT_DIST_CLIENT,
+  facts = readTierFacts(),
+  archiveDir = DEFAULT_DIST_ARCHIVE
+) {
   if (!existsSync(distDir)) {
     fail(`${distDir} does not exist — run \`pnpm run build\` first`);
   }
-  const total = await walkFileCount(distDir);
-  return total - facts.articles.length - facts.tags.length;
+  const clientCount = await walkFileCount(distDir);
+  const archiveCount = await walkFileCount(archiveDir);
+  const otherFiles = clientCount + archiveCount - facts.articles.length - facts.tags.length;
+  if (otherFiles < 0) {
+    fail(
+      `countOtherFiles went negative (${otherFiles}): ${distDir} has ${clientCount} files, ` +
+        `${archiveDir} has ${archiveCount} files, facts list ${facts.articles.length} articles ` +
+        `and ${facts.tags.length} tags — the build output and the tier facts disagree — ` +
+        'rebuild with `pnpm run build`'
+    );
+  }
+  return otherFiles;
 }
 
 // ---------------------------------------------------------------------------
@@ -799,7 +829,7 @@ async function main() {
 
     await confirmSchema({});
     const facts = readTierFacts();
-    const otherFiles = await countOtherFiles(DEFAULT_DIST_CLIENT, facts);
+    const otherFiles = await countOtherFiles(DEFAULT_DIST_CLIENT, facts, DEFAULT_DIST_ARCHIVE);
     const fetchDay = buildLiveFetchDay({});
 
     const record = await deriveHotWindow({

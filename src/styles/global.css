@@ -463,6 +463,14 @@ header:not([data-block]) h1 {
   font-variant-caps: small-caps;
 }
 
+/* 06-05 (D-12): the plain-link language switch — quiet, small text using the same link colour
+   and focus ring as every other link (no new tokens). Always server-rendered (never toggled by
+   JS after load), so it introduces no post-load layout shift. */
+[data-lang-switch] {
+  margin: var(--space-1) 0 0;
+  font-size: var(--step--1);
+}
+
 /* Spectrum rule — eight equal segments in canonical order, the brand
    signature (915 TLDR has no ninth brand hue; open item 2). */
 [data-spectrum] {

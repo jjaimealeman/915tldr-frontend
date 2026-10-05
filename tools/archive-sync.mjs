@@ -27,7 +27,7 @@
 // convention). Credential handling follows OPS-11 (same as `src/lib/server/r2-client.ts`):
 // read from `process.env` only, never logged, never embedded in a thrown message.
 
-import { existsSync, mkdirSync, readFileSync, renameSync } from 'node:fs';
+import { existsSync, mkdirSync, readFileSync, renameSync, writeFileSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { runPool } from './lib/run-pool.mjs';
 import { ARCHIVE_DIR, PARTITION_PLAN_PATH } from './partition-archive.mjs';
@@ -41,7 +41,24 @@ export const BUILD_STARTED_AT_PATH = '.astro/ci-build-started-at';
 export const PRE_DEADLINE_SECONDS = 840;
 export const POST_DEADLINE_SECONDS = 1020;
 export const BACKLOG_ALERT_HOURS = 20;
+// CR-02 (05-20): the marker `tools/assert-archive-synced.mjs` reads before `wrangler deploy`
+// runs — proof that `runPreSync` has confirmed THIS build's partition (uploaded or moved back
+// every archive-tier page) before a partitioned `dist/` is allowed to ship. Lives inside `dist/`
+// but outside `dist/client` (never deployed) — see `writeSyncedMarker` below.
+export const ARCHIVE_SYNCED_MARKER_PATH = 'dist/archive-synced.json';
+// IN-06 (05-20): a `.astro/ci-build-started-at` marker older than this (or more than 60s in the
+// future) is never trusted — `getBuildStartEpochSeconds` falls back to this process's own start
+// instead. A standalone `ci-build deploy` previously inherited a stale marker from an earlier
+// `pnpm run build`, making both deadlines (PRE_DEADLINE_SECONDS/POST_DEADLINE_SECONDS) look
+// already past: pre moved every new page back, post deferred every change and raised false
+// backlog alerts. 1,800s exceeds Workers Builds' 1,200s (20min) hard ceiling, so a live CI marker
+// is never the one this ignores — only a stale leftover from an earlier local build is.
+export const BUILD_START_MARKER_MAX_AGE_SECONDS = 1800;
 export const ARCHIVE_SYNC_CONCURRENCY = 32;
+export const LIVE_ORIGIN_DEFAULT = 'https://dev.915tldr.com';
+export const LIVE_CHECK_ATTEMPTS = 6;
+export const LIVE_CHECK_INTERVAL_MS = 10_000;
+export const LOCAL_VERSION_PATH = 'dist/client/version.json';
 
 const DIST_CLIENT_DIR = 'dist/client';
 const ARCHIVE_CONTENT_TYPE = 'text/html'; // measured live against dev.915tldr.com — 05-03-SUMMARY.md
@@ -86,12 +103,26 @@ export function wrapStoreForBranchGuard(store, env = process.env) {
   return { ...store, putObject: refuse, putJson: refuse, deleteObjects: refuse };
 }
 
+/** IN-06 (05-20): a marker older than `BUILD_START_MARKER_MAX_AGE_SECONDS`, or more than 60s in
+ * the future (clock skew, not a real future build start), is never trusted — both deadlines must
+ * be measured from THIS build's own start, not a stale leftover from an earlier one. Falls back
+ * to `PROCESS_START_EPOCH_SECONDS` (this module's own load time) exactly as the missing-marker
+ * case already did, with one stderr line naming the age so a stale marker is never silently
+ * ignored. */
 function getBuildStartEpochSeconds(root) {
   const abs = resolve(root, BUILD_STARTED_AT_PATH);
   if (existsSync(abs)) {
     const raw = readFileSync(abs, 'utf8').trim();
     const n = Number(raw);
-    if (Number.isFinite(n) && n > 0) return n;
+    if (Number.isFinite(n) && n > 0) {
+      const ageSeconds = PROCESS_START_EPOCH_SECONDS - n;
+      if (ageSeconds <= BUILD_START_MARKER_MAX_AGE_SECONDS && ageSeconds >= -60) {
+        return n;
+      }
+      console.error(
+        `[archive-sync] ignoring stale build-start marker (age ${ageSeconds}s > ${BUILD_START_MARKER_MAX_AGE_SECONDS}s) — measuring deadlines from this process's own start`
+      );
+    }
   }
   return PROCESS_START_EPOCH_SECONDS;
 }
@@ -102,6 +133,19 @@ function getDeadlineMs(root, deadlineSeconds) {
 
 function nowIso() {
   return new Date().toISOString();
+}
+
+/** CR-02 (05-20): writes `ARCHIVE_SYNCED_MARKER_PATH` — called immediately before every
+ * `exitCode: 0` return of `runPreSync` (success, disabled, index-unreadable), after any
+ * move-back has already completed, and NEVER on the plan-missing `exitCode: 1` path (there is no
+ * plan to vouch for there). Keyed to `plan.generatedAt` (set by `tools/partition-archive.mjs`'s
+ * `planPartition`) rather than a boolean, so a marker written for an older partition can never be
+ * mistaken for proof that a newer one was synced. Lives at `dist/archive-synced.json` — inside
+ * `dist/` but never inside `dist/client`, so it is never itself deployed. */
+function writeSyncedMarker(root, plan) {
+  const abs = resolve(root, ARCHIVE_SYNCED_MARKER_PATH);
+  mkdirSync(dirname(abs), { recursive: true });
+  writeFileSync(abs, JSON.stringify({ planGeneratedAt: plan?.generatedAt ?? null, syncedAt: nowIso(), phase: 'pre' }));
 }
 
 /** `en-CA` formats as `YYYY-MM-DD` directly — the one locale/format combination that avoids
@@ -286,12 +330,105 @@ async function defaultHasR2Credentials(env) {
   return hasR2Credentials(env);
 }
 
+/** CR-01/WR-01 (05-14): the one check standing between `runPostSync` and every R2 mutation it
+ * can make. Reads this build's own `dist/client/version.json`, compares it against the live
+ * deployment's `/version.json` (commit AND builtAt — `builtAt` differs between a local build and
+ * the deployed build of the same commit, so commit alone would under-detect), and reports
+ * `live: true` only on an exact match of both fields. Never throws — a missing/unparseable local
+ * file, an unreachable origin, a non-2xx response or a malformed remote body all fold into
+ * `live: false` with a `reason`, because this function's caller (`runPostSync`) itself must never
+ * fail a deploy (D-10/D-12's existing contract, extended to this new gate): an uncertain answer
+ * must be treated as "not live," not thrown. Polls up to `attempts` times (default 6, 10s apart)
+ * to absorb post-deploy propagation delay, awaiting `sleep(intervalMs)` between non-matching
+ * attempts — never after the final attempt, and never after a match. `attempts` in the returned
+ * object is however many fetches were actually made (1 on the first-attempt match or on an
+ * unreachable origin/missing local file, up to the full `attempts` count otherwise). */
+export async function checkLiveDeployment({
+  root = process.cwd(),
+  env = process.env,
+  fetchImpl = fetch,
+  sleep = (ms) => new Promise((resolveSleep) => setTimeout(resolveSleep, ms)),
+  attempts = LIVE_CHECK_ATTEMPTS,
+  intervalMs = LIVE_CHECK_INTERVAL_MS,
+} = {}) {
+  const localAbs = resolve(root, LOCAL_VERSION_PATH);
+  let local = null;
+  if (existsSync(localAbs)) {
+    try {
+      const parsed = JSON.parse(readFileSync(localAbs, 'utf8'));
+      if (parsed && typeof parsed.commit === 'string' && typeof parsed.builtAt === 'string') {
+        local = { commit: parsed.commit, builtAt: parsed.builtAt };
+      }
+    } catch {
+      local = null;
+    }
+  }
+  if (!local) {
+    return { live: false, local: null, remote: null, attempts: 0, reason: `${LOCAL_VERSION_PATH} is missing or unparseable` };
+  }
+
+  const origin = env.ARCHIVE_SYNC_LIVE_ORIGIN || LIVE_ORIGIN_DEFAULT;
+  if (!origin.startsWith('https://')) {
+    return {
+      live: false,
+      local,
+      remote: null,
+      attempts: 0,
+      reason: `ARCHIVE_SYNC_LIVE_ORIGIN must be an https origin — got ${JSON.stringify(origin)}`,
+    };
+  }
+
+  const totalAttempts = Math.max(1, Number(attempts) || 1);
+  let remote = null;
+  let reason = null;
+  let madeAttempts = 0;
+
+  for (let i = 0; i < totalAttempts; i += 1) {
+    madeAttempts += 1;
+    const url = `${origin}/version.json?archive-sync=${Date.now()}`;
+    try {
+      const res = await fetchImpl(url, { headers: { 'cache-control': 'no-cache' } });
+      if (res && res.ok) {
+        const body = await res.json();
+        if (body && typeof body.commit === 'string' && typeof body.builtAt === 'string') {
+          remote = { commit: body.commit, builtAt: body.builtAt };
+          reason = null;
+        } else {
+          remote = null;
+          reason = 'remote /version.json response is missing commit/builtAt';
+        }
+      } else {
+        remote = null;
+        reason = `remote /version.json returned status ${res ? res.status : 'unknown'}`;
+      }
+    } catch (err) {
+      remote = null;
+      reason = `remote /version.json fetch failed — ${err instanceof Error ? err.message : String(err)}`;
+    }
+
+    if (remote && remote.commit === local.commit && remote.builtAt === local.builtAt) {
+      return { live: true, local, remote, attempts: madeAttempts, reason: null };
+    }
+
+    if (i < totalAttempts - 1) {
+      await sleep(intervalMs);
+    }
+  }
+
+  return { live: false, local, remote, attempts: madeAttempts, reason: reason ?? 'commit/builtAt mismatch' };
+}
+
 /**
  * Pre-deploy phase: uploads pages new to the archive; anything that fails, times out at the
  * deadline, or sits beyond `--limit` is moved back into `dist/client` before this returns.
  * Exits (via the returned `exitCode`) 1 ONLY when the plan is missing or invalid — every other
  * outcome (disabled, index unreadable, partial upload failure) is exitCode 0, matching D-10's
  * "never blocks a deploy" guarantee at the pre-deploy phase too.
+ *
+ * CR-02 (05-20): writes `ARCHIVE_SYNCED_MARKER_PATH` on every `exitCode: 0` return (success,
+ * disabled, index-unreadable) — proof `tools/assert-archive-synced.mjs` accepts as "this build's
+ * partition has been confirmed" before `wrangler deploy` is allowed to run. Never written on the
+ * plan-missing `exitCode: 1` path, since there's no plan's `generatedAt` to key the marker to.
  */
 export async function runPreSync(opts = {}) {
   const {
@@ -328,6 +465,7 @@ export async function runPreSync(opts = {}) {
   const { disabled, reason } = await checkDisabled(env, hasR2CredentialsFn);
   if (disabled) {
     const moved = moveEntriesBack(planEntries, root);
+    writeSyncedMarker(root, plan);
     return {
       result: buildResult({
         phase: 'pre',
@@ -353,6 +491,7 @@ export async function runPreSync(opts = {}) {
     index = (await store.getJson(ARCHIVE_INDEX_KEY)) ?? { version: 1, entries: {} };
   } catch (err) {
     const moved = moveEntriesBack(planEntries, root);
+    writeSyncedMarker(root, plan);
     return {
       result: buildResult({
         phase: 'pre',
@@ -370,7 +509,45 @@ export async function runPreSync(opts = {}) {
     };
   }
 
-  const diff = diffAgainstIndex({ planEntries, index, forceFull: false, pathExists: () => false });
+  // WR-02 (05-18) index self-heal: a post-sync run whose deletion succeeded but whose index write
+  // then failed leaves the index claiming an object R2 no longer holds. If that key later re-enters
+  // the archive tier, trusting the stale index entry here would classify it as `unchanged`/`changed`
+  // (not `new`), skip the upload, and the deploy would remove it from static — a permanent 404 for
+  // unchanged content. Once per run, list what R2 actually holds under all four archive prefixes
+  // (06-04: the two Spanish `es/articles/`/`es/tags/` prefixes added alongside the original two, so
+  // an indexed-but-missing Spanish object self-heals exactly like an English one) and treat any
+  // indexed-but-missing plan key as `new` instead, so it uploads before the deploy relies on it. A
+  // listing failure is not fatal — the index-only diff runs exactly as it did before this fix, with
+  // its own alert, rather than blocking the deploy over a transient R2 read.
+  let diffIndex = index;
+  const selfHealAlerts = [];
+  try {
+    const [articleKeys, tagKeys, esArticleKeys, esTagKeys] = await Promise.all([
+      store.listKeys('articles/'),
+      store.listKeys('tags/'),
+      store.listKeys('es/articles/'),
+      store.listKeys('es/tags/'),
+    ]);
+    const r2Keys = new Set([...articleKeys, ...tagKeys, ...esArticleKeys, ...esTagKeys]);
+    const indexEntries = index.entries ?? {};
+    const missingFromR2 = planEntries
+      .map((entry) => entry.key)
+      .filter((key) => key in indexEntries && !r2Keys.has(key));
+    if (missingFromR2.length > 0) {
+      const healedEntries = { ...indexEntries };
+      for (const key of missingFromR2) delete healedEntries[key];
+      diffIndex = { ...index, entries: healedEntries };
+      selfHealAlerts.push(
+        `archive-sync: ${missingFromR2.length} indexed page(s) were missing from R2 — re-uploading as new (index self-heal)`
+      );
+    }
+  } catch (err) {
+    selfHealAlerts.push(
+      `archive-sync: could not list R2 keys — index trusted without self-heal this run (${err instanceof Error ? err.message : String(err)})`
+    );
+  }
+
+  const diff = diffAgainstIndex({ planEntries, index: diffIndex, forceFull: false, pathExists: () => false });
   let candidates = diff.newKeys;
   let beyondLimit = [];
   if (typeof limit === 'number' && Number.isFinite(limit) && candidates.length > limit) {
@@ -396,17 +573,25 @@ export async function runPreSync(opts = {}) {
   for (const { item } of done) {
     add[item.key] = { sha256: item.sha256, bytes: item.bytes, path: item.path, uploadedAt: nowIso() };
   }
+  const alerts = [...selfHealAlerts];
   if (Object.keys(add).length > 0) {
-    await mergeWriteIndex(store, { add, remove: [] });
+    try {
+      await mergeWriteIndex(store, { add, remove: [] });
+    } catch (err) {
+      alerts.push(
+        `archive-sync: index write failed after ${Object.keys(add).length} upload(s) — those pages are in R2 and deploy safely; the next run re-uploads them as new (${err instanceof Error ? err.message : String(err)})`
+      );
+    }
   }
 
   const toMoveBack = [...failed.map((f) => f.item), ...notStarted.map((n) => n.item), ...beyondLimit];
   const moved = moveEntriesBack(toMoveBack, root);
 
-  const alerts = [];
   if (failed.length > 0) {
     alerts.push(`archive-sync: ${failed.length} page(s) failed to upload — previous state (static) still serving`);
   }
+
+  writeSyncedMarker(root, plan);
 
   return {
     result: buildResult({
@@ -439,6 +624,7 @@ export async function runPostSync(opts = {}) {
     createStore = defaultCreateStore,
     hasR2CredentialsFn = defaultHasR2Credentials,
     forceFullFlag = false,
+    checkLiveDeploymentFn = (liveOpts) => checkLiveDeployment({ root, env, ...liveOpts }),
   } = opts;
 
   let plan;
@@ -464,6 +650,30 @@ export async function runPostSync(opts = {}) {
   const planEntries = plan.entries;
   const alerts = [];
 
+  // CR-01 (05-14 Task 2): a dry-run deploy ships nothing, so a direct `post` invocation during
+  // one (e.g. `CI_BUILD_DEPLOY_DRY_RUN=1 node tools/archive-sync.mjs post`, bypassing 05-13's
+  // ci-build-side guard) must refuse before even checking credentials or the live deployment —
+  // zero R2 calls, zero network calls, period.
+  if (isTruthyFlag(env.CI_BUILD_DEPLOY_DRY_RUN)) {
+    return {
+      result: buildResult({
+        phase: 'post',
+        uploaded: 0,
+        failed: 0,
+        deferred: 0,
+        movedBack: 0,
+        deleted: 0,
+        backlog: null,
+        alerts: [
+          'archive-sync: post-deploy sync skipped — CI_BUILD_DEPLOY_DRY_RUN is set (a dry run deployed nothing; the production bucket is not touched)',
+        ],
+        dailyReport: { due: false },
+        disabled: true,
+      }),
+      exitCode: 0,
+    };
+  }
+
   const { disabled, reason } = await checkDisabled(env, hasR2CredentialsFn);
   if (disabled) {
     return {
@@ -478,6 +688,32 @@ export async function runPostSync(opts = {}) {
         alerts: [`archive-sync: archive tier disabled for this build — ${reason}`],
         dailyReport: null,
         disabled: true,
+      }),
+      exitCode: 0,
+    };
+  }
+
+  // CR-01/WR-01 (05-14): refuse every path below — uploads, deletions, state, daily report,
+  // force-full clearing — unless the live deployment is THIS build. Checked before `createStore`
+  // so a non-live run makes exactly one read-only GET and zero R2 calls.
+  const liveness = await checkLiveDeploymentFn();
+  if (!liveness.live) {
+    const localDesc = liveness.local ? `${liveness.local.commit}@${liveness.local.builtAt}` : 'unknown';
+    const remoteDesc = liveness.remote ? `${liveness.remote.commit}@${liveness.remote.builtAt}` : 'unknown';
+    return {
+      result: buildResult({
+        phase: 'post',
+        uploaded: 0,
+        failed: 0,
+        deferred: 0,
+        movedBack: 0,
+        deleted: 0,
+        backlog: null,
+        alerts: [
+          `archive-sync: post-deploy sync skipped — live deployment is not this build (live ${remoteDesc}, local ${localDesc}; ${liveness.reason}); no R2 changes made, daily report not evaluated this run`,
+        ],
+        dailyReport: { due: false },
+        disabled: false,
       }),
       exitCode: 0,
     };
@@ -559,20 +795,51 @@ export async function runPostSync(opts = {}) {
   let deletedCount = 0;
   let actuallyDeleted = [];
   if (toDelete.length > 0) {
-    const delResult = await store.deleteObjects(toDelete);
-    deletedCount = delResult.deleted;
-    if (delResult.errors?.length > 0) {
-      alerts.push(`archive-sync: ${delResult.errors.length} object(s) failed to delete`);
+    // WR-01 (05-14 Task 2): re-check liveness ONE more time, immediately before the delete call —
+    // if a deploy landed during the upload phase above, the live deployment may no longer be this
+    // build, and deleting now would repeat the exact overlapping-build bug the initial gate exists
+    // to prevent. On a mid-run change, skip the delete entirely (not a partial delete) and keep
+    // every orphan's index entry — this run's uploads/index-adds above still stand.
+    const preDeleteLiveness = await checkLiveDeploymentFn({ attempts: 1 });
+    if (!preDeleteLiveness.live) {
+      alerts.push(
+        `archive-sync: live deployment changed during post-sync — skipping ${toDelete.length} deletion(s); index entries kept`
+      );
+    } else {
+      try {
+        const delResult = await store.deleteObjects(toDelete);
+        deletedCount = delResult.deleted;
+        if (delResult.errors?.length > 0) {
+          alerts.push(`archive-sync: ${delResult.errors.length} object(s) failed to delete`);
+        }
+        // Only drop an index entry for a key that `deleteObjects` actually confirmed deleted — a
+        // key that errored (R2 outage, NoSuchKey, anything else) must keep its index entry, or the
+        // next run would never retry it and the index would silently lie about what's really in R2.
+        const erroredKeys = new Set((delResult.errors ?? []).map((e) => e.key));
+        actuallyDeleted = toDelete.filter((key) => !erroredKeys.has(key));
+      } catch (err) {
+        // WR-02 (05-18): r2-client's own deleteObjects no longer throws mid-batch, but this call
+        // must stay defensive regardless of the caller — an unexpected throw here must never crash
+        // the run; keep every index entry, since whether any key was actually deleted is unknown.
+        alerts.push(
+          `archive-sync: deleteObjects failed — ${err instanceof Error ? err.message : String(err)}; index entries kept`
+        );
+        actuallyDeleted = [];
+      }
     }
-    // Only drop an index entry for a key that `deleteObjects` actually confirmed deleted — a
-    // key that errored (R2 outage, NoSuchKey, anything else) must keep its index entry, or the
-    // next run would never retry it and the index would silently lie about what's really in R2.
-    const erroredKeys = new Set((delResult.errors ?? []).map((e) => e.key));
-    actuallyDeleted = toDelete.filter((key) => !erroredKeys.has(key));
   }
 
   if (Object.keys(add).length > 0 || actuallyDeleted.length > 0) {
-    await mergeWriteIndex(store, { add, remove: actuallyDeleted });
+    try {
+      await mergeWriteIndex(store, { add, remove: actuallyDeleted });
+    } catch (err) {
+      // WR-02 (05-18): the deletion(s)/upload(s) above already happened against R2 — only the
+      // bookkeeping write failed. Never throw here: the next pre-sync's index self-heal (above)
+      // repairs any resulting drift before a deploy relies on the index being truthful.
+      alerts.push(
+        `archive-sync: index write failed after post-sync — ${actuallyDeleted.length} deletion(s) and ${Object.keys(add).length} upload(s) may be missing from the index; the next pre-sync self-heals (${err instanceof Error ? err.message : String(err)})`
+      );
+    }
   }
 
   const deferredCount = notStarted.length;
@@ -597,12 +864,16 @@ export async function runPostSync(opts = {}) {
     }
     backlogSince = null;
   }
-  await store.putJson(ARCHIVE_STATE_KEY, {
-    backlogCount: deferredCount,
-    backlogSince,
-    lastConvergedAt,
-    updatedAt: nowIso(),
-  });
+  try {
+    await store.putJson(ARCHIVE_STATE_KEY, {
+      backlogCount: deferredCount,
+      backlogSince,
+      lastConvergedAt,
+      updatedAt: nowIso(),
+    });
+  } catch (err) {
+    alerts.push(`archive-sync: archive-state write failed — ${err instanceof Error ? err.message : String(err)}`);
+  }
 
   if (backlogSince) {
     const ageMs = now() - Date.parse(backlogSince);
@@ -621,7 +892,13 @@ export async function runPostSync(opts = {}) {
     }
   }
 
-  // Daily report: due at most once per America/Denver calendar date.
+  // Daily report (REND-11 follow-up, quick 261002-s2r): `runPostSync` itself never writes
+  // DAILY_REPORT_KEY any more — only `commitDailyReport` does, called by `tools/ci-build.mjs`'s
+  // deploy alert loop after a CONFIRMED 2xx ntfy response for this exact report. A missing,
+  // unreadable, or stale (not today's America/Denver date) marker all report due:true with
+  // today's date attached; a rejected/thrown send simply means the marker is never advanced, so
+  // the next run reports due:true again — "a duplicate report is preferred over a missed report"
+  // is still the governing principle, the mechanism just moved to the confirmed-send boundary.
   let dailyReportState = null;
   try {
     dailyReportState = await store.getJson(DAILY_REPORT_KEY);
@@ -631,10 +908,10 @@ export async function runPostSync(opts = {}) {
   const today = denverDateString(new Date(now()));
   let dailyReport;
   if (!dailyReportState || dailyReportState.lastReportDate !== today) {
-    await store.putJson(DAILY_REPORT_KEY, { lastReportDate: today });
     const budget = readStaticBudget(root);
     dailyReport = {
       due: true,
+      date: today,
       body: {
         staticFileCount: budget?.staticFileCount ?? null,
         ceiling: budget?.ceiling ?? null,
@@ -677,6 +954,40 @@ export async function requestFullReupload({ reason, env = process.env, createSto
   await store.putJson(FORCE_FULL_KEY, { requestedAt: nowIso(), reason });
 }
 
+/**
+ * REND-11 follow-up (quick 261002-s2r): the ONLY code path left in this file that writes
+ * `_meta/daily-report.json`. Called by `tools/ci-build.mjs`'s deploy alert loop, and only after
+ * `sendNotification` has confirmed a 2xx for THAT day's daily report — never from `runPostSync`
+ * itself, so a rejected or thrown send leaves the marker untouched and the next production
+ * deploy's `post` run reports `due: true` again (a duplicate report is preferred over a missed
+ * one, same principle `runPostSync`'s old inline write served, just moved to this confirmed-send
+ * boundary). Refuses — before any store is ever created — in the same four cases `checkDisabled`
+ * plus date validation already cover: a dry run (`CI_BUILD_DEPLOY_DRY_RUN` — a dry run deployed
+ * nothing, so nothing may be marked reported), a non-main `WORKERS_CI` branch, missing R2
+ * credentials, or a malformed `date`. Every write still passes through
+ * `wrapStoreForBranchGuard`, matching every other write in this file.
+ */
+export async function commitDailyReport({
+  date,
+  env = process.env,
+  createStore = defaultCreateStore,
+  hasR2CredentialsFn = defaultHasR2Credentials,
+} = {}) {
+  if (typeof date !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(date)) {
+    fail('commitDailyReport requires a YYYY-MM-DD date');
+  }
+  if (isTruthyFlag(env.CI_BUILD_DEPLOY_DRY_RUN)) {
+    fail('refusing daily-report marker write — CI_BUILD_DEPLOY_DRY_RUN is set (a dry run deployed nothing)');
+  }
+  const { disabled, reason } = await checkDisabled(env, hasR2CredentialsFn);
+  if (disabled) {
+    fail(`refusing daily-report marker write — ${reason}`);
+  }
+  const rawStore = await createStore(env);
+  const store = wrapStoreForBranchGuard(rawStore, env);
+  await store.putJson(DAILY_REPORT_KEY, { lastReportDate: date });
+}
+
 // ---------------------------------------------------------------------------
 // CLI
 // ---------------------------------------------------------------------------
@@ -688,13 +999,15 @@ function parseArgs(args) {
   const limit = limitIdx >= 0 ? Number(args[limitIdx + 1]) : null;
   const reasonIdx = args.indexOf('--reason');
   const reason = reasonIdx >= 0 ? args[reasonIdx + 1] : null;
-  return { jsonMode, forceFullFlag, limit, reason };
+  const dateIdx = args.indexOf('--date');
+  const date = dateIdx >= 0 ? args[dateIdx + 1] : null;
+  return { jsonMode, forceFullFlag, limit, reason, date };
 }
 
 async function main() {
   const args = process.argv.slice(2);
   const sub = args[0];
-  const { jsonMode, forceFullFlag, limit, reason } = parseArgs(args);
+  const { jsonMode, forceFullFlag, limit, reason, date } = parseArgs(args);
 
   if (sub === 'pre') {
     const { result, exitCode } = await runPreSync({ limit });
@@ -731,12 +1044,35 @@ async function main() {
     return;
   }
 
+  if (sub === 'mark-daily-report') {
+    try {
+      await commitDailyReport({ date });
+      console.log(`archive-sync: daily-report marker set to ${date}`);
+    } catch (err) {
+      console.error(err instanceof Error ? err.message : String(err));
+      process.exitCode = 1;
+    }
+    return;
+  }
+
   console.error(
-    'Usage: node tools/archive-sync.mjs <pre|post|request-full --reason "..."> [--limit n] [--force-full] [--json]'
+    'Usage: node tools/archive-sync.mjs <pre|post|request-full --reason "..."|mark-daily-report --date YYYY-MM-DD> [--limit n] [--force-full] [--json]'
   );
   process.exitCode = 1;
 }
 
+/** Prefixes `archive-sync: ` only if the message doesn't already carry it — `fail()`'s own thrown
+ * messages already do, and double-prefixing would make the one clean line this exists for look
+ * like two. Used only by the CLI's top-level `.catch` below, for an unexpected throw that escapes
+ * every other non-fatal handling in `runPreSync`/`runPostSync`. */
+function describeTopLevelError(err) {
+  const message = err instanceof Error ? err.message : String(err);
+  return message.startsWith('archive-sync:') ? message : `archive-sync: ${message}`;
+}
+
 if (import.meta.url === `file://${process.argv[1]}`) {
-  main();
+  main().catch((err) => {
+    console.error(describeTopLevelError(err));
+    process.exitCode = 1;
+  });
 }

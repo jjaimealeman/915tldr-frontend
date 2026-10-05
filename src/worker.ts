@@ -15,11 +15,19 @@
 // `./lib/archive/archive-route.ts` — both independently unit-tested; this file only wires the
 // one KV read, the R2 read, and builds the actual `Response`.
 //
+// 06-02 (D-06/D-13): language comes ONLY from the validated path prefix (`languageOfPath` /
+// `matchTagPath`'s own `/es` detection) — this file never reads `Accept-Language`, a cookie or
+// `request.cf` to pick a language, and must never start doing so (D-13: no automatic language
+// selection anywhere). The KV key stays `manifest:${uuid}` (one shared identity entry serves
+// both `/x` and `/es/x`, assumption-delta decision in 06-02-PLAN.md) — still exactly one KV read
+// per request. Only the R2 archive key becomes language-qualified.
+//
 // Imports only `./lib/article-redirect.ts` (which imports only `./lib/article-url.ts`) and
 // `./lib/archive/archive-route.ts` (same import boundary) — this file is in
 // `tools/assert-no-d1.mjs`'s `ENTRYPOINT_EXACT_FILES`, so a transitive reach into the D1/KV
 // chokepoint directory (`src/lib/server/`) that guard forbids would fail the build.
 import { extractArticleUuid, resolveRedirect } from './lib/article-redirect.ts';
+import { localizedPath } from './lib/article-url.ts';
 import {
   ARCHIVE_EDGE_CACHE_TTL_SECONDS,
   articleArchiveKey,
@@ -200,7 +208,9 @@ export default {
       if (tagMatch.suffix !== '') {
         return new Response(null, {
           status: TAG_SUFFIX_REDIRECT_STATUS,
-          headers: { Location: `/tag/${tagMatch.slug}${url.search}` },
+          headers: {
+            Location: localizedPath(`/tag/${tagMatch.slug}`, tagMatch.language) + url.search,
+          },
         });
       }
       // 05-03 Task 3: a GET checks the edge cache before the R2 read — only R2-sourced 200s for
@@ -209,7 +219,17 @@ export default {
         const cached = await cache.match(cacheKey);
         if (cached) return fromCacheHit(cached);
       }
-      return serveArchived(request, env, ctx, tagArchiveKey(tagMatch.slug), 'tag', tagMatch.slug, [], cache, cacheKey);
+      return serveArchived(
+        request,
+        env,
+        ctx,
+        tagArchiveKey(tagMatch.slug, tagMatch.language),
+        'tag',
+        tagMatch.slug,
+        [],
+        cache,
+        cacheKey
+      );
     }
 
     const uuid = extractArticleUuid(url.pathname);
@@ -254,7 +274,7 @@ export default {
         request,
         env,
         ctx,
-        articleArchiveKey(decision.articleId),
+        articleArchiveKey(decision.articleId, decision.language),
         'article',
         decision.articleId,
         [{ name: 'kv', dur: kvDur }],

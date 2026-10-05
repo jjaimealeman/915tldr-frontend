@@ -12,6 +12,7 @@ import {
   NEWS_WINDOW_SECONDS,
   NEWS_MAX_URLS,
 } from '../../src/lib/seo-feeds.ts';
+import { readTierFacts } from '../../src/lib/archive/tier-facts.ts';
 
 /** Minimal fixture matching the ArticleData shape's render-relevant fields (tests/unit/listing.test.mjs's own pattern). */
 function article({
@@ -96,11 +97,21 @@ test('selectNewsWindow: does not mutate its input array', () => {
 
 // ---------------------------------------------------------------------------
 // newsSitemapXml — behavior cases from 04-07-PLAN.md Task 3
+//
+// 06-11 (I18N-06): `newsSitemapXml` now takes already-localised `{ path, title, publishedAt }`
+// entries (not `ArticleData[]`) plus an optional `{ language }` — `newsEntry()` below builds the
+// same `/category/slug-uuid` path the old fixture's `ArticleData` shape implied, so these cases
+// stay otherwise unchanged.
 // ---------------------------------------------------------------------------
+
+/** `{ path, title, publishedAt }` — `newsSitemapXml`'s own input shape post-06-11. */
+function newsEntry({ uuid, publishedAt, title = `Title ${uuid}`, categorySlug = 'crime', slug = `slug-${uuid}` }) {
+  return { path: `/${categorySlug}/${slug}-${uuid}`, title, publishedAt };
+}
 
 test('newsSitemapXml: escapes & and < in titles', () => {
   const xml = newsSitemapXml(
-    [article({ uuid: 'a', publishedAt: 1000, title: 'Crime & Punishment <redacted>' })],
+    [newsEntry({ uuid: 'a', publishedAt: 1000, title: 'Crime & Punishment <redacted>' })],
     'https://915tldr.com'
   );
   assert.match(xml, /<news:title>Crime &amp; Punishment &lt;redacted&gt;<\/news:title>/);
@@ -109,7 +120,7 @@ test('newsSitemapXml: escapes & and < in titles', () => {
 
 test('newsSitemapXml: emits one <url> per entry', () => {
   const xml = newsSitemapXml(
-    [article({ uuid: 'a', publishedAt: 1000 }), article({ uuid: 'b', publishedAt: 900 })],
+    [newsEntry({ uuid: 'a', publishedAt: 1000 }), newsEntry({ uuid: 'b', publishedAt: 900 })],
     'https://915tldr.com'
   );
   const urlCount = (xml.match(/<url>/g) ?? []).length;
@@ -126,6 +137,39 @@ test('newsSitemapXml: uses the sitemap 0.9 and Google News 0.9 namespaces', () =
   const xml = newsSitemapXml([], 'https://915tldr.com');
   assert.match(xml, /xmlns="http:\/\/www\.sitemaps\.org\/schemas\/sitemap\/0\.9"/);
   assert.match(xml, /xmlns:news="http:\/\/www\.google\.com\/schemas\/sitemap-news\/0\.9"/);
+});
+
+test('newsSitemapXml: defaults to <news:language>en</news:language> when no options are passed', () => {
+  const xml = newsSitemapXml([newsEntry({ uuid: 'a', publishedAt: 1000 })], 'https://915tldr.com');
+  assert.match(xml, /<news:language>en<\/news:language>/);
+});
+
+test('newsSitemapXml: { language: "es" } emits <news:language>es</news:language>', () => {
+  const xml = newsSitemapXml(
+    [newsEntry({ uuid: 'a', publishedAt: 1000 })],
+    'https://915tldr.com',
+    { language: 'es' }
+  );
+  assert.match(xml, /<news:language>es<\/news:language>/);
+  assert.doesNotMatch(xml, /<news:language>en<\/news:language>/);
+});
+
+test('newsSitemapXml: an invalid language throws rather than silently coercing', () => {
+  assert.throws(() => {
+    newsSitemapXml([newsEntry({ uuid: 'a', publishedAt: 1000 })], 'https://915tldr.com', {
+      // @ts-expect-error — deliberately invalid for this test
+      language: 'fr',
+    });
+  });
+});
+
+test('newsSitemapXml: loc is built from entry.path, not category/slug/uuid fields', () => {
+  const xml = newsSitemapXml(
+    [{ path: '/es/crime/foo-uuid-1234', title: 'Título', publishedAt: 1000 }],
+    'https://915tldr.com',
+    { language: 'es' }
+  );
+  assert.match(xml, /<loc>https:\/\/915tldr\.com\/es\/crime\/foo-uuid-1234<\/loc>/);
 });
 
 // ---------------------------------------------------------------------------
@@ -204,18 +248,44 @@ test('news-sitemap: across all sitemap children, URL count equals built HTML fil
   // (dist/archive). "Static or archived" (same rule the other tests in this task apply): the
   // expected count is the static HTML file count PLUS the archived page count from
   // dist/archive-plan.json, not dist/client's file count alone.
+  // 06-09: `plan.counts` keeps English and Spanish archived counts in SEPARATE fields
+  // (`archivedArticles`/`archivedTags` vs. `archivedArticlesEs`/`archivedTagsEs` —
+  // tools/partition-archive.mjs's own `planPartition` never merges them, since every other
+  // consumer of the English-named fields expects an English-only count). `countHtmlFiles` above
+  // recurses into every subdirectory, so it already counts BOTH languages' static files — the
+  // archived-page addend must include both languages too, or this cross-check undercounts by
+  // exactly the Spanish archived-page total.
   const planPath = path.join(REPO_ROOT, 'dist', 'archive-plan.json');
   let archivedPageCount = 0;
   if (existsSync(planPath)) {
     const plan = JSON.parse(readFileSync(planPath, 'utf8'));
-    archivedPageCount = (plan.counts?.archivedArticles ?? 0) + (plan.counts?.archivedTags ?? 0);
+    archivedPageCount =
+      (plan.counts?.archivedArticles ?? 0) +
+      (plan.counts?.archivedTags ?? 0) +
+      (plan.counts?.archivedArticlesEs ?? 0) +
+      (plan.counts?.archivedTagsEs ?? 0);
   }
 
-  const htmlFileCount = countHtmlFiles(DIST_CLIENT) - 1; // minus 404.html
+  // 06-10: a Spanish 404 page (`dist/client/es/404.html`) now exists alongside the English one —
+  // the sitemap excludes BOTH (same "never list a 404" rule this test's own closing assertion
+  // checks for the English one), so the subtraction below must count whichever 404 pages this
+  // build actually produced, not a hardcoded "1".
+  const notFoundPageCount = ['404.html', 'es/404.html'].filter((rel) => distFileExists(rel)).length;
+  const htmlFileCount = countHtmlFiles(DIST_CLIENT) - notFoundPageCount;
+
+  // 06-11 (I18N-06/D-05/T-06-42): an untranslated `/es` article page (English-fallback content
+  // served under `/es`, already `noindex` at the page level) is now correctly EXCLUDED from every
+  // sitemap file (`spanishSitemapExclusions`, `astro.config.mjs`'s `filter`) — a real, intended
+  // drop, not a bug this cross-check should flag. The excluded count is read straight from the
+  // same Spanish tier facts the exclusion itself keys off, covering both the hot (still in
+  // `dist/client`) and archived (already moved to `dist/archive`) portions in one number, since
+  // `writeArticleFactsEs` records every article regardless of tier.
+  const untranslatedEsArticleCount = readTierFacts().articlesEs.filter((entry) => !entry.translated).length;
+
   assert.equal(
     allSitemapUrls.length,
-    htmlFileCount + archivedPageCount,
-    'expected sitemap URL count to equal built HTML page count (minus 404) plus archived page count'
+    htmlFileCount + archivedPageCount - untranslatedEsArticleCount,
+    'expected sitemap URL count to equal built HTML page count (minus 404 pages) plus archived page count, minus untranslated /es fallback articles (06-11 exclusion)'
   );
 
   for (const url of allSitemapUrls) {

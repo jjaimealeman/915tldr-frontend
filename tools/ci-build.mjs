@@ -41,6 +41,8 @@ const CHECK_PATTERNS = [
   'tiering',
   'tier-facts',
   'r2-client',
+  // CR-02 (05-20): the deploy-time guard refusing an unconfirmed partitioned build.
+  'assert-archive-synced',
 ];
 
 /** T-04-35/T-04-36: env keys whose exact value must never appear in a notification body.
@@ -227,35 +229,161 @@ export function classifyFailure(outputTail, exitCode) {
 }
 
 /**
+ * Task 3 (quick 261002-s2r): matches exactly one `astro build`-emitted per-page progress line,
+ * e.g. `00:07:06   ├─ /404.html (+138ms)`, `00:08:20   ├─ /tag/uscis.html (restored)`, or
+ * `  ├─ /a.html (cached)` (the leading `HH:MM:SS` timestamp prefix is optional — Workers Builds
+ * strips its own timestamp column before this file ever sees the line, but a local `pnpm run
+ * build` never had one to begin with). Matched verbatim against real production log lines
+ * (docs/phase-04/build-pipeline.md's own evidence check script, and this file's own tests)
+ * — 53,425/53,425 real `├─` lines matched, 0/98 other real lines matched.
+ *
+ * Deliberately anchored end-to-end (`^...$`): anything appended after the closing paren — Astro's
+ * own "(file not created, response body was empty)" notice, or a differently-leveled log line's
+ * output glued onto the same line by a partial write — must NOT match, so it stays visible rather
+ * than silently vanishing into the suppressed count. Glyphs are written as `\u` escapes under the
+ * `u` flag rather than typed literally, matching this file's own `toHeaderSafe` convention for
+ * code points outside the ASCII range.
+ */
+export const PER_PAGE_LINE_RE =
+  /^(?:\d{2}:\d{2}:\d{2})?\s*[├└]─ \S+ \((?:\+\d+ms|\+\d+(?:\.\d+)?s|\+\d+m \d+s|cached|restored)\)\s*$/u;
+
+/**
+ * Strips ANSI SGR escape sequences and one trailing `\r` (a line arriving from a PTY-backed child
+ * or copy-pasted from a terminal) before testing `PER_PAGE_LINE_RE` — a real per-page line stays
+ * a real per-page line whether or not a terminal painted color around it.
+ */
+export function isPerPageBuildLine(line) {
+  const stripped = String(line ?? '')
+    .replace(/\x1b\[[0-9;]*m/g, '')
+    .replace(/\r$/, '');
+  return PER_PAGE_LINE_RE.test(stripped);
+}
+
+/**
+ * Task 3 (quick 261002-s2r): a small stateful line filter — `push(text)` feeds it raw stdout
+ * chunks (which may split a line across chunk boundaries, or bundle many lines into one chunk);
+ * every COMPLETE line is either a per-page line (suppressed, counted, and surfaced as one
+ * `progressEvery`-interval progress line) or anything else (written verbatim, with its newline,
+ * in order — warnings, errors, glued console output, and Astro's own non-page summary lines all
+ * survive exactly as `astro build` emitted them). `end()` flushes any still-buffered partial line
+ * (written only if it is NOT itself a page line — the file genuinely ended without a trailing
+ * newline is a possible, if unlikely, Astro build-tool state), writes the final
+ * `suppressed <N> ...` summary, and returns `N`. `write` is the only effectful seam — this
+ * function has no I/O of its own, so `spawnTee` can point it at a capturing array in a test.
+ */
+export function createPageLineFilter({ write, progressEvery = 5000 }) {
+  let buffer = '';
+  let suppressedCount = 0;
+  let sinceLastProgress = 0;
+
+  function handleLine(line) {
+    if (isPerPageBuildLine(line)) {
+      suppressedCount += 1;
+      sinceLastProgress += 1;
+      if (sinceLastProgress >= progressEvery) {
+        write(
+          `[ci-build] astro build: ${suppressedCount} pages rendered so far (per-page listing suppressed; CI_BUILD_FULL_LOG=1 shows it)\n`
+        );
+        sinceLastProgress = 0;
+      }
+    } else {
+      write(`${line}\n`);
+    }
+  }
+
+  return {
+    push(text) {
+      buffer += text;
+      let newlineIdx;
+      // eslint-disable-next-line no-cond-assign
+      while ((newlineIdx = buffer.indexOf('\n')) >= 0) {
+        const line = buffer.slice(0, newlineIdx);
+        buffer = buffer.slice(newlineIdx + 1);
+        handleLine(line);
+      }
+    },
+    end() {
+      if (buffer.length > 0) {
+        if (isPerPageBuildLine(buffer)) {
+          suppressedCount += 1;
+        } else {
+          write(buffer);
+        }
+        buffer = '';
+      }
+      write(`[ci-build] astro build: suppressed ${suppressedCount} per-page output lines (CI_BUILD_FULL_LOG=1 shows them)\n`);
+      return suppressedCount;
+    },
+  };
+}
+
+/**
  * Real process spawn — tees stdout/stderr straight through (so a live Workers Builds log still
  * shows everything a bare `pnpm run build` would) while also keeping the last
  * `NUMBER_OF_TAIL_LINES` lines for `classifyFailure` to scan. Never throws: a spawn error (e.g.
  * the binary is missing) resolves as a failed run rather than rejecting, so `runCi` always gets a
  * `{ code, tail }` result to act on.
+ *
+ * Task 3 (quick 261002-s2r), renamed from `defaultSpawn`: three extra, destructured-out options —
+ * `filterPageLines` (default false), `writeStdout`/`writeStderr` (default: the real
+ * `process.stdout`/`process.stderr`). stderr is NEVER filtered, regardless of `filterPageLines`.
+ * When `filterPageLines` is true, stdout chunks are routed through `createPageLineFilter` instead
+ * of written directly, and the promise resolves on the child's `close` event (after stdio has
+ * fully drained) rather than `exit`, calling the filter's own `end()` first so its summary line is
+ * the last thing written. Tail collection (raw lines, both streams, last `NUMBER_OF_TAIL_LINES`)
+ * is unchanged either way, so `classifyFailure` always sees the real, unfiltered output.
  */
-function defaultSpawn(cmd, args, opts = {}) {
+export function spawnTee(cmd, args, opts = {}) {
+  const {
+    filterPageLines = false,
+    writeStdout = (text) => process.stdout.write(text),
+    writeStderr = (text) => process.stderr.write(text),
+    ...spawnOpts
+  } = opts;
+
   return new Promise((resolve) => {
     let child;
     try {
-      child = spawn(cmd, args, { ...opts, stdio: ['ignore', 'pipe', 'pipe'] });
+      child = spawn(cmd, args, { ...spawnOpts, stdio: ['ignore', 'pipe', 'pipe'] });
     } catch (err) {
       resolve({ code: 1, tail: String(err?.message ?? err) });
       return;
     }
 
     const tailLines = [];
-    const onData = (streamName) => (chunk) => {
-      const text = chunk.toString();
-      (streamName === 'stderr' ? process.stderr : process.stdout).write(text);
+    const pushTail = (text) => {
       for (const line of text.split('\n')) {
         tailLines.push(line);
         if (tailLines.length > NUMBER_OF_TAIL_LINES) tailLines.shift();
       }
     };
-    child.stdout?.on('data', onData('stdout'));
-    child.stderr?.on('data', onData('stderr'));
+
+    const pageFilter = filterPageLines ? createPageLineFilter({ write: writeStdout }) : null;
+
+    child.stdout?.on('data', (chunk) => {
+      const text = chunk.toString();
+      pushTail(text);
+      if (pageFilter) {
+        pageFilter.push(text);
+      } else {
+        writeStdout(text);
+      }
+    });
+    child.stderr?.on('data', (chunk) => {
+      const text = chunk.toString();
+      pushTail(text);
+      writeStderr(text);
+    });
     child.on('error', (err) => resolve({ code: 1, tail: String(err?.message ?? err) }));
-    child.on('exit', (code) => resolve({ code: code ?? 1, tail: tailLines.join('\n') }));
+
+    if (filterPageLines) {
+      child.on('close', (code) => {
+        pageFilter.end();
+        resolve({ code: code ?? 1, tail: tailLines.join('\n') });
+      });
+    } else {
+      child.on('exit', (code) => resolve({ code: code ?? 1, tail: tailLines.join('\n') }));
+    }
   });
 }
 
@@ -292,8 +420,24 @@ export function toHeaderSafe(text) {
  * 05-08 Task 2: `priority`/`tags` are now overridable (defaults unchanged — `high`/
  * `rotating_light`, the original failure-notification shape); the daily report uses
  * `low`/`bar_chart`, the file-count alarm uses `high`/`warning`.
+ *
+ * REND-11 follow-up (quick 261002-s2r): the outcome is no longer silent. `res.status` (not
+ * `res.ok`, so a plain-object fake works in tests with no real `Response`) decides delivery —
+ * 2xx logs exactly `[ci-build] ntfy "<title>": HTTP <status>` via the injected `log` and returns
+ * normally; anything else throws `new Error('HTTP <status>')` with no logging of its own, leaving
+ * the caller (`sendNotification`) to log the failure line with the topic/token scrubbed. The
+ * response body is never read into a log, and the URL/topic/headers/request body never are
+ * either.
  */
-async function defaultNotify({ env, title, body, priority = 'high', tags = 'rotating_light' }) {
+async function defaultNotify({
+  env,
+  title,
+  body,
+  priority = 'high',
+  tags = 'rotating_light',
+  fetchImpl = (...args) => globalThis.fetch(...args),
+  log = () => {},
+}) {
   const server = env.NTFY_SERVER ?? 'https://ntfy.sh';
   const topic = env.NTFY_TOPIC;
   const headers = {
@@ -302,7 +446,13 @@ async function defaultNotify({ env, title, body, priority = 'high', tags = 'rota
     Tags: tags,
   };
   if (env.NTFY_TOKEN) headers.Authorization = `Bearer ${env.NTFY_TOKEN}`;
-  await fetch(`${server}/${encodeURIComponent(topic)}`, { method: 'POST', headers, body });
+  const res = await fetchImpl(`${server}/${encodeURIComponent(topic)}`, { method: 'POST', headers, body });
+  const status = res?.status;
+  if (typeof status === 'number' && status >= 200 && status < 300) {
+    log(`[ci-build] ntfy "${title}": HTTP ${status}`);
+    return;
+  }
+  throw new Error(`HTTP ${status}`);
 }
 
 /**
@@ -353,13 +503,18 @@ async function runWatched({ spawnFn, setTimer, clearTimer, watchdogMs, onWatchdo
  *  - `deploy` only ever calls `commitImpl` after `wrangler deploy` itself exits 0.
  *  - `all` never spawns a deploy step if the build step failed.
  *  - Every notification body/title passes through `redact()`.
+ *  - REND-11 follow-up (quick 261002-s2r): every ntfy send's HTTP outcome is logged (one line per
+ *    send — `HTTP <status>` on success, `<reason> (not delivered)` otherwise), and a notifier
+ *    failure never changes this function's own return value. `fetchImpl` (default: `globalThis
+ *    .fetch`) is the injectable seam the real `defaultNotify` uses.
  */
 export async function runCi(opts = {}) {
   const {
     step,
     env = process.env,
-    spawnImpl = defaultSpawn,
+    spawnImpl = spawnTee,
     notifyImpl = defaultNotify,
+    fetchImpl = (...args) => globalThis.fetch(...args),
     commitImpl = defaultCommitImpl,
     markBuildStart = defaultMarkBuildStart,
     loadHotWindowImpl = defaultLoadHotWindow,
@@ -374,14 +529,33 @@ export async function runCi(opts = {}) {
   const inCi = isTruthyFlag(env.WORKERS_CI);
   const watchdogMs = Number(env.BUILD_WATCHDOG_MS) > 0 ? Number(env.BUILD_WATCHDOG_MS) : DEFAULT_WATCHDOG_MS;
 
+  /**
+   * REND-11 follow-up (quick 261002-s2r): returns a boolean meaning "confirmed delivered" — true
+   * only once `notifyImpl` resolves (a confirmed 2xx, for the real `defaultNotify`); false both
+   * when there's no topic to send to (logging-only branch, unchanged) and when `notifyImpl`
+   * rejects. A rejection is caught here, never re-thrown — a notifier failure must never change
+   * `runCi`'s own return code (D-10/D-12/D-15) — and logged as exactly one outcome line with the
+   * topic (raw and URL-encoded) and any other secret scrubbed via `redact()` plus split/join.
+   */
   async function sendNotification(title, rawBody, { priority = 'high', tags = 'rotating_light' } = {}) {
     const body = redact(rawBody, env);
     const safeTitle = redact(title, env);
     if (!env.NTFY_TOPIC) {
       log(`[ci-build] NTFY_TOPIC not set — logging only: ${safeTitle}\n${body}`);
-      return;
+      return false;
     }
-    await notifyImpl({ env, title: safeTitle, body, priority, tags });
+    try {
+      await notifyImpl({ env, title: safeTitle, body, priority, tags, fetchImpl, log });
+      return true;
+    } catch (err) {
+      let reason = redact(err instanceof Error ? err.message : String(err), env);
+      if (env.NTFY_TOPIC) {
+        reason = reason.split(env.NTFY_TOPIC).join('[topic]');
+        reason = reason.split(encodeURIComponent(env.NTFY_TOPIC)).join('[topic]');
+      }
+      log(`[ci-build] ntfy "${safeTitle}": ${reason} (not delivered)`);
+      return false;
+    }
   }
 
   async function notifyFailure(check) {
@@ -416,6 +590,10 @@ export async function runCi(opts = {}) {
       spawnFn: () =>
         spawnImpl('pnpm', ['run', 'build'], {
           env: { ...env, BUILD_STATE_REQUIRE_BASELINE: '1' },
+          // Task 3 (quick 261002-s2r): suppresses astro build's ~60k-line per-page listing so the
+          // deploy step's own output (including Task 1/2's new ntfy-outcome lines) survives in the
+          // Workers Builds log — see spawnTee's own JSDoc. CI_BUILD_FULL_LOG=1 is the escape hatch.
+          filterPageLines: !isTruthyFlag(env.CI_BUILD_FULL_LOG),
         }),
       setTimer,
       clearTimer,
@@ -456,17 +634,26 @@ export async function runCi(opts = {}) {
       }
     }
 
-    // 05-08: the real deploy sequence — archive-sync pre (upload new-to-archive pages, move back
-    // anything that fails/misses the deadline) -> the file-count gate re-run on the FINAL
-    // dist/client (pre may have moved pages back into it) -> wrangler deploy (or a dry run
-    // rehearsal, CI_BUILD_DEPLOY_DRY_RUN=1) -> commitLastGood (skipped in a dry run — no real
-    // deploy happened to commit against) -> archive-sync post (re-upload changed pages, orphan
-    // cleanup, backlog/daily-report bookkeeping). Pre and the file-count gate can abort the whole
-    // deploy (D-13); post never can (D-10/D-12) — a failed or resultless post run is logged, not
-    // treated as a build failure, since `wrangler deploy` (and therefore the site) already
-    // succeeded by the time post runs. Every informational alert gathered along the way (pre's
-    // own alerts, the file-count warn alarm, post's alerts/daily-report) is sent AFTER the deploy
-    // succeeds — never blocking it, never gating it.
+    // 05-08/05-20: the real deploy sequence — archive-sync pre (upload new-to-archive pages, move
+    // back anything that fails/misses the deadline) -> the file-count gate re-run on the FINAL
+    // dist/client (pre may have moved pages back into it) -> the sync guard (assert-archive-
+    // synced.mjs — CR-02, 05-20: refuses a partitioned dist/ that pre has not confirmed for THIS
+    // build) -> wrangler deploy (or a dry run rehearsal, CI_BUILD_DEPLOY_DRY_RUN=1) ->
+    // commitLastGood -> archive-sync post (re-upload changed pages, orphan cleanup, backlog/
+    // daily-report bookkeeping) -> mark-daily-report (REND-11 follow-up, quick 261002-s2r: a
+    // separate `archive-sync mark-daily-report --date` spawn, fired only AFTER the daily-report
+    // ntfy send is CONFIRMED delivered with a 2xx — post itself never advances the marker any
+    // more; a not-delivered or thrown send leaves it untouched so the next deploy's post run
+    // reports due:true again). commitLastGood AND archive-sync post are BOTH skipped entirely in
+    // a dry run (CI_BUILD_DEPLOY_DRY_RUN=1 deploys nothing, so nothing may be committed or deleted;
+    // CR-01, 05-13) — and with post never spawned, no daily report can be due and mark-daily-report
+    // is never spawned either. Pre, the file-count gate, and the sync guard can each abort the whole
+    // deploy (D-13/CR-02); post never can (D-10/D-12) — a failed or resultless post run is logged,
+    // not treated as a build failure, since `wrangler deploy` (and therefore the site) already
+    // succeeded by the time post runs. Every informational alert gathered along the way (pre's own
+    // alerts, the file-count warn alarm, post's alerts/daily-report) is sent AFTER the deploy
+    // succeeds — never blocking it, never gating it. A dry run still delivers every alert it
+    // gathered before the wrangler step (pre's alerts, the file-count warn alarm).
     const pendingAlerts = [];
 
     const preResult = await spawnImpl('node', ['tools/archive-sync.mjs', 'pre', '--json'], { env });
@@ -503,6 +690,19 @@ export async function runCi(opts = {}) {
       });
     }
 
+    // CR-02 (05-20): the sync guard — refuses to let a partitioned dist/ (pages moved out of
+    // dist/client by partition-archive.mjs) reach wrangler unless THIS build's archive-sync pre
+    // (just above) has confirmed it via dist/archive-synced.json. Spawned on the FINAL dist/client
+    // (after the file-count gate re-ran above), immediately before wrangler — a refusal here must
+    // abort the deploy exactly like the file-count gate does, never reaching wrangler/commitImpl/
+    // post.
+    const syncedResult = await spawnImpl('node', ['tools/assert-archive-synced.mjs'], { env });
+    if (syncedResult.code !== 0) {
+      const check = classifyFailure(syncedResult.tail, syncedResult.code);
+      await notifyFailure(`assert-archive-synced: ${check}`);
+      return syncedResult.code;
+    }
+
     const dryRun = isTruthyFlag(env.CI_BUILD_DEPLOY_DRY_RUN);
     const wranglerArgs = dryRun
       ? ['exec', 'wrangler', 'deploy', '--dry-run', '--config', 'wrangler.jsonc', '--outdir', '.wrangler/ci-dry-run']
@@ -515,40 +715,93 @@ export async function runCi(opts = {}) {
       return deployResult.code;
     }
 
-    if (!dryRun) {
-      await commitImpl({ buildHash: commit !== 'local' ? commit.slice(0, 7) : undefined });
-    }
-
-    const postResult = await spawnImpl('node', ['tools/archive-sync.mjs', 'post', '--json'], { env });
-    const postParsed = parseArchiveSyncResult(postResult.tail);
-    if (postResult.code !== 0 || !postParsed) {
-      const check = classifyFailure(postResult.tail, postResult.code);
-      pendingAlerts.push({
-        title: '915 TLDR archive alert: post-deploy sync',
-        body: `archive-sync: post-deploy sync failed or produced no result — ${check}`,
-      });
+    if (dryRun) {
+      // CR-01 (05-13): a dry run deployed nothing — commitLastGood must never commit against a
+      // build that was never actually deployed, and archive-sync post must never mutate the
+      // production bucket (re-upload, orphan deletion) on its behalf. Confining both inside this
+      // branch is the single dry-run predicate; the pendingAlerts loop below still runs for both
+      // branches so pre's alerts and the file-count warn alarm are still delivered.
+      log('[ci-build] dry run: skipping archive-sync post — it mutates the production bucket and this run deployed nothing');
     } else {
-      for (const alert of postParsed.alerts ?? []) {
-        pendingAlerts.push({ title: '915 TLDR archive alert: post-deploy sync', body: alert });
-      }
-      if (postParsed.dailyReport?.due) {
+      await commitImpl({ buildHash: commit !== 'local' ? commit.slice(0, 7) : undefined });
+
+      const postResult = await spawnImpl('node', ['tools/archive-sync.mjs', 'post', '--json'], { env });
+      const postParsed = parseArchiveSyncResult(postResult.tail);
+      if (postResult.code !== 0 || !postParsed) {
+        const check = classifyFailure(postResult.tail, postResult.code);
         pendingAlerts.push({
-          title: '915 TLDR archive daily report',
-          body: formatDailyReportBody(postParsed.dailyReport.body ?? {}),
-          priority: 'low',
-          tags: 'bar_chart',
+          title: '915 TLDR archive alert: post-deploy sync',
+          body: `archive-sync: post-deploy sync failed or produced no result — ${check}`,
         });
+      } else {
+        for (const alert of postParsed.alerts ?? []) {
+          pendingAlerts.push({ title: '915 TLDR archive alert: post-deploy sync', body: alert });
+        }
+        if (postParsed.dailyReport?.due) {
+          // REND-11 follow-up (quick 261002-s2r): `dailyReportDate` is attached to the alert only
+          // when it's a valid YYYY-MM-DD — the signal the loop below uses to decide whether a
+          // CONFIRMED send should advance archive-sync's own marker. A missing/malformed date
+          // still sends the report (an operator still wants to see it) but can never spawn
+          // mark-daily-report — there would be nothing valid to pass it.
+          const reportDate = postParsed.dailyReport.date;
+          const validDate = typeof reportDate === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(reportDate);
+          if (!validDate) {
+            log(`[ci-build] daily report has no valid date (got ${JSON.stringify(reportDate ?? null)}) — marker will not be written`);
+          }
+          pendingAlerts.push({
+            title: '915 TLDR archive daily report',
+            body: formatDailyReportBody(postParsed.dailyReport.body ?? {}),
+            priority: 'low',
+            tags: 'bar_chart',
+            ...(validDate ? { dailyReportDate: reportDate } : {}),
+          });
+        }
       }
     }
 
     // D-10/D-12: every alert above is informational — the deploy itself already succeeded (or
     // never started). A notification failure here (e.g. ntfy unreachable) must never surface as
     // this function's own return value.
+    //
+    // REND-11 follow-up (quick 261002-s2r): an alert carrying `dailyReportDate` is the daily
+    // report — `sendNotification`'s own `delivered` boolean (Task 1) decides what happens next.
+    // Only a CONFIRMED 2xx (`delivered === true`) spawns `mark-daily-report`, and only a
+    // successful marker write is logged as such; every other outcome (not delivered, or the
+    // marker spawn itself failing/throwing) is logged so the next production deploy's re-send is
+    // expected, not a silent mystery. None of this can ever change this function's own return
+    // value of 0.
     for (const alert of pendingAlerts) {
+      let delivered = false;
       try {
-        await sendNotification(alert.title, alert.body, { priority: alert.priority, tags: alert.tags });
+        delivered = await sendNotification(alert.title, alert.body, { priority: alert.priority, tags: alert.tags });
       } catch (err) {
         log(`[ci-build] archive alert notification failed: ${err instanceof Error ? err.message : String(err)}`);
+      }
+
+      if (alert.dailyReportDate) {
+        if (!delivered) {
+          log('[ci-build] daily report not delivered — marker left unchanged; the next production deploy will re-send it');
+        } else {
+          try {
+            const markResult = await spawnImpl(
+              'node',
+              ['tools/archive-sync.mjs', 'mark-daily-report', '--date', alert.dailyReportDate],
+              { env }
+            );
+            if (markResult.code === 0) {
+              log(`[ci-build] daily-report marker set to ${alert.dailyReportDate}`);
+            } else {
+              const check = classifyFailure(markResult.tail, markResult.code);
+              log(
+                `[ci-build] daily-report marker not written (exit ${markResult.code}) — the report will repeat on the next deploy: ${redact(check, env)}`
+              );
+            }
+          } catch (err) {
+            log(
+              `[ci-build] daily-report marker not written (exit 1) — the report will repeat on the next deploy: ${redact(err instanceof Error ? err.message : String(err), env)}`
+            );
+          }
+        }
       }
     }
 

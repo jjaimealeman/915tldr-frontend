@@ -23,8 +23,11 @@
 // (T-05-18, roadmap's own DoS-against-self mitigation).
 
 import { writeFile, mkdir } from 'node:fs/promises';
+import { existsSync, readFileSync } from 'node:fs';
 import path from 'node:path';
 import { queryCloudflareGraphql, introspectType, redact } from './lib/cf-graphql.mjs';
+import { readTierFacts as readTierFactsImpl } from '../src/lib/archive/tier-facts.ts';
+import { CATEGORIES } from '../src/lib/categories.ts';
 
 export const PRODUCTION_D1_DATABASE_ID = '552ba1d1-024a-4dee-bdaa-3ffd4bdb1f77';
 export const PUBLIC_WORKER_SCRIPT = '915tldr-v2';
@@ -171,6 +174,36 @@ export async function fetchD1RowsRead(window, deps = {}) {
   return groups.reduce((sum, g) => sum + (g?.sum?.rowsRead ?? 0), 0);
 }
 
+/**
+ * Reports whether D1 analytics for `PRODUCTION_D1_DATABASE_ID` already has a data point at or
+ * after `atIso` — the live signal the `analytics-not-caught-up` validity rule polls on
+ * (docs/phase-05/zero-reads-gate.md). A single-row, open-ended `datetimeFiveMinutes_geq` filter
+ * (no upper bound) is cheap and sufficient: any returned group proves the dataset has ingested at
+ * least one 5-minute bucket at or after the load window's own end.
+ */
+export async function checkD1AnalyticsCaughtUp(atIso, deps = {}) {
+  const { fetchImpl = fetch, env = process.env } = deps;
+  const accountId = requireEnv(env, 'CLOUDFLARE_ACCOUNT_ID');
+  const query = `query($accountTag: string!, $databaseId: string!, $at: Time!) {
+    viewer {
+      accounts(filter: { accountTag: $accountTag }) {
+        d1AnalyticsAdaptiveGroups(
+          limit: 1
+          filter: { databaseId: $databaseId, datetimeFiveMinutes_geq: $at }
+        ) {
+          dimensions { datetimeFiveMinutes }
+        }
+      }
+    }
+  }`;
+  const data = await queryCloudflareGraphql(
+    { query, variables: { accountTag: accountId, databaseId: PRODUCTION_D1_DATABASE_ID, at: atIso } },
+    { fetchImpl, env }
+  );
+  const groups = data?.viewer?.accounts?.[0]?.d1AnalyticsAdaptiveGroups ?? [];
+  return groups.length > 0;
+}
+
 // ---------------------------------------------------------------------------
 // Deployed-binding check (leg 1b)
 // ---------------------------------------------------------------------------
@@ -211,6 +244,122 @@ export async function fetchDeployedBindings(deps = {}) {
 
   const bindingTypes = parseDeployedBindings(body);
   return { bindingTypes, hasD1Binding: bindingTypes.includes('d1') };
+}
+
+// ---------------------------------------------------------------------------
+// requestMixInput from a real local build (05-12 fix)
+// ---------------------------------------------------------------------------
+
+const ARCHIVE_PLAN_ARTICLE_KEY_RE =
+  /^articles\/([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12})\.html$/;
+const SECONDS_PER_DAY = 86400;
+export const ARCHIVED_ARTICLE_MARGIN_DAYS = 2;
+export const ARCHIVED_TAG_MAX_COUNT = 5;
+export const STATIC_TAG_MIN_COUNT = 25;
+
+/**
+ * Loads and minimally validates `dist/archive-plan.json` (`tools/partition-archive.mjs`'s own
+ * output) — the archived subset only, by construction. Mirrors `tests/helpers/
+ * archive-sample.mjs`'s own validation (never a bare `ENOENT`).
+ */
+export function loadArchivePlanFile(archivePlanPath) {
+  const abs = path.resolve(process.cwd(), archivePlanPath);
+  if (!existsSync(abs)) {
+    throw new Error(
+      `load-test-zero-reads: missing ${archivePlanPath} — run \`pnpm run build\` first`
+    );
+  }
+  let parsed;
+  try {
+    parsed = JSON.parse(readFileSync(abs, 'utf8'));
+  } catch (err) {
+    throw new Error(
+      `load-test-zero-reads: ${archivePlanPath} is not valid JSON: ${err instanceof Error ? err.message : String(err)}`
+    );
+  }
+  if (!parsed || typeof parsed !== 'object' || !Array.isArray(parsed.entries)) {
+    throw new Error(`load-test-zero-reads: ${archivePlanPath} must be an object with an "entries" array`);
+  }
+  if (typeof parsed.cutoffEpoch !== 'number') {
+    throw new Error(`load-test-zero-reads: ${archivePlanPath} must carry a numeric cutoffEpoch`);
+  }
+  return parsed;
+}
+
+/**
+ * Builds the `requestMixInput` `buildRequestMix` (and therefore the whole live gate) needs,
+ * directly from a real local build's own `dist/archive-plan.json` + `.astro/tier-facts-*.json` —
+ * the CLI's actual `--archive-plan` wiring. Fixed 2026-10-01 (05-12): `main()` parsed
+ * `--archive-plan` into `args.archivePlan` but never used it to build a `requestMixInput` at
+ * all, so every real (non-`--baseline-only`) CLI invocation threw immediately
+ * ("a full pass requires requestMixInput ... see --archive-plan") — the documented CLI usage in
+ * this file's own header comment and in docs/phase-05/zero-reads-gate.md could never actually
+ * run. `readTierFacts` is injectable (`readTierFactsFn`) so tests never touch the real `.astro/`
+ * build artifacts.
+ *
+ * Same tier-boundary safety margins as `tests/helpers/archive-sample.mjs` (05-11): archived
+ * articles must sit at least `ARCHIVED_ARTICLE_MARGIN_DAYS` past the plan's own `cutoffEpoch`;
+ * archived tags must have a full lifetime count of at most `ARCHIVED_TAG_MAX_COUNT`; static tags
+ * must have at least `STATIC_TAG_MIN_COUNT` and never appear in the plan's own archived-tag set —
+ * so build-to-build drift between this local build and whatever the live site is currently
+ * serving can never put a sampled URL on the wrong side of a tier boundary.
+ */
+export function buildRequestMixInputFromArchivePlan(archivePlanPath, deps = {}) {
+  const { readTierFactsFn = readTierFactsImpl } = deps;
+  const plan = loadArchivePlanFile(archivePlanPath);
+  const facts = readTierFactsFn();
+
+  const archivedUuids = new Set();
+  const archivedTagSlugs = new Set();
+  for (const entry of plan.entries) {
+    if (entry.kind === 'article') {
+      const match = ARCHIVE_PLAN_ARTICLE_KEY_RE.exec(entry.key);
+      if (match) archivedUuids.add(match[1]);
+    } else if (entry.kind === 'tag') {
+      archivedTagSlugs.add(entry.path.replace(/^\/tag\//, ''));
+    }
+  }
+
+  const archiveSideBeforeEpoch = plan.cutoffEpoch - ARCHIVED_ARTICLE_MARGIN_DAYS * SECONDS_PER_DAY;
+  const publishedByUuid = new Map(facts.articles.map((a) => [a.uuid, a.publishedAt]));
+  const archivedArticlePaths = [];
+  for (const entry of plan.entries) {
+    if (entry.kind !== 'article') continue;
+    const match = ARCHIVE_PLAN_ARTICLE_KEY_RE.exec(entry.key);
+    if (!match) continue;
+    const publishedAt = publishedByUuid.get(match[1]);
+    if (typeof publishedAt !== 'number' || publishedAt > archiveSideBeforeEpoch) continue;
+    archivedArticlePaths.push(entry.path);
+  }
+
+  const hotArticlePaths = facts.articles
+    .filter((a) => !archivedUuids.has(a.uuid))
+    .sort((a, b) => b.publishedAt - a.publishedAt)
+    .map((a) => a.path);
+
+  const countBySlug = new Map(facts.tags.map((t) => [t.slug, t.count]));
+  const archivedTagPaths = [];
+  for (const entry of plan.entries) {
+    if (entry.kind !== 'tag') continue;
+    const slug = entry.path.replace(/^\/tag\//, '');
+    const count = countBySlug.get(slug);
+    if (typeof count !== 'number' || count > ARCHIVED_TAG_MAX_COUNT) continue;
+    archivedTagPaths.push(entry.path);
+  }
+  archivedTagPaths.sort();
+
+  const staticTagPaths = facts.tags
+    .filter((t) => t.count >= STATIC_TAG_MIN_COUNT && !archivedTagSlugs.has(t.slug))
+    .sort((a, b) => a.slug.localeCompare(b.slug))
+    .map((t) => `/tag/${t.slug}`);
+
+  return {
+    categories: CATEGORIES.map((c) => c.slug),
+    hotArticlePaths,
+    archivedArticlePaths,
+    staticTagPaths,
+    archivedTagPaths,
+  };
 }
 
 // ---------------------------------------------------------------------------
@@ -695,14 +844,40 @@ export async function runLoadTest(opts = {}) {
   });
 
   const windowEnd = now();
-  const touchesIngestSlot = windowTouchesIngestSlot(windowStart.toISOString(), windowEnd.toISOString());
 
-  // Wait for analytics to catch up to the window end (injectable sleep; capped wait).
+  // CR-03 (05-16): `comparableWindows()` aligns the 7 baseline windows outward to 5-minute
+  // boundaries (floor the start, ceil the end), but the load window itself was previously passed
+  // into `fetchD1RowsRead` raw — and because `datetimeFiveMinutes` is a bucket START, the bucket
+  // containing the raw window's own start was always excluded from the sum. That meant the load
+  // side of the comparison systematically covered 1-2 fewer 5-minute buckets than every baseline
+  // window, biasing every gate run toward PASS. `alignedLoad` is the single aligned window that now
+  // feeds BOTH sides of the comparison (the ingest-slot check, the catch-up poll, the rowsRead
+  // query and the baseline derivation); `requestWindow` is kept only as the raw, as-sent window for
+  // evidence/transparency, never used to query D1.
+  const requestWindow = { start: windowStart.toISOString(), end: windowEnd.toISOString() };
+  const alignedLoad = {
+    start: floorToFiveMinutes(windowStart).toISOString(),
+    end: ceilToFiveMinutes(windowEnd).toISOString(),
+  };
+  // Evaluated on the ALIGNED (measured) window, not the narrower request window — the ingest-slot
+  // validity rule must reflect what was actually summed, not what was requested.
+  const touchesIngestSlot = windowTouchesIngestSlot(alignedLoad.start, alignedLoad.end);
+
+  // Wait for analytics to catch up to the ALIGNED window end (injectable sleep; capped wait) — the
+  // aligned end is the instant the load-window rowsRead query actually needs ingested, not the raw
+  // windowEnd.
   let analyticsNotCaughtUp = false;
   let waited = 0;
-  // A caller-supplied `checkCaughtUp` lets tests avoid a real polling loop entirely; the live CLI
-  // path always polls (see main()).
-  const checkCaughtUp = deps.checkCaughtUp ?? (async () => true);
+  // A caller-supplied `checkCaughtUp` lets tests drive this loop with a fake signal. When none is
+  // supplied — the live CLI path, since `main()` never passes `deps` — this defaults to a REAL
+  // live poll (`checkD1AnalyticsCaughtUp` against `alignedLoad.end`), not an unconditional `true`.
+  // Fixed 2026-10-01 (05-12): the prior unconditional-`true` default meant the documented
+  // "analytics catch-up wait" was dead code on every real `node tools/load-test-zero-reads.mjs`
+  // invocation — `loadRowsRead` was fetched immediately after the pass ended, with no live
+  // confirmation the dataset had actually ingested that window yet, risking an undercounted
+  // (falsely low) PASS.
+  const checkCaughtUp =
+    deps.checkCaughtUp ?? (() => checkD1AnalyticsCaughtUp(alignedLoad.end, resolvedDeps));
   // eslint-disable-next-line no-constant-condition
   while (true) {
     const caughtUp = await checkCaughtUp();
@@ -715,10 +890,12 @@ export async function runLoadTest(opts = {}) {
     waited += ANALYTICS_CATCHUP_POLL_MS;
   }
 
-  const loadWindow = { start: windowStart.toISOString(), end: windowEnd.toISOString() };
-  const loadRowsRead = analyticsNotCaughtUp ? null : await fetchD1RowsRead(loadWindow, resolvedDeps);
+  const loadRowsRead = analyticsNotCaughtUp ? null : await fetchD1RowsRead(alignedLoad, resolvedDeps);
 
-  const baselineWindows = comparableWindows(loadWindow, 7);
+  // comparableWindows() re-aligns whatever window it's given outward to 5-minute boundaries — since
+  // alignedLoad is already aligned, this is a no-op on it, but keeping the call unchanged means the
+  // baseline derivation logic itself did not need to change, only its input.
+  const baselineWindows = comparableWindows(alignedLoad, 7);
   const baselineTotals = [];
   for (const window of baselineWindows) {
     baselineTotals.push(await fetchD1RowsRead(window, resolvedDeps));
@@ -730,7 +907,7 @@ export async function runLoadTest(opts = {}) {
 
   await writeEvidence(evidence, 'request-pass.json', pass.results);
   await writeEvidence(evidence, 'baseline-windows.json', { windows: baselineWindows, totals: baselineTotals });
-  await writeEvidence(evidence, 'load-window.json', { window: loadWindow, rowsRead: loadRowsRead });
+  await writeEvidence(evidence, 'load-window.json', { window: alignedLoad, requestWindow, rowsRead: loadRowsRead });
 
   const verdict = decideZeroReadsVerdict({
     baseline,
@@ -741,16 +918,19 @@ export async function runLoadTest(opts = {}) {
     zeroTotalWindow,
     requestsCompletedRatio: pass.completionRatio,
     requests: { sent: pass.sent, completed: pass.completed },
-    window: loadWindow,
+    window: alignedLoad,
   });
 
   const exitCode = verdict.verdict === 'PASS' ? 0 : verdict.verdict === 'FAIL' ? 2 : 3;
-  return { exitCode, result: verdict };
+  return { exitCode, result: { ...verdict, requestWindow } };
 }
 
 async function main() {
   const args = parseArgs(process.argv.slice(2));
   try {
+    // Fixed 2026-10-01 (05-12): --archive-plan was parsed but never used — a full pass requires
+    // requestMixInput, and nothing built one from the CLI's own --archive-plan argument.
+    const requestMixInput = args.baselineOnly ? null : buildRequestMixInputFromArchivePlan(args.archivePlan);
     const { exitCode, result } = await runLoadTest({
       baselineOnly: args.baselineOnly,
       requests: args.requests,
@@ -758,6 +938,7 @@ async function main() {
       evidence: args.evidence,
       seed: args.seed,
       forceWindow: args.forceWindow,
+      requestMixInput,
     });
     if (args.json) {
       console.log(JSON.stringify(result, null, 2));

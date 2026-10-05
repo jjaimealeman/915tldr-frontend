@@ -1,0 +1,132 @@
+---
+// 06-10 (Task 1, I18N-04): the Spanish mirror of `src/pages/[category]/index.astro` — one
+// `/es/<category>` page per `CATEGORIES` slug (8, including categories with zero public
+// articles — D-04's empty state, in Spanish from the fixed dictionary), the same
+// `CATEGORY_PAGE_COUNT` slice of the same newest-first list the English page uses. Card titles/
+// summaries show each article's REAL Spanish title/summary when a clean translation exists
+// (`localizedArticleView`, D-05), English fallback marked `lang="en"` otherwise. Category
+// identity (slug) is never translated — only the display name (`categoryLabel`, D-02).
+//
+// `build.format: 'file'` means this route emits `dist/client/es/<category>.html`, mirroring the
+// English `[category]/index.astro`'s own `<category>.html` shape one level under `/es`.
+import { getCollection } from 'astro:content';
+import Base from '../../../layouts/Base.astro';
+import ArticleCard from '../../../components/ArticleCard.astro';
+import { articlePath } from '../../../lib/article-url.ts';
+import { CATEGORIES } from '../../../lib/categories.ts';
+import { groupByCategory, assertNoRouteCollisions, CATEGORY_PAGE_COUNT } from '../../../lib/listing.ts';
+import { breadcrumbNode } from '../../../lib/structured-data.ts';
+import { TIME_ZONE } from '../../../lib/format.ts';
+import { BUILD_TIMESTAMP } from '../../../lib/build-info.ts';
+import { t } from '../../../lib/i18n/dictionary.ts';
+import { buildEsIndex, localizedArticleView, categoryLabel } from '../../../lib/i18n/spanish-view.ts';
+import type { EsEntryData } from '../../../lib/i18n/spanish-view.ts';
+
+export async function getStaticPaths() {
+  assertNoRouteCollisions(CATEGORIES.map((category) => category.slug));
+
+  const entries = await getCollection('articles');
+  const esEntries = await getCollection('articlesEs');
+  const digestByUuid = new Map(entries.map((entry) => [entry.data.uuid, entry.digest]));
+  const esDigestByUuid = new Map(esEntries.map((entry) => [entry.data.uuid, entry.digest]));
+  const esIndexData = esEntries.map((entry) => entry.data);
+
+  const allArticles = entries.map((entry) => entry.data);
+  const grouped = groupByCategory(allArticles);
+
+  return CATEGORIES.map((category) => {
+    const categoryArticles = grouped.get(category.slug) ?? [];
+    const pageArticles = categoryArticles.slice(0, CATEGORY_PAGE_COUNT);
+    return {
+      params: { category: category.slug },
+      props: {
+        slug: category.slug,
+        name: category.name,
+        totalCount: categoryArticles.length,
+        articles: pageArticles,
+        esEntries: esIndexData,
+      },
+      // 04-09 (D-06) extended for 06-10, same discipline as the English category page's own
+      // cacheKey: a listed article gaining/losing a Spanish translation must re-render this page
+      // even when neither its English digest nor the listed set/order changed.
+      cacheKey: pageArticles
+        .map((article) => `${digestByUuid.get(article.uuid) ?? ''}|${esDigestByUuid.get(article.uuid) ?? 'none'}`)
+        .join('|'),
+    };
+  });
+}
+
+const { slug, name, totalCount, articles, esEntries } = Astro.props as {
+  slug: string;
+  name: string;
+  totalCount: number;
+  articles: Awaited<ReturnType<typeof getCollection<'articles'>>>[number]['data'][];
+  esEntries: EsEntryData[];
+};
+const esIndex = buildEsIndex(esEntries);
+const nameEs = categoryLabel(slug, 'es') ?? name;
+
+const buildYear = Number(
+  new Intl.DateTimeFormat('en-US', { timeZone: TIME_ZONE, year: 'numeric' }).format(new Date(BUILD_TIMESTAMP))
+);
+function showYearFor(publishedAt: number): boolean {
+  const articleYear = Number(
+    new Intl.DateTimeFormat('en-US', { timeZone: TIME_ZONE, year: 'numeric' }).format(new Date(publishedAt * 1000))
+  );
+  return articleYear !== buildYear;
+}
+
+// Same "never Intl locale-name output" discipline `src/lib/format.ts`'s own Spanish date helpers
+// document — a fixed 'en-US' NumberFormat keeps digit grouping deterministic across Node ICU
+// versions regardless of page language; only the unit word ("historia"/"historias") is Spanish.
+const storyCountText = `${new Intl.NumberFormat('en-US').format(totalCount)} ${
+  totalCount === 1 ? t('storyCountSingular', 'es') : t('storyCountPlural', 'es')
+}`;
+---
+
+<Base
+  page="category"
+  lang="es"
+  title={t('categoryPageTitle', 'es', { category: nameEs })}
+  description={t('categoryPageDescription', 'es', { categoryLower: nameEs.toLowerCase() })}
+  canonicalPath={`/es/${slug}`}
+  activeCategory={slug}
+  jsonLd={[breadcrumbNode([{ name: t('home', 'es'), path: '/es' }, { name: nameEs, path: `/es/${slug}` }])]}
+>
+  <header data-block data-category={slug}>
+    <h1>{nameEs}</h1>
+    <p data-story-count>{storyCountText}</p>
+    <p data-back-link>
+      <a href="/es">{t('allSections', 'es')}</a>
+    </p>
+  </header>
+
+  {
+    articles.length === 0 ? (
+      <p data-empty-state>{t('emptyStateCategory', 'es', { category: nameEs })}</p>
+    ) : (
+      <section data-grid aria-label={t('latestInCategory', 'es', { category: nameEs })}>
+        {
+          articles.map((article) => {
+            const view = localizedArticleView(article, esIndex.get(article.uuid));
+            return (
+              <ArticleCard
+                uuid={article.uuid}
+                title={view.title}
+                href={articlePath(article.category.slug, article.slug, article.uuid, 'es')}
+                categorySlug={article.category.slug}
+                categoryName={categoryLabel(article.category.slug, 'es') ?? article.category.name}
+                sourceName={article.source.name}
+                publishedAt={article.publishedAt}
+                summary={view.summary}
+                showYear={showYearFor(article.publishedAt)}
+                lang="es"
+                contentLang={view.lang}
+              />
+            );
+          })
+        }
+      </section>
+    )
+  }
+</Base>

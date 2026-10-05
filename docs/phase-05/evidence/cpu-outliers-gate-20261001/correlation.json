@@ -1,0 +1,75 @@
+{
+  "coloPopulationCaveat": "samePathCount/samePathRank are TRUE full-window counts (fetched per-path via $workers.event.path eq, unaffected by the outlier-only fetch). firstInColoInWindow/gapSincePrevSameColoMs are NOT computed against the full per-colo population — every outlier here shares one colo that likely carries most of this window's ~8,477 invocations, and enumerating all of them is blocked by the verified 2000-row/no-cursor cap. Treat the colo fields as scoped to the known population (outliers + their paths' full history) only, not as a true \"first ever at this colo\" claim.",
+  "outliers": [
+    {
+      "requestId": "97fdbb40bff2559e7807590be2e8d3fb",
+      "path": "/business/airbnb-market-trends-booms-and-collapses-across-the-us-07f79f20-74c6-45a4-826c-fce5448c789d",
+      "colo": "LAX",
+      "coloAvailable": true,
+      "samePathCount": 281,
+      "samePathRank": 36,
+      "gapSincePrevSameColoMs": 1438,
+      "firstInColoInWindow": false,
+      "gapSincePrevSameVersionMs": 1438,
+      "offsetFromWindowStartS": 329.529,
+      "wallTimeMs": 64,
+      "cpuTimeMs": 49
+    },
+    {
+      "requestId": "e8864f1021e045582bad201cc91f3ecc",
+      "path": "/politics/new-mexico-republicans-push-for-juvenile-justice-reform-ahead-of-2026-session-311ed73b-0319-47ad-8d2c-847abec73d93",
+      "colo": "LAX",
+      "coloAvailable": true,
+      "samePathCount": 280,
+      "samePathRank": 237,
+      "gapSincePrevSameColoMs": 7197,
+      "firstInColoInWindow": false,
+      "gapSincePrevSameVersionMs": 7197,
+      "offsetFromWindowStartS": 2149.458,
+      "wallTimeMs": 249,
+      "cpuTimeMs": 40
+    },
+    {
+      "requestId": "1e4dff456d4b4622576f0b2ae8da44a7",
+      "path": "/business/wall-street-faces-decline-amid-weak-job-data-and-ai-concerns-06574fa7-eca9-4fcd-8d74-8736b915f9c0",
+      "colo": "LAX",
+      "coloAvailable": true,
+      "samePathCount": 281,
+      "samePathRank": 65,
+      "gapSincePrevSameColoMs": 4,
+      "firstInColoInWindow": false,
+      "gapSincePrevSameVersionMs": 4,
+      "offsetFromWindowStartS": 582.923,
+      "wallTimeMs": 44,
+      "cpuTimeMs": 37
+    },
+    {
+      "requestId": "ce3270db2def79a208e84c9dd6be8cbc",
+      "path": "/business/wall-street-faces-decline-amid-weak-job-data-and-ai-concerns-06574fa7-eca9-4fcd-8d74-8736b915f9c0",
+      "colo": "LAX",
+      "coloAvailable": true,
+      "samePathCount": 281,
+      "samePathRank": 264,
+      "gapSincePrevSameColoMs": 14,
+      "firstInColoInWindow": false,
+      "gapSincePrevSameVersionMs": 14,
+      "offsetFromWindowStartS": 2385.722,
+      "wallTimeMs": 35,
+      "cpuTimeMs": 26
+    },
+    {
+      "requestId": "53f96927f54d99700d924885cbfd2a72",
+      "path": "/business/implications-of-paramounts-merger-on-cnns-editorial-independence-0000e250-e1d1-431c-b2dc-bad7dc7404ce",
+      "colo": "LAX",
+      "coloAvailable": true,
+      "samePathCount": 1,
+      "samePathRank": 1,
+      "gapSincePrevSameColoMs": null,
+      "firstInColoInWindow": true,
+      "gapSincePrevSameVersionMs": null,
+      "offsetFromWindowStartS": 2.819,
+      "wallTimeMs": 333,
+      "cpuTimeMs": 7
+    }
+  ]
+}

@@ -75,6 +75,24 @@ test('newsArticleNode: author and publisher are the Organization @id, never a Pe
   assert.equal(node['@type'], 'NewsArticle');
 });
 
+// 06-09 (I18N-02): inLanguage.
+test('newsArticleNode: inLanguage defaults to "en" when omitted — byte-identical to pre-06-09 output', () => {
+  const node = newsArticleNode(baseArticleInput());
+  assert.equal(node.inLanguage, 'en');
+});
+
+test('newsArticleNode: inLanguage "es" is carried through for a translated /es page', () => {
+  const node = newsArticleNode(baseArticleInput({ inLanguage: 'es' }));
+  assert.equal(node.inLanguage, 'es');
+});
+
+test('toSafeJsonLd: a Spanish headline containing a literal </script><script> cannot close the script element', () => {
+  const input = { headline: 'Alerta de inundación repentina </script><script>x', inLanguage: 'es' };
+  const safe = toSafeJsonLd(input);
+  assert.ok(!safe.includes('</script'), `expected no literal "</script" substring, got: ${safe}`);
+  assert.deepEqual(JSON.parse(safe), input);
+});
+
 test('newsArticleNode: isBasedOn carries the original article url and outlet name', () => {
   const node = newsArticleNode(baseArticleInput());
   assert.equal(node.isBasedOn.url, 'https://www.ktsm.com/news/usps-operation-santa');

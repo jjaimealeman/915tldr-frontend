@@ -1,0 +1,27 @@
+# Workers Builds production build 2a6f02f5-972e-4959-b2a4-e814090bb5a1 (915tldr-v2, branch main, trigger deploy_hook)
+# created 2026-10-01T18:06:11.972Z, stopped 2026-10-01T18:18:19.949Z, outcome success  (wall time 727.977 s = 12m08s)
+# Pulled by the orchestrator 2026-10-01 ~12:22 MDT via Cloudflare API GET /accounts/{acct}/builds/builds/{uuid}/logs
+# 60,650 log lines total; filtered to archive/deploy lines; first column = epoch ms. First log line 1790877974236, last 1790878698201.
+1790877990451 Success: Build output restored from build cache.
+1790878005895 $ node tools/ci-build.mjs build
+1790878006370 $ pnpm run guard:config && pnpm run test:build-gate && node tools/partition-archive.mjs --clean && astro build && node tools/partition-archive.mjs && node tools/assert-file-count.mjs
+1790878006850 $ node tools/check-config-guards.mjs
+1790878007594 [archive] partition: clean — removed stale tier facts, dist/archive and the plan
+1790878033489 [archive] hot window: derived from 2026-09-01 to 2026-09-30, 202 days, 93% coverage (D-07b)
+1790878109382 [archive] partition: 12912 articles and 17589 tags archived; 27612 articles and 2328 tags static
+1790878109382 [archive] hot window: derived from 2026-09-01 to 2026-09-30, 202 days, 93% coverage (D-07b)
+1790878109870 [archive] static files: 29977 / 100000 (fail at 80000)
+1790878109987 Success: Build command completed
+1790878110687 $ node tools/ci-build.mjs deploy
+1790878115111 ARCHIVE_SYNC_RESULT {"phase":"pre","uploaded":3,"failed":0,"deferred":0,"movedBack":0,"deleted":0,"backlog":null,"alerts":[],"dailyReport":null,"disabled":false}
+1790878115582 {"count":29977,"ceiling":100000,"failAt":80000,"status":"ok"}
+1790878115582 [archive] static files: 29977 / 100000 (fail at 80000)
+1790878117847 ✨ Read 29989 files from the assets directory /opt/buildhome/repo/dist/client
+1790878125136 🌀 Found 41 new or modified static assets to upload. Proceeding with upload...
+1790878128104 ✨ Success! Uploaded 41 files (29932 already uploaded) (2.94 sec)
+1790878128114 Total Upload: 8.34 KiB / gzip: 2.64 KiB
+1790878130265 Uploaded 915tldr-v2 (12.81 sec)
+1790878132468 Deployed 915tldr-v2 triggers (2.20 sec)
+1790878132468 Current Version ID: c7bec43a-a15b-40a4-8232-1253d515c736
+1790878690673 ARCHIVE_SYNC_RESULT {"phase":"post","uploaded":30501,"failed":0,"deferred":0,"movedBack":0,"deleted":0,"backlog":{"count":0,"since":null},"alerts":[],"dailyReport":{"due":false},"disabled":false}
+1790878697988 Success: Build output uploaded to build cache.
