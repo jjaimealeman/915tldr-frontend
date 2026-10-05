@@ -172,7 +172,7 @@ const stampDate = stamp === 'commit' ? BUILD_COMMIT_DATE : buildDate;
       {CATEGORIES.map((category) => <span data-category={category.slug} />)}
     </div>
 
-    <nav aria-label={t('navLabel', lang)}>
+    <nav aria-label={t('navLabel', lang)} data-site-nav="sections">
       <ul>
         {
           CATEGORIES.map((category) => (

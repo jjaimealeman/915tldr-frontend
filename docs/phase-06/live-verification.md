@@ -219,6 +219,59 @@ seen); screen reader; Safari/Firefox; Lighthouse on `/es`; whether the Umami Lan
 2. Pre-cutover: stale archived English pages are unstyled (0.1). Re-check after the next one or two
    production builds.
 3. Defect 0.2: the Spanish category nav is unstyled on every `/es` page (selector bound to the
-   English `aria-label`). Needs a small fix and a deploy.
+   English `aria-label`). Fixed in source on `feature/phase-06-gaps` (section 8); needs the merge and deploy.
 4. ROADMAP Phase 6 criterion 5's "launch decision on 2-4 weeks of data" wording is superseded by
    D-09/D-11 (PROJECT.md updated; ROADMAP not touched by this plan).
+
+## 8. Defect 2 fix (06-16 gap closure, branch `feature/phase-06-gaps`)
+
+Defect 0.2 (the unstyled Spanish category nav) is fixed in source. **It is not deployed**: it goes
+live only after Jaime merges and the production build runs. Until then dev.915tldr.com still shows
+the bulleted list on every `/es` page.
+
+What changed:
+
+- `src/layouts/Base.astro`: the header section nav now also carries `data-site-nav="sections"`. The
+  translated `aria-label` (`Sections` / `Secciones`) is kept for assistive technology.
+- `src/styles/global.css`: all 7 `nav[aria-label="Sections"]` selectors (base, `ul`, `a`,
+  `a[aria-current]`, the 48em and 80em `ul` rules, and the 80em width group) are now
+  `nav[data-site-nav="sections"]`. Specificity is unchanged (element plus one attribute).
+- `tests/unit/chrome.test.mjs`, `tests/unit/listing-pages.test.mjs`: the built-page nav regex no
+  longer requires `aria-label` to be the only attribute on `<nav>`.
+
+Same class of bug elsewhere in `src/`: none. Every `[aria-label=`, `[title=`, `[alt=`,
+`[placeholder=` selector in `src/**/*.css` and every `<style>` block in `src/**/*.astro` was
+checked; the seven above were the only ones, and there are no `<style>` blocks in `src` at all.
+Not touched, reported: `design/mockups/style.css` and `design/tests/*.spec.ts` still use
+`nav[aria-label="Sections"]`. They run against the English-only Phase 1 mockup HTML, not the
+shipped site, so they are not affected by this defect.
+
+Regression guards:
+
+| Guard | Where | Status |
+|---|---|---|
+| No CSS selector may depend on a dictionary string (EN or ES): scans `src/**/*.css` and `<style>` in `.astro`/`.vue` | `tests/unit/css-no-translated-selectors.test.mjs` | Written first: 4 of 5 tests failed (7 selectors named). After the fix: 5 of 5 pass |
+| Nav markup carries the hook for both languages; `global.css` styles through it at every breakpoint | same file | pass (source-level, see limits below) |
+| Real Chromium on the live origin: `/` and `/es`, 1280px one row of 8 and `list-style-type: none`, 390px exactly 2 columns | `tests/integration/browser-journeys.test.mjs` (`06-16 gap`) | **RED on dev now, by design.** Goes green after the deploy |
+
+Red run recorded 2026-10-04, before the fix, against `https://dev.915tldr.com`:
+
+- Default selector `nav[data-site-nav="sections"]`: both tests fail, `no element matches
+  nav[data-site-nav="sections"]` (the hook is not deployed yet).
+- Layout only, `SITE_NAV_SELECTOR='body > nav'` (the pre-fix deploy has no hook): English passes
+  (1280px offsetTops all 220, `list-style: none`, 390px lefts 16/203). **Spanish fails** with
+  `at 1280px all 8 links must share one visual row on /es; offsetTops=[219,247,275,303,330,358,386,414]
+  labels=Crimen|Política|Deportes|Negocios|Educación|Comunidad|Salud|Clima`. This is the defect,
+  reproduced by the test.
+
+Fix check without a deploy (a simulation, not the real thing): live `/` and `/es` HTML with the hook
+added and the stylesheet replaced by the fixed `src/styles/global.css`, in Chromium. Both pages: 1280px
+one row of 8, `list-style-type: none`; 390px two distinct left positions. `/es` laid out identically to `/`.
+
+Suites after the fix: `pnpm run test:fast` 1026 of 1026 pass (was 1021, plus the 5 new tests);
+`pnpm run test:build-gate` 9 of 9 pass. No local `pnpm run build` was run (it writes to production KV).
+
+Limits: the markup guard reads `Base.astro` source, not a rendered page, and the stale local `dist/`
+was not rebuilt, so no rendered `/es` HTML has been checked against the new attribute. The first real
+confirmation is the live test going green after the deploy:
+`node --test --test-name-pattern="06-16 gap" tests/integration/browser-journeys.test.mjs`.

@@ -684,3 +684,61 @@ test('browser-journey: 06-16 keyboard — Tab from the skip link reaches the hea
     await ctx.close();
   }
 });
+
+// 06-16 gap closure (Defect 2): the Spanish category nav rendered as a plain bulleted vertical
+// list on every /es page because global.css keyed the nav styles to the English aria-label
+// ("Sections"). The nav is now found through the language-independent `data-site-nav` hook; this
+// proves the STYLED LAYOUT (not just the markup) on both languages in a real browser.
+// `SITE_NAV_SELECTOR` exists only so the same layout assertions can be pointed at a pre-fix
+// deploy (which has no hook yet) with `body > nav`; the default is the production hook.
+const SITE_NAV_SELECTOR = process.env.SITE_NAV_SELECTOR ?? 'nav[data-site-nav="sections"]';
+
+async function measureSectionNav(p) {
+  return p.evaluate((sel) => {
+    const nav = document.querySelector(sel);
+    if (!nav) return null;
+    const links = [...nav.querySelectorAll('a')];
+    const ul = nav.querySelector('ul');
+    return {
+      count: links.length,
+      offsetTops: links.map((a) => a.offsetTop),
+      lefts: links.map((a) => Math.round(a.getBoundingClientRect().left)),
+      listStyleType: ul ? getComputedStyle(ul).listStyleType : null,
+      labels: links.map((a) => a.textContent.trim()),
+    };
+  }, SITE_NAV_SELECTOR);
+}
+
+for (const [langName, route] of [['English', '/'], ['Spanish', '/es']]) {
+  test(`browser-journey: 06-16 gap — ${langName} (${route}) category nav is a styled row at 1280px and 2 columns at 390px`, async () => {
+    const ctx = await browser.newContext({ viewport: { width: 1280, height: 900 } });
+    const p = await ctx.newPage();
+    try {
+      const response = await p.goto(`${LIVE_ORIGIN}${route}`);
+      assert.equal(response.status(), 200);
+
+      const wide = await measureSectionNav(p);
+      assert.ok(wide, `no element matches ${SITE_NAV_SELECTOR} on ${route}`);
+      assert.equal(wide.count, 8, `expected 8 category links on ${route}, got ${wide.count}`);
+      assert.equal(
+        new Set(wide.offsetTops).size,
+        1,
+        `at 1280px all 8 links must share one visual row on ${route}; offsetTops=${JSON.stringify(wide.offsetTops)} labels=${wide.labels.join('|')}`
+      );
+      assert.equal(wide.listStyleType, 'none', `the nav list must have list-style-type none on ${route}, got ${wide.listStyleType}`);
+
+      await p.setViewportSize({ width: 390, height: 844 });
+      const narrow = await measureSectionNav(p);
+      assert.equal(narrow.count, 8);
+      assert.equal(
+        new Set(narrow.lefts).size,
+        2,
+        `at 390px the links must form exactly 2 columns on ${route}; lefts=${JSON.stringify(narrow.lefts)}`
+      );
+      assert.equal(narrow.listStyleType, 'none');
+      console.log(`[nav layout ${route}] 1280px offsetTops=${JSON.stringify(wide.offsetTops)} list-style=${wide.listStyleType}; 390px lefts=${JSON.stringify(narrow.lefts)}`);
+    } finally {
+      await ctx.close();
+    }
+  });
+}

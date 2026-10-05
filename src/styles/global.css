@@ -485,13 +485,13 @@ header:not([data-block]) h1 {
 
 /* Category nav — two columns at 320px, four at 48em, one row of eight at
    80em. No element in the nav has overflow other than visible (open item 3). */
-nav[aria-label="Sections"] {
+nav[data-site-nav="sections"] {
   padding: var(--space-3) var(--space-4);
   border-bottom: var(--rule-thin) solid var(--rule);
   overflow: visible;
 }
 
-nav[aria-label="Sections"] ul {
+nav[data-site-nav="sections"] ul {
   list-style: none;
   margin: 0;
   padding: 0;
@@ -501,7 +501,7 @@ nav[aria-label="Sections"] ul {
   overflow: visible;
 }
 
-nav[aria-label="Sections"] a {
+nav[data-site-nav="sections"] a {
   display: inline-flex;
   align-items: center;
   gap: var(--space-2);
@@ -512,7 +512,7 @@ nav[aria-label="Sections"] a {
   text-transform: uppercase;
 }
 
-nav[aria-label="Sections"] a[aria-current="page"] {
+nav[data-site-nav="sections"] a[aria-current="page"] {
   text-decoration: underline;
   text-decoration-thickness: 2px;
 }
@@ -828,7 +828,7 @@ footer [data-attribution] {
 }
 
 @media (min-width: 48em) {
-  nav[aria-label="Sections"] ul {
+  nav[data-site-nav="sections"] ul {
     grid-template-columns: repeat(4, 1fr);
   }
 
@@ -838,7 +838,7 @@ footer [data-attribution] {
 }
 
 @media (min-width: 80em) {
-  nav[aria-label="Sections"] ul {
+  nav[data-site-nav="sections"] ul {
     grid-template-columns: repeat(8, 1fr);
   }
 
@@ -852,7 +852,7 @@ footer [data-attribution] {
   }
 
   header:not([data-block]),
-  nav[aria-label="Sections"],
+  nav[data-site-nav="sections"],
   footer {
     max-width: 80rem;
     margin: 0 auto;

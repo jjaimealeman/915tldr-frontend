@@ -79,7 +79,7 @@ test('listing-pages: each of the 8 category indexes exists with the right nav/ca
       const html = readDist(relPath);
 
       // aria-current="page" on its own nav link.
-      const navMatch = html.match(/<nav aria-label="Sections">([\s\S]*?)<\/nav>/);
+      const navMatch = html.match(/<nav\b[^>]*aria-label="Sections"[^>]*>([\s\S]*?)<\/nav>/);
       assert.ok(navMatch, 'expected a <nav aria-label="Sections"> block');
       const ownLinkRe = new RegExp(`<a[^>]*data-nav-category="${category.slug}"[^>]*>`);
       const ownLinkMatch = navMatch[1].match(ownLinkRe);
