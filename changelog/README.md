@@ -10,6 +10,7 @@ Entries are named `YYYY-MM-DD-HHMM_slug.md` and grouped by month, newest first.
 
 | Date | Entry | Keywords |
 |------|-------|----------|
+| 2026-10-04 | [06-16: live verification evidence, browser journeys and D-09 in PROJECT.md](2026-10-04-2101_06-16-live-verification-evidence-journeys-d09.md) | `[DOCUMENTATION]` `[TESTING]` `[I18N]` `[PLANNING]` |
 | 2026-10-04 | [06-15: Spanish archive pre-populated in R2, deploy record written](2026-10-04-1454_06-15-record-r2-spanish-archive-pre-population.md) | `[DOCUMENTATION]` `[PLANNING]` `[I18N]` `[DEPLOYMENT]` `[INFRASTRUCTURE]` |
 | 2026-10-04 | [Phase 6 tracking updated after 06-13, live ingest deployed](2026-10-04-1425_phase-06-wave-8a-tracking.md) | `[DOCUMENTATION]` `[PLANNING]` `[DEPLOYMENT]` |
 | 2026-10-04 | [Plan 06-13 complete: live Spanish judge chosen, backfill capped, pipeline deployed](2026-10-04-1424_06-13-complete-go-live-decision-and-pipeline-deploy.md) | `[DOCUMENTATION]` `[PLANNING]` `[I18N]` `[DEPLOYMENT]` |

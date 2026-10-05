@@ -565,3 +565,305 @@ test('url-shapes: /changelog renders at least CHANGELOG_MIN_EXPECTED (15) entrie
     `/changelog must render at least ${CHANGELOG_MIN_EXPECTED} data-dispatch entries, found ${entryCount}`
   );
 });
+
+// =============================================================================================
+// 06-16: the live /es URL contract (I18N-03/04/05/06/08, D-13). Same rules as above: real HTTP
+// against LIVE_ORIGIN, redirect:'manual', every redirect case under both header kinds. Samples
+// are discovered live (/es/rss.xml, /rss.xml) or from the local build's archive plan, never
+// fixtured. The /es origin inside hreflang/canonical is the configured production origin
+// (https://915tldr.com), regardless of which host serves the page.
+// =============================================================================================
+const PRODUCTION_ORIGIN = 'https://915tldr.com';
+
+/** Project rule: live requests paced at <= 10/s. */
+function pace(ms = 120) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+function htmlLang(html) {
+  return html.match(/<html[^>]*\blang="([^"]*)"/)?.[1] ?? null;
+}
+
+/** `{ hreflang -> pathname }` from the page's `<link rel="alternate" hreflang=…>` tags. */
+function hreflangPaths(html) {
+  const out = {};
+  for (const m of html.matchAll(/<link rel="alternate" hreflang="([^"]+)" href="([^"]+)"/g)) {
+    out[m[1]] = new URL(m[2]).pathname;
+  }
+  return out;
+}
+
+function canonicalHref(html) {
+  return html.match(/<link rel="canonical" href="([^"]+)"/)?.[1] ?? null;
+}
+
+async function fetchHtml(pathname, headers = {}) {
+  const res = await fetchManual(pathname, headers);
+  return { res, html: await res.text() };
+}
+
+/** 200 + lang="es" + canonical on the production /es URL + reciprocal en/es/x-default hreflang: the
+ * /es page names its English partner, and the English partner names this page back. */
+async function assertEsPageContract(esPath, { partnerMayBeStale = false } = {}) {
+  const { res, html } = await fetchHtml(esPath);
+  assert.equal(res.status, 200, `${esPath} must answer 200`);
+  assert.equal(htmlLang(html), 'es', `${esPath} must be <html lang="es">`);
+  assert.equal(canonicalHref(html), `${PRODUCTION_ORIGIN}${esPath}`, `${esPath} canonical`);
+  const alts = hreflangPaths(html);
+  assert.equal(alts.es, esPath, `${esPath} hreflang es must point at itself`);
+  const enPath = esPath === '/es' ? '/' : esPath.replace(/^\/es/, '');
+  assert.equal(alts.en, enPath, `${esPath} hreflang en must name its English partner ${enPath}`);
+  assert.equal(alts['x-default'], enPath, `${esPath} x-default must be the English partner`);
+  const partner = await fetchHtml(enPath);
+  assert.equal(partner.res.status, 200, `English partner ${enPath} must answer 200`);
+  assert.equal(htmlLang(partner.html), 'en');
+  const back = hreflangPaths(partner.html);
+  if (partnerMayBeStale && back.es === undefined) {
+    // An archived English object that the post-deploy re-upload (REND-12) has not reached yet still
+    // carries pre-Phase-6 chrome: no hreflang, no language switch. Recorded as a finding, not
+    // hidden and not failed here — the /es side above is what this test owns.
+    console.log(`[url-shapes 06-16] FINDING: archived English partner ${enPath} is STALE (no hreflang, no Español switch) — awaiting the REND-12 re-upload backlog`);
+    return html;
+  }
+  assert.equal(back.es, esPath, `${enPath} must carry hreflang es -> ${esPath} (reciprocal)`);
+  assert.equal(back.en, enPath, `${enPath} must carry hreflang en -> itself`);
+  return html;
+}
+
+let esTranslatedPaths; // English canonical paths whose /es page is translated (from /es/rss.xml)
+let esFallbackPath; // English canonical path whose /es page is the D-05 fallback
+
+test('url-shapes 06-16: sample translated (from /es/rss.xml) and fallback /es articles live', async () => {
+  const res = await fetchManual('/es/rss.xml');
+  assert.equal(res.status, 200);
+  const xml = await res.text();
+  esTranslatedPaths = [...xml.matchAll(/<item>[\s\S]*?<link>([^<]+)<\/link>/g)]
+    .map((m) => new URL(m[1]).pathname.replace(/^\/es/, ''))
+    .slice(0, 3);
+  assert.ok(esTranslatedPaths.length >= 1, '/es/rss.xml must list at least one translated article');
+  for (const p of esTranslatedPaths) assert.ok(isCanonicalArticlePath(p), `${p} must be a canonical article path`);
+
+  // Fallback: the first recent English article whose /es page carries the fallback note.
+  for (const enPath of sampleArticlePaths) {
+    const { res: r, html } = await fetchHtml(`/es${enPath}`);
+    if (r.status === 200 && /data-fallback-note/.test(html)) {
+      esFallbackPath = enPath;
+      break;
+    }
+  }
+  console.log(`[url-shapes 06-16] translated sample: ${esTranslatedPaths[0]}; fallback sample: ${esFallbackPath}`);
+  assert.ok(esFallbackPath, 'no recent article with a fallback /es page was found among the 5 RSS samples');
+});
+
+test('url-shapes 06-16: /es and all 8 /es/<category> answer 200, lang="es", reciprocal hreflang', async () => {
+  await assertEsPageContract('/es');
+  for (const category of CATEGORIES) {
+    await assertEsPageContract(`/es/${category.slug}`);
+  }
+});
+
+test('url-shapes 06-16: /es/tag/<static> and /es/tag/<archived> answer 200, lang="es", reciprocal hreflang; archived served by the Worker', async () => {
+  await assertEsPageContract(`/es${staticTag.path}`);
+  const archived = archivedTags[0];
+  await assertEsPageContract(`/es${archived.path}`, { partnerMayBeStale: true });
+  for (const headers of [NAVIGATE_HEADERS, PLAIN_HEADERS]) {
+    const res = await fetchManual(`/es${archived.path}`, headers);
+    assert.equal(res.status, 200);
+    assert.match(res.headers.get('server-timing') ?? '', /\barchive;desc=(r2|edge-cache)\b/, `/es${archived.path} must be served from the archive tier`);
+  }
+});
+
+test('url-shapes 06-16: /es/tags, /es/source/<slug> and the static pages answer 200, lang="es", reciprocal hreflang', async () => {
+  for (const p of ['/es/tags', '/es/source/kvia', '/es/about', '/es/contact', '/es/privacy', '/es/terms', '/es/changelog']) {
+    await assertEsPageContract(p);
+  }
+});
+
+test('url-shapes 06-16: a translated /es article is 200, lang="es", Spanish body, reciprocal hreflang, indexable', async () => {
+  const esPath = `/es${esTranslatedPaths[0]}`;
+  const html = await assertEsPageContract(esPath);
+  assert.ok(!/<meta name="robots" content="noindex"/.test(html), 'a translated /es article must be indexable');
+  assert.ok(!/data-fallback-note/.test(html), 'a translated /es article carries no fallback note');
+  assert.match(html, /<p data-lang-link><a [^>]*hreflang="en"/, 'carries the Read in English link');
+  assert.match(html, /Este resumen fue redactado por IA/, 'AI disclosure is in Spanish (I18N-09)');
+});
+
+test('url-shapes 06-16: a fallback /es article is 200, lang="es", robots noindex, with the Spanish note and English content', async () => {
+  const { res, html } = await fetchHtml(`/es${esFallbackPath}`);
+  assert.equal(res.status, 200);
+  assert.equal(htmlLang(html), 'es');
+  assert.match(html, /<meta name="robots" content="noindex"/);
+  assert.match(html, /data-fallback-note[^>]*>No disponible en español todavía/);
+  assert.equal(canonicalHref(html), `${PRODUCTION_ORIGIN}/es${esFallbackPath}`);
+});
+
+test('url-shapes 06-16: an ARCHIVED /es article is served by the Worker from the archive tier with the /es page body', async () => {
+  const archived = archivedArticles[0];
+  const esPath = `/es${archived.path}`;
+  for (const [kindName, headers] of REQUEST_KINDS) {
+    const { res, html } = await fetchHtml(esPath, headers);
+    assert.equal(res.status, 200, `${esPath} (${kindName}) must answer 200`);
+    assert.match(
+      res.headers.get('server-timing') ?? '',
+      /\barchive;desc=(r2|edge-cache)\b/,
+      `${esPath} (${kindName}) must be served by the Worker from R2 or the edge cache`
+    );
+    assert.equal(htmlLang(html), 'es', `${esPath} (${kindName}) body must be the /es page`);
+    assert.match(html, /<p data-lang-link><a [^>]*hreflang="en"/, 'body carries the Read in English link');
+    assert.equal(canonicalHref(html), `${PRODUCTION_ORIGIN}${esPath}`);
+    const translated = !/data-fallback-note/.test(html);
+    console.log(`[url-shapes 06-16] archived ${esPath} (${kindName}): server-timing="${res.headers.get('server-timing')}", ${translated ? 'translated Spanish body' : 'D-05 fallback (English content, untranslated)'}`);
+  }
+});
+
+for (const [kindName, headers] of REQUEST_KINDS) {
+  test(`url-shapes 06-16 (${kindName}): a non-canonical /es/<wrong-category>/<slug>-<uuid> answers exactly one 301 to the /es canonical (hot and archived)`, async () => {
+    for (const canonicalEnPath of [esTranslatedPaths[0], archivedArticles[0].path]) {
+      const { category, uuid } = parseCanonicalPath(canonicalEnPath);
+      const wrongCategory = CATEGORIES.find((c) => c.slug !== category).slug;
+      const wrongPath = `/es/${wrongCategory}/definitely-the-wrong-slug-${uuid}`;
+      const res = await fetchManual(wrongPath, headers);
+      assert.equal(res.status, 301, `${wrongPath} must answer 301`);
+      const location = res.headers.get('location');
+      assert.equal(locationPathname(location), `/es${canonicalEnPath}`, `${wrongPath} must redirect to the /es canonical`);
+      // Exactly one hop: the target itself must answer 200 with no location header.
+      const target = await fetchManual(locationPathname(location), headers);
+      assert.equal(target.status, 200, 'the redirect target must be the final page (one hop)');
+      assert.equal(target.headers.get('location'), null);
+    }
+  });
+
+  test(`url-shapes 06-16 (${kindName}): /es/ ends on /es after one redirect`, async () => {
+    const res = await fetchManual('/es/', headers);
+    assert.ok(res.status >= 300 && res.status < 400, `/es/ must answer a 3xx redirect, got ${res.status}`);
+    assert.equal(locationPathname(res.headers.get('location') ?? ''), '/es');
+    const target = await fetchManual('/es', headers);
+    assert.equal(target.status, 200);
+    console.log(`[url-shapes 06-16] /es/ (${kindName}): ${res.status} -> /es`);
+  });
+
+  test(`url-shapes 06-16 (${kindName}): an unknown /es/... path answers 404 with the Spanish 404 page`, async () => {
+    for (const p of ['/es/zz-no-such-page-0616', '/es/crime/this-page-has-no-uuid-at-all-0616']) {
+      const { res, html } = await fetchHtml(p, headers);
+      assert.equal(res.status, 404, `${p} must answer 404`);
+      assert.equal(htmlLang(html), 'es', `${p} must serve the Spanish 404 page`);
+      assert.match(html, /data-404-suggestions/);
+    }
+  });
+
+  test(`url-shapes 06-16 (${kindName}): Accept-Language es-MX on / and an English article answers 200 English with no location header (D-13)`, async () => {
+    for (const p of ['/', '/crime', sampleArticlePaths[0]]) {
+      const { res, html } = await fetchHtml(p, { ...headers, 'Accept-Language': 'es-MX,es;q=0.9' });
+      assert.equal(res.status, 200, `${p} must answer 200`);
+      assert.equal(res.headers.get('location'), null, `${p} must carry no location header`);
+      assert.equal(htmlLang(html), 'en', `${p} must stay English for a Spanish-preferring browser`);
+    }
+  });
+}
+
+test('url-shapes 06-16: /es/rss.xml parses as RSS with <language>es-us</language>; items are /es URLs', async () => {
+  const res = await fetchManual('/es/rss.xml');
+  assert.equal(res.status, 200);
+  assert.match(res.headers.get('content-type') ?? '', /xml/);
+  const xml = await res.text();
+  assert.match(xml, /^<\?xml[^>]*\?><rss version="2\.0">/);
+  assert.match(xml, /<language>es-us<\/language>/);
+  assert.match(xml, /<\/channel><\/rss>\s*$/);
+  const links = [...xml.matchAll(/<item>[\s\S]*?<link>([^<]+)<\/link>/g)].map((m) => m[1]);
+  assert.ok(links.length >= 1, '/es/rss.xml must carry items');
+  for (const link of links) assert.ok(link.startsWith(`${PRODUCTION_ORIGIN}/es/`), `${link} must be an /es URL`);
+  assert.equal((xml.match(/<item>/g) ?? []).length, (xml.match(/<\/item>/g) ?? []).length, 'balanced <item> tags');
+});
+
+test('url-shapes 06-16: sitemap-index.xml lists the Spanish sitemap; every <loc> in it starts with https://915tldr.com/es', async () => {
+  const idx = await fetchManual('/sitemap-index.xml');
+  assert.equal(idx.status, 200);
+  const idxXml = await idx.text();
+  assert.match(idxXml, /<sitemapindex[\s>]/);
+  const locs = [...idxXml.matchAll(/<loc>([^<]+)<\/loc>/g)].map((m) => m[1]);
+  const esSitemaps = locs.filter((l) => /\/sitemap-es-\d+\.xml$/.test(l));
+  assert.ok(esSitemaps.length >= 1, `sitemap-index.xml must list a Spanish sitemap, got ${locs.join(', ')}`);
+  let total = 0;
+  for (const loc of esSitemaps) {
+    const res = await fetchManual(new URL(loc).pathname);
+    assert.equal(res.status, 200, `${loc} must answer 200`);
+    const xml = await res.text();
+    assert.match(xml, /<urlset[\s>]/);
+    assert.match(xml, /<\/urlset>\s*$/);
+    // Only <url><loc> entries (hreflang partners live in xhtml:link href attributes, not <loc>).
+    const urlLocs = [...xml.matchAll(/<url><loc>([^<]+)<\/loc>/g)].map((m) => m[1]);
+    assert.ok(urlLocs.length > 0, `${loc} must list URLs`);
+    for (const u of urlLocs) assert.ok(u.startsWith(`${PRODUCTION_ORIGIN}/es`), `${loc}: ${u} must start with ${PRODUCTION_ORIGIN}/es`);
+    total += urlLocs.length;
+  }
+  console.log(`[url-shapes 06-16] ${esSitemaps.length} Spanish sitemap file(s), ${total} <loc> entries, all under /es`);
+});
+
+test('url-shapes 06-16: /es/news-sitemap.xml parses with <news:language>es</news:language>', async () => {
+  const res = await fetchManual('/es/news-sitemap.xml');
+  assert.equal(res.status, 200);
+  const xml = await res.text();
+  assert.match(xml, /<urlset[^>]*xmlns:news=/);
+  assert.match(xml, /<\/urlset>\s*$/);
+  const langs = [...xml.matchAll(/<news:language>([^<]+)<\/news:language>/g)].map((m) => m[1]);
+  assert.ok(langs.length > 0, 'must carry at least one news entry');
+  assert.ok(langs.every((l) => l === 'es'), `every <news:language> must be es, got ${[...new Set(langs)].join(',')}`);
+  const locs = [...xml.matchAll(/<url>\s*<loc>([^<]+)<\/loc>/g)].map((m) => m[1]);
+  for (const l of locs) assert.ok(l.startsWith(`${PRODUCTION_ORIGIN}/es/`));
+});
+
+// Stylesheet check (06-05's suspected pre-existing gap): an archived page references the stylesheet
+// hash of the build that rendered it; if that hashed file is gone from the current deploy the page
+// is unstyled. The post-deploy re-upload (REND-12) converges this over a few builds, so right after
+// a CSS-changing deploy some archived ENGLISH pages legitimately still name the old hash. This test
+// therefore (a) records every status code, (b) FAILS if any archived /es page or any hot page
+// has a non-200 stylesheet (those are rendered by, or pre-populated for, the current build), and
+// (c) reports the archived English count separately as a finding rather than failing the suite.
+test('url-shapes 06-16: stylesheet referenced by archived EN/es pages and hot baselines (status recorded; stale archived EN reported)', async () => {
+  const plan = loadArchivePlan();
+  const enEntries = plan.entries.filter((e) => !e.path.startsWith('/es/'));
+  const spread = (list, n) => Array.from({ length: n }, (_, i) => list[Math.floor((i * list.length) / n)]);
+  const samples = [
+    ...spread(enEntries.filter((e) => e.kind === 'article'), 12),
+    ...spread(enEntries.filter((e) => e.kind === 'tag'), 12),
+  ];
+  const cssStatus = new Map();
+  async function statusOf(href) {
+    if (!cssStatus.has(href)) {
+      const css = await fetchManual(new URL(href, LIVE_ORIGIN).pathname);
+      await css.arrayBuffer();
+      cssStatus.set(href, css.status);
+    }
+    return cssStatus.get(href);
+  }
+  const tally = {};
+  const hardFailures = [];
+  const pages = [
+    ...samples.map((e) => ({ label: `archived EN ${e.kind}`, path: e.path, hard: false })),
+    ...samples.map((e) => ({ label: `archived /es ${e.kind}`, path: `/es${e.path}`, hard: true })),
+    { label: 'hot EN article', path: sampleArticlePaths[0], hard: true },
+    { label: 'hot /es article', path: `/es${esTranslatedPaths[0]}`, hard: true },
+  ];
+  for (const page of pages) {
+    const { res, html } = await fetchHtml(page.path);
+    assert.equal(res.status, 200, `${page.path} must answer 200`);
+    const hrefs = [...html.matchAll(/<link[^>]*rel="stylesheet"[^>]*href="([^"]+)"/g)].map((m) => m[1]);
+    assert.ok(hrefs.length > 0, `${page.path} must reference an external stylesheet`);
+    for (const href of hrefs) {
+      const status = await statusOf(href);
+      const key = `${page.label}: ${href} -> ${status}`;
+      tally[key] = (tally[key] ?? 0) + 1;
+      if (page.hard && status !== 200) hardFailures.push(`${page.path} -> ${href} -> ${status}`);
+    }
+    await pace();
+  }
+  const lines = Object.entries(tally).map(([k, n]) => `${n} x ${k}`);
+  console.log(`[url-shapes 06-16] stylesheet status codes:\n  ${lines.join('\n  ')}`);
+  const staleEn = Object.entries(tally).filter(([k]) => k.startsWith('archived EN') && !k.endsWith('-> 200'));
+  if (staleEn.length > 0) {
+    console.log(
+      `[url-shapes 06-16] FINDING: ${staleEn.reduce((n, [, c]) => n + c, 0)} sampled archived English page(s) reference a stylesheet that answers non-200 — they render unstyled until the REND-12 re-upload reaches them`
+    );
+  }
+  assert.deepEqual(hardFailures, [], `current-build pages with a non-200 stylesheet:\n${hardFailures.join('\n')}`);
+});
