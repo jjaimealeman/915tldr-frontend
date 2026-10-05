@@ -15,6 +15,8 @@ import {
   planPartition,
   applyPartition,
   cleanPartitionInputs,
+  countBuiltSpanishPages,
+  assertSpanishFactsMatchBuilt,
 } from '../../tools/partition-archive.mjs';
 
 function tempRoot() {
@@ -79,6 +81,77 @@ test('planPartition: builds the article key/path/sourceRel and tag key/path/sour
   assert.equal(tagEntry.key, 'tags/thin-tag.html');
   assert.equal(tagEntry.path, '/tag/thin-tag');
   assert.equal(tagEntry.sourceRel, 'dist/client/tag/thin-tag.html');
+});
+
+// ---------------------------------------------------------------------------
+// planPartition: 06-04 Spanish entries (articleFactsEs/tagFactsEs)
+// ---------------------------------------------------------------------------
+
+test('planPartition: Spanish facts yield es/articles and es/tags entries alongside English ones, with Es counts', () => {
+  const cutoffEpoch = NOW_EPOCH - 90 * SECONDS_PER_DAY;
+  const articleFacts = [
+    { uuid: '44444444-4444-4444-4444-444444444444', path: '/crime/old-story-44444444-4444-4444-4444-444444444444', publishedAt: cutoffEpoch - 1 },
+  ];
+  const articleFactsEs = [
+    {
+      uuid: '44444444-4444-4444-4444-444444444444',
+      path: '/es/crime/old-story-44444444-4444-4444-4444-444444444444',
+      publishedAt: cutoffEpoch - 1,
+      translated: true,
+    },
+  ];
+  const tagFacts = [{ slug: 'thin-tag', count: 3 }];
+  const tagFactsEs = [{ slug: 'thin-tag', count: 3 }];
+
+  const plan = planPartition({
+    articleFacts,
+    tagFacts,
+    articleFactsEs,
+    tagFactsEs,
+    hotWindow: FALLBACK_HOT_WINDOW,
+    nowEpoch: NOW_EPOCH,
+  });
+
+  assert.deepEqual(plan.counts, {
+    hotArticles: 0,
+    archivedArticles: 1,
+    hotTags: 0,
+    archivedTags: 1,
+    hotArticlesEs: 0,
+    archivedArticlesEs: 1,
+    hotTagsEs: 0,
+    archivedTagsEs: 1,
+  });
+
+  const keys = plan.entries.map((e) => e.key).sort();
+  assert.deepEqual(keys, [
+    'articles/44444444-4444-4444-4444-444444444444.html',
+    'es/articles/44444444-4444-4444-4444-444444444444.html',
+    'es/tags/thin-tag.html',
+    'tags/thin-tag.html',
+  ]);
+
+  const esArticle = plan.entries.find((e) => e.key === 'es/articles/44444444-4444-4444-4444-444444444444.html');
+  assert.equal(esArticle.path, '/es/crime/old-story-44444444-4444-4444-4444-444444444444');
+  assert.equal(esArticle.sourceRel, 'dist/client/es/crime/old-story-44444444-4444-4444-4444-444444444444.html');
+
+  const esTag = plan.entries.find((e) => e.key === 'es/tags/thin-tag.html');
+  assert.equal(esTag.path, '/es/tag/thin-tag');
+  assert.equal(esTag.sourceRel, 'dist/client/es/tag/thin-tag.html');
+});
+
+test('planPartition: articleFactsEs/tagFactsEs default to [] — no Spanish entries, Es counts all zero', () => {
+  const plan = planPartition({
+    articleFacts: [],
+    tagFacts: [],
+    hotWindow: FALLBACK_HOT_WINDOW,
+    nowEpoch: NOW_EPOCH,
+  });
+  assert.deepEqual(plan.entries, []);
+  assert.equal(plan.counts.hotArticlesEs, 0);
+  assert.equal(plan.counts.archivedArticlesEs, 0);
+  assert.equal(plan.counts.hotTagsEs, 0);
+  assert.equal(plan.counts.archivedTagsEs, 0);
 });
 
 test('planPartition: throws on a malformed hotWindow (no numeric days)', () => {
@@ -197,6 +270,37 @@ test('applyPartition: throws "partition-archive:" when a fact path would resolve
   }
 });
 
+test('applyPartition: moves a Spanish entry (es/ key) byte-identically into dist/archive/es/...', () => {
+  const root = tempRoot();
+  try {
+    const content = '<html>archived Spanish article</html>';
+    seedDistClient(root, {
+      'es/crime/x-44444444-4444-4444-4444-444444444444.html': content,
+    });
+    const beforeHash = sha256(Buffer.from(content));
+
+    const plan = {
+      entries: [
+        {
+          kind: 'article',
+          key: 'es/articles/44444444-4444-4444-4444-444444444444.html',
+          path: '/es/crime/x-44444444-4444-4444-4444-444444444444',
+          sourceRel: 'dist/client/es/crime/x-44444444-4444-4444-4444-444444444444.html',
+        },
+      ],
+    };
+
+    const finalized = applyPartition(plan, { root });
+
+    const destAbs = path.join(root, ARCHIVE_DIR, 'es/articles/44444444-4444-4444-4444-444444444444.html');
+    assert.ok(existsSync(destAbs), 'expected the Spanish archive destination to exist');
+    assert.equal(sha256(readFileSync(destAbs)), beforeHash);
+    assert.equal(finalized.entries[0].sha256, beforeHash);
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+
 test('applyPartition: throws when a planned destination key would resolve outside dist/archive', () => {
   const root = tempRoot();
   try {
@@ -249,4 +353,51 @@ test('cleanPartitionInputs: is a no-op when stale facts/archive/plan are all abs
   } finally {
     rmSync(root, { recursive: true, force: true });
   }
+});
+
+// ---------------------------------------------------------------------------
+// countBuiltSpanishPages / assertSpanishFactsMatchBuilt (06-04)
+// ---------------------------------------------------------------------------
+
+test('countBuiltSpanishPages: returns {articles:0, tags:0} when dist/client/es does not exist (no-op before 06-09/06-10)', () => {
+  const root = tempRoot();
+  try {
+    assert.deepEqual(countBuiltSpanishPages(root), { articles: 0, tags: 0 });
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+
+test('countBuiltSpanishPages: counts article html files under dist/client/es/<category>/ and tag html files under dist/client/es/tag/', () => {
+  const root = tempRoot();
+  try {
+    seedDistClient(root, {
+      'es/crime/a-11111111-1111-1111-1111-111111111111.html': 'x',
+      'es/crime/b-22222222-2222-2222-2222-222222222222.html': 'x',
+      'es/sports/c-33333333-3333-3333-3333-333333333333.html': 'x',
+      'es/tag/el-paso.html': 'x',
+    });
+    assert.deepEqual(countBuiltSpanishPages(root), { articles: 3, tags: 1 });
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+
+test('assertSpanishFactsMatchBuilt: throws "partition-archive:" when built /es article pages do not match Spanish tier facts', () => {
+  assert.throws(
+    () => assertSpanishFactsMatchBuilt({ articles: 3, tags: 0 }, 2, 0),
+    /partition-archive: built \/es article pages \(3\) do not match Spanish tier facts \(2\)/
+  );
+});
+
+test('assertSpanishFactsMatchBuilt: throws "partition-archive:" when built /es tag pages do not match Spanish tier facts', () => {
+  assert.throws(
+    () => assertSpanishFactsMatchBuilt({ articles: 0, tags: 2 }, 0, 1),
+    /partition-archive: built \/es tag pages \(2\) do not match Spanish tier facts \(1\)/
+  );
+});
+
+test('assertSpanishFactsMatchBuilt: does not throw when counts match, including the zero/zero no-op case', () => {
+  assert.doesNotThrow(() => assertSpanishFactsMatchBuilt({ articles: 0, tags: 0 }, 0, 0));
+  assert.doesNotThrow(() => assertSpanishFactsMatchBuilt({ articles: 2, tags: 1 }, 2, 1));
 });

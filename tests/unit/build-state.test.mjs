@@ -214,6 +214,36 @@ test('readLastGood: missing articles.ids throws', async () => {
 });
 
 // ---------------------------------------------------------------------------
+// readLastGood: articlesEs (06-06)
+// ---------------------------------------------------------------------------
+
+test('readLastGood: a valid articlesEs section round-trips unchanged', async () => {
+  const withEs = { ...VALID_LAST_GOOD, articlesEs: { count: 2, ids: ['x', 'y'] } };
+  const fetchImpl = makeStubFetch([okResponse(withEs)]);
+  const result = await readLastGood({ fetchImpl });
+  assert.deepEqual(result.articlesEs, { count: 2, ids: ['x', 'y'] });
+});
+
+test('readLastGood: no articlesEs section at all (every pre-Phase-6 baseline) is valid — field is undefined, not an error', async () => {
+  const fetchImpl = makeStubFetch([okResponse(VALID_LAST_GOOD)]);
+  const result = await readLastGood({ fetchImpl });
+  assert.equal(result.articlesEs, undefined);
+});
+
+test('readLastGood: a malformed articlesEs (missing ids) throws, naming articlesEs', async () => {
+  const bad = { ...VALID_LAST_GOOD, articlesEs: { count: 2 } };
+  const fetchImpl = makeStubFetch([okResponse(bad)]);
+  await assert.rejects(() => readLastGood({ fetchImpl }), /articlesEs/);
+});
+
+test('readLastGood: articlesEs.count 0 with an empty ids array is valid (no translation has ever existed)', async () => {
+  const withEs = { ...VALID_LAST_GOOD, articlesEs: { count: 0, ids: [] } };
+  const fetchImpl = makeStubFetch([okResponse(withEs)]);
+  const result = await readLastGood({ fetchImpl });
+  assert.deepEqual(result.articlesEs, { count: 0, ids: [] });
+});
+
+// ---------------------------------------------------------------------------
 // writePendingBuildState / readPendingBuildState — real filesystem, isolated tmp cwd
 // ---------------------------------------------------------------------------
 
@@ -402,6 +432,34 @@ test('commitLastGood writes to KV when every required section is present', async
   assert.equal(body.buildHash, 'abc1234');
   assert.deepEqual(body.articles, { count: 2, ids: ['a', 'b'] });
   assert.ok(!('expiration' in body) && !('expiration_ttl' in body));
+});
+
+// ---------------------------------------------------------------------------
+// commitLastGood: articlesEs is now a required section BY DEFAULT (06-06) — these tests omit
+// `requiredSections` entirely to exercise the real default, not an explicit override.
+// ---------------------------------------------------------------------------
+
+test('commitLastGood default: refuses when articlesEs pending section is missing, naming articlesEs, issues no PUT', async () => {
+  await writePendingBuildState({ articles: { count: 2, ids: ['a', 'b'] }, changelog: { count: 12 } });
+  const fetchImpl = makeStubFetch();
+
+  await assert.rejects(() => commitLastGood({ buildHash: 'abc1234', fetchImpl }), /articlesEs/);
+  assert.equal(fetchImpl.calls.length, 0);
+});
+
+test('commitLastGood default: succeeds and writes articlesEs to the KV body when every default-required section is present', async () => {
+  await writePendingBuildState({
+    articles: { count: 2, ids: ['a', 'b'] },
+    changelog: { count: 12 },
+    articlesEs: { count: 0, ids: [] },
+  });
+  const fetchImpl = makeStubFetch([okResponse({})]);
+
+  await commitLastGood({ buildHash: 'abc1234', fetchImpl });
+
+  assert.equal(fetchImpl.calls.length, 1);
+  const body = JSON.parse(fetchImpl.calls[0].init.body);
+  assert.deepEqual(body.articlesEs, { count: 0, ids: [] });
 });
 
 // ---------------------------------------------------------------------------

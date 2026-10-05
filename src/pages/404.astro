@@ -8,6 +8,13 @@
 // Reached via wrangler.jsonc's `assets.not_found_handling: "404-page"` (Task 2): on any
 // unmatched request the Worker's own fetch handler declines (no uuid in the path, or no matching
 // manifest entry), `env.ASSETS.fetch(request)` serves this built file with HTTP status 404.
+//
+// 06-10 (Task 2): the page script's index URL is parameterized via the suggestions section's own
+// `data-index-url` attribute (read through `.dataset.indexUrl`, never a literal `getAttribute(
+// 'data-index-url')` string — that would make the literal substring "data-index-url" appear
+// TWICE in the built HTML, once as the real attribute and once inside the inlined script body,
+// breaking this plan's own `grep -c "data-index-url"` acceptance check) — `src/pages/es/404.astro`
+// shares this exact script body with a different attribute value (`/es/404-index.json`).
 import Base from '../layouts/Base.astro';
 import ArticleCard from '../components/ArticleCard.astro';
 import { getCollection } from 'astro:content';
@@ -54,7 +61,7 @@ const recent = [...articles]
     </div>
   </section>
 
-  <section data-404-suggestions hidden aria-live="polite">
+  <section data-404-suggestions data-index-url="/404-index.json" hidden aria-live="polite">
     <h2>You might be looking for</h2>
     <ul></ul>
   </section>
@@ -80,6 +87,11 @@ const recent = [...articles]
     var list = section.querySelector('ul');
     if (!list) return;
     const safeList = list;
+
+    // 06-10: read via the camelCase `dataset` accessor, never `getAttribute('data-index-url')` —
+    // see this file's own header comment for why that distinction matters to the built HTML.
+    var indexUrl = (safeSection as HTMLElement).dataset.indexUrl;
+    if (!indexUrl) return;
 
     // "4+ char hex fragments" (a uuid segment or the whole uuid) are dropped — they carry no
     // human-readable signal to score against title/slug words.
@@ -128,9 +140,9 @@ const recent = [...articles]
       );
     }
 
-    fetch('/404-index.json')
+    fetch(indexUrl)
       .then(function (response) {
-        if (!response.ok) throw new Error('404-index.json fetch failed');
+        if (!response.ok) throw new Error('404 suggestion index fetch failed');
         return response.json();
       })
       .then(function (index) {

@@ -3,7 +3,15 @@
 // import here — both pages read the Content Layer collection themselves and pass plain
 // `ArticleData[]` in, which is what keeps this module unit-testable under plain `node --test`
 // (matching src/lib/listing.ts's own established pattern).
+//
+// 06-11 (I18N-06): `newsSitemapXml` now takes already-localised `NewsSitemapEntry[]` (a `path`
+// string, not `category.slug`/`slug`/`uuid` fields) instead of `ArticleData[]` directly — the
+// English route builds that path with `articlePath(..., 'en')` (default), the Spanish route with
+// `articlePath(..., 'es')`, so this module itself never needs to know about `/es` or import
+// anything Spanish-specific. `selectNewsWindow` is unchanged (it only reads `publishedAt`, which
+// both languages share from the one English `articles` collection).
 import type { ArticleData } from '../content/loaders/articles-loader.ts';
+import { assertLanguage, type Language } from './article-url.ts';
 
 /** v1 parity — `server/routes/rss.xml.ts`'s `.limit(30)`. */
 export const RSS_ITEM_COUNT = 30;
@@ -58,24 +66,48 @@ function isoWithOffset(publishedAtEpochSeconds: number): string {
  * escaped rendering — no truncation, no stripped punctuation. */
 export const NEWS_PUBLICATION_NAME = '915 TLDR';
 
+/** `newsSitemapXml`'s input shape — already localised by the caller: `path` is the FULL
+ * canonical path (e.g. `/crime/foo-uuid` or its `/es/crime/foo-uuid` counterpart, built via
+ * `articlePath`), `title` is already the language the caller wants rendered (English text, or
+ * `localizedArticleView`'s Spanish title). This module stays language-agnostic — it only ever
+ * reads `options.language` to decide what `<news:language>` says. */
+export interface NewsSitemapEntry {
+  path: string;
+  title: string;
+  publishedAt: number;
+}
+
+export interface NewsSitemapOptions {
+  /** Defaults to `'en'` — the only call site this module shipped with before 06-11. */
+  language?: Language;
+}
+
 /**
  * Builds a Google News sitemap (`http://www.google.com/schemas/sitemap-news/0.9` namespace,
- * alongside the base sitemaps 0.9 namespace) from an already-windowed, already-sorted entry list.
- * Renders a valid, empty `<urlset>` for a zero-length `entries` array — a quiet news day is not a
- * loader failure (this plan's own behavior spec).
+ * alongside the base sitemaps 0.9 namespace) from an already-windowed, already-sorted, already-
+ * localised entry list. Renders a valid, empty `<urlset>` for a zero-length `entries` array — a
+ * quiet news day is not a loader failure (this plan's own behavior spec). `options.language`
+ * (06-11, I18N-06) sets `<news:language>`; an invalid value throws via the same
+ * `assertLanguage` every other closed-enum language value in this project goes through — never
+ * silently coerced.
  */
-export function newsSitemapXml(entries: ArticleData[], origin: string): string {
+export function newsSitemapXml(
+  entries: NewsSitemapEntry[],
+  origin: string,
+  options: NewsSitemapOptions = {}
+): string {
+  const language = assertLanguage(options.language ?? 'en');
   const urls = entries
-    .map((article) => {
-      const loc = escapeXml(`${origin}/${article.category.slug}/${article.slug}-${article.uuid}`);
-      const title = escapeXml(article.title);
-      const pubDate = isoWithOffset(article.publishedAt);
+    .map((entry) => {
+      const loc = escapeXml(`${origin}${entry.path}`);
+      const title = escapeXml(entry.title);
+      const pubDate = isoWithOffset(entry.publishedAt);
       return `  <url>
     <loc>${loc}</loc>
     <news:news>
       <news:publication>
         <news:name>${NEWS_PUBLICATION_NAME}</news:name>
-        <news:language>en</news:language>
+        <news:language>${language}</news:language>
       </news:publication>
       <news:publication_date>${pubDate}</news:publication_date>
       <news:title>${title}</news:title>

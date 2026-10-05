@@ -25,6 +25,8 @@ import {
   putManifestEntry,
   putManifestEntriesBulk,
   getManifestEntry,
+  manifestKey,
+  listManifestArticleIds,
 } from '../../src/lib/server/kv-manifest.ts';
 import { stripComments } from '../../tools/check-config-guards.mjs';
 
@@ -319,6 +321,69 @@ test('putManifestEntriesBulk request bodies carry no expiration/TTL', async () =
   for (const item of body) {
     assert.ok(!('expiration' in item) && !('expiration_ttl' in item));
   }
+});
+
+// ---------------------------------------------------------------------------
+// 06-04: manifestKey — language-aware, closed enum, never collides with English
+// ---------------------------------------------------------------------------
+
+test('manifestKey(id) and manifestKey(id, "en") both return the unchanged English identity key', () => {
+  assert.equal(manifestKey('201187fa-6484-4516-99d5-7e41da203323'), 'manifest:201187fa-6484-4516-99d5-7e41da203323');
+  assert.equal(
+    manifestKey('201187fa-6484-4516-99d5-7e41da203323', 'en'),
+    'manifest:201187fa-6484-4516-99d5-7e41da203323'
+  );
+});
+
+test('manifestKey(id, "es") returns a distinct key that can never collide with the English entry', () => {
+  const id = '201187fa-6484-4516-99d5-7e41da203323';
+  assert.equal(manifestKey(id, 'es'), `manifest:${id}:es`);
+  assert.notEqual(manifestKey(id, 'es'), manifestKey(id, 'en'));
+});
+
+test('manifestKey(id, "de") throws — closed en|es enum, no coercion', () => {
+  assert.throws(
+    () => manifestKey('201187fa-6484-4516-99d5-7e41da203323', 'de'),
+    /kv-manifest: invalid manifest language "de"/
+  );
+});
+
+test('putManifestEntriesBulk with one "en" and one "es" entry for the same uuid sends distinct keys manifest:<uuid> and manifest:<uuid>:es', async () => {
+  const sameId = '201187fa-6484-4516-99d5-7e41da203323';
+  const enEntry = await makeEntry({ id: sameId });
+  const esEntry = await makeEntry({ id: sameId }, { language: 'es' });
+  const fetchImpl = makeStubFetch([okResponse({})]);
+
+  await putManifestEntriesBulk([enEntry, esEntry], { fetchImpl });
+
+  const body = JSON.parse(fetchImpl.calls[0].init.body);
+  const keys = body.map((item) => item.key).sort();
+  assert.deepEqual(keys, [`manifest:${sameId}`, `manifest:${sameId}:es`].sort());
+});
+
+test('getManifestEntry reads the "es" key when opts.language is "es", and the unchanged key by default', async () => {
+  const id = '201187fa-6484-4516-99d5-7e41da203323';
+  const fetchImplEn = makeStubFetch([notFoundResponse()]);
+  await getManifestEntry(id, { fetchImpl: fetchImplEn });
+  assert.ok(fetchImplEn.calls[0].url.includes(encodeURIComponent(manifestKey(id))));
+
+  const fetchImplEs = makeStubFetch([notFoundResponse()]);
+  await getManifestEntry(id, { fetchImpl: fetchImplEs, language: 'es' });
+  assert.ok(fetchImplEs.calls[0].url.includes(encodeURIComponent(manifestKey(id, 'es'))));
+});
+
+// ---------------------------------------------------------------------------
+// 06-04: listManifestArticleIds skips any ":es"-suffixed key
+// ---------------------------------------------------------------------------
+
+function listKeysResponse(names) {
+  return okResponse({ result: names.map((name) => ({ name })), result_info: {}, success: true });
+}
+
+test('listManifestArticleIds with stub keys [manifest:a, manifest:a:es] returns only [a] — a ":es" key is never a second id', async () => {
+  const fetchImpl = makeStubFetch([listKeysResponse(['manifest:a', 'manifest:a:es'])]);
+  const ids = await listManifestArticleIds({ fetchImpl });
+  assert.deepEqual(ids, ['a']);
 });
 
 // ---------------------------------------------------------------------------

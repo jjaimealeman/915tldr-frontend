@@ -133,6 +133,9 @@ export function tagIndex(articles: ArticleData[]): TagIndexEntry[] {
  * failure instead of a silent file clobber.
  */
 export const RESERVED_TOP_LEVEL: readonly string[] = [
+  // 06-05 (I18N-04 adjacency): 'es' is the Spanish route-tree prefix (D-06) — reserved so no
+  // category slug can ever collide with it.
+  'es',
   'changelog',
   'contact',
   'about',

@@ -1,0 +1,246 @@
+---
+// 06-09 (I18N-02/03/04/05/09): the Spanish mirror of `src/pages/[category]/[slug].astro` — one
+// `/es/<category>/<slug>-<uuid>` page per public English article (D-06), rendering the real
+// Spanish translation when one is clean (`esArticlePageModel`'s `translated: true` branch), or
+// an honest English fallback under a visible note, `noindex`, and no hreflang pairing (D-05)
+// otherwise. Same route-param/digest/rail machinery as the English page — this file intentionally
+// mirrors its structure and data-* hooks rather than introducing a parallel pattern.
+//
+// Pages never import `src/lib/server/**` (WR-03) — `getCollection('articlesEs')` reads from the
+// loader's synced store, and `spanish-view.ts`/`article-page.ts` are both pure join/model
+// modules with zero `src/lib/server/` imports of their own.
+import { getCollection, type CollectionEntry } from 'astro:content';
+import Base from '../../../layouts/Base.astro';
+import ArticleCard from '../../../components/ArticleCard.astro';
+import { articlePath, articleParams, localizedPath } from '../../../lib/article-url.ts';
+import { computeRails, railFingerprint, type RailResult } from '../../../lib/rail.ts';
+import { writeArticleFactsEs } from '../../../lib/archive/tier-facts.ts';
+import { esArticlePageModel } from '../../../lib/i18n/article-page.ts';
+import { buildEsIndex, localizedArticleView, categoryLabel, type EsEntryData } from '../../../lib/i18n/spanish-view.ts';
+import { formatBylineTime, isoWithOffset } from '../../../lib/format.ts';
+import { newsArticleNode, breadcrumbNode, SITE_ORIGIN } from '../../../lib/structured-data.ts';
+import { t } from '../../../lib/i18n/dictionary.ts';
+
+const EMPTY_RAIL: RailResult = { more: [], second: [], secondHeading: 'Earlier' };
+
+export interface Props {
+  article: CollectionEntry<'articles'>['data'];
+  /** Every `articlesEs` entry, keyed by uuid — this article's own entry AND every rail
+   * neighbour's, so a neighbour card can show its own Spanish title (Discretion, Open Question
+   * 2) without a second D1-shaped lookup. */
+  esIndex: Map<string, EsEntryData>;
+  rail: RailResult;
+}
+
+export async function getStaticPaths() {
+  const entries = await getCollection('articles');
+  const esEntries = await getCollection('articlesEs');
+  const esIndex = buildEsIndex(esEntries.map((entry) => entry.data));
+  const esDigestByUuid = new Map(esEntries.map((entry) => [entry.data.uuid, entry.digest]));
+
+  const allArticles = entries.map((entry) => entry.data);
+  const rails = computeRails(allArticles);
+
+  let translatedCount = 0;
+  let fallbackCount = 0;
+  let invalidSpanishCount = 0;
+
+  const facts: { uuid: string; path: string; publishedAt: number; translated: boolean }[] = [];
+
+  const paths = entries.map((entry) => {
+    const rail = rails.get(entry.data.uuid) ?? EMPTY_RAIL;
+    const esEntry = esIndex.get(entry.data.uuid);
+    const model = esArticlePageModel(entry.data, esEntry, rail);
+
+    if (model.translated) translatedCount++;
+    else fallbackCount++;
+    if (model.invalidSpanish) invalidSpanishCount++;
+
+    facts.push({
+      uuid: entry.data.uuid,
+      path: model.canonicalPath,
+      publishedAt: entry.data.publishedAt,
+      translated: model.translated,
+    });
+
+    // 04-09 (D-06) extended for 06-09: a neighbour GAINING or LOSING a Spanish translation
+    // changes THIS page's rendered rail cards even though neither this article's own digest nor
+    // its English rail neighbours' identity changed — so the fingerprint includes every
+    // neighbour's own `articlesEs` digest (or 'none'), not just railFingerprint's English fields.
+    const neighbours = [...rail.more, ...rail.second];
+    const esNeighbourFingerprint = neighbours
+      .map((neighbour) => esDigestByUuid.get(neighbour.uuid) ?? 'none')
+      .join(';');
+    const esDigest = esDigestByUuid.get(entry.data.uuid) ?? 'none';
+
+    return {
+      params: articleParams(entry.data.category.slug, entry.data.slug, entry.id),
+      props: { article: entry.data, esIndex, rail },
+      cacheKey: `${entry.digest}|${esDigest}|${railFingerprint(rail)}|${esNeighbourFingerprint}`,
+    };
+  });
+
+  // 06-04: feeds tools/partition-archive.mjs's own `articlesEs`/`tagsEs` classification — a
+  // Spanish article is archive-tier exactly when its English counterpart is (same publishedAt,
+  // same cutoff), never a separate decision.
+  writeArticleFactsEs(facts);
+  // eslint-disable-next-line no-console
+  console.log(
+    `[es-article] pages=${paths.length} translated=${translatedCount} fallback=${fallbackCount} invalidSpanish=${invalidSpanishCount}`
+  );
+
+  return paths;
+}
+
+const { article, esIndex, rail } = Astro.props;
+const esEntry = esIndex.get(article.uuid);
+const model = esArticlePageModel(article, esEntry, rail);
+
+const bylineDatetime = isoWithOffset(article.publishedAt);
+const bylineText = formatBylineTime(article.publishedAt, { language: 'es' });
+const categoryEs = categoryLabel(article.category.slug, 'es') ?? article.category.name;
+
+// Only set when the rendered content's own language differs from the page's (`es`) — D-05's
+// fallback content is English, everything else is already Spanish and needs no override.
+const contentLangAttr = model.contentLang !== 'es' ? model.contentLang : undefined;
+
+const hasMore = rail.more.length > 0;
+const hasSecond = rail.second.length > 0;
+const hasRail = hasMore || hasSecond;
+
+// 06-09 Task 2 (I18N-02): inLanguage reflects the RENDERED content's language (model.contentLang
+// — 'es' only when translated; still 'en' on a D-05 fallback page, since the headline/description
+// below are the article's own English text even though the URL is /es), and the breadcrumb uses
+// Spanish names + /es paths throughout. Both nodes still go through the one safe serialiser,
+// toSafeJsonLd (via Base.astro) — no second escaper for Spanish text (T-06-33).
+const origin = Astro.site?.origin ?? SITE_ORIGIN;
+
+const newsArticle = newsArticleNode({
+  origin,
+  canonicalPath: model.canonicalPath,
+  headline: model.title,
+  description: model.standfirst,
+  datePublishedIso: bylineDatetime,
+  section: categoryEs,
+  tags: article.tags.map((tag: { slug: string; name: string }) => tag.name),
+  sourceName: article.source.name,
+  sourceUrl: article.url,
+  inLanguage: model.contentLang,
+});
+
+const breadcrumb = breadcrumbNode(
+  [
+    { name: t('home', 'es'), path: '/es' },
+    { name: categoryEs, path: localizedPath(`/${article.category.slug}`, 'es') },
+    { name: model.title, path: model.canonicalPath },
+  ],
+  origin
+);
+---
+
+<Base
+  page="article"
+  lang="es"
+  title={`${model.title} — 915 TLDR`}
+  description={model.standfirst}
+  canonicalPath={model.canonicalPath}
+  alternates={model.alternates}
+  noindex={model.noindex}
+  switchPath={model.switchPath}
+  jsonLd={[newsArticle, breadcrumb]}
+  activeCategory={article.category.slug}
+  datelineEpoch={article.publishedAt}
+  stamp="commit"
+  layout="with-rail"
+>
+  <article data-uuid={article.uuid} data-category={article.category.slug} data-reading-column>
+    <header data-block data-category={article.category.slug}>
+      <p><a href={localizedPath(`/${article.category.slug}`, 'es')}>{categoryEs}</a></p>
+      <p data-byline><span data-source>{article.source.name}</span> · <time datetime={bylineDatetime}>{bylineText}</time></p>
+    </header>
+
+    <p data-lang-link><a href={model.switchPath} hreflang="en" lang="en">{t('articleSwitchLabel', 'es')}</a></p>
+
+    {model.fallbackNote && <p data-fallback-note>{model.fallbackNote}</p>}
+
+    <h1 lang={contentLangAttr}>{model.title}</h1>
+
+    <p data-standfirst lang={contentLangAttr}>{model.standfirst}</p>
+
+    <div data-article-body lang={contentLangAttr} set:html={model.bodyHtml} />
+
+    <p data-ai-disclosure>{t('aiDisclosure', 'es', { source: article.source.name })} <a href={article.url} rel="noopener external" target="_blank">{t('aiDisclosureLink', 'es')}<svg data-new-tab-icon aria-hidden="true" focusable="false" width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.1" stroke-linecap="round" stroke-linejoin="round"><path d="M5 1H1v10h10V7"></path><path d="M7 1h4v4"></path><path d="M11 1 5 7"></path></svg><span data-new-tab-cue data-visually-hidden>{t('newTabCue', 'es')}</span></a></p>
+
+    <p data-attribution>{t('attributionLabel', 'es')} <a href={article.url} rel="noopener external" target="_blank">{article.source.name}<svg data-new-tab-icon aria-hidden="true" focusable="false" width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.1" stroke-linecap="round" stroke-linejoin="round"><path d="M5 1H1v10h10V7"></path><path d="M7 1h4v4"></path><path d="M11 1 5 7"></path></svg><span data-new-tab-cue data-visually-hidden>{t('newTabCue', 'es')}</span></a></p>
+
+    {
+      article.tags.length > 0 && (
+        <section data-tags aria-labelledby="tags-heading">
+          <h2 id="tags-heading">{t('tagsSectionHeading', 'es')}</h2>
+          {article.tags.map((tag: { slug: string; name: string }) => (
+            <a href={localizedPath(`/tag/${tag.slug}`, 'es')} lang="en">{tag.name}</a>
+          ))}
+        </section>
+      )
+    }
+  </article>
+
+  {
+    hasRail && (
+      <aside data-rail aria-label={t('railMoreStoriesLabel', 'es')}>
+        {hasMore && (
+          <>
+            <h2 id="rail-more-heading" data-grid-heading>
+              {t('railMoreIn', 'es', { category: categoryEs })}
+            </h2>
+            <section data-grid aria-labelledby="rail-more-heading">
+              {rail.more.map((neighbor) => {
+                const neighborView = localizedArticleView(neighbor, esIndex.get(neighbor.uuid));
+                return (
+                  <ArticleCard
+                    uuid={neighbor.uuid}
+                    title={neighborView.title}
+                    href={articlePath(neighbor.category.slug, neighbor.slug, neighbor.uuid, 'es')}
+                    categorySlug={neighbor.category.slug}
+                    categoryName={categoryLabel(neighbor.category.slug, 'es') ?? neighbor.category.name}
+                    sourceName={neighbor.source.name}
+                    publishedAt={neighbor.publishedAt}
+                    variant="compact"
+                    lang="es"
+                    contentLang={neighborView.lang}
+                  />
+                );
+              })}
+            </section>
+          </>
+        )}
+        {hasSecond && (
+          <>
+            <h2 id="rail-second-heading" data-grid-heading>
+              {t('railEarlier', 'es')}
+            </h2>
+            <section data-grid aria-labelledby="rail-second-heading">
+              {rail.second.map((neighbor) => {
+                const neighborView = localizedArticleView(neighbor, esIndex.get(neighbor.uuid));
+                return (
+                  <ArticleCard
+                    uuid={neighbor.uuid}
+                    title={neighborView.title}
+                    href={articlePath(neighbor.category.slug, neighbor.slug, neighbor.uuid, 'es')}
+                    categorySlug={neighbor.category.slug}
+                    categoryName={categoryLabel(neighbor.category.slug, 'es') ?? neighbor.category.name}
+                    sourceName={neighbor.source.name}
+                    publishedAt={neighbor.publishedAt}
+                    variant="compact"
+                    lang="es"
+                    contentLang={neighborView.lang}
+                  />
+                );
+              })}
+            </section>
+          </>
+        )}
+      </aside>
+    )
+  }
+</Base>

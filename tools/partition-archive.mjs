@@ -16,16 +16,33 @@
 // asserted to stay under `dist/client` or `dist/archive` before any filesystem mutation — a
 // malformed or tampered fact (a path escaping its directory) must throw, never silently move a
 // file outside the two directories this script owns.
-import { existsSync, mkdirSync, readFileSync, renameSync, rmSync, statSync, writeFileSync } from 'node:fs';
+import {
+  existsSync,
+  mkdirSync,
+  readdirSync,
+  readFileSync,
+  renameSync,
+  rmSync,
+  statSync,
+  writeFileSync,
+} from 'node:fs';
 import { createHash } from 'node:crypto';
 import { resolve, dirname, join } from 'node:path';
 import {
   readTierFacts,
   ARTICLE_FACTS_PATH,
   TAG_FACTS_PATH,
+  ARTICLE_FACTS_ES_PATH,
+  TAG_FACTS_ES_PATH,
 } from '../src/lib/archive/tier-facts.ts';
 import { loadHotWindow, describeHotWindow } from '../src/lib/archive/hot-window.ts';
 import { hotCutoffEpoch, classifyArticles, classifyTags } from '../src/lib/archive/tiering.ts';
+// 06-04 (D-06, docs/phase-06/language-key-scheme.md): Spanish archive keys come from the SAME
+// articleArchiveKey/tagArchiveKey the Worker's archive-serving branch uses — single source of
+// key truth, not a second string template that could silently drift from the Worker's own
+// derivation.
+import { articleArchiveKey, tagArchiveKey } from '../src/lib/archive/archive-route.ts';
+import { localizedPath } from '../src/lib/article-url.ts';
 
 export const ARCHIVE_DIR = 'dist/archive';
 export const PARTITION_PLAN_PATH = 'dist/archive-plan.json';
@@ -51,7 +68,13 @@ function resolveWithinBoundary(root, relPath, boundaryDir, label) {
  * before `astro build` so a stale prior build's facts/archive can never leak into this build's
  * partition decision (the "stale inputs cannot drive a partition" must-have). */
 export function cleanPartitionInputs(root = process.cwd()) {
-  for (const relPath of [ARTICLE_FACTS_PATH, TAG_FACTS_PATH, PARTITION_PLAN_PATH]) {
+  for (const relPath of [
+    ARTICLE_FACTS_PATH,
+    TAG_FACTS_PATH,
+    ARTICLE_FACTS_ES_PATH,
+    TAG_FACTS_ES_PATH,
+    PARTITION_PLAN_PATH,
+  ]) {
     const abs = resolve(root, relPath);
     if (existsSync(abs)) rmSync(abs, { force: true });
   }
@@ -65,32 +88,69 @@ export function cleanPartitionInputs(root = process.cwd()) {
 
 /** Builds the partition plan from already-read facts and the hot window — pure, no filesystem
  * I/O beyond what the caller already did. `nowEpoch` is epoch seconds (matches
- * `hotCutoffEpoch`'s own contract); defaults to the real clock. */
-export function planPartition({ articleFacts, tagFacts, hotWindow, nowEpoch = Math.floor(Date.now() / 1000) }) {
+ * `hotCutoffEpoch`'s own contract); defaults to the real clock. `articleFactsEs`/`tagFactsEs`
+ * (06-04, default `[]`) are classified with the SAME `classifyArticles`/`classifyTags` calls as
+ * their English counterparts (per translation group, never per language), and their entries use
+ * `articleArchiveKey`/`tagArchiveKey`'s `'es'` language so every English consumer of this plan's
+ * `entries`/`counts` (keyed `version: 1`, unchanged) sees exactly what it saw before this plan. */
+export function planPartition({
+  articleFacts,
+  tagFacts,
+  articleFactsEs = [],
+  tagFactsEs = [],
+  hotWindow,
+  nowEpoch = Math.floor(Date.now() / 1000),
+}) {
   if (!Array.isArray(articleFacts)) fail('articleFacts must be an array');
   if (!Array.isArray(tagFacts)) fail('tagFacts must be an array');
+  if (!Array.isArray(articleFactsEs)) fail('articleFactsEs must be an array');
+  if (!Array.isArray(tagFactsEs)) fail('tagFactsEs must be an array');
   if (!hotWindow || typeof hotWindow.days !== 'number') fail('hotWindow with a numeric days field is required');
 
   const cutoffEpoch = hotCutoffEpoch(nowEpoch, hotWindow.days);
   const articleSplit = classifyArticles(articleFacts, cutoffEpoch);
   const tagSplit = classifyTags(tagFacts);
+  // Per-translation-group tiering (06-04 must-have): a Spanish article/tag is archive-tier
+  // exactly when its English counterpart is, since both classifications use the SAME cutoff
+  // epoch / HOT_TAG_MIN_ARTICLES rule over the Spanish fact's own publishedAt/count (which the
+  // (later) writer sets identically to its English counterpart's) — never a separate decision.
+  const articleSplitEs = classifyArticles(articleFactsEs, cutoffEpoch);
+  const tagSplitEs = classifyTags(tagFactsEs);
 
   /** @type {PlanEntry[]} */
   const entries = [];
   for (const fact of articleSplit.archive) {
     entries.push({
       kind: 'article',
-      key: `articles/${fact.uuid}.html`,
+      key: articleArchiveKey(fact.uuid),
       path: fact.path,
       sourceRel: `${DIST_CLIENT_DIR}${fact.path}.html`,
     });
   }
   for (const fact of tagSplit.archive) {
+    const path = `/tag/${fact.slug}`;
     entries.push({
       kind: 'tag',
-      key: `tags/${fact.slug}.html`,
-      path: `/tag/${fact.slug}`,
-      sourceRel: `${DIST_CLIENT_DIR}/tag/${fact.slug}.html`,
+      key: tagArchiveKey(fact.slug),
+      path,
+      sourceRel: `${DIST_CLIENT_DIR}${path}.html`,
+    });
+  }
+  for (const fact of articleSplitEs.archive) {
+    entries.push({
+      kind: 'article',
+      key: articleArchiveKey(fact.uuid, 'es'),
+      path: fact.path,
+      sourceRel: `${DIST_CLIENT_DIR}${fact.path}.html`,
+    });
+  }
+  for (const fact of tagSplitEs.archive) {
+    const path = localizedPath(`/tag/${fact.slug}`, 'es');
+    entries.push({
+      kind: 'tag',
+      key: tagArchiveKey(fact.slug, 'es'),
+      path,
+      sourceRel: `${DIST_CLIENT_DIR}${path}.html`,
     });
   }
 
@@ -104,6 +164,10 @@ export function planPartition({ articleFacts, tagFacts, hotWindow, nowEpoch = Ma
       archivedArticles: articleSplit.archive.length,
       hotTags: tagSplit.hot.length,
       archivedTags: tagSplit.archive.length,
+      hotArticlesEs: articleSplitEs.hot.length,
+      archivedArticlesEs: articleSplitEs.archive.length,
+      hotTagsEs: tagSplitEs.hot.length,
+      archivedTagsEs: tagSplitEs.archive.length,
     },
     entries,
   };
@@ -141,6 +205,56 @@ export function applyPartition(plan, { root = process.cwd() } = {}) {
 }
 
 // ---------------------------------------------------------------------------
+// Spanish built-pages/facts consistency (06-04)
+// ---------------------------------------------------------------------------
+
+const ES_ARTICLE_FILE_RE =
+  /-[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}\.html$/;
+
+/** Counts the built `/es` pages under `dist/client/es` — `{ articles, tags }` — article HTML
+ * files whose name ends `-<uuid>.html` under every `dist/client/es/<category>/` directory, and
+ * every `*.html` file directly under `dist/client/es/tag/`. Returns `{ articles: 0, tags: 0 }`
+ * when `dist/client/es` doesn't exist yet (no-op before 06-09/06-10 add the `/es` routes). */
+export function countBuiltSpanishPages(root = process.cwd()) {
+  const esDir = resolve(root, DIST_CLIENT_DIR, 'es');
+  let articles = 0;
+  let tags = 0;
+  if (!existsSync(esDir)) return { articles, tags };
+
+  for (const entry of readdirSync(esDir)) {
+    const full = join(esDir, entry);
+    if (!statSync(full).isDirectory()) continue;
+    if (entry === 'tag') {
+      for (const inner of readdirSync(full)) {
+        if (inner.endsWith('.html')) tags += 1;
+      }
+    } else {
+      for (const inner of readdirSync(full)) {
+        if (ES_ARTICLE_FILE_RE.test(inner)) articles += 1;
+      }
+    }
+  }
+  return { articles, tags };
+}
+
+/** Throws `partition-archive: …` on any mismatch between the built `/es` page counts
+ * (`countBuiltSpanishPages`'s return) and the Spanish tier facts' own counts — the
+ * facts/built-files consistency check the CLI runs before planning (REND-11's own fail-loud
+ * discipline, extended to the Spanish side: a mismatch here would otherwise ship either a
+ * static `/es` page the file-count budget never accounted for, or an R2 upload that silently
+ * omits a built page). Exported so it's directly unit-testable without spawning the CLI. */
+export function assertSpanishFactsMatchBuilt(built, articleFactsEsCount, tagFactsEsCount) {
+  if (built.articles !== articleFactsEsCount) {
+    fail(
+      `built /es article pages (${built.articles}) do not match Spanish tier facts (${articleFactsEsCount})`
+    );
+  }
+  if (built.tags !== tagFactsEsCount) {
+    fail(`built /es tag pages (${built.tags}) do not match Spanish tier facts (${tagFactsEsCount})`);
+  }
+}
+
+// ---------------------------------------------------------------------------
 // CLI
 // ---------------------------------------------------------------------------
 
@@ -155,22 +269,30 @@ function main() {
 
   let articleFacts;
   let tagFacts;
+  let articleFactsEs;
+  let tagFactsEs;
   try {
     const facts = readTierFacts();
     articleFacts = facts.articles;
     tagFacts = facts.tags;
+    articleFactsEs = facts.articlesEs;
+    tagFactsEs = facts.tagsEs;
   } catch (err) {
     fail(`could not read tier facts — ${err instanceof Error ? err.message : String(err)}`);
   }
 
+  const builtEs = countBuiltSpanishPages();
+  assertSpanishFactsMatchBuilt(builtEs, articleFactsEs.length, tagFactsEs.length);
+
   const hotWindow = loadHotWindow();
-  const plan = planPartition({ articleFacts, tagFacts, hotWindow });
+  const plan = planPartition({ articleFacts, tagFacts, articleFactsEs, tagFactsEs, hotWindow });
   const finalizedPlan = applyPartition(plan);
 
   console.log(
     `[archive] partition: ${finalizedPlan.counts.archivedArticles} articles and ` +
       `${finalizedPlan.counts.archivedTags} tags archived; ${finalizedPlan.counts.hotArticles} ` +
-      `articles and ${finalizedPlan.counts.hotTags} tags static`
+      `articles and ${finalizedPlan.counts.hotTags} tags static ` +
+      `(es: ${finalizedPlan.counts.archivedArticlesEs} articles, ${finalizedPlan.counts.archivedTagsEs} tags archived)`
   );
   console.log(describeHotWindow(hotWindow));
 }

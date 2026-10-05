@@ -174,3 +174,84 @@ test(
     );
   }
 );
+
+// ---------------------------------------------------------------------------
+// 06-05 (Task 2, D-11/D-12): the Umami analytics tag and the language-switch/localized-footer
+// chrome, sampled across home, a category, an article, a tag page and /es.
+// ---------------------------------------------------------------------------
+
+const UMAMI_WEBSITE_ID = '8e82b1af-925f-4a5a-b0d1-e02f616ae077';
+// `is:inline` is an Astro compile-time directive — it tells Astro not to bundle/process the
+// script, but is itself stripped from the rendered output, so the built HTML carries only
+// `defer src="..." data-website-id="..."`.
+const UMAMI_TAG_RE = new RegExp(
+  `<script defer src="https://stats\\.915websites\\.com/script\\.js" data-website-id="${UMAMI_WEBSITE_ID}"></script>`
+);
+
+function sampledPagePaths() {
+  const paths = ['index.html', `${CATEGORIES[0].slug}.html`, 'es.html'];
+  const articleFiles = findArticleHtmlFiles(DIST_CLIENT);
+  if (articleFiles.length > 0) paths.push(path.relative(DIST_CLIENT, articleFiles[0]));
+  const tagDir = path.join(DIST_CLIENT, 'tag');
+  if (existsSync(tagDir)) {
+    const tagFiles = readdirSync(tagDir).filter((f) => f.endsWith('.html'));
+    if (tagFiles.length > 0) paths.push(path.join('tag', tagFiles[0]));
+  }
+  return paths;
+}
+
+test(
+  'chrome: every sampled page (home, a category, an article, a tag, /es) carries the Umami tag exactly once, with defer',
+  { skip: !DIST_BUILT && SKIP_REASON },
+  async (t) => {
+    for (const relPath of sampledPagePaths()) {
+      await t.test(relPath, () => {
+        const html = readFileSync(path.join(DIST_CLIENT, relPath), 'utf8');
+        const matches = html.match(new RegExp(UMAMI_TAG_RE, 'g')) ?? [];
+        assert.equal(matches.length, 1, `expected exactly one Umami tag on ${relPath}, found ${matches.length}`);
+        assert.match(html, UMAMI_TAG_RE, `expected ${relPath} to carry the Umami tag verbatim, with defer`);
+      });
+    }
+  }
+);
+
+test(
+  'chrome: es.html carries the localized footer (Spanish link labels) and the English page carries the English ones',
+  { skip: !DIST_BUILT && SKIP_REASON },
+  () => {
+    const esHtml = readFileSync(path.join(DIST_CLIENT, 'es.html'), 'utf8');
+    const enHtml = readFileSync(path.join(DIST_CLIENT, 'index.html'), 'utf8');
+
+    const esFooter = esHtml.match(/<footer>([\s\S]*?)<\/footer>/)[1];
+    const enFooter = enHtml.match(/<footer>([\s\S]*?)<\/footer>/)[1];
+
+    assert.ok(esFooter.includes('href="/es/changelog"') && esFooter.includes('Registro de cambios'));
+    assert.ok(esFooter.includes('href="/es/contact"') && esFooter.includes('Contacto'));
+    assert.ok(esFooter.includes('href="/es/about"') && esFooter.includes('Acerca de'));
+    assert.ok(esFooter.includes('href="/es/privacy"') && esFooter.includes('Privacidad'));
+    assert.ok(esFooter.includes('href="/es/terms"') && esFooter.includes('Términos'));
+
+    assert.ok(enFooter.includes('href="/changelog"') && enFooter.includes('>Changelog<'));
+    assert.ok(enFooter.includes('href="/contact"') && enFooter.includes('>Contact<'));
+  }
+);
+
+test(
+  'chrome: es.html\'s language switch points to "/" with text "English"; index.html\'s points to "/es" with text "Español"',
+  { skip: !DIST_BUILT && SKIP_REASON },
+  () => {
+    const esHtml = readFileSync(path.join(DIST_CLIENT, 'es.html'), 'utf8');
+    const enHtml = readFileSync(path.join(DIST_CLIENT, 'index.html'), 'utf8');
+
+    const esSwitch = esHtml.match(/<p data-lang-switch>\s*<a href="([^"]+)"[^>]*>([^<]+)<\/a>/);
+    const enSwitch = enHtml.match(/<p data-lang-switch>\s*<a href="([^"]+)"[^>]*>([^<]+)<\/a>/);
+
+    assert.ok(esSwitch);
+    assert.equal(esSwitch[1], '/');
+    assert.equal(esSwitch[2], 'English');
+
+    assert.ok(enSwitch);
+    assert.equal(enSwitch[1], '/es');
+    assert.equal(enSwitch[2], 'Español');
+  }
+);

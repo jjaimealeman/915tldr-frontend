@@ -152,6 +152,7 @@ Allow: /
 
 Sitemap: https://915tldr.com/sitemap-index.xml
 Sitemap: https://915tldr.com/news-sitemap.xml
+Sitemap: https://915tldr.com/es/news-sitemap.xml
 
 # Crawl-delay for polite crawling (respected by some bots)
 Crawl-delay: 1

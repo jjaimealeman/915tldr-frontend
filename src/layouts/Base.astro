@@ -15,6 +15,10 @@ import { BUILD_HASH, BUILD_TIMESTAMP, BUILD_COMMIT_DATE } from '../lib/build-inf
 import { formatDateline } from '../lib/format';
 import { toSafeJsonLd, organizationNode, websiteNode, SITE_ORIGIN } from '../lib/structured-data';
 import { CATEGORIES } from '../lib/categories';
+import { localizedPath, type Language } from '../lib/article-url.ts';
+import { alternateLinks, pairedPath, type AlternateMode } from '../lib/i18n/hreflang.ts';
+import { t } from '../lib/i18n/dictionary.ts';
+import { categoryLabel } from '../lib/i18n/category-labels.ts';
 
 export interface Props {
   page: string;
@@ -46,6 +50,19 @@ export interface Props {
   /** Rendered as `data-layout` on `<main>` — article pages pass `'with-rail'`. Omitted when not
    * given, matching the mockups' plain listing pages. */
   layout?: string;
+  /** 06-05 (I18N-03): the page's own language — sets `<html lang>` and drives every chrome
+   * string (nav, footer, switcher) through the fixed dictionary. Defaults to `'en'` — every
+   * pre-06-05 page is an implicit English page and needs no caller change. */
+  lang?: Language;
+  /** 06-05 (I18N-05/D-08): which hreflang alternates this page emits. `'paired'` — reciprocal
+   * en/es links plus x-default (most pages). `'self'` — an English page with no Spanish
+   * counterpart yet (06-09). `'none'` — no alternate links at all (noindex pages, or any page
+   * with no `canonicalPath`). Defaults to `'none'` when `noindex` is true or `canonicalPath` is
+   * absent, else `'paired'`. */
+  alternates?: AlternateMode;
+  /** 06-05 (D-12): override for the language-switch link's target. Defaults to the paired path
+   * of `canonicalPath`, or (when there is no `canonicalPath`) the other language's home page. */
+  switchPath?: string;
 }
 
 const {
@@ -60,6 +77,9 @@ const {
   stamp = 'build',
   buildStamp = false,
   layout,
+  lang = 'en',
+  alternates,
+  switchPath: switchPathProp,
 } = Astro.props;
 
 if (canonicalPath && canonicalPath !== '/' && canonicalPath.endsWith('/')) {
@@ -72,14 +92,25 @@ if (canonicalPath && canonicalPath !== '/' && canonicalPath.endsWith('/')) {
 const origin = Astro.site?.origin ?? SITE_ORIGIN;
 const canonicalHref = canonicalPath ? new URL(canonicalPath, Astro.site).href : undefined;
 
+const otherLang: Language = lang === 'en' ? 'es' : 'en';
+const resolvedAlternates: AlternateMode = alternates ?? (noindex || !canonicalPath ? 'none' : 'paired');
+const switchPath =
+  switchPathProp ?? (canonicalPath ? pairedPath(canonicalPath) : localizedPath('/', otherLang));
+const alternateLinkList = alternateLinks({
+  canonicalPath: canonicalPath ?? '/',
+  lang,
+  mode: resolvedAlternates,
+  origin,
+});
+
 const buildEpoch = Math.floor(new Date(BUILD_TIMESTAMP).getTime() / 1000);
-const datelineText = formatDateline(datelineEpoch ?? buildEpoch);
+const datelineText = formatDateline(datelineEpoch ?? buildEpoch, lang);
 const buildDate = BUILD_TIMESTAMP.slice(0, 10);
 const stampDate = stamp === 'commit' ? BUILD_COMMIT_DATE : buildDate;
 ---
 
 <!doctype html>
-<html lang="en">
+<html lang={lang}>
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -100,14 +131,25 @@ const stampDate = stamp === 'commit' ? BUILD_COMMIT_DATE : buildDate;
       crossorigin
     />
     {canonicalHref && <link rel="canonical" href={canonicalHref} />}
+    {
+      alternateLinkList.map((link) => (
+        <link rel="alternate" hreflang={link.hreflang} href={link.href} />
+      ))
+    }
     {noindex && <meta name="robots" content="noindex" />}
-    <link rel="alternate" type="application/rss+xml" title="915 TLDR" href="/rss.xml" />
+    <link
+      rel="alternate"
+      type="application/rss+xml"
+      title={t('rssFeedTitle', lang)}
+      href={localizedPath('/rss.xml', lang)}
+    />
     <script type="application/ld+json" set:html={toSafeJsonLd(organizationNode(origin))} />
     <script type="application/ld+json" set:html={toSafeJsonLd(websiteNode(origin))} />
     {jsonLd.map((node) => <script type="application/ld+json" set:html={toSafeJsonLd(node)} />)}
+    <script is:inline defer src="https://stats.915websites.com/script.js" data-website-id="8e82b1af-925f-4a5a-b0d1-e02f616ae077"></script>
   </head>
   <body data-page={page}>
-    <a data-skip-link href="#main">Skip to content</a>
+    <a data-skip-link href="#main">{t('skipLink', lang)}</a>
 
     <header>
       {
@@ -115,31 +157,34 @@ const stampDate = stamp === 'commit' ? BUILD_COMMIT_DATE : buildDate;
           <h1>915 TLDR</h1>
         ) : (
           <p data-wordmark>
-            <a href="/">915 TLDR</a>
+            <a href={localizedPath('/', lang)}>915 TLDR</a>
           </p>
         )
       }
-      <p data-tagline>El Paso news, in brief</p>
-      <p data-dateline>{datelineText} · El Paso, Texas</p>
+      <p data-tagline>{t('tagline', lang)}</p>
+      <p data-dateline>{datelineText} · {t('datelinePlace', lang)}</p>
+      <p data-lang-switch>
+        <a href={switchPath} hreflang={otherLang} lang={otherLang}>{t('switchLabel', lang)}</a>
+      </p>
     </header>
 
     <div data-spectrum aria-hidden="true">
       {CATEGORIES.map((category) => <span data-category={category.slug} />)}
     </div>
 
-    <nav aria-label="Sections">
+    <nav aria-label={t('navLabel', lang)}>
       <ul>
         {
           CATEGORIES.map((category) => (
             <li>
               <a
-                href={`/${category.slug}`}
+                href={localizedPath(`/${category.slug}`, lang)}
                 data-nav-category={category.slug}
                 data-category={category.slug}
                 aria-current={activeCategory === category.slug ? 'page' : undefined}
               >
                 <span data-stripe />
-                {category.name}
+                {categoryLabel(category.slug, lang) ?? category.name}
               </a>
             </li>
           ))
@@ -147,7 +192,7 @@ const stampDate = stamp === 'commit' ? BUILD_COMMIT_DATE : buildDate;
       </ul>
     </nav>
 
-    <button type="button" data-theme-toggle hidden aria-pressed="false">Dark theme</button>
+    <button type="button" data-theme-toggle hidden aria-pressed="false">{t('themeToggleLabel', lang)}</button>
 
     <main id="main" tabindex="-1" data-layout={layout}>
       <slot />
@@ -155,14 +200,13 @@ const stampDate = stamp === 'commit' ? BUILD_COMMIT_DATE : buildDate;
 
     <footer>
       <p>
-        <a href="/changelog">Changelog</a> · <a href="/contact">Contact</a> · <a href="/about">About</a> · <a href="/privacy">Privacy</a> · <a href="/terms">Terms</a>
+        <a href={localizedPath('/changelog', lang)}>{t('footerChangelog', lang)}</a> · <a href={localizedPath('/contact', lang)}>{t('footerContact', lang)}</a> · <a href={localizedPath('/about', lang)}>{t('footerAbout', lang)}</a> · <a href={localizedPath('/privacy', lang)}>{t('footerPrivacy', lang)}</a> · <a href={localizedPath('/terms', lang)}>{t('footerTerms', lang)}</a>
       </p>
       <p data-attribution>
-        Summaries of reporting by KTSM, KVIA and other El Paso outlets — always credited, always
-        linked
+        {t('footerAttribution', lang)}
       </p>
       <p data-credit>
-        Site by <a href="https://915website.com/" rel="noopener external" target="_blank">915website.com<svg data-new-tab-icon aria-hidden="true" focusable="false" width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.1" stroke-linecap="round" stroke-linejoin="round"><path d="M5 1H1v10h10V7"></path><path d="M7 1h4v4"></path><path d="M11 1 5 7"></path></svg><span data-new-tab-cue data-visually-hidden> (opens in a new tab)</span></a>
+        {t('creditPrefix', lang)} <a href="https://915website.com/" rel="noopener external" target="_blank">915website.com<svg data-new-tab-icon aria-hidden="true" focusable="false" width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.1" stroke-linecap="round" stroke-linejoin="round"><path d="M5 1H1v10h10V7"></path><path d="M7 1h4v4"></path><path d="M11 1 5 7"></path></svg><span data-new-tab-cue data-visually-hidden>{t('newTabCue', lang)}</span></a>
       </p>
       {buildStamp && <p data-build data-stamp={stamp}>build {BUILD_HASH} · {stampDate}</p>}
     </footer>

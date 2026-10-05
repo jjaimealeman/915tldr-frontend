@@ -73,6 +73,58 @@ test('formatDateline: full weekday/month/day/year', () => {
   assert.equal(formatDateline(SEPT_16_2026_1906_UTC), 'Wednesday, September 16, 2026');
 });
 
+// --- 06-05 (Task 2): Spanish byline/dateline formatting, fixed arrays (not Intl locale names) ---
+
+test('formatBylineTime: language "es" renders fixed Spanish AP-style "16 sept., 1:06 p. m."', () => {
+  assert.equal(formatBylineTime(SEPT_16_2026_1906_UTC, { language: 'es' }), '16 sept., 1:06 p. m.');
+});
+
+test('formatBylineTime: language "es" + withYear renders "15 dic. 2025, 1:00 p. m."', () => {
+  assert.equal(
+    formatBylineTime(DEC_15_2025_2000_UTC, { withYear: true, language: 'es' }),
+    '15 dic. 2025, 1:00 p. m.'
+  );
+});
+
+test('formatBylineTime: Spanish month abbreviation table — every month gets a trailing period, including May/June/July (unlike English)', () => {
+  const monthCases = [
+    ['2026-01-15T19:00:00Z', 'ene.'],
+    ['2026-02-15T19:00:00Z', 'feb.'],
+    ['2026-03-15T19:00:00Z', 'mar.'],
+    ['2026-04-15T19:00:00Z', 'abr.'],
+    ['2026-05-15T19:00:00Z', 'may.'],
+    ['2026-06-15T19:00:00Z', 'jun.'],
+    ['2026-07-15T19:00:00Z', 'jul.'],
+    ['2026-08-15T19:00:00Z', 'ago.'],
+    ['2026-09-15T19:00:00Z', 'sept.'],
+    ['2026-10-15T19:00:00Z', 'oct.'],
+    ['2026-11-15T19:00:00Z', 'nov.'],
+    ['2026-12-15T19:00:00Z', 'dic.'],
+  ];
+  for (const [iso, expectedMonth] of monthCases) {
+    const epoch = Math.floor(new Date(iso).getTime() / 1000);
+    const result = formatBylineTime(epoch, { language: 'es' });
+    assert.ok(
+      result.includes(expectedMonth),
+      `expected ${iso} to render Spanish month "${expectedMonth}", got "${result}"`
+    );
+  }
+});
+
+test('formatBylineTime: English output is byte-identical whether or not language:"en" is passed explicitly', () => {
+  assert.equal(formatBylineTime(SEPT_16_2026_1906_UTC), 'Sept. 16, 1:06 p.m.');
+  assert.equal(formatBylineTime(SEPT_16_2026_1906_UTC, { language: 'en' }), 'Sept. 16, 1:06 p.m.');
+});
+
+test('formatDateline: language "es" renders lowercase "miércoles, 16 de septiembre de 2026"', () => {
+  assert.equal(formatDateline(SEPT_16_2026_1906_UTC, 'es'), 'miércoles, 16 de septiembre de 2026');
+});
+
+test('formatDateline: English output is byte-identical whether or not "en" is passed explicitly', () => {
+  assert.equal(formatDateline(SEPT_16_2026_1906_UTC), 'Wednesday, September 16, 2026');
+  assert.equal(formatDateline(SEPT_16_2026_1906_UTC, 'en'), 'Wednesday, September 16, 2026');
+});
+
 test('isoWithOffset: MDT instant renders local wall time with -06:00 offset', () => {
   assert.equal(isoWithOffset(SEPT_16_2026_1906_UTC), '2026-09-16T13:06:48-06:00');
 });

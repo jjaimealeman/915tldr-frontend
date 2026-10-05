@@ -7,7 +7,14 @@
 // Both functions here are pure and side-effect-free by design: the Worker (`src/worker.ts`)
 // performs the one KV read and builds the actual `Response`; everything that can be unit-tested
 // without a network call lives here instead.
-import { articlePath, ARTICLE_SLUG_RE, CATEGORY_SLUG_RE, UUID_RE } from './article-url.ts';
+import {
+  articlePath,
+  languageOfPath,
+  ARTICLE_SLUG_RE,
+  CATEGORY_SLUG_RE,
+  UUID_RE,
+  type Language,
+} from './article-url.ts';
 
 /**
  * Matches a 36-character 8-4-4-4-12 hex uuid (case-insensitive) ending the last path segment,
@@ -42,7 +49,7 @@ export function extractArticleUuid(pathname: string): string | null {
 
 export type RedirectDecision =
   | { type: 'redirect'; location: string }
-  | { type: 'canonical'; articleId: string }
+  | { type: 'canonical'; articleId: string; language: Language }
   | { type: 'not-found' };
 
 /** The subset of the render-manifest entry shape (see the kv-manifest module in the D1/KV
@@ -74,12 +81,21 @@ interface RedirectManifestEntry {
  * begin with `//` or carry a host, so this decision can never redirect off-origin.
  *
  * 05-03: if `pathname` already equals the canonical path, returns `{ type: 'canonical',
- * articleId }` instead of `not-found` — a canonical-path static-asset miss no longer means "the
- * page was never built or was removed" (04-06's assumption); it now also means "possibly
- * archived" (REND-08). The Worker (`src/worker.ts`) uses the returned `articleId` (already
- * validated and lowercased above) to derive the R2 archive key and try serving it before falling
- * through to the static 404 page. This also closes the former infinite-redirect loop guard the
- * same way: a canonical path is never redirected to itself.
+ * articleId, language }` instead of `not-found` — a canonical-path static-asset miss no longer
+ * means "the page was never built or was removed" (04-06's assumption); it now also means
+ * "possibly archived" (REND-08). The Worker (`src/worker.ts`) uses the returned `articleId`
+ * (already validated and lowercased above) to derive the R2 archive key and try serving it
+ * before falling through to the static 404 page. This also closes the former infinite-redirect
+ * loop guard the same way: a canonical path is never redirected to itself.
+ *
+ * 06-02 (D-06/D-13): `language` is derived from `pathname` ALONE via `languageOfPath` — a fixed,
+ * case-sensitive prefix test mapped to the literal `'es'`/`'en'`, never from any request-derived
+ * signal other than the path text itself. The manifest entry's `category`/`slug`/`articleId`
+ * fields are untranslated (D-02: Spanish shares the English identity), so the SAME validated
+ * entry answers both `/x` and `/es/x` — still exactly one KV read per request. The canonical
+ * path is built with that derived language, so a non-canonical `/es` request (wrong slug, wrong
+ * category, doubled `/es/es/`, or `/es` for an article with no `/es` prefix at all) redirects to
+ * the `/es` canonical, never to the English one — and vice versa.
  */
 export function resolveRedirect(pathname: string, entry: unknown): RedirectDecision {
   if (!entry || typeof entry !== 'object') return { type: 'not-found' };
@@ -97,9 +113,11 @@ export function resolveRedirect(pathname: string, entry: unknown): RedirectDecis
     return { type: 'not-found' };
   }
 
+  const language = languageOfPath(pathname);
+
   let canonical: string;
   try {
-    canonical = articlePath(candidate.category, candidate.slug, candidate.articleId);
+    canonical = articlePath(candidate.category, candidate.slug, candidate.articleId, language);
   } catch {
     // articlePath re-validates and throws on a malformed value — already checked above, but a
     // throw here is treated the same as any other invalid-entry case: fall through to 404.
@@ -107,7 +125,7 @@ export function resolveRedirect(pathname: string, entry: unknown): RedirectDecis
   }
 
   if (pathname === canonical) {
-    return { type: 'canonical', articleId: candidate.articleId.toLowerCase() };
+    return { type: 'canonical', articleId: candidate.articleId.toLowerCase(), language };
   }
 
   return { type: 'redirect', location: canonical };

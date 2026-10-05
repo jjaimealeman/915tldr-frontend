@@ -1,0 +1,97 @@
+---
+// 06-10 (Task 2, I18N-04): the Spanish mirror of `src/pages/source/[slug].astro` — one
+// `/es/source/<slug>` page per RSS source present on at least one public article, same
+// `SOURCE_SLUG_RE` tampering guard before the slug ever becomes a static file name. The source's
+// own name/website are never translated (D-02-adjacent: a source is an outlet identity, like a
+// category or tag slug), marked `lang="en"` in the Spanish heading. Card titles/summaries show
+// each listed article's REAL Spanish title/summary when a clean translation exists
+// (`localizedArticleView`, D-05).
+import { getCollection } from 'astro:content';
+import Base from '../../../layouts/Base.astro';
+import ArticleCard from '../../../components/ArticleCard.astro';
+import { articlePath, SOURCE_SLUG_RE } from '../../../lib/article-url.ts';
+import { groupBySource, SOURCE_PAGE_COUNT } from '../../../lib/listing.ts';
+import { breadcrumbNode } from '../../../lib/structured-data.ts';
+import { t } from '../../../lib/i18n/dictionary.ts';
+import { buildEsIndex, localizedArticleView, categoryLabel } from '../../../lib/i18n/spanish-view.ts';
+import type { EsEntryData } from '../../../lib/i18n/spanish-view.ts';
+
+export async function getStaticPaths() {
+  const entries = await getCollection('articles');
+  const esEntries = await getCollection('articlesEs');
+  const digestByUuid = new Map(entries.map((entry) => [entry.data.uuid, entry.digest]));
+  const esDigestByUuid = new Map(esEntries.map((entry) => [entry.data.uuid, entry.digest]));
+  const esIndexData = esEntries.map((entry) => entry.data);
+
+  const allArticles = entries.map((entry) => entry.data);
+  const grouped = groupBySource(allArticles);
+
+  return [...grouped.entries()].map(([slug, entry]) => {
+    if (!SOURCE_SLUG_RE.test(slug)) {
+      throw new Error(`es/source/[slug]: invalid source slug "${slug}" — must match ${SOURCE_SLUG_RE}`);
+    }
+    const pageArticles = entry.articles.slice(0, SOURCE_PAGE_COUNT);
+    return {
+      params: { slug },
+      props: {
+        slug,
+        source: entry.source,
+        articles: pageArticles,
+        esEntries: esIndexData,
+      },
+      cacheKey: pageArticles
+        .map((article) => `${digestByUuid.get(article.uuid) ?? ''}|${esDigestByUuid.get(article.uuid) ?? 'none'}`)
+        .join('|'),
+    };
+  });
+}
+
+const { slug, source, articles, esEntries } = Astro.props as {
+  slug: string;
+  source: Awaited<ReturnType<typeof getCollection<'articles'>>>[number]['data']['source'];
+  articles: Awaited<ReturnType<typeof getCollection<'articles'>>>[number]['data'][];
+  esEntries: EsEntryData[];
+};
+const esIndex = buildEsIndex(esEntries);
+---
+
+<Base
+  page="source"
+  lang="es"
+  title={t('sourcePageTitle', 'es', { source: source.name })}
+  description={t('sourcePageDescription', 'es', { source: source.name })}
+  canonicalPath={`/es/source/${slug}`}
+  jsonLd={[breadcrumbNode([{ name: t('home', 'es'), path: '/es' }, { name: source.name, path: `/es/source/${slug}` }])]}
+>
+  <header data-block>
+    <h1 lang="en">{source.name}</h1>
+    <p data-story-count>
+      {articles.length} {articles.length === 1 ? t('storyCountSingular', 'es') : t('storyCountPlural', 'es')} ·{' '}
+      <a href={source.websiteUrl} rel="noopener external" target="_blank">
+        {t('visitWebsite', 'es')}
+      </a>
+    </p>
+  </header>
+
+  <section data-grid aria-label={t('latestFromSource', 'es', { source: source.name })}>
+    {
+      articles.map((article) => {
+        const view = localizedArticleView(article, esIndex.get(article.uuid));
+        return (
+          <ArticleCard
+            uuid={article.uuid}
+            title={view.title}
+            href={articlePath(article.category.slug, article.slug, article.uuid, 'es')}
+            categorySlug={article.category.slug}
+            categoryName={categoryLabel(article.category.slug, 'es') ?? article.category.name}
+            sourceName={article.source.name}
+            publishedAt={article.publishedAt}
+            summary={view.summary}
+            lang="es"
+            contentLang={view.lang}
+          />
+        );
+      })
+    }
+  </section>
+</Base>

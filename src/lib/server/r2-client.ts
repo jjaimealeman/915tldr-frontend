@@ -67,21 +67,29 @@ const ARCHIVE_ARTICLE_KEY_RE =
 // so an uppercase or underscore tag slug (a tampered/legacy value) is rejected the same way
 // TAG_SLUG_RE itself would reject it when building a static tag page filename.
 const ARCHIVE_TAG_KEY_RE = /^tags\/[a-z0-9-]+\.html$/;
+// 06-04 (D-06, docs/phase-06/language-key-scheme.md): Spanish archive objects add alongside at
+// a fixed `es/` prefix — same uuid/slug character classes as their English counterparts above,
+// just anchored one segment deeper. English keys/regexes are byte-for-byte unchanged.
+const ARCHIVE_ES_ARTICLE_KEY_RE =
+  /^es\/articles\/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\.html$/;
+const ARCHIVE_ES_TAG_KEY_RE = /^es\/tags\/[a-z0-9-]+\.html$/;
 const ARCHIVE_META_KEY_RE = /^_meta\/[a-z0-9-]+\.json$/;
 const ARCHIVE_PROBE_KEY_RE = /^_probe\/[a-z0-9-]+\.txt$/;
 
-const ARCHIVE_PREFIXES = ['articles/', 'tags/', '_meta/', '_probe/'] as const;
+const ARCHIVE_PREFIXES = ['articles/', 'tags/', 'es/articles/', 'es/tags/', '_meta/', '_probe/'] as const;
 
-/** Throws `r2-client: invalid archive key ...` for anything outside the four allowed key shapes.
- * Every method below calls this FIRST, before any request is built — a rejected key must never
- * reach `client.send()`. Returns the key unchanged so a call site can write
- * `const key = assertArchiveKey(input);`. */
+/** Throws `r2-client: invalid archive key ...` for anything outside the six allowed key shapes
+ * (the original four plus 06-04's two Spanish `es/` shapes). Every method below calls this
+ * FIRST, before any request is built — a rejected key must never reach `client.send()`. Returns
+ * the key unchanged so a call site can write `const key = assertArchiveKey(input);`. */
 export function assertArchiveKey(key: unknown): string {
   if (
     typeof key !== 'string' ||
     !(
       ARCHIVE_ARTICLE_KEY_RE.test(key) ||
       ARCHIVE_TAG_KEY_RE.test(key) ||
+      ARCHIVE_ES_ARTICLE_KEY_RE.test(key) ||
+      ARCHIVE_ES_TAG_KEY_RE.test(key) ||
       ARCHIVE_META_KEY_RE.test(key) ||
       ARCHIVE_PROBE_KEY_RE.test(key)
     )

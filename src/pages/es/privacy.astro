@@ -1,0 +1,128 @@
+---
+// 06-07 (D-16, D-11, I18N-04, T-06-26): the Spanish mirror of `src/pages/privacy.astro`. Written
+// directly with the accurate Umami disclosure from the start (no stale "we never track where you
+// are" claim ever existed on this page) — see the English page's own header comment and
+// docs/phase-06/spanish-pages-review.md for the Umami documentation each claim rests on. Prose
+// pending a fluent human reviewer's approval (Task 3's blocking checkpoint). Register: neutral
+// Latin American Spanish, usted forms, no Spain-only vocabulary, per 06-CONTEXT.md.
+import Base from '../../layouts/Base.astro';
+import { t } from '../../lib/i18n/dictionary.ts';
+---
+
+<Base
+  page="privacy"
+  lang="es"
+  title={t('privacyPageTitle', 'es')}
+  description="Política de privacidad de 915 TLDR. Cómo manejamos sus datos y protegemos su privacidad."
+  canonicalPath="/es/privacy"
+>
+  <div data-contact-column>
+    <p data-eyebrow>Última actualización · diciembre de 2025</p>
+    <h1>Política de privacidad</h1>
+    <p data-lede>
+      Su privacidad importa. Así es exactamente cómo manejamos (y cómo no manejamos) sus datos.
+    </p>
+
+    <h2>Nuestro compromiso</h2>
+    <p>
+      915 TLDR está construido con la privacidad como principio fundamental, no como algo
+      secundario. Creemos que usted debe poder leer las noticias locales sin ser rastreado,
+      perfilado o segmentado. Por eso diseñamos este sitio para recopilar la menor cantidad de
+      datos posible.
+    </p>
+    <p>
+      Usamos Umami, una herramienta de análisis autoalojada y sin cookies que operamos nosotros
+      mismos — nunca lo identifica a usted individualmente. No vendemos datos porque no
+      recopilamos datos que valga la pena vender. Así de simple.
+    </p>
+
+    <h2>Lo que no recopilamos</h2>
+    <p>La privacidad por diseño significa decir no a los datos innecesarios</p>
+    <dl>
+      <dt>Sin datos personales</dt>
+      <dd>No recopilamos nombres, correos electrónicos ni ningún dato de identificación personal.</dd>
+      <dt>Solo ubicación aproximada</dt>
+      <dd>
+        No rastreamos su ubicación exacta. Nuestras estadísticas registran solo un país y una
+        región aproximados, derivados de su dirección IP — la dirección IP en sí nunca se
+        almacena.
+      </dd>
+      <dt>Cookies mínimas</dt>
+      <dd>Solo cookies esenciales para el funcionamiento del sitio: preferencia de tema y sesión.</dd>
+      <dt>Sin anuncios ni rastreadores</dt>
+      <dd>Cero scripts de publicidad de terceros o de rastreo de redes sociales.</dd>
+    </dl>
+
+    <h2>Terceros</h2>
+    <h3>Cloudflare</h3>
+    <p>Usamos Cloudflare para el alojamiento y la entrega de contenido. Se aplica su política de privacidad a sus servicios.</p>
+    <h3>Umami Analytics</h3>
+    <p>
+      Usamos nuestra propia herramienta de análisis, Umami, alojada por nosotros mismos en{' '}
+      <a href="https://stats.915websites.com" rel="noopener external" target="_blank">
+        stats.915websites.com
+        <svg
+          data-new-tab-icon
+          aria-hidden="true"
+          focusable="false"
+          width="12"
+          height="12"
+          viewBox="0 0 12 12"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.1"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <path d="M5 1H1v10h10V7" />
+          <path d="M7 1h4v4" />
+          <path d="M11 1 5 7" />
+        </svg>
+        <span data-new-tab-cue data-visually-hidden>{t('newTabCue', 'es')}</span>
+      </a>{' '}
+      — sus visitas nunca se envían a un tercero. El código de seguimiento de Umami no usa
+      cookies. Por cada vista de página registra la URL de la página y la de referencia, su
+      navegador, sistema operativo, tipo de dispositivo y tamaño de pantalla, el idioma
+      configurado en su navegador, y un país y región aproximados calculados a partir de su
+      dirección IP al momento de la solicitud — la dirección IP en sí nunca se almacena. Consulte
+      la{' '}
+      <a
+        href="https://docs.umami.is/docs/metric-definitions"
+        rel="noopener external"
+        target="_blank"
+      >
+        documentación oficial de Umami
+        <svg
+          data-new-tab-icon
+          aria-hidden="true"
+          focusable="false"
+          width="12"
+          height="12"
+          viewBox="0 0 12 12"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.1"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <path d="M5 1H1v10h10V7" />
+          <path d="M7 1h4v4" />
+          <path d="M11 1 5 7" />
+        </svg>
+        <span data-new-tab-cue data-visually-hidden>{t('newTabCue', 'es')}</span>
+      </a>{' '}
+      para ver la lista completa.
+    </p>
+
+    <h2>Contenido</h2>
+    <p>
+      Todo el contenido periodístico proviene de editores externos. Enlazamos a los artículos
+      originales y no reclamamos la propiedad del contenido. Cada artículo muestra claramente su
+      fuente.
+    </p>
+
+    <h2>¿Preguntas sobre privacidad?</h2>
+    <p>Con gusto le explicamos cualquier detalle. Contáctenos cuando quiera.</p>
+    <p><a href="/es/contact">Contáctenos</a></p>
+  </div>
+</Base>

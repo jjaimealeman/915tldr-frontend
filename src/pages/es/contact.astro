@@ -1,0 +1,150 @@
+---
+// 06-07 (D-16, I18N-04): the Spanish mirror of `src/pages/contact.astro`. Same form markup
+// (disabled fieldset, same "not accepting messages yet" honesty) and the same real bio copy,
+// translated. The "Latest Stories" rail uses `localizedArticleView` (Spanish titles where
+// available, English fallback marked `contentLang="en"` otherwise, per D-05) and `/es` hrefs
+// throughout (D-14). Prose pending a fluent human reviewer's approval (Task 3's blocking
+// checkpoint) — see docs/phase-06/spanish-pages-review.md.
+import { getCollection } from 'astro:content';
+import Base from '../../layouts/Base.astro';
+import ArticleCard from '../../components/ArticleCard.astro';
+import { articlePath } from '../../lib/article-url.ts';
+import { sortNewestFirst } from '../../lib/listing.ts';
+import { buildEsIndex, localizedArticleView, categoryLabel } from '../../lib/i18n/spanish-view.ts';
+import { t } from '../../lib/i18n/dictionary.ts';
+
+/** Matches the English contact page's rail count (04-08-PLAN.md Task 2) — same constant,
+ * reused here for the Spanish mirror. */
+const RAIL_COUNT = 6;
+
+const articleEntries = await getCollection('articles');
+const esEntries = await getCollection('articlesEs');
+const esIndex = buildEsIndex(esEntries.map((entry) => entry.data));
+const allArticles = articleEntries.map((entry) => entry.data);
+const railArticles = sortNewestFirst(allArticles).slice(0, RAIL_COUNT);
+---
+
+<Base
+  page="contact"
+  lang="es"
+  title={t('contactPageTitle', 'es')}
+  description="Póngase en contacto con 915 TLDR — comentarios, correcciones o solo para saludar."
+  canonicalPath="/es/contact"
+>
+  <div data-contact-column>
+    <h1>Contacto</h1>
+
+    <p data-contact-intro>
+      Soy Jaime Aleman, desarrollador web aquí en El Paso, y yo mismo construí 915 TLDR. Cada
+      resumen en este sitio está escrito por inteligencia artificial a partir del reportaje de
+      KTSM, KVIA y otros medios locales — yo no reporté nada de esto, y lo digo claramente en
+      cada historia. Lo que hago es reunir las noticias locales del día en un solo lugar,
+      etiquetarlas y eliminar duplicados, y publicarlas gratis y sin anuncios, de manera abierta,
+      documentando cada cambio en el registro de cambios.
+    </p>
+
+    <p data-contact-links>
+      También puede encontrarme directamente en{' '}
+      <a href="https://jjaimealeman.com" rel="noopener" target="_blank">
+        jjaimealeman.com
+        <svg
+          data-new-tab-icon
+          aria-hidden="true"
+          focusable="false"
+          width="12"
+          height="12"
+          viewBox="0 0 12 12"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.1"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <path d="M5 1H1v10h10V7" />
+          <path d="M7 1h4v4" />
+          <path d="M11 1 5 7" />
+        </svg>
+        <span data-new-tab-cue data-visually-hidden>
+          {t('newTabCue', 'es')}
+        </span>
+      </a>{' '}
+      y{' '}
+      <a href="https://915website.com" rel="noopener" target="_blank">
+        915website.com
+        <svg
+          data-new-tab-icon
+          aria-hidden="true"
+          focusable="false"
+          width="12"
+          height="12"
+          viewBox="0 0 12 12"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.1"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <path d="M5 1H1v10h10V7" />
+          <path d="M7 1h4v4" />
+          <path d="M11 1 5 7" />
+        </svg>
+        <span data-new-tab-cue data-visually-hidden>
+          {t('newTabCue', 'es')}
+        </span>
+      </a>, donde construyo sitios como este para otros negocios de El Paso.
+    </p>
+
+    <form data-contact-form method="post" aria-describedby="form-note">
+      <p id="form-note" data-form-note>
+        Este formulario no está aceptando mensajes en esta versión todavía — el envío se
+        habilitará en una fase posterior. Mientras tanto, contáctenos a través de los enlaces de
+        arriba.
+      </p>
+
+      <fieldset disabled>
+        <div data-field>
+          <label for="contact-name">Nombre (obligatorio)</label>
+          <input id="contact-name" name="name" type="text" autocomplete="name" required aria-describedby="name-error" />
+          <p data-field-error hidden id="name-error" />
+        </div>
+
+        <div data-field>
+          <label for="contact-email">Correo electrónico (obligatorio)</label>
+          <input id="contact-email" name="email" type="email" autocomplete="email" required aria-describedby="email-error" />
+          <p data-field-error hidden id="email-error" />
+        </div>
+
+        <div data-field>
+          <label for="contact-message">Su mensaje (obligatorio)</label>
+          <textarea id="contact-message" name="message" required rows={6} aria-describedby="message-error" />
+          <p data-field-error hidden id="message-error" />
+        </div>
+
+        <button type="submit">Enviar mensaje</button>
+      </fieldset>
+    </form>
+  </div>
+
+  <h2 data-grid-heading>{t('railLatestHeading', 'es')}</h2>
+  <section data-grid aria-label={t('railLatestAriaLabel', 'es')}>
+    {
+      railArticles.map((article) => {
+        const view = localizedArticleView(article, esIndex.get(article.uuid));
+        return (
+          <ArticleCard
+            uuid={article.uuid}
+            title={view.title}
+            href={articlePath(article.category.slug, article.slug, article.uuid, 'es')}
+            categorySlug={article.category.slug}
+            categoryName={categoryLabel(article.category.slug, 'es') ?? article.category.name}
+            sourceName={article.source.name}
+            publishedAt={article.publishedAt}
+            summary={view.summary}
+            lang="es"
+            contentLang={view.lang}
+          />
+        );
+      })
+    }
+  </section>
+</Base>

@@ -10,6 +10,52 @@ Entries are named `YYYY-MM-DD-HHMM_slug.md` and grouped by month, newest first.
 
 | Date | Entry | Keywords |
 |------|-------|----------|
+| 2026-10-04 | [06-15: Spanish archive pre-populated in R2, deploy record written](2026-10-04-1454_06-15-record-r2-spanish-archive-pre-population.md) | `[DOCUMENTATION]` `[PLANNING]` `[I18N]` `[DEPLOYMENT]` `[INFRASTRUCTURE]` |
+| 2026-10-04 | [Phase 6 tracking updated after 06-13, live ingest deployed](2026-10-04-1425_phase-06-wave-8a-tracking.md) | `[DOCUMENTATION]` `[PLANNING]` `[DEPLOYMENT]` |
+| 2026-10-04 | [Plan 06-13 complete: live Spanish judge chosen, backfill capped, pipeline deployed](2026-10-04-1424_06-13-complete-go-live-decision-and-pipeline-deploy.md) | `[DOCUMENTATION]` `[PLANNING]` `[I18N]` `[DEPLOYMENT]` |
+| 2026-10-04 | [Phase 6 tracking updated after wave 7](2026-10-04-1210_phase-06-wave-7-tracking.md) | `[DOCUMENTATION]` `[PLANNING]` |
+| 2026-10-04 | [Plan 06-12 complete: build budget measured and corrected, full-corpus invariants pass](2026-10-04-1210_06-12-complete-build-budget-and-full-corpus-invariants.md) | `[DOCUMENTATION]` `[PLANNING]` `[PERFORMANCE]` `[I18N]` `[TESTING]` |
+| 2026-10-04 | [06-12 build budget corrected after a same-day baseline](2026-10-04-1208_06-12-build-budget-correction-after-baseline.md) | `[DOCUMENTATION]` `[PERFORMANCE]` `[PLANNING]` |
+| 2026-10-04 | [Phase 6 tracking updated after wave 6 (paused at 06-12)](2026-10-04-0759_phase-06-wave-6-tracking.md) | `[DOCUMENTATION]` `[PLANNING]` |
+| 2026-10-04 | [Full-corpus hreflang/lang/link invariant tests](2026-10-04-0733_06-12-task2-full-corpus-hreflang-lang-link-tests.md) | `[TESTING]` `[I18N]` `[SEO]` |
+| 2026-10-04 | [Tracer: measure the full bilingual build against platform ceilings](2026-10-04-0732_06-12-task1-build-budget-measurement.md) | `[BACKEND]` `[PERFORMANCE]` `[DATABASE]` `[TESTING]` |
+| 2026-10-04 | [Plan 06-11 complete: per-language feeds and sitemaps](2026-10-04-0712_06-11-complete-per-language-feeds-sitemaps.md) | `[DOCUMENTATION]` `[PLANNING]` `[I18N]` `[SEO]` |
+| 2026-10-04 | [Spanish Google News sitemap via a parameterised news function](2026-10-04-0709_06-11-task2-es-news-sitemap-and-robots.md) | `[FRONTEND]` `[FEATURE]` `[I18N]` `[SEO]` `[TESTING]` |
+| 2026-10-04 | [Tracer: /es/rss.xml and per-language sitemap files](2026-10-04-0707_06-11-task1-es-rss-and-per-language-sitemaps.md) | `[FRONTEND]` `[FEATURE]` `[I18N]` `[SEO]` `[TESTING]` `[BUG_FIX]` |
+| 2026-10-04 | [Phase 6 tracking updated after waves 4 and 5](2026-10-04-0633_phase-06-waves-4-5-tracking.md) | `[DOCUMENTATION]` `[PLANNING]` |
+| 2026-10-04 | [Plan 06-07 complete: Spanish trust pages reviewed and approved](2026-10-04-0632_06-07-complete-spanish-trust-pages-reviewed.md) | `[DOCUMENTATION]` `[PLANNING]` `[I18N]` `[PRIVACY]` |
+| 2026-10-04 | [Plan 06-10 complete: Spanish listing pages and the Spanish 404](2026-10-04-0234_06-10-complete-es-listings-and-404.md) | `[DOCUMENTATION]` `[PLANNING]` `[I18N]` `[SEO]` `[TESTING]` |
+| 2026-10-04 | [/es/tags, /es/source/<slug>, the Spanish 404 and its suggestion index](2026-10-04-0231_06-10-task2-es-tags-source-404-and-suggestion-index.md) | `[FRONTEND]` `[FEATURE]` `[I18N]` `[SEO]` `[SECURITY]` `[TESTING]` `[BUG_FIX]` |
+| 2026-10-04 | [Tracer: /es home, category and tag listings with real Spanish titles](2026-10-04-0227_06-10-task1-tracer-es-home-category-tag-listings.md) | `[FRONTEND]` `[FEATURE]` `[I18N]` `[SEO]` `[TESTING]` |
+| 2026-10-04 | [Plan 06-07 Task 2 (GREEN): /es/changelog (D-17) ships, full test suite passes](2026-10-04-0200_06-07-task2-green-es-changelog-and-dist-tests.md) | `[FRONTEND]` `[FEATURE]` `[I18N]` `[SEO]` `[TESTING]` |
+| 2026-10-04 | [Plan 06-07 Task 2 (RED): failing coverage for /es/changelog and the five-page hreflang/link contract](2026-10-04-0153_06-07-task2-red-es-static-pages-test.md) | `[TESTING]` `[I18N]` `[SEO]` |
+| 2026-10-04 | [Plan 06-07 Task 1: Spanish trust pages drafted, accurate Umami disclosure](2026-10-04-0149_06-07-task1-spanish-trust-pages-umami-disclosure.md) | `[I18N]` `[PRIVACY]` `[CONTENT]` |
+| 2026-10-04 | [Plan 06-09 complete: the bilingual article page](2026-10-04-0139_06-09-complete-bilingual-article-page.md) | `[DOCUMENTATION]` `[PLANNING]` `[I18N]` `[TESTING]` `[SEO]` |
+| 2026-10-04 | [Plan 06-09 Task 2: JSON-LD inLanguage, the D-07 label, Spanish rail headings, and two pre-existing tests fixed for the new /es pages](2026-10-04-0135_06-09-task2-inlanguage-d07-label-rail-dictionary.md) | `[FRONTEND]` `[I18N]` `[SEO]` `[TESTING]` `[BUG_FIX]` |
+| 2026-10-04 | [Plan 06-09 Task 1: the /es article route, pure page model, and EN/ES switch links](2026-10-04-0120_06-09-task1-es-article-route-and-switch-links.md) | `[FRONTEND]` `[I18N]` `[SEO]` `[TESTING]` |
+| 2026-10-04 | [Phase 6 tracking updated after wave 3](2026-10-04-0100_phase-06-wave-3-tracking.md) | `[DOCUMENTATION]` `[PLANNING]` |
+| 2026-10-04 | [Plan 06-08 complete: translation backfill pilot write, and a corrected cost explanation](2026-10-04-0058_06-08-complete-pilot-write-and-cost-correction.md) | `[DOCUMENTATION]` `[PLANNING]` `[I18N]` `[TESTING]` `[DATABASE]` |
+| 2026-10-03 | [Plan 06-08 halted after Task 1: measured translation backfill cost is 28x the assumed figure](2026-10-03-1122_06-08-halted-translation-backfill-dry-run.md) | `[DOCUMENTATION]` `[PLANNING]` `[I18N]` `[TESTING]` |
+| 2026-10-03 | [Plan 06-06 complete: articlesEs content collection](2026-10-03-1117_06-06-complete-articles-es-content-collection.md) | `[DOCUMENTATION]` `[PLANNING]` `[I18N]` |
+| 2026-10-03 | [Plan 06-06 Task 2: Spanish never-shrink baseline, measured budget, loader edge cases](2026-10-03-1118_06-06-task2-articles-es-shrink-baseline-budget.md) | `[BACKEND]` `[DATABASE]` `[FEATURE]` `[I18N]` `[TESTING]` |
+| 2026-10-03 | [Plan 06-06 Task 1: articlesEs tracer — Spanish translations reach the build](2026-10-03-1114_06-06-task1-articles-es-tracer-spanish-view.md) | `[BACKEND]` `[FEATURE]` `[DATABASE]` `[I18N]` `[SECURITY]` `[TESTING]` `[BUG_FIX]` |
+| 2026-10-03 | [Phase 6 tracking updated after wave 2](2026-10-03-1054_phase-06-wave-2-tracking.md) | `[DOCUMENTATION]` `[PLANNING]` |
+| 2026-10-03 | [Plan 06-05 complete: hreflang, Spanish chrome and the first live /es page](2026-10-03-1052_06-05-complete-hreflang-chrome-first-es-page.md) | `[DOCUMENTATION]` `[PLANNING]` `[I18N]` |
+| 2026-10-03 | [06-05 Task 2 (GREEN): Spanish dates, ArticleCard language props, the reserved /es route and the Umami tag](2026-10-03-1048_06-05-task2-green-spanish-dates-card-props-umami-tag.md) | `[FRONTEND]` `[BACKEND]` `[FEATURE]` `[I18N]` `[TESTING]` `[ACCESSIBILITY]` `[SECURITY]` |
+| 2026-10-03 | [06-05 Task 2 (RED): failing coverage for Spanish dates, the Umami tag and the no-auto-language guard](2026-10-03-1048_06-05-task2-red-spanish-dates-umami-noautolang-tests.md) | `[TESTING]` `[I18N]` `[ACCESSIBILITY]` |
+| 2026-10-03 | [06-05 Task 1: /es ships as a reciprocal hreflang pair with Spanish chrome and a plain-link switcher](2026-10-03-1036_06-05-task1-es-hreflang-tracer-dictionary-switcher.md) | `[FRONTEND]` `[FEATURE]` `[I18N]` `[TESTING]` `[ACCESSIBILITY]` |
+| 2026-10-03 | [Plan 06-04 complete: archive-tier build/sync pipeline gains a Spanish dimension](2026-10-03-1021_06-04-complete-archive-tier-spanish-build-sync.md) | `[DOCUMENTATION]` `[PLANNING]` `[I18N]` |
+| 2026-10-03 | [R2 Key Validation, Archive-Sync Self-Heal and the Language-Aware KV Manifest Key](2026-10-03-1018_06-04-task2-r2-key-validation-and-manifest-language-key.md) | `[BACKEND]` `[FEATURE]` `[TESTING]` `[SECURITY]` `[I18N]` |
+| 2026-10-03 | [Spanish Tier Facts and Partition Entries for the Archive-Tier Build Pipeline](2026-10-03-1725_06-04-task1-spanish-tier-facts-and-partition.md) | `[BACKEND]` `[FEATURE]` `[TESTING]` `[I18N]` |
+| 2026-10-03 | [Plan 06-03 complete: production D1 migration (article_translations, 0008)](2026-10-03-1650_06-03-complete-production-migration.md) | `[DOCUMENTATION]` `[PLANNING]` `[DATABASE]` `[MIGRATION]` `[I18N]` |
+| 2026-10-03 | [Phase 6 tracking updated after wave 1](2026-10-03-1005_phase-06-wave-1-tracking.md) | `[DOCUMENTATION]` `[PLANNING]` |
+| 2026-10-03 | [Plan 06-02 complete: language-aware archive-tier routing for /es](2026-10-03-1645_06-02-complete-language-aware-archive-tier.md) | `[DOCUMENTATION]` `[PLANNING]` `[I18N]` |
+| 2026-10-03 | [Abuse-case tests pin the /es Worker against open redirect, key injection and Accept-Language/Cookie selection](2026-10-03-1630_es-worker-abuse-case-tests.md) | `[BACKEND]` `[TESTING]` `[SECURITY]` |
+| 2026-10-03 | [Plan 06-01 complete: bilingual ingest tracer, article_translations table, Spanish grounding hardening](2026-10-03-1605_06-01-complete-bilingual-ingest-tracer.md) | `[DOCUMENTATION]` `[PLANNING]` `[I18N]` `[AI]` |
+| 2026-10-03 | [Language-aware article-url/redirect/archive-route/worker for /es archive-tier serving](2026-10-03-1600_language-aware-es-archive-tier-worker.md) | `[BACKEND]` `[FEATURE]` `[TESTING]` `[SECURITY]` |
+| 2026-10-03 | [Phase 06 marked planned: ready to execute](2026-10-03-0405_phase-06-marked-planned.md) | `[PLANNING]` `[DOCUMENTATION]` |
+| 2026-10-03 | [Phase 06 plans created: Bilingual (17 plans, 10 waves)](2026-10-03-0355_phase-06-plans-created.md) | `[PLANNING]` `[DOCUMENTATION]` `[I18N]` |
+| 2026-10-03 | [Phase 06 context captured: Bilingual](2026-10-03-0255_phase-06-context-captured.md) | `[PLANNING]` `[DOCUMENTATION]` `[I18N]` |
 | 2026-10-03 | [Phase 05 complete: Hybrid Archive & Zero-Reads Proof](2026-10-03-0210_phase-05-complete.md) | `[MILESTONE]` `[PLANNING]` `[VERIFICATION]` |
 | 2026-10-03 | [REND-11 complete: real production report received; yesterday's diagnosis corrected](2026-10-03-0205_rend11-complete-diagnosis-corrected.md) | `[MONITORING]` `[PLANNING]` `[DOCUMENTATION]` `[VERIFICATION]` |
 | 2026-10-02 | [Phase 05 re-verification: human_needed (2 owner items), all code gaps closed](2026-10-02-2155_05-re-verification-human-needed.md) | `[VERIFICATION]` `[PLANNING]` `[DOCUMENTATION]` |

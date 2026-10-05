@@ -85,6 +85,36 @@ test('assertArchiveKey accepts a _probe key', () => {
   assert.equal(assertArchiveKey('_probe/roundtrip-1.txt'), '_probe/roundtrip-1.txt');
 });
 
+test('assertArchiveKey accepts a lowercase-uuid Spanish article key', () => {
+  assert.equal(
+    assertArchiveKey('es/articles/3f2504e0-4f89-11d3-9a0c-0305e82c3301.html'),
+    'es/articles/3f2504e0-4f89-11d3-9a0c-0305e82c3301.html'
+  );
+});
+
+test('assertArchiveKey accepts a Spanish tag key', () => {
+  assert.equal(assertArchiveKey('es/tags/a-b.html'), 'es/tags/a-b.html');
+});
+
+test('assertArchiveKey rejects a Spanish traversal attempt', () => {
+  assert.throws(() => assertArchiveKey('es/articles/../x.html'), /r2-client: invalid archive key/);
+});
+
+test('assertArchiveKey rejects a Spanish tag key with a leading slash', () => {
+  assert.throws(() => assertArchiveKey('/es/tags/a.html'), /r2-client: invalid archive key/);
+});
+
+test('assertArchiveKey rejects a Spanish tag key with trailing path garbage', () => {
+  assert.throws(() => assertArchiveKey('es/tags/a.html/../../b'), /r2-client: invalid archive key/);
+});
+
+test('assertArchiveKey rejects a Spanish article key with the wrong extension', () => {
+  assert.throws(
+    () => assertArchiveKey('es/articles/3f2504e0-4f89-11d3-9a0c-0305e82c3301.htm'),
+    /r2-client: invalid archive key/
+  );
+});
+
 test('assertArchiveKey rejects a traversal attempt', () => {
   assert.throws(() => assertArchiveKey('articles/../x.html'), /r2-client: invalid archive key/);
 });
@@ -143,11 +173,21 @@ test('a rejected key never reaches send() — deleteObjects', async () => {
   assert.equal(client.calls.length, 0);
 });
 
-test('listKeys rejects a prefix outside the four allowed archive prefixes', async () => {
+test('listKeys rejects a prefix outside the six allowed archive prefixes', async () => {
   const client = makeFakeClient([]);
   const store = createArchiveStore({ client });
   await assert.rejects(() => store.listKeys('other/'), /r2-client: invalid archive key prefix/);
   assert.equal(client.calls.length, 0);
+});
+
+test('listKeys accepts "es/articles/" and "es/tags/" — the two Spanish archive prefixes', async () => {
+  const client = makeFakeClient([{ Contents: [] }, { Contents: [] }]);
+  const store = createArchiveStore({ client });
+  await store.listKeys('es/articles/');
+  await store.listKeys('es/tags/');
+  assert.equal(client.calls.length, 2);
+  assert.equal(client.calls[0].input.Prefix, 'es/articles/');
+  assert.equal(client.calls[1].input.Prefix, 'es/tags/');
 });
 
 // ---------------------------------------------------------------------------

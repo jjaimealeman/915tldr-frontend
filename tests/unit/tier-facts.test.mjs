@@ -11,9 +11,25 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';
-import { readFileSync, readdirSync, statSync, existsSync } from 'node:fs';
+import {
+  readFileSync,
+  readdirSync,
+  statSync,
+  existsSync,
+  mkdtempSync,
+  mkdirSync,
+  writeFileSync,
+  rmSync,
+} from 'node:fs';
+import { tmpdir } from 'node:os';
 import path from 'node:path';
-import { readTierFacts, ARTICLE_FACTS_PATH, TAG_FACTS_PATH } from '../../src/lib/archive/tier-facts.ts';
+import {
+  readTierFacts,
+  ARTICLE_FACTS_PATH,
+  TAG_FACTS_PATH,
+  ARTICLE_FACTS_ES_PATH,
+  TAG_FACTS_ES_PATH,
+} from '../../src/lib/archive/tier-facts.ts';
 import { UUID_RE, TAG_SLUG_RE } from '../../src/lib/article-url.ts';
 
 const REPO_ROOT = path.resolve(import.meta.dirname, '../..');
@@ -55,22 +71,35 @@ function loadArchivePlan() {
   return JSON.parse(readFileSync(ARCHIVE_PLAN_PATH, 'utf8'));
 }
 
-/** The set of uuids named by every archived ARTICLE entry in the plan (parsed from the entry's
- * own `key`, e.g. `articles/<uuid>.html` — the plan's own contract, not re-derived from a fact). */
+/** The set of uuids named by every archived ENGLISH ARTICLE entry in the plan (parsed from the
+ * entry's own `key`, e.g. `articles/<uuid>.html` — the plan's own contract, not re-derived from a
+ * fact). 06-09: `dist/archive-plan.json`'s article entries now include BOTH languages (06-04's
+ * `articleArchiveKey(uuid, 'es')` entries carry an `/es/`-prefixed `path`, unlike their English
+ * counterparts), so every cross-check in this file that compares against the ENGLISH-only
+ * `articles` tier facts (never `articlesEs`) must exclude the `/es/` entries explicitly — this
+ * file never mixes languages in its own English-scoped assertions. */
 function archivedArticleUuids(plan) {
   const uuids = new Set();
   for (const entry of plan.entries) {
-    if (entry.kind !== 'article') continue;
+    if (entry.kind !== 'article' || entry.path.startsWith('/es/')) continue;
     const match = ARCHIVED_ARTICLE_KEY_RE.exec(entry.key);
     if (match) uuids.add(match[1].toLowerCase());
   }
   return uuids;
 }
 
-/** The set of canonical paths named by every archived ARTICLE entry in the plan — used by the
- * "every fact path maps to an existing page" cross-check's archived branch. */
+/** The set of canonical paths named by every archived ENGLISH ARTICLE entry in the plan — used by
+ * the "every fact path maps to an existing page" cross-check's archived branch. See
+ * `archivedArticleUuids`'s doc comment above for why `/es/` entries are excluded here. */
 function archivedArticlePaths(plan) {
-  return new Set(plan.entries.filter((e) => e.kind === 'article').map((e) => e.path));
+  return new Set(
+    plan.entries.filter((e) => e.kind === 'article' && !e.path.startsWith('/es/')).map((e) => e.path)
+  );
+}
+
+/** Count of archived ENGLISH article entries only — see `archivedArticleUuids`'s doc comment. */
+function archivedEnglishArticleCount(plan) {
+  return plan.entries.filter((e) => e.kind === 'article' && !e.path.startsWith('/es/')).length;
 }
 
 test(
@@ -80,7 +109,7 @@ test(
     const { articles } = readTierFacts();
     const staticFiles = findArticleHtmlFiles(DIST_CLIENT);
     const plan = loadArchivePlan();
-    const archivedCount = plan.entries.filter((e) => e.kind === 'article').length;
+    const archivedCount = archivedEnglishArticleCount(plan);
     assert.equal(
       articles.length,
       staticFiles.length + archivedCount,
@@ -211,3 +240,108 @@ test(
     assert.equal(report.tags.hot, expectedHot);
   }
 );
+
+// ---------------------------------------------------------------------------
+// 06-04: Spanish facts — hermetic temp-dir fixtures (process.chdir, matching
+// tests/unit/build-state.test.mjs's own convention), independent of a real build/dist/client.
+// ---------------------------------------------------------------------------
+
+const VALID_UUID = '55555555-5555-5555-5555-555555555555';
+
+/** Writes valid English facts files (required by readTierFacts) plus whatever Spanish facts
+ * files `es` specifies (each value omitted entirely when its key is absent — simulating "no
+ * Spanish facts written yet"). Returns the temp root. */
+function seedFactsDir(es = {}) {
+  const root = mkdtempSync(path.join(tmpdir(), 'tier-facts-test-'));
+  mkdirSync(path.join(root, '.astro'), { recursive: true });
+  writeFileSync(
+    path.join(root, ARTICLE_FACTS_PATH),
+    JSON.stringify({
+      generatedAt: new Date().toISOString(),
+      entries: [{ uuid: VALID_UUID, path: `/crime/story-${VALID_UUID}`, publishedAt: 1 }],
+    })
+  );
+  writeFileSync(
+    path.join(root, TAG_FACTS_PATH),
+    JSON.stringify({ generatedAt: new Date().toISOString(), entries: [{ slug: 'el-paso', count: 1 }] })
+  );
+  if (es.articles !== undefined) {
+    writeFileSync(
+      path.join(root, ARTICLE_FACTS_ES_PATH),
+      JSON.stringify({ generatedAt: new Date().toISOString(), entries: es.articles })
+    );
+  }
+  if (es.tags !== undefined) {
+    writeFileSync(
+      path.join(root, TAG_FACTS_ES_PATH),
+      JSON.stringify({ generatedAt: new Date().toISOString(), entries: es.tags })
+    );
+  }
+  return root;
+}
+
+/** Runs `fn` with `process.cwd()` pointed at `root`, always restoring the real cwd afterward
+ * (even on a thrown assertion) and removing the temp dir. */
+function withChdir(root, fn) {
+  const originalCwd = process.cwd();
+  process.chdir(root);
+  try {
+    fn();
+  } finally {
+    process.chdir(originalCwd);
+    rmSync(root, { recursive: true, force: true });
+  }
+}
+
+test('readTierFacts: returns articlesEs: [] and tagsEs: [] when the Spanish facts files are absent', () => {
+  const root = seedFactsDir();
+  withChdir(root, () => {
+    const facts = readTierFacts();
+    assert.deepEqual(facts.articlesEs, []);
+    assert.deepEqual(facts.tagsEs, []);
+    // English facts are unaffected by the Spanish files being absent.
+    assert.equal(facts.articles.length, 1);
+    assert.equal(facts.tags.length, 1);
+  });
+});
+
+test('readTierFacts: reads back valid Spanish article/tag facts, translated included', () => {
+  const root = seedFactsDir({
+    articles: [{ uuid: VALID_UUID, path: `/es/crime/story-${VALID_UUID}`, publishedAt: 1, translated: true }],
+    tags: [{ slug: 'el-paso', count: 1 }],
+  });
+  withChdir(root, () => {
+    const facts = readTierFacts();
+    assert.equal(facts.articlesEs.length, 1);
+    assert.equal(facts.articlesEs[0].translated, true);
+    assert.equal(facts.articlesEs[0].path, `/es/crime/story-${VALID_UUID}`);
+    assert.equal(facts.tagsEs.length, 1);
+  });
+});
+
+test('readTierFacts: a Spanish article fact whose path is not /es/-prefixed is rejected with a "tier-facts:" error', () => {
+  const root = seedFactsDir({
+    articles: [{ uuid: VALID_UUID, path: `/crime/story-${VALID_UUID}`, publishedAt: 1, translated: true }],
+  });
+  withChdir(root, () => {
+    assert.throws(() => readTierFacts(), /tier-facts:.*invalid path/);
+  });
+});
+
+test('readTierFacts: a Spanish article fact whose path does not end with its own uuid is rejected with a "tier-facts:" error', () => {
+  const root = seedFactsDir({
+    articles: [{ uuid: VALID_UUID, path: '/es/crime/story-not-the-same-uuid', publishedAt: 1, translated: true }],
+  });
+  withChdir(root, () => {
+    assert.throws(() => readTierFacts(), /tier-facts:.*invalid path/);
+  });
+});
+
+test('readTierFacts: a Spanish article fact missing/misshaping "translated" is rejected with a "tier-facts:" error', () => {
+  const root = seedFactsDir({
+    articles: [{ uuid: VALID_UUID, path: `/es/crime/story-${VALID_UUID}`, publishedAt: 1 }],
+  });
+  withChdir(root, () => {
+    assert.throws(() => readTierFacts(), /tier-facts:.*invalid translated/);
+  });
+});
