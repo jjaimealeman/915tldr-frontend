@@ -70,7 +70,7 @@ structurally at build time. Everything else in this rebuild is negotiable; this 
 - [ ] Spanish summaries generated at ingest, in the same model call
 - [ ] `/es` routing, `hreflang` pairs, per-language sitemaps and RSS
 - [ ] Language detection at ingest (also required for the `lang="es"` a11y rule)
-- [ ] `/es` public launch decided on 2-4 weeks of measured data, not demographics
+- [ ] `/es` is public from day one (D-09, `.planning/phases/06-bilingual/06-CONTEXT.md`); Umami language data (D-11) informs how much to *promote* Spanish, not whether it exists. *Supersedes the earlier "launch decided on 2-4 weeks of measured data" rule.*
 
 **Quality gates** *(release-blocking)*
 - [ ] WCAG 2.2 AA verified — automated plus manual keyboard and screen-reader pass
@@ -260,6 +260,7 @@ distinguished from re-processing with a model.
 | Tag pages default to the archive tier | 36,014 tag pages is 36% of the entire file ceiling for content almost nobody requests directly. Only top-N tags by article count get promoted to hot static; the rest render once to R2 like the article archive. | — Pending |
 | File count is a watched budget line | The ceiling is currently handled by architectural choice but nothing measures it. The "hot content" cutoff is a number that drifts. It joins D1 reads and spend in the daily routine — same "measure it or it drifts" logic that produced this rebuild. | — Pending |
 | R2 for the archive, not KV | ~37,000 pages × ~30 KB ≈ 1.1 GB. KV includes 1 GB — over the line immediately. R2 includes 10 GB. | — Pending |
+| `/es` launches public from day one, not on 2-4 weeks of data | Owner decision recorded as D-09 (06-CONTEXT.md, 2026-10): `/es` is linked, indexed and in the sitemap as soon as Phase 6 ships. The earlier rule (wait for 2-4 weeks of measured data) is superseded. The owner chose this knowing the 80%-Hispanic figure alone does not justify Spanish (see "Why bilingual" above); language data from Umami (D-11) now informs how much to promote Spanish, not whether it exists. | Decided (D-09) — Phase 6 |
 | Content quality moves to **phase 2** | The PRD put the prompt fix at phase 8 but started Spanish generation at phase 2 — which would generate fabricated advisories in Spanish for six phases, then pay to redo them. Fix the prompt before any new summary is written in either language. | — Pending |
 | Summariser: `gpt-5.6-luna` | GPT-4o Mini is from Aug 2024. Luna is the small model of OpenAI's newest family — best instruction-following in the cheap tier, which is precisely the padding defect. Ongoing delta is **$0.48/month**; batched corpus backfill is **~$7.44**, *under* the PRD's existing $8.92 estimate for staying put. | — Pending |
 | Stay on OpenAI; no Gemini | Gemini 2.5 Flash-Lite is 33% cheaper on both axes, but a second vendor means a second bill and a new integration surface in a pipeline described as nine months of tuning. Not worth $0.48/month. | — Pending |

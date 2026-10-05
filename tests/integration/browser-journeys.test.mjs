@@ -388,3 +388,357 @@ test('browser-journey: 05-11 capture an archived article’s screenshots at 320p
     `[browser-journeys] 05-11 archived-article screenshots (${archived.path}) written to ${ARCHIVE_SCREENSHOT_DIR}`
   );
 });
+
+// --- 06-16: bilingual journeys on the deployed site (I18N-03/04/05/08, D-12/D-13/D-14) ----------
+// Same rules as above: real locator clicks (an actual mouse event dispatched by Playwright, never
+// `element.click()` in page JS, never `page.goto` straight to the target of the click under test),
+// the browser's own redirect record, Chromium only. Each journey gets its own context so earlier
+// tests' viewport/state changes cannot leak in. GET-only against the live origin; the one
+// deliberate side effect is Journey C's handful of Umami page views (es-MX, labelled by time).
+const EVIDENCE_DIR = process.env.EVIDENCE_OUTPUT_DIR ?? path.resolve('docs/phase-06/evidence');
+const PRODUCTION_HOSTS = new Set(['915tldr.com', 'www.915tldr.com']);
+
+const UUID_TAIL_RE =
+  /-[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/;
+
+async function pageLang(p) {
+  return p.evaluate(() => document.documentElement.lang);
+}
+
+/** Internal `<a>` links on the current page that do NOT stay under /es (D-14), excluding the two
+ * deliberate language-switch links. Same-origin and production-origin hrefs are both "internal":
+ * the site's own absolute URLs point at the production host regardless of which host serves them. */
+async function linksLeavingEs(p) {
+  const hrefs = await p.$$eval(
+    'a[href]:not([data-lang-switch] a):not([data-lang-link] a)',
+    (anchors) => anchors.map((a) => a.href)
+  );
+  const origin = new URL(LIVE_ORIGIN).origin;
+  const leaving = [];
+  for (const href of hrefs) {
+    let url;
+    try {
+      url = new URL(href);
+    } catch {
+      continue;
+    }
+    if (!['http:', 'https:'].includes(url.protocol)) continue;
+    const internal = url.origin === origin || PRODUCTION_HOSTS.has(url.hostname);
+    if (!internal) continue;
+    if (url.pathname === '/es' || url.pathname.startsWith('/es/')) continue;
+    leaving.push(`${url.pathname}${url.search}`);
+  }
+  return { total: hrefs.length, leaving };
+}
+
+/** Classifies recent RSS articles by what their /es page is (plain fetch, discovery only). Returns
+ * `{ translated: [...], fallback: [...] }` of English canonical paths; `railed` marks paths whose
+ * /es page renders an `[data-rail]` with at least one card. */
+async function classifyEsArticles(limit = 12) {
+  const paths = await fetchRecentArticlePaths(limit);
+  const out = { translated: [], fallback: [], railed: [] };
+  for (const articlePath of paths) {
+    const res = await fetch(`${LIVE_ORIGIN}/es${articlePath}`);
+    await pace();
+    if (res.status !== 200) continue;
+    const html = await res.text();
+    const isFallback = /data-fallback-note/.test(html);
+    (isFallback ? out.fallback : out.translated).push(articlePath);
+    if (/<aside[^>]*data-rail/.test(html) && /<aside[^>]*data-rail[\s\S]*data-card/.test(html)) {
+      out.railed.push(articlePath);
+    }
+  }
+  return out;
+}
+
+test('browser-journey: 06-16 Journey A — header Español on an English article -> /es -> a rail card stays /es -> Read in English returns to English', async () => {
+  mkdirSync(EVIDENCE_DIR, { recursive: true });
+  const { translated, fallback, railed } = await classifyEsArticles(12);
+  assert.ok(railed.length > 0, 'at least one recent article must have a /es page with a rail card');
+  const articlePath = railed[0];
+
+  const ctx = await browser.newContext({ viewport: { width: 1280, height: 900 } });
+  const p = await ctx.newPage();
+  try {
+    await p.goto(`${LIVE_ORIGIN}${articlePath}`);
+    assert.equal(await pageLang(p), 'en', 'the English article must be <html lang="en">');
+
+    // Header switch: real click on the "Español" link in the header.
+    const headerSwitch = p.locator('[data-lang-switch] a');
+    assert.equal((await headerSwitch.textContent())?.trim(), 'Español');
+    const [esResponse] = await Promise.all([p.waitForNavigation(), headerSwitch.click()]);
+    assert.equal(esResponse.status(), 200, 'the /es article navigation must answer 200');
+    assert.equal(esResponse.request().redirectedFrom(), null, 'the language switch must not be a redirect');
+    assert.equal(
+      p.url(),
+      `${LIVE_ORIGIN}/es${articlePath}`,
+      'clicking Español must land on the /es canonical of the same article'
+    );
+    assert.equal(await pageLang(p), 'es', 'the /es article must be <html lang="es">');
+    console.log(`[journey A] header Español: ${LIVE_ORIGIN}${articlePath} -> ${p.url()} (lang=es)`);
+
+    // D-14: nothing but the two switch links leaves /es on this page.
+    const esLinks = await linksLeavingEs(p);
+    assert.deepEqual(esLinks.leaving, [], `every internal link on ${p.url()} must stay under /es`);
+    console.log(`[journey A] ${esLinks.total} links on the /es article, 0 leave /es`);
+
+    // First rail card: real click, must stay under /es.
+    const railCard = p.locator('[data-rail] [data-card] a').first();
+    await railCard.waitFor({ state: 'visible' });
+    const railHref = await railCard.getAttribute('href');
+    const [cardResponse] = await Promise.all([p.waitForNavigation(), railCard.click()]);
+    assert.equal(cardResponse.status(), 200, 'the rail card navigation must answer 200');
+    assert.equal(cardResponse.request().redirectedFrom(), null, 'the rail card navigation must not be a redirect');
+    assert.ok(
+      new URL(p.url()).pathname.startsWith('/es/'),
+      `clicking a rail card on /es must stay under /es, landed on ${p.url()}`
+    );
+    assert.equal(p.url(), new URL(railHref, LIVE_ORIGIN).href);
+    assert.equal(await pageLang(p), 'es');
+    console.log(`[journey A] rail card: ${railHref} -> ${p.url()} (lang=es)`);
+    const cardLinks = await linksLeavingEs(p);
+    assert.deepEqual(cardLinks.leaving, [], `every internal link on ${p.url()} must stay under /es`);
+
+    // "Read in English": the visible article-level switch link, real click.
+    const esPath = new URL(p.url()).pathname;
+    const expectedEnglishPath = esPath.replace(/^\/es/, '');
+    const readInEnglish = p.locator('[data-lang-link] a');
+    assert.equal((await readInEnglish.textContent())?.trim(), 'Read in English');
+    const [enResponse] = await Promise.all([p.waitForNavigation(), readInEnglish.click()]);
+    assert.equal(enResponse.status(), 200, 'the English article navigation must answer 200');
+    assert.equal(enResponse.request().redirectedFrom(), null, 'Read in English must not be a redirect');
+    assert.equal(p.url(), `${LIVE_ORIGIN}${expectedEnglishPath}`, 'Read in English must return to the English canonical');
+    assert.equal(await pageLang(p), 'en');
+    console.log(`[journey A] Read in English: ${esPath} -> ${new URL(p.url()).pathname} (lang=en)`);
+
+    // Evidence screenshots: one translated and one fallback /es article, discovered not fixtured.
+    const shots = [];
+    for (const [label, list] of [['translated', translated], ['fallback', fallback]]) {
+      if (list.length === 0) {
+        console.log(`[journey A] no ${label} /es article among the sampled recent articles — screenshot skipped`);
+        continue;
+      }
+      await p.goto(`${LIVE_ORIGIN}/es${list[0]}`);
+      const file = path.join(EVIDENCE_DIR, `06-16-es-article-${label}-1280px.png`);
+      await p.screenshot({ path: file, fullPage: true });
+      assert.ok(existsSync(file));
+      shots.push(`${label}: /es${list[0]}`);
+      if (label === 'fallback') {
+        assert.ok(await p.locator('[data-fallback-note]').count(), 'fallback page carries its note');
+        const robots = await p.locator('meta[name="robots"]').getAttribute('content');
+        assert.match(robots ?? '', /noindex/, 'a fallback /es article must carry robots noindex');
+      }
+    }
+    console.log(`[journey A] screenshots -> ${EVIDENCE_DIR}: ${shots.join('; ')}`);
+  } finally {
+    await ctx.close();
+  }
+});
+
+test('browser-journey: 06-16 Journey B — /es -> Crimen nav -> /es/crime -> first card is an /es article', async () => {
+  const ctx = await browser.newContext({ viewport: { width: 1280, height: 900 } });
+  const p = await ctx.newPage();
+  try {
+    await p.goto(`${LIVE_ORIGIN}/es`);
+    assert.equal(await pageLang(p), 'es');
+
+    const crimeNav = p.locator('a[data-nav-category="crime"]');
+    assert.equal((await crimeNav.textContent())?.trim(), 'Crimen');
+    const [crimeResponse] = await Promise.all([p.waitForNavigation(), crimeNav.click()]);
+    assert.equal(p.url(), `${LIVE_ORIGIN}/es/crime`, 'clicking Crimen must land on /es/crime');
+    assert.equal(crimeResponse.status(), 200);
+    assert.equal(crimeResponse.request().redirectedFrom(), null);
+    assert.equal(await pageLang(p), 'es');
+
+    const firstCard = p.locator('[data-card] a').first();
+    const cardHref = await firstCard.getAttribute('href');
+    const [articleResponse] = await Promise.all([p.waitForNavigation(), firstCard.click()]);
+    assert.equal(articleResponse.status(), 200);
+    assert.equal(articleResponse.request().redirectedFrom(), null);
+    assert.equal(p.url(), new URL(cardHref, LIVE_ORIGIN).href);
+    assert.match(new URL(p.url()).pathname, /^\/es\/crime\/.+/, 'the first /es/crime card must be an /es article');
+    assert.equal(await pageLang(p), 'es');
+    console.log(`[journey B] /es -> ${new URL(crimeResponse.url()).pathname} -> ${new URL(p.url()).pathname} (lang=es)`);
+  } finally {
+    await ctx.close();
+  }
+});
+
+test('browser-journey: 06-16 Journey C (D-13) — es-MX browser still gets English with no redirect hop', async () => {
+  // A normal desktop-Chrome user agent: headless Chromium's default "HeadlessChrome" UA is
+  // discarded by Umami's server-side bot filter, which would make this journey invisible to the
+  // Umami Languages report that Task 3 asks the owner to read. This is the owner's own analytics
+  // on the owner's own site; the visits are timestamped below so they can be told apart.
+  const ctx = await browser.newContext({
+    locale: 'es-MX',
+    extraHTTPHeaders: { 'Accept-Language': 'es-MX,es;q=0.9' },
+    userAgent:
+      'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36',
+    viewport: { width: 1280, height: 900 },
+  });
+  const p = await ctx.newPage();
+  const umami = [];
+  p.on('response', async (r) => {
+    if (r.url().includes('stats.915websites.com/api/send')) {
+      let body = '';
+      try {
+        body = (await r.text()).slice(0, 80);
+      } catch {}
+      umami.push({ status: r.status(), body });
+    }
+  });
+  const startedAt = new Date();
+  try {
+    const mainFrameNavigations = [];
+    p.on('framenavigated', (frame) => {
+      if (frame === p.mainFrame()) mainFrameNavigations.push(frame.url());
+    });
+    const [sampleArticle] = await fetchRecentArticlePaths(1);
+    for (const target of ['/', '/crime', sampleArticle]) {
+      mainFrameNavigations.length = 0;
+      const response = await p.goto(`${LIVE_ORIGIN}${target}`, { waitUntil: 'networkidle' });
+      assert.equal(response.status(), 200, `${target} must answer 200`);
+      assert.equal(response.request().redirectedFrom(), null, `${target} must not be redirected`);
+      assert.equal(p.url(), `${LIVE_ORIGIN}${target}`, `${target} must keep its URL`);
+      assert.equal(await pageLang(p), 'en', `${target} must be <html lang="en"> for an es-MX browser`);
+      assert.equal(mainFrameNavigations.length, 1, `${target}: exactly one main-frame navigation, got ${mainFrameNavigations.join(' -> ')}`);
+      const sent = response.request().headers()['accept-language'];
+      assert.match(sent ?? '', /^es-MX/, 'the request really carried Accept-Language: es-MX');
+      const navLang = await p.evaluate(() => navigator.language);
+      assert.equal(navLang, 'es-MX', 'navigator.language (what Umami reports) is es-MX');
+      console.log(`[journey C] ${target}: 200, lang=en, no redirect, 1 navigation, Accept-Language=${sent}, navigator.language=${navLang}`);
+    }
+  } finally {
+    await ctx.close();
+  }
+  const finishedAt = new Date();
+  const mdt = (d) => d.toLocaleString('en-US', { timeZone: 'America/Denver', hour12: false });
+  console.log(
+    `[journey C] Umami page views made between ${startedAt.toISOString()} and ${finishedAt.toISOString()} (${mdt(startedAt)} to ${mdt(finishedAt)} MDT)`
+  );
+  console.log(`[journey C] Umami /api/send responses: ${JSON.stringify(umami)}`);
+  assert.ok(umami.length >= 1, 'the Umami tag must have posted at least one page view');
+  for (const u of umami) {
+    assert.equal(u.status, 200);
+    assert.ok(!/beep/.test(u.body), `Umami discarded the visit as a bot: ${u.body}`);
+  }
+});
+
+test('browser-journey: 06-16 keyboard — Tab from the skip link reaches the header language switch with a visible focus indicator', async () => {
+  mkdirSync(EVIDENCE_DIR, { recursive: true });
+  const ctx = await browser.newContext({ viewport: { width: 1280, height: 900 } });
+  const p = await ctx.newPage();
+  try {
+    const [articlePath] = await fetchRecentArticlePaths(1);
+    await p.goto(`${LIVE_ORIGIN}${articlePath}`);
+
+    await p.keyboard.press('Tab');
+    assert.equal(
+      await p.evaluate(() => document.activeElement?.hasAttribute('data-skip-link')),
+      true,
+      'the first Tab stop must be the skip link'
+    );
+
+    const visited = [];
+    let reached = false;
+    for (let i = 0; i < 10 && !reached; i++) {
+      await p.keyboard.press('Tab');
+      const info = await p.evaluate(() => {
+        const el = document.activeElement;
+        return {
+          inSwitch: !!el?.closest('[data-lang-switch]'),
+          label: (el?.textContent ?? '').trim().slice(0, 30),
+        };
+      });
+      visited.push(info.label);
+      reached = info.inSwitch;
+    }
+    assert.ok(reached, `Tab must reach the header language switch; visited: ${visited.join(' | ')}`);
+
+    const focus = await p.evaluate(() => {
+      const el = document.activeElement;
+      const cs = getComputedStyle(el);
+      const r = el.getBoundingClientRect();
+      return {
+        text: el.textContent.trim(),
+        matchesFocusVisible: el.matches(':focus-visible'),
+        outlineStyle: cs.outlineStyle,
+        outlineWidth: cs.outlineWidth,
+        outlineColor: cs.outlineColor,
+        outlineOffset: cs.outlineOffset,
+        boxShadow: cs.boxShadow,
+        rect: { x: r.x, y: r.y, width: r.width, height: r.height },
+      };
+    });
+    assert.equal(focus.text, 'Español');
+    assert.equal(focus.matchesFocusVisible, true, 'the switch must match :focus-visible after keyboard focus');
+    const hasOutline = focus.outlineStyle !== 'none' && parseFloat(focus.outlineWidth) > 0;
+    const hasShadow = focus.boxShadow && focus.boxShadow !== 'none';
+    assert.ok(hasOutline || hasShadow, `the focused switch needs a visible indicator: ${JSON.stringify(focus)}`);
+    console.log(`[keyboard] tab stops after skip link: ${visited.join(' | ')}; focus style ${JSON.stringify(focus)}`);
+
+    const file = path.join(EVIDENCE_DIR, '06-16-header-switch-focused.png');
+    await p.screenshot({ path: file, clip: { x: 0, y: 0, width: 1280, height: 260 } });
+    assert.ok(existsSync(file));
+  } finally {
+    await ctx.close();
+  }
+});
+
+// 06-16 gap closure (Defect 2): the Spanish category nav rendered as a plain bulleted vertical
+// list on every /es page because global.css keyed the nav styles to the English aria-label
+// ("Sections"). The nav is now found through the language-independent `data-site-nav` hook; this
+// proves the STYLED LAYOUT (not just the markup) on both languages in a real browser.
+// `SITE_NAV_SELECTOR` exists only so the same layout assertions can be pointed at a pre-fix
+// deploy (which has no hook yet) with `body > nav`; the default is the production hook.
+const SITE_NAV_SELECTOR = process.env.SITE_NAV_SELECTOR ?? 'nav[data-site-nav="sections"]';
+
+async function measureSectionNav(p) {
+  return p.evaluate((sel) => {
+    const nav = document.querySelector(sel);
+    if (!nav) return null;
+    const links = [...nav.querySelectorAll('a')];
+    const ul = nav.querySelector('ul');
+    return {
+      count: links.length,
+      offsetTops: links.map((a) => a.offsetTop),
+      lefts: links.map((a) => Math.round(a.getBoundingClientRect().left)),
+      listStyleType: ul ? getComputedStyle(ul).listStyleType : null,
+      labels: links.map((a) => a.textContent.trim()),
+    };
+  }, SITE_NAV_SELECTOR);
+}
+
+for (const [langName, route] of [['English', '/'], ['Spanish', '/es']]) {
+  test(`browser-journey: 06-16 gap — ${langName} (${route}) category nav is a styled row at 1280px and 2 columns at 390px`, async () => {
+    const ctx = await browser.newContext({ viewport: { width: 1280, height: 900 } });
+    const p = await ctx.newPage();
+    try {
+      const response = await p.goto(`${LIVE_ORIGIN}${route}`);
+      assert.equal(response.status(), 200);
+
+      const wide = await measureSectionNav(p);
+      assert.ok(wide, `no element matches ${SITE_NAV_SELECTOR} on ${route}`);
+      assert.equal(wide.count, 8, `expected 8 category links on ${route}, got ${wide.count}`);
+      assert.equal(
+        new Set(wide.offsetTops).size,
+        1,
+        `at 1280px all 8 links must share one visual row on ${route}; offsetTops=${JSON.stringify(wide.offsetTops)} labels=${wide.labels.join('|')}`
+      );
+      assert.equal(wide.listStyleType, 'none', `the nav list must have list-style-type none on ${route}, got ${wide.listStyleType}`);
+
+      await p.setViewportSize({ width: 390, height: 844 });
+      const narrow = await measureSectionNav(p);
+      assert.equal(narrow.count, 8);
+      assert.equal(
+        new Set(narrow.lefts).size,
+        2,
+        `at 390px the links must form exactly 2 columns on ${route}; lefts=${JSON.stringify(narrow.lefts)}`
+      );
+      assert.equal(narrow.listStyleType, 'none');
+      console.log(`[nav layout ${route}] 1280px offsetTops=${JSON.stringify(wide.offsetTops)} list-style=${wide.listStyleType}; 390px lefts=${JSON.stringify(narrow.lefts)}`);
+    } finally {
+      await ctx.close();
+    }
+  });
+}

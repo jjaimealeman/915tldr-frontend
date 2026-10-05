@@ -45,7 +45,7 @@ test(
   { skip: !DIST_BUILT && SKIP_REASON },
   () => {
     const html = readSampleArticleHtml();
-    const navMatch = html.match(/<nav aria-label="Sections">([\s\S]*?)<\/nav>/);
+    const navMatch = html.match(/<nav\b[^>]*aria-label="Sections"[^>]*>([\s\S]*?)<\/nav>/);
     assert.ok(navMatch, 'expected a <nav aria-label="Sections"> block');
     const navHtml = navMatch[1];
 
