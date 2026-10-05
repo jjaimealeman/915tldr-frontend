@@ -10,6 +10,7 @@ Entries are named `YYYY-MM-DD-HHMM_slug.md` and grouped by month, newest first.
 
 | Date | Entry | Keywords |
 |------|-------|----------|
+| 2026-10-04 | [Phase 6: 06-15 and 06-16 summaries and tracking](2026-10-04-2105_phase-06-06-15-06-16-summaries-tracking.md) | `[DOCUMENTATION]` `[PLANNING]` |
 | 2026-10-04 | [Fix unstyled Spanish category nav with a language-independent hook](2026-10-04-2104_fix-es-category-nav-language-independent-hook.md) | `[BUG_FIX]` `[FRONTEND]` `[I18N]` `[TESTING]` `[DOCUMENTATION]` |
 | 2026-10-04 | [06-16: live verification evidence, browser journeys and D-09 in PROJECT.md](2026-10-04-2101_06-16-live-verification-evidence-journeys-d09.md) | `[DOCUMENTATION]` `[TESTING]` `[I18N]` `[PLANNING]` |
 | 2026-10-04 | [06-15: Spanish archive pre-populated in R2, deploy record written](2026-10-04-1454_06-15-record-r2-spanish-archive-pre-population.md) | `[DOCUMENTATION]` `[PLANNING]` `[I18N]` `[DEPLOYMENT]` `[INFRASTRUCTURE]` |
