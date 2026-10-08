@@ -7,6 +7,7 @@
 import type { SitemapItem } from '@astrojs/sitemap';
 import { readTierFacts } from '../archive/tier-facts.ts';
 import { languageOfPath } from '../article-url.ts';
+import { OPT_OUT_PATHS } from '../opt-out.ts';
 
 // `@astrojs/sitemap`'s own `filter` callback runs once per candidate URL, all inside the
 // `astro:build:done` hook — well after EVERY page (including the `/es` article route's own
@@ -39,13 +40,14 @@ export function spanishSitemapExclusions(): Set<string> {
  * than by per-article fact, so they must not appear in any sitemap file (and therefore never as an
  * `xhtml:link` alternate of their English twin either — `@astrojs/sitemap` pairs only the URLs that
  * survive `filter`). Today that is every `/es/tag/<slug>`: the cards are mostly English fallback.
+ * Also the two Umami opt-out utility pages (`OPT_OUT_PATHS`, noindex, owner-only bookmarks).
  * Deliberately NOT excluded: `/es/tags` (the index) and `/es/source/*`. Segment-exact on purpose.
  * Keep in step with `tagPageSeo('es')` in `./tag-page.ts`.
  */
 const SPANISH_TAG_PAGE_RE = /^\/es\/tag\/[^/]+$/;
 
 export function isSitemapExcludedPath(pathname: string): boolean {
-  return SPANISH_TAG_PAGE_RE.test(pathname);
+  return SPANISH_TAG_PAGE_RE.test(pathname) || (OPT_OUT_PATHS as readonly string[]).includes(pathname);
 }
 
 /** Test-only: forces the next `spanishSitemapExclusions()` call to re-read the facts files

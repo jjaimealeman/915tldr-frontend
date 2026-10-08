@@ -323,3 +323,28 @@ so every rendered-HTML claim below is unverified until the deploy.
   failures are both correct pre-deploy: the guard reports a real guarded-path diff (task A's five
   files are not deployed yet) and the tag-pair test reports `/es/tag/2028-election must be robots
   noindex` (old markup still live). Both go green once the closeout branch is deployed.
+
+### C. Umami opt-out pages `/opt-out` and `/es/opt-out`
+
+- Tracker semantics, read from the served `https://stats.915websites.com/script.js` on 2026-10-07: it
+  reads `window.localStorage` inside try/catch and, before every send, `getItem("umami.disabled")`;
+  any truthy value (any non-empty string) means do not send. Per origin, so each host needs one visit.
+- Pages: `src/pages/opt-out.astro`, `src/pages/es/opt-out.astro`, shared body
+  `src/components/OptOut.astro`, logic `src/lib/opt-out.ts` (unit-tested with fake, throwing and
+  write-ignoring storages), copy in the fixed dictionary (`optOut*` keys). noindex, no hreflang
+  alternates, excluded from both sitemaps (`isSitemapExcludedPath`), absent from RSS/news feeds,
+  linked from no nav or footer. No CSS change (reuses `data-contact-column`, `data-lede`,
+  `data-form-note`, `data-feed-controls`, `data-load-more` hooks), so no stale-stylesheet window.
+- Spanish copy is Claude-drafted, not human-reviewed.
+- Live test (written first): `tests/integration/browser-journeys.test.mjs`, 4 tests named
+  `closeout`. Recorded RED on 2026-10-07 22:0x MDT against `https://dev.915tldr.com` before the pages
+  existed: all 4 fail with `/opt-out must answer 200` / `404 !== 200` (and the same for `/es/opt-out`).
+  Not skipped. Run again after the deploy:
+  `node --test --test-name-pattern="closeout" tests/integration/browser-journeys.test.mjs`.
+  Creates at most 2 Umami page views per run (the first, opted-in load per language).
+- Rehearsal without a deploy (a simulation, not the real thing): the two pages built in an isolated
+  scratch Astro project (no D1, no KV), served to Chromium at 390px through request routing with the
+  REAL tracker script and a stubbed `/api/send`: status flips, flag set, reload keeps it, no POST after
+  opting out, one POST while counted, keyboard Enter restores, button 44px tall inside the viewport,
+  throwing `localStorage` gives the clear message with no toggle and no page error. English and
+  Spanish both pass.

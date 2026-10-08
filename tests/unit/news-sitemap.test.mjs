@@ -13,7 +13,8 @@ import {
   NEWS_MAX_URLS,
 } from '../../src/lib/seo-feeds.ts';
 import { readTierFacts } from '../../src/lib/archive/tier-facts.ts';
-import { staleDistReason, builtEsTagPagesAreNoindex } from '../helpers/dist-fresh.mjs';
+import { staleDistReason, builtEsTagPagesAreNoindex, builtOptOutPagesExist } from '../helpers/dist-fresh.mjs';
+import { OPT_OUT_PATHS } from '../../src/lib/opt-out.ts';
 
 /** Minimal fixture matching the ArticleData shape's render-relevant fields (tests/unit/listing.test.mjs's own pattern). */
 function article({
@@ -236,8 +237,16 @@ test('news-sitemap: sitemap-index.xml exists and references at least one child s
 // still lists them, so this cross-check reports a visible skip naming the stale source instead of
 // asserting a count the old build cannot satisfy; it runs in full after any `pnpm build`.
 const SITEMAP_COUNT_STALE = staleDistReason(
-  ['src/pages/es/tag/[slug].astro', 'src/lib/i18n/sitemap.ts', 'astro.config.mjs'],
-  builtEsTagPagesAreNoindex
+  [
+    'src/pages/es/tag/[slug].astro',
+    'src/pages/opt-out.astro',
+    'src/pages/es/opt-out.astro',
+    'src/lib/i18n/sitemap.ts',
+    'astro.config.mjs',
+  ],
+  // "Shows the closeout behaviour" = BOTH changes are in the build (the tag noindex and the two
+  // opt-out pages). A build from before either one cannot satisfy the new expected count.
+  () => builtEsTagPagesAreNoindex() && builtOptOutPagesExist()
 );
 
 test('news-sitemap: across all sitemap children, URL count equals built HTML file count plus archived page count (minus 404.html and the deliberately unlisted pages), no trailing slashes except root, no /404', { skip: (!DIST_BUILT && SKIP_REASON) || SITEMAP_COUNT_STALE || false }, () => {
@@ -300,10 +309,14 @@ test('news-sitemap: across all sitemap children, URL count equals built HTML fil
   // the untranslated-article subtraction above uses.
   const excludedEsTagPageCount = tierFacts.tagsEs.length;
 
+  // Task C: `/opt-out` and `/es/opt-out` are real built HTML pages (counted by `countHtmlFiles`)
+  // that are noindex utility pages and deliberately absent from every sitemap file.
+  const excludedOptOutPageCount = OPT_OUT_PATHS.length;
+
   assert.equal(
     allSitemapUrls.length,
-    htmlFileCount + archivedPageCount - untranslatedEsArticleCount - excludedEsTagPageCount,
-    'expected sitemap URL count to equal built HTML page count (minus 404 pages) plus archived page count, minus untranslated /es fallback articles (06-11 exclusion) and minus the noindex /es/tag/* pages (closeout exclusion)'
+    htmlFileCount + archivedPageCount - untranslatedEsArticleCount - excludedEsTagPageCount - excludedOptOutPageCount,
+    'expected sitemap URL count to equal built HTML page count (minus 404 pages) plus archived page count, minus untranslated /es fallback articles (06-11 exclusion) minus the noindex /es/tag/* pages and minus the two opt-out utility pages (closeout exclusions)'
   );
 
   for (const url of allSitemapUrls) {

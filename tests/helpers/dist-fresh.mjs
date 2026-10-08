@@ -50,3 +50,8 @@ export function builtEsTagPagesAreNoindex() {
   if (!file) return false;
   return /<meta name="robots" content="noindex"\s*\/?>/.test(readFileSync(path.join(dir, file), 'utf8'));
 }
+
+/** True when both opt-out utility pages exist in `dist/client`. */
+export function builtOptOutPagesExist() {
+  return existsSync(path.join(DIST_CLIENT, 'opt-out.html')) && existsSync(path.join(DIST_CLIENT, 'es', 'opt-out.html'));
+}
