@@ -34,6 +34,20 @@ export function spanishSitemapExclusions(): Set<string> {
   return cachedExclusions;
 }
 
+/**
+ * Post-phase-06 closeout (owner decision 2026-10-07): paths that are `noindex` by POLICY rather
+ * than by per-article fact, so they must not appear in any sitemap file (and therefore never as an
+ * `xhtml:link` alternate of their English twin either — `@astrojs/sitemap` pairs only the URLs that
+ * survive `filter`). Today that is every `/es/tag/<slug>`: the cards are mostly English fallback.
+ * Deliberately NOT excluded: `/es/tags` (the index) and `/es/source/*`. Segment-exact on purpose.
+ * Keep in step with `tagPageSeo('es')` in `./tag-page.ts`.
+ */
+const SPANISH_TAG_PAGE_RE = /^\/es\/tag\/[^/]+$/;
+
+export function isSitemapExcludedPath(pathname: string): boolean {
+  return SPANISH_TAG_PAGE_RE.test(pathname);
+}
+
 /** Test-only: forces the next `spanishSitemapExclusions()` call to re-read the facts files
  * instead of returning a cached `Set` from an earlier call in the same process. */
 export function resetSpanishSitemapExclusionsCache(): void {

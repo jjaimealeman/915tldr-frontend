@@ -275,3 +275,28 @@ Limits: the markup guard reads `Base.astro` source, not a rendered page, and the
 was not rebuilt, so no rendered `/es` HTML has been checked against the new attribute. The first real
 confirmation is the live test going green after the deploy:
 `node --test --test-name-pattern="06-16 gap" tests/integration/browser-journeys.test.mjs`.
+
+## Post-phase closeout
+
+Branch `feature/phase-06-closeout`. Written without a local full build (it writes to production KV),
+so every rendered-HTML claim below is unverified until the deploy.
+
+### A. Spanish tag pages: noindex, out of the Spanish sitemap (owner decision 2026-10-07)
+
+- `/es/tag/*` (20,105 URLs) now render `<meta name="robots" content="noindex">` and no hreflang
+  alternates; the decision lives in `src/lib/i18n/tag-page.ts` (`tagPageSeo`) and is spread onto
+  `<Base>` by both tag templates, the same `noindex`/`alternates` props the fallback `/es` article
+  pages use.
+- English `/tag/*` pages declare `self` alternates (en + x-default, no `es`): a noindex page is not
+  advertised as a language alternate (held-article precedent).
+- `astro.config.mjs` sitemap filter drops `/es/tag/<slug>` via `isSitemapExcludedPath`
+  (`src/lib/i18n/sitemap.ts`). Kept: `/es/tags` and `/es/source/*` (not touched; see the report).
+- Tests, written first: `tests/unit/tag-noindex.test.mjs` (pure decision, sitemap predicate, source
+  wiring, then full-corpus rendered output and sitemap files), plus one `astro-config` assertion and
+  the sitemap URL-count cross-check in `news-sitemap.test.mjs` now subtracting the `/es/tag/*` pages.
+- The full-corpus tests that read `dist/` are gated by `tests/helpers/dist-fresh.mjs`: against the
+  stale local `dist/` (built 2026-10-04) they report a visible skip, they do not pass vacuously.
+  After any real `pnpm build` they run in full.
+- Expected consequence, not a defect: these pages re-render on the next builds, so the archived
+  `es/tags/*` (about 17.7k) and the English tag objects re-upload through the post-sync chain over
+  about 2 builds. No CSS change, so no stale-stylesheet window.
