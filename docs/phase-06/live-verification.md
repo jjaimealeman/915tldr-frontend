@@ -364,3 +364,33 @@ so every rendered-HTML claim below is unverified until the deploy.
 - Unverified until deploy: the rendered HTML of `/privacy` and `/es/privacy` (no local build was
   run). After deploy: `curl -s https://915tldr.com/privacy | grep -c stats.915websites.com` should
   print 1 (the tracker tag in `<head>`) and the host must not appear in the page body. No CSS change.
+
+### E. Spanish source pages: noindex, out of the Spanish sitemap (owner decision 2026-10-07/08)
+
+- `/es/source/<slug>` now renders robots `noindex` with NO alternates; `/source/<slug>` emits en +
+  x-default only (no `es`); `isSitemapExcludedPath` also drops `/es/source/<slug>` (segment-exact;
+  `/es/tags` stays). Decision body: `sourcePageSeo` in `src/lib/i18n/tag-page.ts`, sharing one private
+  function with `tagPageSeo` (tag behaviour unchanged, pinned by a test).
+- Expected consequence, corrected against the build: source pages are NOT archived. There are exactly
+  3 per language (`kvia`, `ktsm`, `el-paso-matters`), all static files in `dist/client`;
+  `archive-plan.json` has only `article` and `tag` entries. So the "archived objects re-upload over
+  about 2 builds" window that applies to tags does NOT apply here: after one deploy all 6 pages are
+  correct at once, and the live check is strict. No archived English article/tag object embeds a
+  source-page alternate, so nothing archived needs re-rendering for this change. No CSS change, so no
+  stylesheet window either. The sitemap drops 3 URLs (and the 3 English twins lose their `es`
+  xhtml:link).
+- Tests (written first, seen red): `tests/unit/source-noindex.test.mjs` (new; pure decision, sitemap
+  predicate, wiring, dist-gated rendered/sitemap checks), `tests/unit/es-listing-pages.test.mjs`
+  (the old reciprocal-hreflang assertion for `/es/source` replaced; dist-gated), the sitemap count
+  cross-check in `tests/unit/news-sitemap.test.mjs` (now also subtracts the built `/es/source` pages),
+  `tests/unit/tag-noindex.test.mjs` (`/es/source/ktsm` is now excluded), and a live test in
+  `tests/integration/url-shapes.test.mjs` (`url-shapes polish: ...`); `/es/source/kvia` was removed
+  from the old 06-16 reciprocal list.
+- Live run once, pre-deploy, against `https://dev.915tldr.com` (GET only), 2026-10-08 01:4x MDT:
+  91 tests, 89 pass, 1 fail, 1 skip. The fail is the new source test, `/es/source/kvia must be robots
+  noindex` (old markup is still live), correct pre-deploy; it should go green after deploy (it also
+  checks ktsm and el-paso-matters, the English twins, and that no sitemap child mentions
+  `/es/source/`). The skip is the deploy guard: `/version.json` reports `main` (cron-built), so the
+  stale-deploy comparison is not satisfied for that run. Nothing else was red.
+- Unverified until a real build + deploy: the rendered HTML (no local build was run), the real
+  sitemap files, and the sitemap count cross-check (dist-gated, visible skips locally).

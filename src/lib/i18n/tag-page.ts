@@ -9,6 +9,11 @@
 // translation. When Spanish coverage grows enough to index these pages again, flip this one
 // function (and the sitemap predicate) back to `{ noindex: false, alternates: 'paired' }`.
 //
+// Polish task B (owner decision 2026-10-08, "agreed, yes"): `/es/source/*` (one page per RSS source)
+// takes the identical decision for the identical reason — its cards are mostly English fallback — so
+// `sourcePageSeo` is the same policy under its own name. Two exports, one shared body: the source
+// templates and the tag templates can be flipped independently later by changing one function each.
+//
 // Zero `src/lib/server/` imports — reachable from `src/pages/**` like `article-page.ts`.
 import { assertLanguage, type Language } from '../article-url.ts';
 import type { AlternateMode } from './hreflang.ts';
@@ -18,9 +23,19 @@ export interface TagPageSeo {
   alternates: AlternateMode;
 }
 
-export function tagPageSeo(lang: Language | unknown): TagPageSeo {
+/** Shared body: Spanish listing page -> noindex, no alternates; English twin -> indexable, `self`. */
+function spanishFallbackListingSeo(lang: Language | unknown): TagPageSeo {
   const validLang = assertLanguage(lang);
   return validLang === 'es'
     ? { noindex: true, alternates: 'none' }
     : { noindex: false, alternates: 'self' };
+}
+
+export function tagPageSeo(lang: Language | unknown): TagPageSeo {
+  return spanishFallbackListingSeo(lang);
+}
+
+/** Source pages (`/source/<slug>`, `/es/source/<slug>`): same decision as tag pages. */
+export function sourcePageSeo(lang: Language | unknown): TagPageSeo {
+  return spanishFallbackListingSeo(lang);
 }

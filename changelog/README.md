@@ -10,6 +10,7 @@ Entries are named `YYYY-MM-DD-HHMM_slug.md` and grouped by month, newest first.
 
 | Date | Entry | Keywords |
 |------|-------|----------|
+| 2026-10-08 | [Noindex the Spanish source pages and drop them from the Spanish sitemap](2026-10-08-0140_noindex-spanish-source-pages-and-drop-from-sitemap.md) | `[SEO]` `[I18N]` `[TESTING]` `[FRONTEND]` |
 | 2026-10-08 | [Privacy pages stop naming the Umami dashboard host](2026-10-08-0136_privacy-pages-stop-naming-the-umami-host.md) | `[FRONTEND]` `[I18N]` `[TESTING]` `[DOCUMENTATION]` |
 | 2026-10-07 | [Umami opt-out pages (/opt-out and /es/opt-out)](2026-10-07-2209_umami-opt-out-pages-en-es.md) | `[FRONTEND]` `[I18N]` `[TESTING]` `[SEO]` |
 | 2026-10-07 | [Content-based deploy guard and wide fallback-page search in live tests](2026-10-07-2202_content-based-deploy-guard-and-wide-fallback-search.md) | `[TESTING]` `[SEO]` `[I18N]` |

@@ -667,8 +667,46 @@ test('url-shapes closeout: /es/tag/<static> and /es/tag/<archived> are 200, lang
   }
 });
 
-test('url-shapes 06-16: /es/tags, /es/source/<slug> and the static pages answer 200, lang="es", reciprocal hreflang', async () => {
-  for (const p of ['/es/tags', '/es/source/kvia', '/es/about', '/es/contact', '/es/privacy', '/es/terms', '/es/changelog']) {
+/** Polish task B contract for a source page pair (owner decision 2026-10-08): same shape as the tag
+ * pair — `/es/source/<slug>` is 200, lang="es", robots noindex, NO alternates; its English twin is
+ * 200, indexable, en + x-default only. Source pages are never archived (a handful of static files,
+ * `archive-plan.json` has no source kind), so there is no stale-object window: this is STRICT. */
+async function assertSourcePairContract(esPath) {
+  const enPath = esPath.replace(/^\/es/, '');
+  const es = await fetchHtml(esPath);
+  assert.equal(es.res.status, 200, `${esPath} must answer 200`);
+  assert.equal(htmlLang(es.html), 'es', `${esPath} must be <html lang="es">`);
+  assert.equal(canonicalHref(es.html), `${PRODUCTION_ORIGIN}${esPath}`, `${esPath} canonical`);
+  assert.ok(/<meta name="robots" content="noindex"/.test(es.html), `${esPath} must be robots noindex`);
+  assert.deepEqual(hreflangPaths(es.html), {}, `${esPath} is noindex and must declare no hreflang alternates`);
+  const en = await fetchHtml(enPath);
+  assert.equal(en.res.status, 200, `English twin ${enPath} must answer 200`);
+  assert.equal(htmlLang(en.html), 'en');
+  assert.ok(!/<meta name="robots" content="noindex"/.test(en.html), `${enPath} must stay indexable`);
+  const enAlts = hreflangPaths(en.html);
+  assert.equal(enAlts.es, undefined, `${enPath} must not advertise a noindex ${esPath} as an alternate`);
+  assert.equal(enAlts.en, enPath, `${enPath} must carry hreflang en -> itself`);
+  assert.equal(enAlts['x-default'], enPath, `${enPath} x-default must be itself`);
+}
+
+test('url-shapes polish: every /es/source/<slug> is 200, lang="es", noindex with no alternates; English twins declare en + x-default only; no /es/source URL is in any sitemap file (as <loc> or xhtml:link)', async () => {
+  for (const slug of ['kvia', 'ktsm', 'el-paso-matters']) {
+    await assertSourcePairContract(`/es/source/${slug}`);
+    await pace();
+  }
+  const index = await fetchManual('/sitemap-index.xml');
+  assert.equal(index.status, 200);
+  const children = [...(await index.text()).matchAll(/<loc>([^<]+)<\/loc>/g)].map((m) => new URL(m[1]).pathname);
+  assert.ok(children.length >= 2, 'sitemap index must list child sitemaps');
+  for (const child of children) {
+    const xml = await (await fetchManual(child)).text();
+    assert.ok(!/\/es\/source\//.test(xml), `${child} must not list or alternate any /es/source/ URL`);
+    await pace();
+  }
+});
+
+test('url-shapes 06-16: /es/tags and the static pages answer 200, lang="es", reciprocal hreflang', async () => {
+  for (const p of ['/es/tags', '/es/about', '/es/contact', '/es/privacy', '/es/terms', '/es/changelog']) {
     await assertEsPageContract(p);
   }
 });

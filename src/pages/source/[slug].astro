@@ -9,6 +9,7 @@ import ArticleCard from '../../components/ArticleCard.astro';
 import { articlePath, SOURCE_SLUG_RE } from '../../lib/article-url';
 import { groupBySource, SOURCE_PAGE_COUNT } from '../../lib/listing';
 import { breadcrumbNode } from '../../lib/structured-data';
+import { sourcePageSeo } from '../../lib/i18n/tag-page.ts';
 
 export async function getStaticPaths() {
   const entries = await getCollection('articles');
@@ -40,6 +41,7 @@ const { slug, source, articles } = Astro.props;
   title={`${source.name} - El Paso News`}
   description={`Latest news from ${source.name}. AI-summarized articles from this El Paso news source.`}
   canonicalPath={`/source/${slug}`}
+  {...sourcePageSeo('en')}
   jsonLd={[breadcrumbNode([{ name: 'Home', path: '/' }, { name: source.name, path: `/source/${slug}` }])]}
 >
   <header data-block>
