@@ -3,7 +3,7 @@ gsd_state_version: 1.0
 milestone: v1.5
 milestone_name: milestone
 current_phase: 7
-current_phase_name: Imagery & Share Cards
+current_phase_name: Share Cards & Head Metadata
 status: planning
 stopped_at: Phase 7 context gathered
 last_updated: "2026-10-08T19:33:21.566Z"
@@ -27,7 +27,7 @@ See: .planning/PROJECT.md (updated 2026-09-16)
 
 ## Current Position
 
-Phase: 7 — Imagery & Share Cards
+Phase: 7 — Share Cards & Head Metadata
 Plan: Not started
 Status: Ready to plan
 Last activity: 2026-10-07 — Phase 6 complete, transitioned to Phase 7
