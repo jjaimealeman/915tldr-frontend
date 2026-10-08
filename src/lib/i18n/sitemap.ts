@@ -40,14 +40,20 @@ export function spanishSitemapExclusions(): Set<string> {
  * than by per-article fact, so they must not appear in any sitemap file (and therefore never as an
  * `xhtml:link` alternate of their English twin either — `@astrojs/sitemap` pairs only the URLs that
  * survive `filter`). Today that is every `/es/tag/<slug>`: the cards are mostly English fallback.
- * Also the two Umami opt-out utility pages (`OPT_OUT_PATHS`, noindex, owner-only bookmarks).
- * Deliberately NOT excluded: `/es/tags` (the index) and `/es/source/*`. Segment-exact on purpose.
- * Keep in step with `tagPageSeo('es')` in `./tag-page.ts`.
+ * Also every `/es/source/<slug>` (owner decision 2026-10-08, same reason: mostly English-fallback
+ * cards) and the two Umami opt-out utility pages (`OPT_OUT_PATHS`, noindex, owner-only bookmarks).
+ * Deliberately NOT excluded: `/es/tags` (the index). Segment-exact on purpose.
+ * Keep in step with `tagPageSeo('es')` / `sourcePageSeo('es')` in `./tag-page.ts`.
  */
 const SPANISH_TAG_PAGE_RE = /^\/es\/tag\/[^/]+$/;
+const SPANISH_SOURCE_PAGE_RE = /^\/es\/source\/[^/]+$/;
 
 export function isSitemapExcludedPath(pathname: string): boolean {
-  return SPANISH_TAG_PAGE_RE.test(pathname) || (OPT_OUT_PATHS as readonly string[]).includes(pathname);
+  return (
+    SPANISH_TAG_PAGE_RE.test(pathname) ||
+    SPANISH_SOURCE_PAGE_RE.test(pathname) ||
+    (OPT_OUT_PATHS as readonly string[]).includes(pathname)
+  );
 }
 
 /** Test-only: forces the next `spanishSitemapExclusions()` call to re-read the facts files

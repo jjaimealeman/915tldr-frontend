@@ -55,3 +55,12 @@ export function builtEsTagPagesAreNoindex() {
 export function builtOptOutPagesExist() {
   return existsSync(path.join(DIST_CLIENT, 'opt-out.html')) && existsSync(path.join(DIST_CLIENT, 'es', 'opt-out.html'));
 }
+
+/** True when the first built `/es/source/*.html` page in `dist/client` carries `noindex`. */
+export function builtEsSourcePagesAreNoindex() {
+  const dir = path.join(DIST_CLIENT, 'es', 'source');
+  if (!existsSync(dir)) return false;
+  const file = readdirSync(dir).find((f) => f.endsWith('.html'));
+  if (!file) return false;
+  return /<meta name="robots" content="noindex"\s*\/?>/.test(readFileSync(path.join(dir, file), 'utf8'));
+}

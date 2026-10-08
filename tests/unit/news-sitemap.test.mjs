@@ -13,7 +13,7 @@ import {
   NEWS_MAX_URLS,
 } from '../../src/lib/seo-feeds.ts';
 import { readTierFacts } from '../../src/lib/archive/tier-facts.ts';
-import { staleDistReason, builtEsTagPagesAreNoindex, builtOptOutPagesExist } from '../helpers/dist-fresh.mjs';
+import { staleDistReason, builtEsTagPagesAreNoindex, builtEsSourcePagesAreNoindex, builtOptOutPagesExist } from '../helpers/dist-fresh.mjs';
 import { OPT_OUT_PATHS } from '../../src/lib/opt-out.ts';
 
 /** Minimal fixture matching the ArticleData shape's render-relevant fields (tests/unit/listing.test.mjs's own pattern). */
@@ -239,14 +239,15 @@ test('news-sitemap: sitemap-index.xml exists and references at least one child s
 const SITEMAP_COUNT_STALE = staleDistReason(
   [
     'src/pages/es/tag/[slug].astro',
+    'src/pages/es/source/[slug].astro',
     'src/pages/opt-out.astro',
     'src/pages/es/opt-out.astro',
     'src/lib/i18n/sitemap.ts',
     'astro.config.mjs',
   ],
-  // "Shows the closeout behaviour" = BOTH changes are in the build (the tag noindex and the two
-  // opt-out pages). A build from before either one cannot satisfy the new expected count.
-  () => builtEsTagPagesAreNoindex() && builtOptOutPagesExist()
+  // "Shows the closeout behaviour" = ALL changes are in the build (the tag noindex, the source
+  // noindex and the two opt-out pages). A build from before any one cannot satisfy the new count.
+  () => builtEsTagPagesAreNoindex() && builtEsSourcePagesAreNoindex() && builtOptOutPagesExist()
 );
 
 test('news-sitemap: across all sitemap children, URL count equals built HTML file count plus archived page count (minus 404.html and the deliberately unlisted pages), no trailing slashes except root, no /404', { skip: (!DIST_BUILT && SKIP_REASON) || SITEMAP_COUNT_STALE || false }, () => {
@@ -313,10 +314,19 @@ test('news-sitemap: across all sitemap children, URL count equals built HTML fil
   // that are noindex utility pages and deliberately absent from every sitemap file.
   const excludedOptOutPageCount = OPT_OUT_PATHS.length;
 
+  // Polish task B (owner decision 2026-10-08): every `/es/source/<slug>` page is `noindex` and
+  // filtered out too. Source pages are never archived (`archive-plan.json` has only article/tag
+  // kinds), so they are exactly the `.html` files under `dist/client/es/source` — which
+  // `countHtmlFiles` has already counted into `htmlFileCount`.
+  const excludedEsSourcePageCount = distFileExists('es/source')
+    ? readdirSync(path.join(DIST_CLIENT, 'es', 'source')).filter((f) => f.endsWith('.html')).length
+    : 0;
+  assert.ok(excludedEsSourcePageCount >= 1, 'expected built /es/source pages to subtract');
+
   assert.equal(
     allSitemapUrls.length,
-    htmlFileCount + archivedPageCount - untranslatedEsArticleCount - excludedEsTagPageCount - excludedOptOutPageCount,
-    'expected sitemap URL count to equal built HTML page count (minus 404 pages) plus archived page count, minus untranslated /es fallback articles (06-11 exclusion) minus the noindex /es/tag/* pages and minus the two opt-out utility pages (closeout exclusions)'
+    htmlFileCount + archivedPageCount - untranslatedEsArticleCount - excludedEsTagPageCount - excludedEsSourcePageCount - excludedOptOutPageCount,
+    'expected sitemap URL count to equal built HTML page count (minus 404 pages) plus archived page count, minus untranslated /es fallback articles (06-11 exclusion) minus the noindex /es/tag/* and /es/source/* pages and minus the two opt-out utility pages (closeout exclusions)'
   );
 
   for (const url of allSitemapUrls) {

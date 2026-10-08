@@ -11,6 +11,7 @@ import { localizedPath } from '../../src/lib/article-url.ts';
 import { readTierFacts } from '../../src/lib/archive/tier-facts.ts';
 import { t } from '../../src/lib/i18n/dictionary.ts';
 import { decodeEntities } from '../helpers/html-text.mjs';
+import { staleDistReason, builtEsSourcePagesAreNoindex } from '../helpers/dist-fresh.mjs';
 
 const REPO_ROOT = path.resolve(import.meta.dirname, '../..');
 const DIST_CLIENT = path.join(REPO_ROOT, 'dist', 'client');
@@ -231,7 +232,16 @@ test('es-listing-pages: dist/client/es/tags.html exists with lang="es" and recip
 // Task 2: /es/source/<slug>
 // ---------------------------------------------------------------------------
 
-test('es-listing-pages: one dist/client/es/source/<slug>.html per English source page, lang="es", reciprocal hreflang', { skip: !DIST_BUILT && SKIP_REASON }, () => {
+// Polish task B (owner decision 2026-10-08): /es/source/<slug> is noindex with NO alternates and its
+// English twin declares en + x-default only (see tests/unit/source-noindex.test.mjs). A dist built
+// before that change still has the old reciprocal pair, so this reports a visible skip naming the
+// stale source instead of asserting markup the old build cannot have.
+const ES_SOURCE_STALE = staleDistReason(
+  ['src/pages/es/source/[slug].astro', 'src/pages/source/[slug].astro', 'src/lib/i18n/tag-page.ts'],
+  builtEsSourcePagesAreNoindex
+);
+
+test('es-listing-pages: one dist/client/es/source/<slug>.html per English source page, lang="es", canonical, noindex with no alternates; the English twin declares en + x-default only', { skip: (!DIST_BUILT && SKIP_REASON) || ES_SOURCE_STALE || false }, () => {
   const enSourceDir = path.join(DIST_CLIENT, 'source');
   const esSourceDir = path.join(DIST_CLIENT, 'es', 'source');
   assert.ok(existsSync(esSourceDir), 'expected dist/client/es/source/ to exist');
@@ -245,10 +255,11 @@ test('es-listing-pages: one dist/client/es/source/<slug>.html per English source
     assert.match(html, /<html lang="es">/);
     const slug = file.replace(/\.html$/, '');
     assert.equal(extractCanonical(html), `https://915tldr.com/es/source/${slug}`);
+    assert.match(html, /<meta name="robots" content="noindex"/, `/es/source/${slug} must be noindex`);
+    assert.deepEqual(extractHreflangs(html), [], `/es/source/${slug} is noindex and must declare no alternates`);
 
-    const hreflangs = new Map(extractHreflangs(html).map((h) => [h.hreflang, h.href]));
-    assert.equal(hreflangs.get('en'), `https://915tldr.com/source/${slug}`);
-    assert.equal(hreflangs.get('es'), `https://915tldr.com/es/source/${slug}`);
+    const enHreflangs = extractHreflangs(readFileSync(path.join(enSourceDir, file), 'utf8')).map((h) => h.hreflang);
+    assert.deepEqual(enHreflangs, ['en', 'x-default'], `/source/${slug} must not advertise a noindex Spanish twin`);
   }
 });
 

@@ -348,3 +348,69 @@ so every rendered-HTML claim below is unverified until the deploy.
   opting out, one POST while counted, keyboard Enter restores, button 44px tall inside the viewport,
   throwing `localStorage` gives the clear message with no toggle and no page error. English and
   Spanish both pass.
+
+### D. Privacy pages no longer name the Umami host (owner decision 2026-10-08)
+
+- `src/pages/privacy.astro` and `src/pages/es/privacy.astro`: the linked `stats.915websites.com`
+  (anchor, rel/target, new-tab icon) is now plain text, "self-hosted by 915website.com" /
+  "alojada por 915website.com". The `docs.umami.is` citation is unchanged. The tracker `<script src>`
+  in `Base.astro` is unchanged on purpose (the host still appears in page source there; that is the
+  owner-accepted tracker tag, not visible text).
+- The brief also said to keep a sentence "Prefer not to be counted? ... /opt-out". Neither privacy
+  page contained it (the opt-out pages were built unlinked, owner-only, in section C), so nothing
+  was kept or added. If a public link to `/opt-out` is wanted, that is a separate decision.
+- Test: `tests/unit/privacy-no-analytics-host.test.mjs` (written first, recorded 5 red, then green).
+  Source-based; one built-output check is a deliberate dist-fresh skip until a real build.
+- Unverified until deploy: the rendered HTML of `/privacy` and `/es/privacy` (no local build was
+  run). After deploy: `curl -s https://915tldr.com/privacy | grep -c stats.915websites.com` should
+  print 1 (the tracker tag in `<head>`) and the host must not appear in the page body. No CSS change.
+
+### E. Spanish source pages: noindex, out of the Spanish sitemap (owner decision 2026-10-07/08)
+
+- `/es/source/<slug>` now renders robots `noindex` with NO alternates; `/source/<slug>` emits en +
+  x-default only (no `es`); `isSitemapExcludedPath` also drops `/es/source/<slug>` (segment-exact;
+  `/es/tags` stays). Decision body: `sourcePageSeo` in `src/lib/i18n/tag-page.ts`, sharing one private
+  function with `tagPageSeo` (tag behaviour unchanged, pinned by a test).
+- Expected consequence, corrected against the build: source pages are NOT archived. There are exactly
+  3 per language (`kvia`, `ktsm`, `el-paso-matters`), all static files in `dist/client`;
+  `archive-plan.json` has only `article` and `tag` entries. So the "archived objects re-upload over
+  about 2 builds" window that applies to tags does NOT apply here: after one deploy all 6 pages are
+  correct at once, and the live check is strict. No archived English article/tag object embeds a
+  source-page alternate, so nothing archived needs re-rendering for this change. No CSS change, so no
+  stylesheet window either. The sitemap drops 3 URLs (and the 3 English twins lose their `es`
+  xhtml:link).
+- Tests (written first, seen red): `tests/unit/source-noindex.test.mjs` (new; pure decision, sitemap
+  predicate, wiring, dist-gated rendered/sitemap checks), `tests/unit/es-listing-pages.test.mjs`
+  (the old reciprocal-hreflang assertion for `/es/source` replaced; dist-gated), the sitemap count
+  cross-check in `tests/unit/news-sitemap.test.mjs` (now also subtracts the built `/es/source` pages),
+  `tests/unit/tag-noindex.test.mjs` (`/es/source/ktsm` is now excluded), and a live test in
+  `tests/integration/url-shapes.test.mjs` (`url-shapes polish: ...`); `/es/source/kvia` was removed
+  from the old 06-16 reciprocal list.
+- Live run once, pre-deploy, against `https://dev.915tldr.com` (GET only), 2026-10-08 01:4x MDT:
+  91 tests, 89 pass, 1 fail, 1 skip. The fail is the new source test, `/es/source/kvia must be robots
+  noindex` (old markup is still live), correct pre-deploy; it should go green after deploy (it also
+  checks ktsm and el-paso-matters, the English twins, and that no sitemap child mentions
+  `/es/source/`). The skip is the deploy guard: `/version.json` reports `main` (cron-built), so the
+  stale-deploy comparison is not satisfied for that run. Nothing else was red.
+- Unverified until a real build + deploy: the rendered HTML (no local build was run), the real
+  sitemap files, and the sitemap count cross-check (dist-gated, visible skips locally).
+
+### 2026-10-08 - Opt-out sentence on both Privacy pages
+
+- Owner decision (2026-10-08, "yes, add the opt-out sentence to v2"): the Umami paragraph of
+  `/privacy` and `/es/privacy` now ends with a visitor-facing opt-out sentence, mirroring v1
+  (`app/pages/privacy.vue`). EN: "Prefer not to be counted? You can turn analytics off for this
+  browser." linking `/opt-out`; ES: "¿Prefiere que no se cuenten sus visitas? Puede desactivar el
+  análisis en este navegador." linking `/es/opt-out`. Plain same-origin links (no new tab); hrefs are
+  literal, like the page's existing `/contact` link. The Spanish copy is Claude-drafted and NOT
+  human-reviewed; the owner waived review of the opt-out copy.
+- Tests (written first, seen red): `tests/unit/privacy-no-analytics-host.test.mjs` (sentence and exact
+  hrefs in both languages, placed after the existing text, plain link, target route exists and stays
+  noindex, dashboard host still absent, no cross-language opt-out link). The dist-gated check in
+  `tests/unit/opt-out.test.mjs` ("no static page links to them") is narrowed on purpose to "only the
+  two Privacy pages link to them", and now also requires both Privacy pages to carry the link.
+  The `/es` link-containment invariant (`es-lang-and-links`) is satisfied by `/es/opt-out`; it only
+  checks that /es pages stay under /es and English pages are lang="en".
+- The opt-out pages stay noindex and out of every sitemap; Base.astro and the tracker are untouched.
+- Unverified until a real build + deploy: the rendered HTML of both Privacy pages, the dist-gated
+  link-containment and opt-out checks (visible skips locally).
