@@ -742,3 +742,116 @@ for (const [langName, route] of [['English', '/'], ['Spanish', '/es']]) {
     }
   });
 }
+
+// ---------------------------------------------------------------------------------------------
+// Post-phase-06 closeout, task C: the Umami opt-out pages, driven in real Chromium at phone width
+// on the LIVE origin. For each language: the page loads, the status text is present, a REAL click
+// on the button flips it and sets `localStorage['umami.disabled']`, a reload keeps the state, and a
+// second (keyboard) activation restores it. And the point of the feature: while counted the page
+// view POSTs to stats.915websites.com/api/send, after opting out the next page view does NOT.
+//
+// This creates Umami page views: exactly ONE per language per run (the first, opted-in load), so 2
+// per run, with a desktop-Chrome user agent so Umami's bot filter does not silently discard them
+// (headless Chromium's default UA is dropped server-side). Everything after the opt-out sends
+// nothing by construction, which is the assertion. The throwing-storage test blocks the tracker's
+// network entirely, so it creates none.
+// Written BEFORE the pages shipped: RED (404 on /opt-out) until the closeout branch is deployed.
+// ---------------------------------------------------------------------------------------------
+const DESKTOP_CHROME_UA =
+  'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36';
+const UMAMI_SEND = 'stats.915websites.com/api/send';
+
+const OPT_OUT_PAGES = [
+  {
+    name: 'English',
+    route: '/opt-out',
+    counted: /ARE being counted/,
+    optedOut: /NOT being counted/,
+    unavailable: /blocking site storage/i,
+  },
+  {
+    name: 'Spanish',
+    route: '/es/opt-out',
+    counted: /SÍ se están contando/,
+    optedOut: /NO se están contando/,
+    unavailable: /bloquea el almacenamiento/i,
+  },
+];
+
+for (const spec of OPT_OUT_PAGES) {
+  test(`browser-journey: closeout — ${spec.name} ${spec.route} at 390px toggles the flag, survives a reload, and gates the Umami page view`, async () => {
+    const ctx = await browser.newContext({ viewport: { width: 390, height: 844 }, userAgent: DESKTOP_CHROME_UA });
+    const p = await ctx.newPage();
+    const posts = [];
+    p.on('request', (r) => {
+      if (r.method() === 'POST' && r.url().includes(UMAMI_SEND)) posts.push(r.url());
+    });
+    const status = p.locator('[data-opt-out-status]');
+    const button = p.locator('button[data-opt-out-toggle]');
+    const flag = () => p.evaluate(() => window.localStorage.getItem('umami.disabled'));
+    try {
+      // 1. Opted-in first visit: loads 200, status says counted, and the tracker DID post a view.
+      const response = await p.goto(`${LIVE_ORIGIN}${spec.route}`, { waitUntil: 'networkidle' });
+      assert.equal(response.status(), 200, `${spec.route} must answer 200`);
+      await status.filter({ hasText: spec.counted }).waitFor({ timeout: 5000 });
+      assert.equal(await status.getAttribute('aria-live'), 'polite', 'the status must be an aria-live region');
+      assert.equal(await flag(), null, 'a fresh browser has no umami.disabled flag');
+      for (let i = 0; i < 40 && posts.length === 0; i++) await p.waitForTimeout(250);
+      assert.ok(posts.length >= 1, `while counted, ${spec.route} must POST a page view to ${UMAMI_SEND}`);
+
+      // 2. Tap target: at least 44 CSS px tall.
+      await button.waitFor({ state: 'visible', timeout: 5000 });
+      const box = await button.boundingBox();
+      assert.ok(box && box.height >= 44, `the toggle must be >= 44px tall, got ${box?.height}`);
+      assert.ok(box.x >= 0 && box.x + box.width <= 390, 'the toggle must fit inside the 390px viewport');
+
+      // 3. A real mouse click opts out: status flips, flag is set.
+      await button.click();
+      await status.filter({ hasText: spec.optedOut }).waitFor({ timeout: 5000 });
+      assert.ok(await flag(), 'umami.disabled must be set after opting out');
+
+      // 4. A reload keeps the state and the page view is NOT posted.
+      const postsBeforeReload = posts.length;
+      await p.reload({ waitUntil: 'networkidle' });
+      await status.filter({ hasText: spec.optedOut }).waitFor({ timeout: 5000 });
+      await p.waitForTimeout(2000); // the tracker is deferred; give it every chance to (wrongly) send
+      assert.equal(posts.length, postsBeforeReload, `after opting out, reloading ${spec.route} must not POST to ${UMAMI_SEND}`);
+      assert.ok(await flag(), 'umami.disabled must survive the reload');
+
+      // 5. Keyboard activation restores counting.
+      await button.focus();
+      await p.keyboard.press('Enter');
+      await status.filter({ hasText: spec.counted }).waitFor({ timeout: 5000 });
+      assert.equal(await flag(), null, 'umami.disabled must be removed after resuming');
+      console.log(`[opt-out ${spec.route}] counted -> opted-out -> reload (0 new POSTs, ${postsBeforeReload} total) -> counted; button ${Math.round(box.width)}x${Math.round(box.height)}px`);
+    } finally {
+      await ctx.close();
+    }
+  });
+
+  test(`browser-journey: closeout — ${spec.name} ${spec.route} with localStorage throwing shows a clear message and no usable toggle`, async () => {
+    const ctx = await browser.newContext({ viewport: { width: 390, height: 844 }, userAgent: DESKTOP_CHROME_UA });
+    // No network to the tracker: this test must not create a page view.
+    await ctx.route('https://stats.915websites.com/**', (route) => route.abort());
+    await ctx.addInitScript(() => {
+      Object.defineProperty(window, 'localStorage', {
+        configurable: true,
+        get() {
+          throw new DOMException('denied', 'SecurityError');
+        },
+      });
+    });
+    const p = await ctx.newPage();
+    const errors = [];
+    p.on('pageerror', (e) => errors.push(String(e)));
+    try {
+      const response = await p.goto(`${LIVE_ORIGIN}${spec.route}`, { waitUntil: 'networkidle' });
+      assert.equal(response.status(), 200);
+      await p.locator('[data-opt-out-status]').filter({ hasText: spec.unavailable }).waitFor({ timeout: 5000 });
+      assert.equal(await p.locator('button[data-opt-out-toggle]:visible').count(), 0, 'no usable toggle when storage is unavailable');
+      assert.deepEqual(errors, [], 'the page must not throw when localStorage does');
+    } finally {
+      await ctx.close();
+    }
+  });
+}

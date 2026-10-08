@@ -176,6 +176,42 @@ export const DICTIONARY = {
   termsPageTitle: { en: 'Terms of Service - 915 TLDR', es: 'Términos de servicio - 915 TLDR' },
   contactPageTitle: { en: '915 TLDR — Contact', es: '915 TLDR — Contacto' },
 
+  // --- Umami opt-out utility pages (/opt-out, /es/opt-out — noindex, owner bookmarks them) ---
+  // Spanish: Claude-drafted, NOT human-reviewed. Neutral Latin American Spanish, usted forms.
+  optOutPageTitle: { en: 'Analytics opt-out - 915 TLDR', es: 'Exclusión de estadísticas - 915 TLDR' },
+  optOutPageDescription: {
+    en: 'Stop your own visits from being counted in 915 TLDR analytics on this device.',
+    es: 'Evite que sus propias visitas se cuenten en las estadísticas de 915 TLDR desde este dispositivo.',
+  },
+  optOutHeading: { en: 'Analytics opt-out', es: 'Exclusión de estadísticas' },
+  optOutIntro: {
+    en: '915 TLDR counts page views with Umami, a self-hosted tool that sets no cookies. If you run or test this site, you can stop your visits on this device from being counted.',
+    es: '915 TLDR cuenta las visitas con Umami, una herramienta alojada por nosotros que no usa cookies. Si usted administra o prueba este sitio, puede evitar que sus visitas desde este dispositivo se cuenten.',
+  },
+  optOutChecking: { en: 'Checking this browser…', es: 'Revisando este navegador…' },
+  optOutStatusCounted: {
+    en: 'Your visits on this device ARE being counted.',
+    es: 'Sus visitas desde este dispositivo SÍ se están contando.',
+  },
+  optOutStatusOptedOut: {
+    en: 'Your visits on this device are NOT being counted.',
+    es: 'Sus visitas desde este dispositivo NO se están contando.',
+  },
+  optOutStatusUnavailable: {
+    en: 'This browser is blocking site storage, so this setting cannot be read or changed here.',
+    es: 'Este navegador bloquea el almacenamiento del sitio, por lo que aquí no se puede leer ni cambiar este ajuste.',
+  },
+  optOutButtonStop: { en: 'Stop counting my visits', es: 'Dejar de contar mis visitas' },
+  optOutButtonResume: { en: 'Count my visits again', es: 'Volver a contar mis visitas' },
+  optOutScope: {
+    en: 'This only affects this browser on this site. Clearing site data, using private browsing, or switching to another browser or device resets it, and you will need to visit this page again there. Each web address (for example 915tldr.com and dev.915tldr.com) keeps its own setting. No cookies are used; the setting is a single flag stored in this browser.',
+    es: 'Esto solo afecta a este navegador en este sitio. Si borra los datos del sitio, usa la navegación privada o cambia de navegador o de dispositivo, el ajuste se restablece y deberá visitar esta página de nuevo allí. Cada dirección web (por ejemplo 915tldr.com y dev.915tldr.com) conserva su propio ajuste. No se usan cookies; el ajuste es una sola marca guardada en este navegador.',
+  },
+  optOutNoScript: {
+    en: 'This page needs JavaScript to read and change the setting.',
+    es: 'Esta página necesita JavaScript para leer y cambiar el ajuste.',
+  },
+
   // --- RSS ---
   rssFeedTitle: { en: '915 TLDR', es: '915 TLDR' },
 } as const satisfies Record<string, DictionaryEntry>;

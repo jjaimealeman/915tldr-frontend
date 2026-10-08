@@ -18,6 +18,7 @@ import { writeTagFactsEs } from '../../../lib/archive/tier-facts.ts';
 import { t } from '../../../lib/i18n/dictionary.ts';
 import { buildEsIndex, localizedArticleView, categoryLabel } from '../../../lib/i18n/spanish-view.ts';
 import type { EsEntryData } from '../../../lib/i18n/spanish-view.ts';
+import { tagPageSeo } from '../../../lib/i18n/tag-page.ts';
 
 export async function getStaticPaths() {
   const entries = await getCollection('articles');
@@ -74,6 +75,7 @@ const esIndex = buildEsIndex(esEntries);
   title={t('tagPageTitle', 'es', { tag: name })}
   description={t('tagPageDescription', 'es', { tag: name })}
   canonicalPath={`/es/tag/${slug}`}
+  {...tagPageSeo('es')}
   jsonLd={[breadcrumbNode([{ name: t('home', 'es'), path: '/es' }, { name, path: `/es/tag/${slug}` }])]}
 >
   <header data-block>

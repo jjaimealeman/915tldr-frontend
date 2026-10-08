@@ -275,3 +275,76 @@ Limits: the markup guard reads `Base.astro` source, not a rendered page, and the
 was not rebuilt, so no rendered `/es` HTML has been checked against the new attribute. The first real
 confirmation is the live test going green after the deploy:
 `node --test --test-name-pattern="06-16 gap" tests/integration/browser-journeys.test.mjs`.
+
+## Post-phase closeout
+
+Branch `feature/phase-06-closeout`. Written without a local full build (it writes to production KV),
+so every rendered-HTML claim below is unverified until the deploy.
+
+### A. Spanish tag pages: noindex, out of the Spanish sitemap (owner decision 2026-10-07)
+
+- `/es/tag/*` (20,105 URLs) now render `<meta name="robots" content="noindex">` and no hreflang
+  alternates; the decision lives in `src/lib/i18n/tag-page.ts` (`tagPageSeo`) and is spread onto
+  `<Base>` by both tag templates, the same `noindex`/`alternates` props the fallback `/es` article
+  pages use.
+- English `/tag/*` pages declare `self` alternates (en + x-default, no `es`): a noindex page is not
+  advertised as a language alternate (held-article precedent).
+- `astro.config.mjs` sitemap filter drops `/es/tag/<slug>` via `isSitemapExcludedPath`
+  (`src/lib/i18n/sitemap.ts`). Kept: `/es/tags` and `/es/source/*` (not touched; see the report).
+- Tests, written first: `tests/unit/tag-noindex.test.mjs` (pure decision, sitemap predicate, source
+  wiring, then full-corpus rendered output and sitemap files), plus one `astro-config` assertion and
+  the sitemap URL-count cross-check in `news-sitemap.test.mjs` now subtracting the `/es/tag/*` pages.
+- The full-corpus tests that read `dist/` are gated by `tests/helpers/dist-fresh.mjs`: against the
+  stale local `dist/` (built 2026-10-04) they report a visible skip, they do not pass vacuously.
+  After any real `pnpm build` they run in full.
+- Expected consequence, not a defect: these pages re-render on the next builds, so the archived
+  `es/tags/*` (about 17.7k) and the English tag objects re-upload through the post-sync chain over
+  about 2 builds. No CSS change, so no stale-stylesheet window.
+
+### B. Fragile live tests in `url-shapes.test.mjs` (the 3 that failed on 2026-10-07)
+
+- **T-04-48 stale-deploy guard** now compares content: `git diff` over the guarded paths between the
+  deployed commit and local HEAD (`tests/helpers/deploy-guard.mjs`), not ancestry. A merge commit on
+  develop/main and a feature-branch HEAD are not ancestors of each other even with identical code.
+  Deployed commit not present locally: fails with the `git fetch` remedy. `/version.json` commit
+  `"main"` (or any non-hex ref, cron rebuilds): the test reports a visible skip with that reason, it
+  is not trusted. Unit tests with a throwaway temp repo reproduce the no-ancestry shape:
+  `tests/unit/deploy-guard.test.mjs`.
+- **Fallback `/es` article search** looks at the 5 newest RSS items, then 300 evenly spread canonical
+  article paths from `/sitemap-en-0.xml` (deterministic stride, `tests/helpers/live-samples.mjs`), and
+  requires `[data-fallback-note]` plus robots noindex. None found: the test FAILS and says how many
+  candidates were searched. The dependent "a fallback /es article is 200..." test fails (not skips)
+  if the search found nothing. First fallback found after 6 of 305 candidates.
+- **Tag pair contract** (follow-up to A): the old live test required reciprocal hreflang on
+  `/es/tag/*`, which is now deliberately gone. Replaced by `assertTagPairContract`: `/es/tag/*` is 200,
+  lang es, noindex, no alternates; the English twin is indexable with en + x-default only. Archived
+  objects not yet re-uploaded are logged as a FINDING (REND-12 backlog), static pages are strict.
+- Live run against `https://dev.915tldr.com` (GET only), 2026-10-07 22:0x MDT: 88 of 90 pass. The 2
+  failures are both correct pre-deploy: the guard reports a real guarded-path diff (task A's five
+  files are not deployed yet) and the tag-pair test reports `/es/tag/2028-election must be robots
+  noindex` (old markup still live). Both go green once the closeout branch is deployed.
+
+### C. Umami opt-out pages `/opt-out` and `/es/opt-out`
+
+- Tracker semantics, read from the served `https://stats.915websites.com/script.js` on 2026-10-07: it
+  reads `window.localStorage` inside try/catch and, before every send, `getItem("umami.disabled")`;
+  any truthy value (any non-empty string) means do not send. Per origin, so each host needs one visit.
+- Pages: `src/pages/opt-out.astro`, `src/pages/es/opt-out.astro`, shared body
+  `src/components/OptOut.astro`, logic `src/lib/opt-out.ts` (unit-tested with fake, throwing and
+  write-ignoring storages), copy in the fixed dictionary (`optOut*` keys). noindex, no hreflang
+  alternates, excluded from both sitemaps (`isSitemapExcludedPath`), absent from RSS/news feeds,
+  linked from no nav or footer. No CSS change (reuses `data-contact-column`, `data-lede`,
+  `data-form-note`, `data-feed-controls`, `data-load-more` hooks), so no stale-stylesheet window.
+- Spanish copy is Claude-drafted, not human-reviewed.
+- Live test (written first): `tests/integration/browser-journeys.test.mjs`, 4 tests named
+  `closeout`. Recorded RED on 2026-10-07 22:0x MDT against `https://dev.915tldr.com` before the pages
+  existed: all 4 fail with `/opt-out must answer 200` / `404 !== 200` (and the same for `/es/opt-out`).
+  Not skipped. Run again after the deploy:
+  `node --test --test-name-pattern="closeout" tests/integration/browser-journeys.test.mjs`.
+  Creates at most 2 Umami page views per run (the first, opted-in load per language).
+- Rehearsal without a deploy (a simulation, not the real thing): the two pages built in an isolated
+  scratch Astro project (no D1, no KV), served to Chromium at 390px through request routing with the
+  REAL tracker script and a stubbed `/api/send`: status flips, flag set, reload keeps it, no POST after
+  opting out, one POST while counted, keyboard Enter restores, button 44px tall inside the viewport,
+  throwing `localStorage` gives the clear message with no toggle and no page error. English and
+  Spanish both pass.

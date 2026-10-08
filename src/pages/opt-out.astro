@@ -1,0 +1,22 @@
+---
+// Post-phase-06 closeout, task C: owner-only Umami opt-out page (English). noindex, no hreflang
+// alternates (a noindex page is never advertised as a language alternate), excluded from both
+// sitemaps (`isSitemapExcludedPath`), absent from the RSS/news feeds (articles only) and linked from
+// no nav or footer — the owner bookmarks the URL. localStorage is per origin, so this page ships
+// with the site and must be visited once on each host (915tldr.com, dev.915tldr.com).
+import Base from '../layouts/Base.astro';
+import OptOut from '../components/OptOut.astro';
+import { t } from '../lib/i18n/dictionary.ts';
+---
+
+<Base
+  page="opt-out"
+  lang="en"
+  title={t('optOutPageTitle', 'en')}
+  description={t('optOutPageDescription', 'en')}
+  canonicalPath="/opt-out"
+  noindex
+  alternates="none"
+>
+  <OptOut lang="en" />
+</Base>
