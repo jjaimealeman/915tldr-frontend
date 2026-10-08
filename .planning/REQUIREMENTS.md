@@ -48,16 +48,16 @@
 
 ### Bilingual
 
-- [ ] **I18N-01**: Each article carries an English and a Spanish summary, generated in the same model call
-- [ ] **I18N-02**: Source language is detected at ingest and stored
-- [ ] **I18N-03**: Spanish-language articles render with `lang="es"` on the appropriate element
-- [ ] **I18N-04**: `/es/...` routes exist for every public page type
-- [ ] **I18N-05**: Every page emits correct `hreflang` pairs including `x-default`
+- [x] **I18N-01**: Each article carries an English and a Spanish summary, generated in the same model call
+- [x] **I18N-02**: Source language is detected at ingest and stored
+- [x] **I18N-03**: Spanish-language articles render with `lang="es"` on the appropriate element
+- [x] **I18N-04**: `/es/...` routes exist for every public page type
+- [x] **I18N-05**: Every page emits correct `hreflang` pairs including `x-default`
 - [x] **I18N-06**: Separate sitemaps and RSS feeds exist per language
 - [x] **I18N-07**: Card and headline layouts survive Spanish text running 15-25% longer without overflow or clipping
-- [ ] **I18N-08**: Language is chosen by the reader, never by IP or browser auto-redirect
-- [ ] **I18N-09**: Spanish summaries carry the same AI-generation disclosure as English
-- [ ] **I18N-10**: `Accept-Language` is logged at the edge to inform the `/es` launch decision
+- [x] **I18N-08**: Language is chosen by the reader, never by IP or browser auto-redirect
+- [x] **I18N-09**: Spanish summaries carry the same AI-generation disclosure as English
+- [x] **I18N-10**: Browser language is recorded per page view by the owner's self-hosted Umami (D-11) to inform how much to promote Spanish *(owner-confirmed 2026-10-07; v1 tag pending; wording amended from edge `Accept-Language` logging)*
 
 ### Design
 
@@ -280,16 +280,16 @@ Deferred. Tracked, not in this roadmap.
 | CONT-10 | Phase 2 | Complete |
 | CONT-11 | Phase 2 | Complete |
 | CONT-12 |Phase 2| Complete |
-| I18N-01 | Phase 6 | Pending |
-| I18N-02 | Phase 6 | Pending |
-| I18N-03 | Phase 6 | Pending |
-| I18N-04 | Phase 6 | Pending |
-| I18N-05 | Phase 6 | Pending |
+| I18N-01 | Phase 6 | Complete |
+| I18N-02 | Phase 6 | Complete |
+| I18N-03 | Phase 6 | Complete |
+| I18N-04 | Phase 6 | Complete |
+| I18N-05 | Phase 6 | Complete |
 | I18N-06 | Phase 6 | Complete |
 | I18N-07 | Phase 1 | Complete |
-| I18N-08 | Phase 6 | Pending |
-| I18N-09 | Phase 6 | Pending |
-| I18N-10 | Phase 6 | Pending |
+| I18N-08 | Phase 6 | Complete |
+| I18N-09 | Phase 6 | Complete |
+| I18N-10 | Phase 6 | Complete |
 | DSGN-01 | Phase 1 | Complete |
 | DSGN-02 | Phase 1 | Complete |
 | DSGN-03 | Phase 1 | Complete |

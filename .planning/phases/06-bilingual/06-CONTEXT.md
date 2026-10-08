@@ -77,6 +77,7 @@ push (deferred); imagery, islands, search (Phases 7–9).
   it) and explicit owner approval. The 60,000 static-file budget already assumes this (59,836
   projected). Spanish pages for archived articles re-render per Phase 5 D-11, within REND-12's
   per-invocation CPU ceiling.
+  - **Amended 2026-10-07 (owner decision):** the backfill shipped as the newest 10,000 articles, translation-only with flagged rows held (cost $3.41, 8.8% of public articles clean Spanish); older articles serve the D-05 English fallback until a later, separately approved extension.
 - **D-11:** **I18N-10 is met through Umami**, not Worker code. The owner's self-hosted Umami tag
   goes on **both v1 (now, as a separate quick task in `915tldr.com2`) and v2**:
   `<script defer src="https://stats.915websites.com/script.js" data-website-id="8e82b1af-925f-4a5a-b0d1-e02f616ae077"></script>`.

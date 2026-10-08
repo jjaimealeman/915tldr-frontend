@@ -1,10 +1,10 @@
 ---
 phase: 06-bilingual
 verified: 2026-10-05T12:50:00Z
-status: gaps_found
+status: passed
 score: 5/7 must-haves verified
 behavior_unverified: 0
-overrides_applied: 0
+overrides_applied: 1
 re_verification: false
 gaps:
   - truth: "Every article exists in English and Spanish (phase goal; ROADMAP SC1 'the Spanish backfill of the archive runs via the Batch API')"
@@ -41,6 +41,11 @@ human_verification:
   - test: "Mobile (390px) look at /es: category nav, switcher, a translated article, a fallback article"
     expected: "Two-column nav, no overflow; switcher reachable"
     why_human: "All recorded screenshots are 1280px; the nav fix test is asserted but I did not drive a browser (a Playwright run would add Umami page views)"
+overrides:
+  - must_have: "Every article exists in English and Spanish; the Spanish backfill of the archive runs via the Batch API"
+    reason: "Shape B accepted on cost: newest 10,000 articles, translation-only, flagged rows held; remainder serves the D-05 English fallback until a later extension"
+    accepted_by: "Jaime Aleman"
+    accepted_at: "2026-10-07T21:37:00-06:00"
 ---
 
 # Phase 6: Bilingual Verification Report
@@ -168,3 +173,15 @@ Two things keep this from `passed`. First, the phase goal says every article exi
 
 _Verified: 2026-10-05T12:50:00Z_
 _Verifier: Claude (gsd-verifier)_
+
+
+## Owner decisions (2026-10-07, ~21:37 MDT, orchestrator session)
+
+Jaime replied "1. confirmed. 2. confirmed. 3. confirmed. 4. confirmed. all approved." to the four open decisions listed in the orchestrator's verification summary. Interpretation recorded here so it can be corrected:
+
+1. **Coverage**: accepted as the Phase 6 deliverable (override above); ROADMAP goal, SC1 and SC5 and CONTEXT D-10 amended to the shipped scope. Extending to the 30,579 older articles remains a possible later, separately approved step (about $1.40 per extra month, higher hold rate with age).
+2. **Umami**: Jaime confirmed the language-view check and approved installing the v1 Umami tag (D-11's never-done quick task in 915tldr.com2). The language view itself was NOT independently verified (Umami needs auth); I18N-10 is recorded as owner-confirmed. The v1 tag is a post-phase quick task: until it ships, only dev traffic is measured.
+3. **Spanish tag pages**: approved to be noindex and dropped from the Spanish sitemap while their cards are mostly English fallback (20,105 `/es/tag/*` URLs today). Post-phase quick task.
+4. **Phone check**: confirmed; four screenshots emailed 2026-10-07 21:33 MDT (English and Spanish home and article, two-column nav live on the real phone).
+
+Post-phase quick tasks (each needs a feature branch from Jaime): (a) `/es/tag/*` noindex + remove from `sitemap-es`; (b) fix the 3 fragile live tests in `url-shapes.test.mjs` (ancestry guard after the merge shape; two fallback-page samples now all translated); (c) v1 Umami tag in 915tldr.com2; (d) Umami opt-out page on 915tldr.com. Pre-cutover items still open: stale-asset window recurs after every CSS change; Batch enqueued-token limit unverified; production KV written by local builds.
