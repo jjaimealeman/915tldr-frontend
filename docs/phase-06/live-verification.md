@@ -348,3 +348,19 @@ so every rendered-HTML claim below is unverified until the deploy.
   opting out, one POST while counted, keyboard Enter restores, button 44px tall inside the viewport,
   throwing `localStorage` gives the clear message with no toggle and no page error. English and
   Spanish both pass.
+
+### D. Privacy pages no longer name the Umami host (owner decision 2026-10-08)
+
+- `src/pages/privacy.astro` and `src/pages/es/privacy.astro`: the linked `stats.915websites.com`
+  (anchor, rel/target, new-tab icon) is now plain text, "self-hosted by 915website.com" /
+  "alojada por 915website.com". The `docs.umami.is` citation is unchanged. The tracker `<script src>`
+  in `Base.astro` is unchanged on purpose (the host still appears in page source there; that is the
+  owner-accepted tracker tag, not visible text).
+- The brief also said to keep a sentence "Prefer not to be counted? ... /opt-out". Neither privacy
+  page contained it (the opt-out pages were built unlinked, owner-only, in section C), so nothing
+  was kept or added. If a public link to `/opt-out` is wanted, that is a separate decision.
+- Test: `tests/unit/privacy-no-analytics-host.test.mjs` (written first, recorded 5 red, then green).
+  Source-based; one built-output check is a deliberate dist-fresh skip until a real build.
+- Unverified until deploy: the rendered HTML of `/privacy` and `/es/privacy` (no local build was
+  run). After deploy: `curl -s https://915tldr.com/privacy | grep -c stats.915websites.com` should
+  print 1 (the tracker tag in `<head>`) and the host must not appear in the page body. No CSS change.
