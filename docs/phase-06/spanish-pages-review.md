@@ -192,3 +192,13 @@ content is data-driven, not something this packet can show statically.
 - **Scope:** covers all four Spanish pages (About, Privacy, Terms, Contact) and the English
   Privacy correction (D-11/T-06-26) reviewed in this packet.
 - **Edits requested:** none.
+
+## Note 2026-10-08: Umami host removed from the Privacy pages
+
+The Privacy sentence reviewed above that names the analytics host (`stats.915websites.com`, EN and
+ES) was reworded on the owner's instruction (2026-10-08) so the dashboard URL is no longer visible
+text or a link on any public page. Current wording: EN "We run our own analytics, Umami,
+self-hosted by 915website.com — your visits are never sent to a third party."; ES "Usamos nuestra
+propia herramienta de análisis, Umami, alojada por 915website.com — sus visitas nunca se envían a un
+tercero." The table above is left as the historical record of what was reviewed. The Spanish
+sentence is Claude-drafted and not human-reviewed.

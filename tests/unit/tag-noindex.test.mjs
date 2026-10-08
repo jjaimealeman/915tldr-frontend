@@ -57,7 +57,7 @@ test('isSitemapExcludedPath: every /es/tag/<slug> is excluded; the rest of the S
   assert.equal(isSitemapExcludedPath('/es/tag/a-b-c'), true);
   // Kept, per the owner decision and the task scope:
   assert.equal(isSitemapExcludedPath('/es/tags'), false);
-  assert.equal(isSitemapExcludedPath('/es/source/ktsm'), false);
+  // (/es/source/<slug> followed the tags into the exclusion on 2026-10-08 — see source-noindex.test.mjs.)
   assert.equal(isSitemapExcludedPath('/es'), false);
   assert.equal(isSitemapExcludedPath('/es/crime/some-story-0d1f2a3b-0000-4000-8000-000000000000'), false);
   // English tag pages stay in the English sitemap:
