@@ -29,7 +29,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 3: Foundation & Read-Budget Guardrails** - Astro scaffold, the CI D1-import assertion, the render manifest, and the measurements that decide the render step (completed 2026-09-26)
 - [ ] **Phase 4: Static Generation, Templates & SEO** - A fail-loud D1 loader and every public page type generated at build time
 - [x] **Phase 5: Hybrid Archive & Zero-Reads Proof** - R2 archive tier, tag tiering, and the measured proof of zero D1 reads on the public path (completed 2026-10-03)
-- [ ] **Phase 6: Bilingual** - Spanish summaries at ingest, `/es` routing, hreflang pairs and per-language feeds
+- [x] **Phase 6: Bilingual** - Spanish summaries at ingest, `/es` routing, hreflang pairs and per-language feeds (completed 2026-10-07)
 - [ ] **Phase 7: Imagery & Share Cards** - Junk-image filter, generated imagery, and share cards validated on real platforms
 - [ ] **Phase 8: Server Islands & Interactivity** - Weather, forecast and theme islands that degrade visibly instead of failing silently
 - [ ] **Phase 9: Search** - Backend chosen by measurement, with no quiet exception to the zero-reads guarantee
@@ -376,18 +376,18 @@ Plans:
 
 ### Phase 6: Bilingual
 
-**Goal**: Every article exists in English and Spanish, and the reader — never an IP lookup — chooses which one they see.
+**Goal**: Every new article is published in English and Spanish, the newest 10,000 archive articles are backfilled (older articles serve the English fallback until a later, separately approved extension), and the reader — never an IP lookup — chooses which one they see. *(Scope amended 2026-10-07 by owner decision; was: every article exists in Spanish.)*
 **Depends on**: Phase 2 (prompt fixed first), Phase 5 (tiering absorbs the doubled corpus)
 **Requirements**: I18N-01, I18N-02, I18N-03, I18N-04, I18N-05, I18N-06, I18N-08, I18N-09, I18N-10
 **Success Criteria** (what must be TRUE):
 
-  1. Each newly ingested article carries an English and a Spanish summary produced in the same model call, with source language detected and stored; the Spanish backfill of the archive runs via the Batch API only after a costed dry run and approval.
+  1. Each newly ingested article carries an English and a Spanish summary produced in the same model call, with source language detected and stored; the Spanish backfill ran via the Batch API only after a costed dry run and approval, scoped by owner decision (2026-10-04) to the newest 10,000 articles, translation-only with flagged rows held, for $3.41; extending to older articles is a later step needing its own approval.
   2. `/es/...` exists for every public page type; every page emits self-referencing `hreflang` pairs plus `x-default`, verified per page pair, with separate sitemaps and RSS feeds per language.
   3. Requesting any page with a Spanish `Accept-Language` header lands on the English page — language changes only when the reader chooses it, with no IP or browser auto-redirect anywhere in the stack.
   4. Spanish-language articles render with `lang="es"` on the correct element and carry the same AI-generation disclosure as their English counterparts.
-  5. `Accept-Language` is logged at the edge and a report of Spanish-preferring request share is available to inform the `/es` launch decision on 2-4 weeks of measured data.
+  5. Browser language is recorded per page view by the owner's self-hosted Umami (D-11) and its language report informs how much to promote Spanish; `/es` is public from day one (D-09), not gated on 2-4 weeks of data. *(Amended 2026-10-07: superseded the edge-logging and 2-4-week wording.)*
 
-**Plans:** 15/17 plans executed
+**Plans:** 17/17 plans complete
 
 Plans:
 **Wave 1**
@@ -430,12 +430,12 @@ Plans:
 
 **Wave 9** *(blocked on Wave 8 completion)*
 
-- [ ] 06-14-PLAN.md — Live ingest verified; resumable Batch backfill proven on a 200-row tracer chunk
+- [x] 06-14-PLAN.md — Live ingest verified; resumable Batch backfill proven on a 200-row tracer chunk
 - [x] 06-16-PLAN.md — Live verification: real-browser language journeys, Accept-Language → English, `/es` URL contract, Umami language report
 
 **Wave 10** *(blocked on Wave 9 completion)*
 
-- [ ] 06-17-PLAN.md — Backfill to completion under the ceiling; live convergence of archived Spanish pages
+- [x] 06-17-PLAN.md — Backfill to completion under the ceiling; live convergence of archived Spanish pages
 
 **UI hint**: yes
 
@@ -553,7 +553,7 @@ Phase 3 and may run alongside Phases 5-7.
 | 3. Foundation & Read-Budget Guardrails | 7/7 | Complete    | 2026-09-26 |
 | 4. Static Generation, Templates & SEO | 12/12 | In Progress|  |
 | 5. Hybrid Archive & Zero-Reads Proof | 21/21 | Complete    | 2026-10-03 |
-| 6. Bilingual | 15/17 | In Progress|  |
+| 6. Bilingual | 17/17 | Complete    | 2026-10-07 |
 | 7. Imagery & Share Cards | 0/TBD | Not started | - |
 | 8. Server Islands & Interactivity | 0/TBD | Not started | - |
 | 9. Search | 0/TBD | Not started | - |
