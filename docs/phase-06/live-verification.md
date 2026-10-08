@@ -300,3 +300,26 @@ so every rendered-HTML claim below is unverified until the deploy.
 - Expected consequence, not a defect: these pages re-render on the next builds, so the archived
   `es/tags/*` (about 17.7k) and the English tag objects re-upload through the post-sync chain over
   about 2 builds. No CSS change, so no stale-stylesheet window.
+
+### B. Fragile live tests in `url-shapes.test.mjs` (the 3 that failed on 2026-10-07)
+
+- **T-04-48 stale-deploy guard** now compares content: `git diff` over the guarded paths between the
+  deployed commit and local HEAD (`tests/helpers/deploy-guard.mjs`), not ancestry. A merge commit on
+  develop/main and a feature-branch HEAD are not ancestors of each other even with identical code.
+  Deployed commit not present locally: fails with the `git fetch` remedy. `/version.json` commit
+  `"main"` (or any non-hex ref, cron rebuilds): the test reports a visible skip with that reason, it
+  is not trusted. Unit tests with a throwaway temp repo reproduce the no-ancestry shape:
+  `tests/unit/deploy-guard.test.mjs`.
+- **Fallback `/es` article search** looks at the 5 newest RSS items, then 300 evenly spread canonical
+  article paths from `/sitemap-en-0.xml` (deterministic stride, `tests/helpers/live-samples.mjs`), and
+  requires `[data-fallback-note]` plus robots noindex. None found: the test FAILS and says how many
+  candidates were searched. The dependent "a fallback /es article is 200..." test fails (not skips)
+  if the search found nothing. First fallback found after 6 of 305 candidates.
+- **Tag pair contract** (follow-up to A): the old live test required reciprocal hreflang on
+  `/es/tag/*`, which is now deliberately gone. Replaced by `assertTagPairContract`: `/es/tag/*` is 200,
+  lang es, noindex, no alternates; the English twin is indexable with en + x-default only. Archived
+  objects not yet re-uploaded are logged as a FINDING (REND-12 backlog), static pages are strict.
+- Live run against `https://dev.915tldr.com` (GET only), 2026-10-07 22:0x MDT: 88 of 90 pass. The 2
+  failures are both correct pre-deploy: the guard reports a real guarded-path diff (task A's five
+  files are not deployed yet) and the tag-pair test reports `/es/tag/2028-election must be robots
+  noindex` (old markup still live). Both go green once the closeout branch is deployed.

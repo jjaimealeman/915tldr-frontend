@@ -10,6 +10,7 @@ Entries are named `YYYY-MM-DD-HHMM_slug.md` and grouped by month, newest first.
 
 | Date | Entry | Keywords |
 |------|-------|----------|
+| 2026-10-07 | [Content-based deploy guard and wide fallback-page search in live tests](2026-10-07-2202_content-based-deploy-guard-and-wide-fallback-search.md) | `[TESTING]` `[SEO]` `[I18N]` |
 | 2026-10-07 | [Noindex the Spanish tag pages and drop them from the Spanish sitemap](2026-10-07-2157_noindex-spanish-tag-pages-and-drop-from-sitemap.md) | `[SEO]` `[I18N]` `[TESTING]` |
 | 2026-10-07 | [Phase 6 (Bilingual) complete with owner overrides](2026-10-07-2139_phase-06-complete.md) | `[DOCUMENTATION]` `[PLANNING]` `[MILESTONE]` |
 | 2026-10-05 | [Phase 6 verification report, gaps found](2026-10-05-0630_phase-06-verification-report.md) | `[DOCUMENTATION]` `[PLANNING]` `[TESTING]` |
