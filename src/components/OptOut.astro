@@ -1,0 +1,74 @@
+---
+// Post-phase-06 closeout, task C: the body of `/opt-out` and `/es/opt-out` (shared, so the two
+// pages cannot drift). Shows whether THIS browser's visits are counted by Umami and offers one
+// button to flip it; the logic is `src/lib/opt-out.ts` (unit-tested), the strings are the fixed
+// EN/ES dictionary. Plain semantic markup, no framework, no cookies, no network requests.
+//
+// Styling deliberately adds NO CSS: it reuses existing hooks so this change does not alter the
+// stylesheet hash (a CSS change opens the stale-asset window for archived pages — Phase 6 open item).
+//   [data-contact-column] / [data-lede] / [data-form-note]  — the narrow reading column, as /privacy
+//   [data-feed-controls] / [data-load-more]                  — a 44px-minimum bordered button
+// `data-load-more` is only a presentational hook here: nothing in `src/` binds behaviour to it.
+//
+// The button starts `hidden`; the script reveals it once the status is known. Without JavaScript
+// the <noscript> note explains why nothing can be changed.
+import { t } from '../lib/i18n/dictionary.ts';
+import type { Language } from '../lib/article-url.ts';
+
+export interface Props {
+  lang: Language;
+}
+const { lang } = Astro.props;
+---
+
+<div
+  data-contact-column
+  data-opt-out
+  data-text-counted={t('optOutStatusCounted', lang)}
+  data-text-opted-out={t('optOutStatusOptedOut', lang)}
+  data-text-unavailable={t('optOutStatusUnavailable', lang)}
+  data-label-stop={t('optOutButtonStop', lang)}
+  data-label-resume={t('optOutButtonResume', lang)}
+>
+  <h1>{t('optOutHeading', lang)}</h1>
+  <p data-lede>{t('optOutIntro', lang)}</p>
+  <p data-lede data-opt-out-status role="status" aria-live="polite">{t('optOutChecking', lang)}</p>
+  <div data-feed-controls>
+    <button type="button" data-load-more data-opt-out-toggle hidden>{t('optOutButtonStop', lang)}</button>
+  </div>
+  <p data-form-note>{t('optOutScope', lang)}</p>
+  <noscript><p data-form-note>{t('optOutNoScript', lang)}</p></noscript>
+</div>
+
+<script>
+  import { readOptOutStatus, toggleOptOut, type OptOutStatus } from '../lib/opt-out.ts';
+
+  const root = document.querySelector<HTMLElement>('[data-opt-out]');
+  const statusEl = root?.querySelector<HTMLElement>('[data-opt-out-status]');
+  const button = root?.querySelector<HTMLButtonElement>('button[data-opt-out-toggle]');
+
+  if (root && statusEl && button) {
+    // Reading `window.localStorage` itself can throw (blocked site data); treat that as unavailable.
+    let storage: Storage | undefined;
+    try {
+      storage = window.localStorage;
+    } catch {
+      storage = undefined;
+    }
+
+    const render = (status: OptOutStatus) => {
+      const d = root.dataset;
+      if (status === 'unavailable') {
+        statusEl.textContent = d.textUnavailable ?? '';
+        button.hidden = true;
+        return;
+      }
+      statusEl.textContent = (status === 'opted-out' ? d.textOptedOut : d.textCounted) ?? '';
+      button.textContent = (status === 'opted-out' ? d.labelResume : d.labelStop) ?? '';
+      button.hidden = false;
+    };
+
+    button.addEventListener('click', () => render(toggleOptOut(storage)));
+    render(readOptOutStatus(storage));
+  }
+</script>

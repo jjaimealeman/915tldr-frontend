@@ -8,14 +8,13 @@
 // deployed commit actually matches local HEAD — a stale deploy verified by mistake would make
 // every other check here meaningless.
 //
-// 05-11 widened this guard beyond exact equality (see the T-04-48 test below for the full
-// rationale): this project deploys per-phase feature branches that accumulate doc-only commits
-// AFTER a deploy (every plan's own SUMMARY commit), so local HEAD routinely runs ahead of — or,
-// after a fresh `pnpm run ci:local`/`wrangler deploy`, exactly equals — the deployed commit. The
-// guard now accepts equality OR an ancestor relationship in EITHER direction, as long as there
-// is ZERO diff on the guarded paths between the two commits — strictly as strict as a
-// single-direction check (any guarded-path diff still fails it), just not direction-blind to
-// this repo's own real workflow.
+// The guard compares CONTENT, not history (post-phase-06 closeout; logic and its unit tests live in
+// tests/helpers/deploy-guard.mjs and tests/unit/deploy-guard.test.mjs): this project deploys merge
+// commits from develop/main while local HEAD sits on a feature branch, so the deployed commit and
+// HEAD are routinely NOT ancestors of each other even when every guarded path is identical. What
+// matters is a zero `git diff` over the guarded paths. If the deployed commit is not present locally
+// the test fails with the `git fetch` remedy; if `/version.json` carries a ref such as "main" (a
+// cron rebuild: unknown commit) the test reports a visible skip reason, never a silent pass.
 //
 // Every redirect-producing case runs TWICE: once with browser navigation headers
 // (`Sec-Fetch-Mode: navigate`, `Sec-Fetch-Dest: document`, `Sec-Fetch-Site: none`, `Accept:
@@ -36,6 +35,8 @@ import {
   pickArchivedTags,
   pickStaticTag,
 } from '../helpers/archive-sample.mjs';
+import { evaluateDeployGuard } from '../helpers/deploy-guard.mjs';
+import { canonicalArticlePathsFromSitemap, strideSample } from '../helpers/live-samples.mjs';
 
 // T-04-48's guarded paths: a diff here between the deployed commit and local HEAD means the
 // live site may not be running the code these tests are written against.
@@ -43,6 +44,8 @@ const GUARDED_PATHS = ['src', 'tools', 'wrangler.jsonc', 'package.json', 'astro.
 
 const LIVE_ORIGIN = process.env.LIVE_ORIGIN ?? 'https://dev.915tldr.com';
 const ARTICLE_SAMPLE_SIZE = 5;
+// Wide, deterministic search for a fallback /es page (task B): evenly spread across the English sitemap.
+const FALLBACK_SEARCH_SIZE = 300;
 const NEWS_WINDOW_MS = 48 * 60 * 60 * 1000;
 // Small slack past the exact 48h boundary — network/build-clock skew between `builtAt` (recorded
 // the instant the build process ran) and this test's own run (minutes to hours later against a
@@ -139,82 +142,25 @@ function parseCanonicalPath(pathname) {
 // T-04-48: stale-deploy guard. Every other check in this file is meaningless if the deployed
 // commit is not the commit actually under test — fail fast and name both commits.
 // ---------------------------------------------------------------------------------------------
-test('T-04-48: /version.json reports a deployed commit this checkout can trust (stale-deploy guard)', async () => {
+test('T-04-48: /version.json reports a deployed commit this checkout can trust (stale-deploy guard)', async (t) => {
   const res = await fetchManual('/version.json');
   assert.equal(res.status, 200);
   const body = await res.json();
   const localHead = execFileSync('git', ['rev-parse', 'HEAD'], { encoding: 'utf8' }).trim();
 
-  // `body.commit` is usually a short hex hash, but Cloudflare Workers Builds reports the
-  // literal branch name (observed live against dev.915tldr.com, 2026-10-01 ~16:06Z: "main") for
-  // a non-push-triggered build (this project's ~2-hourly ingest-triggered production rebuild) —
-  // its own `WORKERS_CI_COMMIT_SHA` env var is apparently the ref, not a sha, for that build
-  // trigger type. Resolve through git whenever the reported value isn't a short hash, rather
-  // than assuming the field is always sha-shaped.
-  let deployedCommit = body.commit;
-  if (!/^[0-9a-f]{4,40}$/i.test(deployedCommit)) {
-    try {
-      deployedCommit = execFileSync('git', ['rev-parse', deployedCommit], {
-        encoding: 'utf8',
-        stdio: ['ignore', 'pipe', 'ignore'],
-      }).trim();
-    } catch {
-      assert.fail(
-        `/version.json's commit field ("${body.commit}") is neither a hex hash nor a ref this local repository can resolve — every other check in this file trusts this deploy`
-      );
-    }
+  const result = evaluateDeployGuard({
+    reportedCommit: body.commit,
+    localHead,
+    guardedPaths: GUARDED_PATHS,
+  });
+
+  if (result.status === 'unknown') {
+    // Visible, never silent: node:test prints this reason next to the skipped test.
+    t.skip(result.message);
+    return;
   }
-
-  const shortLen = Math.min(deployedCommit.length, localHead.length, 40);
-  if (deployedCommit.slice(0, shortLen) === localHead.slice(0, shortLen)) {
-    return; // exact match (full hash, or either side's shorter prefix of the same commit)
-  }
-
-  // Not an exact match. This repo's own per-phase-branch convention (`.claude/CLAUDE.md`:
-  // implementation work lives on `feature/phase-NN` until the owner merges; every plan's own
-  // SUMMARY commit lands AFTER whatever was last deployed) means local HEAD is routinely ahead
-  // of the deployed commit by commits not yet merged, and a scheduled rebuild can equally put
-  // the deployed commit ahead of what this checkout has fetched. Trust the deploy in EITHER
-  // ancestor direction, as long as there is zero diff on the guarded paths between the two
-  // commits — see the header comment above for why this is not a relaxation of T-04-48, just a
-  // direction-agnostic reading of it.
-  let ancestorDirection = null;
-  try {
-    execFileSync('git', ['merge-base', '--is-ancestor', deployedCommit, localHead], {
-      stdio: 'ignore',
-    });
-    ancestorDirection = 'deployed is an ancestor of local HEAD';
-  } catch {
-    try {
-      execFileSync('git', ['merge-base', '--is-ancestor', localHead, deployedCommit], {
-        stdio: 'ignore',
-      });
-      ancestorDirection = 'local HEAD is an ancestor of deployed';
-    } catch {
-      ancestorDirection = null;
-    }
-  }
-
-  assert.ok(
-    ancestorDirection,
-    `deployed commit (${deployedCommit}) must equal local HEAD (${localHead}), or one must be an ancestor of the other — git reports neither relationship, so this deploy cannot be trusted`
-  );
-
-  const diff = execFileSync(
-    'git',
-    ['diff', '--name-only', deployedCommit, localHead, '--', ...GUARDED_PATHS],
-    { encoding: 'utf8' }
-  ).trim();
-
-  assert.equal(
-    diff,
-    '',
-    `deployed commit (${deployedCommit}) and local HEAD (${localHead}) are related (${ancestorDirection}) but differ under the guarded paths (${GUARDED_PATHS.join(', ')}): ${diff}`
-  );
-
-  console.log(
-    `[url-shapes] T-04-48: deployed commit (${deployedCommit}) and local HEAD (${localHead}) are related (${ancestorDirection}) with zero diff under the guarded paths — trusting this deploy`
-  );
+  assert.equal(result.status, 'trusted', result.message);
+  console.log(`[url-shapes] T-04-48: ${result.message}`);
 });
 
 let sampleArticlePaths;
@@ -643,16 +589,31 @@ test('url-shapes 06-16: sample translated (from /es/rss.xml) and fallback /es ar
   assert.ok(esTranslatedPaths.length >= 1, '/es/rss.xml must list at least one translated article');
   for (const p of esTranslatedPaths) assert.ok(isCanonicalArticlePath(p), `${p} must be a canonical article path`);
 
-  // Fallback: the first recent English article whose /es page carries the fallback note.
-  for (const enPath of sampleArticlePaths) {
+  // Fallback: an English article whose /es page carries the fallback note AND robots noindex. The
+  // five newest RSS items are all translated now (live ingest translates new articles), so search
+  // them first and then a wide, deterministic sample (FALLBACK_SEARCH_SIZE evenly spread canonical
+  // article paths from the English sitemap, which lists every public article). If nothing in the
+  // whole sample qualifies this FAILS with the search size — it never skips.
+  const candidates = [...sampleArticlePaths];
+  const sitemapRes = await fetchManual('/sitemap-en-0.xml');
+  assert.equal(sitemapRes.status, 200, '/sitemap-en-0.xml must answer 200 to draw the fallback search sample from it');
+  candidates.push(...strideSample(canonicalArticlePathsFromSitemap(await sitemapRes.text()), FALLBACK_SEARCH_SIZE));
+
+  let searched = 0;
+  for (const enPath of candidates) {
+    searched += 1;
     const { res: r, html } = await fetchHtml(`/es${enPath}`);
-    if (r.status === 200 && /data-fallback-note/.test(html)) {
+    if (r.status === 200 && /data-fallback-note/.test(html) && /<meta name="robots" content="noindex"/.test(html)) {
       esFallbackPath = enPath;
       break;
     }
+    await pace();
   }
-  console.log(`[url-shapes 06-16] translated sample: ${esTranslatedPaths[0]}; fallback sample: ${esFallbackPath}`);
-  assert.ok(esFallbackPath, 'no recent article with a fallback /es page was found among the 5 RSS samples');
+  console.log(`[url-shapes 06-16] translated sample: ${esTranslatedPaths[0]}; fallback sample: ${esFallbackPath} (found after ${searched} of ${candidates.length} candidates)`);
+  assert.ok(
+    esFallbackPath,
+    `no /es article carrying [data-fallback-note] + robots noindex was found among ${candidates.length} candidates (5 newest RSS items + ${FALLBACK_SEARCH_SIZE} evenly spread from /sitemap-en-0.xml) — either every sampled article is translated (fallback behaviour unexercised) or fallback pages lost the note/noindex`
+  );
 });
 
 test('url-shapes 06-16: /es and all 8 /es/<category> answer 200, lang="es", reciprocal hreflang', async () => {
@@ -662,10 +623,43 @@ test('url-shapes 06-16: /es and all 8 /es/<category> answer 200, lang="es", reci
   }
 });
 
-test('url-shapes 06-16: /es/tag/<static> and /es/tag/<archived> answer 200, lang="es", reciprocal hreflang; archived served by the Worker', async () => {
-  await assertEsPageContract(`/es${staticTag.path}`);
+/** Post-phase-06 closeout contract for a tag page pair (owner decision 2026-10-07): the `/es/tag/*`
+ * page is 200, lang="es", robots noindex and declares NO alternates; its English twin is 200,
+ * indexable, and declares en + x-default only (no `es`). `mayBeStale` (archived objects only):
+ * an archived object not yet reached by the post-deploy re-upload backlog (REND-12, about 2 builds)
+ * still carries the pre-closeout paired/indexable markup — recorded as a FINDING, not hidden and
+ * not failed; a static page can never be stale, so it is strict. */
+async function assertTagPairContract(esPath, { mayBeStale = false } = {}) {
+  const enPath = esPath.replace(/^\/es/, '');
+  const es = await fetchHtml(esPath);
+  assert.equal(es.res.status, 200, `${esPath} must answer 200`);
+  assert.equal(htmlLang(es.html), 'es', `${esPath} must be <html lang="es">`);
+  assert.equal(canonicalHref(es.html), `${PRODUCTION_ORIGIN}${esPath}`, `${esPath} canonical`);
+  const esNoindex = /<meta name="robots" content="noindex"/.test(es.html);
+  const esAlts = hreflangPaths(es.html);
+  const en = await fetchHtml(enPath);
+  assert.equal(en.res.status, 200, `English twin ${enPath} must answer 200`);
+  assert.equal(htmlLang(en.html), 'en');
+  assert.ok(!/<meta name="robots" content="noindex"/.test(en.html), `${enPath} must stay indexable`);
+  const enAlts = hreflangPaths(en.html);
+
+  const esDone = esNoindex && Object.keys(esAlts).length === 0;
+  const enDone = enAlts.es === undefined && enAlts.en === enPath && enAlts['x-default'] === enPath;
+  if (mayBeStale && (!esDone || !enDone)) {
+    console.log(`[url-shapes closeout] FINDING: archived tag pair ${esPath} not re-uploaded yet (es noindex=${esNoindex}, es alternates=${Object.keys(esAlts).length}, en has es alternate=${enAlts.es !== undefined}) — awaiting the REND-12 re-upload backlog`);
+    return;
+  }
+  assert.ok(esNoindex, `${esPath} must be robots noindex`);
+  assert.deepEqual(esAlts, {}, `${esPath} is noindex and must declare no hreflang alternates`);
+  assert.equal(enAlts.es, undefined, `${enPath} must not advertise a noindex ${esPath} as an alternate`);
+  assert.equal(enAlts.en, enPath, `${enPath} must carry hreflang en -> itself`);
+  assert.equal(enAlts['x-default'], enPath, `${enPath} x-default must be itself`);
+}
+
+test('url-shapes closeout: /es/tag/<static> and /es/tag/<archived> are 200, lang="es", noindex with no alternates; English twins declare self alternates only; archived served by the Worker', async () => {
+  await assertTagPairContract(`/es${staticTag.path}`);
   const archived = archivedTags[0];
-  await assertEsPageContract(`/es${archived.path}`, { partnerMayBeStale: true });
+  await assertTagPairContract(`/es${archived.path}`, { mayBeStale: true });
   for (const headers of [NAVIGATE_HEADERS, PLAIN_HEADERS]) {
     const res = await fetchManual(`/es${archived.path}`, headers);
     assert.equal(res.status, 200);
@@ -689,6 +683,7 @@ test('url-shapes 06-16: a translated /es article is 200, lang="es", Spanish body
 });
 
 test('url-shapes 06-16: a fallback /es article is 200, lang="es", robots noindex, with the Spanish note and English content', async () => {
+  assert.ok(esFallbackPath, 'no fallback /es article was found by the sampling test above, so this contract is unexercised — failing, not skipping');
   const { res, html } = await fetchHtml(`/es${esFallbackPath}`);
   assert.equal(res.status, 200);
   assert.equal(htmlLang(html), 'es');

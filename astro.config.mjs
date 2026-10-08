@@ -19,7 +19,7 @@ import cloudflare from '@astrojs/cloudflare';
 import vue from '@astrojs/vue';
 import sitemap from '@astrojs/sitemap';
 import { assertNoD1Plugin } from './tools/assert-no-d1.mjs';
-import { spanishSitemapExclusions, sitemapChunks } from './src/lib/i18n/sitemap.ts';
+import { spanishSitemapExclusions, isSitemapExcludedPath, sitemapChunks } from './src/lib/i18n/sitemap.ts';
 
 export default defineConfig({
   output: 'static',
@@ -93,6 +93,10 @@ export default defineConfig({
         // D-05/T-06-42: an untranslated `/es` article page (English-fallback content served
         // under `/es`, already `noindex`) must never appear in any sitemap file.
         if (spanishSitemapExclusions().has(pathname)) return false;
+        // Post-phase-06 closeout: noindex-by-policy pages (every `/es/tag/*` — mostly English
+        // fallback cards) are dropped too, which also leaves their English twin with no Spanish
+        // URL to pair with, so it gets no `xhtml:link` alternate (matches the page-level `self`).
+        if (isSitemapExcludedPath(pathname)) return false;
         return true;
       },
       chunks: sitemapChunks(),

@@ -276,3 +276,10 @@ test('the real astro.config.mjs sitemap() call excludes untranslated /es paths v
   assert.ok(sitemapCallArgs, 'expected to find a sitemap(...) call in astro.config.mjs');
   assert.match(sitemapCallArgs, /spanishSitemapExclusions\(\)\.has\(pathname\)/);
 });
+
+test('the real astro.config.mjs sitemap() call also drops noindex-by-policy paths (/es/tag/*, utility pages) via isSitemapExcludedPath() inside its filter', () => {
+  const source = readFileSync(REAL_CONFIG_PATH, 'utf8');
+  const sitemapCallArgs = extractCallArgSource(source, 'sitemap(');
+  assert.ok(sitemapCallArgs, 'expected to find a sitemap(...) call in astro.config.mjs');
+  assert.match(sitemapCallArgs, /isSitemapExcludedPath\(pathname\)/);
+});
