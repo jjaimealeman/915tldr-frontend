@@ -394,3 +394,23 @@ so every rendered-HTML claim below is unverified until the deploy.
   stale-deploy comparison is not satisfied for that run. Nothing else was red.
 - Unverified until a real build + deploy: the rendered HTML (no local build was run), the real
   sitemap files, and the sitemap count cross-check (dist-gated, visible skips locally).
+
+### 2026-10-08 - Opt-out sentence on both Privacy pages
+
+- Owner decision (2026-10-08, "yes, add the opt-out sentence to v2"): the Umami paragraph of
+  `/privacy` and `/es/privacy` now ends with a visitor-facing opt-out sentence, mirroring v1
+  (`app/pages/privacy.vue`). EN: "Prefer not to be counted? You can turn analytics off for this
+  browser." linking `/opt-out`; ES: "¿Prefiere que no se cuenten sus visitas? Puede desactivar el
+  análisis en este navegador." linking `/es/opt-out`. Plain same-origin links (no new tab); hrefs are
+  literal, like the page's existing `/contact` link. The Spanish copy is Claude-drafted and NOT
+  human-reviewed; the owner waived review of the opt-out copy.
+- Tests (written first, seen red): `tests/unit/privacy-no-analytics-host.test.mjs` (sentence and exact
+  hrefs in both languages, placed after the existing text, plain link, target route exists and stays
+  noindex, dashboard host still absent, no cross-language opt-out link). The dist-gated check in
+  `tests/unit/opt-out.test.mjs` ("no static page links to them") is narrowed on purpose to "only the
+  two Privacy pages link to them", and now also requires both Privacy pages to carry the link.
+  The `/es` link-containment invariant (`es-lang-and-links`) is satisfied by `/es/opt-out`; it only
+  checks that /es pages stay under /es and English pages are lang="en".
+- The opt-out pages stay noindex and out of every sitemap; Base.astro and the tracker are untouched.
+- Unverified until a real build + deploy: the rendered HTML of both Privacy pages, the dist-gated
+  link-containment and opt-out checks (visible skips locally).

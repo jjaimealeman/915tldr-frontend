@@ -247,17 +247,23 @@ test('opt-out (rendered): both pages are 200-able HTML with the right lang, noin
   }
 });
 
-test('opt-out (rendered): neither page is in any sitemap file, the news sitemaps or the RSS feeds, and no static page links to them', { skip: STALE ?? false }, () => {
+test('opt-out (rendered): neither page is in any sitemap file, the news sitemaps or the RSS feeds, and only the two Privacy pages link to them', { skip: STALE ?? false }, () => {
   const indexXml = readFileSync(path.join(DIST_CLIENT, 'sitemap-index.xml'), 'utf8');
   const children = [...indexXml.matchAll(/<loc>(.*?)<\/loc>/g)].map((m) => m[1].replace('https://915tldr.com/', ''));
   for (const rel of [...children, 'news-sitemap.xml', 'es/news-sitemap.xml', 'rss.xml', 'es/rss.xml']) {
     const body = readFileSync(path.join(DIST_CLIENT, rel), 'utf8');
     assert.doesNotMatch(body, /opt-out/, `${rel} must not mention opt-out`);
   }
-  // Chrome (nav/footer) and every static page: no link to the utility pages. The pages themselves
-  // are exempt (the language switch on /opt-out points at /es/opt-out and back).
-  const offenders = walk(DIST_CLIENT, '.html')
+  // Chrome (nav/footer) and every static page: no link to the utility pages, with ONE deliberate
+  // exception (owner decision 2026-10-08, "yes, add the opt-out sentence to v2"): the Umami
+  // paragraph of the two Privacy pages carries a visitor-facing "turn analytics off for this
+  // browser" link, mirroring v1. The opt-out pages themselves are exempt (the language switch on
+  // /opt-out points at /es/opt-out and back). Anything else linking to them is still a leak.
+  const PRIVACY = /[\\/](es[\\/])?privacy\.html$/;
+  const linkers = walk(DIST_CLIENT, '.html')
     .filter((f) => !/[\\/](es[\\/])?opt-out\.html$/.test(f))
     .filter((f) => /href="\/(es\/)?opt-out"/.test(readFileSync(f, 'utf8')));
-  assert.deepEqual(offenders.slice(0, 5), [], 'no page may link to /opt-out or /es/opt-out');
+  const offenders = linkers.filter((f) => !PRIVACY.test(f));
+  assert.deepEqual(offenders.slice(0, 5), [], 'only the Privacy pages may link to /opt-out or /es/opt-out');
+  assert.equal(linkers.filter((f) => PRIVACY.test(f)).length, 2, 'both Privacy pages carry the opt-out link');
 });

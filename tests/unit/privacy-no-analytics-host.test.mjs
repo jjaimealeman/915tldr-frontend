@@ -71,6 +71,70 @@ test('the Umami paragraph no longer has a new-tab link to the dashboard (no anch
   }
 });
 
+// Post-phase-06 polish (owner decision 2026-10-08, "yes, add the opt-out sentence to v2"): the
+// Umami paragraph ends with a visitor-facing opt-out sentence, mirroring v1's Privacy page. The
+// Spanish copy is Claude-drafted and NOT human-reviewed (the owner waived review of opt-out copy).
+// The links are plain same-origin links to the existing opt-out pages (noindex, out of the
+// sitemaps; a public link to a noindex page is fine).
+const OPT_OUT_SENTENCES = [
+  {
+    rel: 'src/pages/privacy.astro',
+    route: 'src/pages/opt-out.astro',
+    href: '/opt-out',
+    sentence: 'Prefer not to be counted? You can <a href="/opt-out">turn analytics off for this browser</a>.',
+  },
+  {
+    rel: 'src/pages/es/privacy.astro',
+    route: 'src/pages/es/opt-out.astro',
+    href: '/es/opt-out',
+    sentence:
+      '¿Prefiere que no se cuenten sus visitas? Puede <a href="/es/opt-out">desactivar el análisis en este navegador</a>.',
+  },
+];
+
+/** The Umami Analytics section: from its <h3> to the next <h2>. */
+function umamiSection(rel) {
+  const body = templateBody(rel);
+  const start = body.indexOf('<h3>Umami Analytics</h3>');
+  assert.ok(start >= 0, `${rel}: Umami Analytics heading not found`);
+  const end = body.indexOf('<h2>', start);
+  assert.ok(end > start, `${rel}: no <h2> after the Umami section`);
+  return body.slice(start, end);
+}
+
+for (const o of OPT_OUT_SENTENCES) {
+  test(`${o.rel}: the Umami section ends with the opt-out sentence and the exact href ${o.href}`, () => {
+    const section = flat(umamiSection(o.rel));
+    assert.ok(section.includes(o.sentence), `${o.rel} is missing: ${o.sentence}`);
+    assert.ok(section.indexOf(o.sentence) > section.indexOf('docs.umami.is'), `${o.rel}: opt-out sentence must come AFTER the existing text`);
+    // After the sentence there is only the closing </p> — nothing else was appended.
+    assert.match(section.slice(section.indexOf(o.sentence) + o.sentence.length), /^ ?<\/p> ?$/);
+  });
+
+  test(`${o.rel}: the opt-out link is a plain same-origin link (no new tab, no external rel) to an existing page route`, () => {
+    const section = umamiSection(o.rel);
+    const tag = section.match(new RegExp(`<a\\s[^>]*href="${o.href}"[^>]*>`));
+    assert.ok(tag, `${o.rel}: no <a href="${o.href}"> in the Umami section`);
+    assert.ok(!/target=|rel=/.test(tag[0]), `${o.rel}: the opt-out link must not carry target/rel: ${tag[0]}`);
+    assert.ok(existsSync(path.join(REPO_ROOT, o.route)), `${o.href} must resolve to ${o.route}`);
+  });
+
+  test(`${o.rel}: the opt-out page it links to is still noindex and the dashboard host is still absent from the page`, () => {
+    const page = readFileSync(path.join(REPO_ROOT, o.route), 'utf8');
+    assert.match(page, /noindex/, `${o.route} must stay noindex`);
+    assert.ok(!templateBody(o.rel).includes(HOST), `${o.rel} must not name ${HOST}`);
+  });
+}
+
+test('the English privacy page links to /opt-out only, the Spanish page to /es/opt-out only (no cross-language opt-out link)', () => {
+  assert.ok(!templateBody('src/pages/privacy.astro').includes('/es/'), 'English privacy page must not link under /es');
+  const esHrefs = [...templateBody('src/pages/es/privacy.astro').matchAll(/<a\s[^>]*href="([^"]+)"/g)]
+    .map((m) => m[1])
+    .filter((h) => h.startsWith('/'));
+  assert.ok(esHrefs.every((h) => h.startsWith('/es/')), `Spanish privacy page has non-/es internal links: ${esHrefs}`);
+  assert.ok(esHrefs.includes('/es/opt-out'));
+});
+
 test('Base.astro still loads the tracker from its configured host (tracker unchanged; only the visible mention was removed)', () => {
   const base = readFileSync(path.join(REPO_ROOT, 'src/layouts/Base.astro'), 'utf8');
   assert.match(base, /<script is:inline defer src="https:\/\/stats\.915websites\.com\/script\.js" data-website-id="[^"]+"><\/script>/);
