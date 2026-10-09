@@ -148,6 +148,7 @@ const breadcrumb = breadcrumbNode(
   noindex={model.noindex}
   switchPath={model.switchPath}
   jsonLd={[newsArticle, breadcrumb]}
+  article={{ publishedIso: bylineDatetime, section: categoryEs, tags: article.tags.map((tag: { slug: string; name: string }) => tag.name) }}
   activeCategory={article.category.slug}
   datelineEpoch={article.publishedAt}
   stamp="commit"

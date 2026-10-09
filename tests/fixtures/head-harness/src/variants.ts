@@ -1,4 +1,4 @@
-// 07-01/07-03: the head-harness variant table, shared by the harness page (`pages/[variant].astro`)
+// 07-01/07-03/07-04: the head-harness variant table, shared by the harness page (`pages/[variant].astro`)
 // and tests/unit/head-harness.test.mjs. `props` are passed to `Base.astro` verbatim; `expectMeta`
 // holds the literal head values the built HTML must carry (an array value means every occurrence, in
 // order). Every variant passes a fixed `datelineEpoch` so the body never depends on the build clock.
@@ -202,5 +202,98 @@ export const VARIANTS: HeadVariant[] = [
       ...EN_CARD,
     },
     expectAbsent: NEVER,
+  },
+  {
+    // 07-04 (D-15/D-16/D-18): an English article. og:type flips to article and the article:* group
+    // sits between og:image:alt and twitter:card; the times are the one bylineDatetime value.
+    name: 'en-article',
+    props: {
+      page: 'article',
+      lang: 'en',
+      title: 'Fixture story — 915 TLDR',
+      description: 'An English article fixture.',
+      canonicalPath: '/crime/fixture-story-00000000-0000-0000-0000-000000000002',
+      alternates: 'paired',
+      datelineEpoch: 1790000000,
+      article: {
+        publishedIso: '2026-09-20T08:15:00-06:00',
+        section: 'Crime',
+        tags: ['El Paso Police', 'Arrest'],
+      },
+    },
+    expectMeta: {
+      'og:title': 'Fixture story — 915 TLDR',
+      'og:description': 'An English article fixture.',
+      'og:url': 'https://915tldr.com/crime/fixture-story-00000000-0000-0000-0000-000000000002',
+      ...EN_CARD,
+      'og:type': 'article',
+      'article:published_time': '2026-09-20T08:15:00-06:00',
+      'article:modified_time': '2026-09-20T08:15:00-06:00',
+      'article:section': 'Crime',
+      'article:tag': ['El Paso Police', 'Arrest'],
+      'article:author': 'https://915tldr.com/about',
+    },
+    expectAbsent: NEVER,
+  },
+  {
+    name: 'es-article',
+    props: {
+      page: 'article',
+      lang: 'es',
+      title: 'Historia de prueba — 915 TLDR',
+      description: 'Un artículo de prueba en español.',
+      canonicalPath: '/es/crime/fixture-story-00000000-0000-0000-0000-000000000002',
+      alternates: 'paired',
+      noindex: false,
+      datelineEpoch: 1790000000,
+      article: {
+        publishedIso: '2026-09-20T08:15:00-06:00',
+        section: 'Crimen',
+        tags: ['El Paso Police', 'Arrest'],
+      },
+    },
+    expectMeta: {
+      'og:title': 'Historia de prueba — 915 TLDR',
+      'og:description': 'Un artículo de prueba en español.',
+      'og:url': 'https://915tldr.com/es/crime/fixture-story-00000000-0000-0000-0000-000000000002',
+      ...ES_CARD,
+      'og:type': 'article',
+      'article:published_time': '2026-09-20T08:15:00-06:00',
+      'article:modified_time': '2026-09-20T08:15:00-06:00',
+      'article:section': 'Crimen',
+      'article:tag': ['El Paso Police', 'Arrest'],
+      'article:author': 'https://915tldr.com/es/about',
+    },
+    expectAbsent: NEVER,
+  },
+  {
+    // Zero-one-many: an article with no tags emits zero article:tag elements.
+    name: 'en-article-no-tags',
+    props: {
+      page: 'article',
+      lang: 'en',
+      title: 'Untagged story — 915 TLDR',
+      description: 'An article with no tags.',
+      canonicalPath: '/crime/untagged-story-00000000-0000-0000-0000-000000000003',
+      alternates: 'paired',
+      datelineEpoch: 1790000000,
+      article: {
+        publishedIso: '2026-09-20T08:15:00-06:00',
+        section: 'Crime',
+        tags: [],
+      },
+    },
+    expectMeta: {
+      'og:title': 'Untagged story — 915 TLDR',
+      'og:description': 'An article with no tags.',
+      'og:url': 'https://915tldr.com/crime/untagged-story-00000000-0000-0000-0000-000000000003',
+      ...EN_CARD,
+      'og:type': 'article',
+      'article:published_time': '2026-09-20T08:15:00-06:00',
+      'article:modified_time': '2026-09-20T08:15:00-06:00',
+      'article:section': 'Crime',
+      'article:author': 'https://915tldr.com/about',
+    },
+    expectAbsent: [...NEVER, 'article:tag'],
   },
 ];

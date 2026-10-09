@@ -148,6 +148,7 @@ const hasRail = hasMore || hasSecond;
   canonicalPath={canonicalPath}
   alternates={enLangModel.alternates}
   jsonLd={[newsArticle, breadcrumb]}
+  article={{ publishedIso: bylineDatetime, section: article.category.name, tags: article.tags.map((tag: { slug: string; name: string }) => tag.name) }}
   activeCategory={article.category.slug}
   datelineEpoch={article.publishedAt}
   stamp="commit"

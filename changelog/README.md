@@ -10,6 +10,7 @@ Entries are named `YYYY-MM-DD-HHMM_slug.md` and grouped by month, newest first.
 
 | Date | Entry | Keywords |
 |------|-------|----------|
+| 2026-10-08 | [Article pages pass article tags into the layout, proven on 3 new harness variants](2026-10-08-2247_article-prop-and-article-variants.md) | `[FEATURE]` `[FRONTEND]` `[TESTING]` |
 | 2026-10-08 | [GREEN: shareMetaTags emits og:type article and the article:* set](2026-10-08-2245_green-share-meta-article-branch.md) | `[FEATURE]` `[FRONTEND]` `[TESTING]` |
 | 2026-10-08 | [RED: failing tests for the article:* tag branch of shareMetaTags](2026-10-08-2245_red-share-meta-article-tests.md) | `[TESTING]` `[FRONTEND]` |
 | 2026-10-08 | [Phase 7 Plan 3 complete: SUMMARY, STATE and ROADMAP](2026-10-08-2244_complete-07-03-plan-summary-state-roadmap.md) | `[DOCUMENTATION]` `[PLANNING]` |

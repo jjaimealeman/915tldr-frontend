@@ -1,5 +1,5 @@
 ---
-// 07-01: renders the real `Base.astro` once per variant in `../variants.ts`. See the harness
+// 07-01/07-04: renders the real `Base.astro` once per variant in `../variants.ts`. See the harness
 // astro.config.mjs for why this root exists. No content collections, no D1, no KV.
 import Base from '../../../../../src/layouts/Base.astro';
 import { VARIANTS } from '../variants.ts';
@@ -13,4 +13,13 @@ const { v } = Astro.props;
 
 <Base {...(v.props as any)}>
   <p>head-harness {v.name}</p>
+  {
+    // 07-04: mirrors the real article templates' byline so a checker can compare
+    // article:published_time with the first <time datetime> on the page.
+    (v.props as any).article && (
+      <p data-byline>
+        <time datetime={(v.props as any).article.publishedIso}>fixture byline</time>
+      </p>
+    )
+  }
 </Base>

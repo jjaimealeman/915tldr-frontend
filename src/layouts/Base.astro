@@ -19,7 +19,7 @@ import { localizedPath, type Language } from '../lib/article-url.ts';
 import { alternateLinks, pairedPath, type AlternateMode } from '../lib/i18n/hreflang.ts';
 import { t } from '../lib/i18n/dictionary.ts';
 import { categoryLabel } from '../lib/i18n/category-labels.ts';
-import { shareMetaTags, fallbackPageUrl, ICON_LINKS } from '../lib/share-meta.ts';
+import { shareMetaTags, fallbackPageUrl, ICON_LINKS, type ShareArticleInput } from '../lib/share-meta.ts';
 
 export interface Props {
   page: string;
@@ -64,6 +64,8 @@ export interface Props {
   /** 06-05 (D-12): override for the language-switch link's target. Defaults to the paired path
    * of `canonicalPath`, or (when there is no `canonicalPath`) the other language's home page. */
   switchPath?: string;
+  /** 07-04 (D-15/D-18): article-only inputs for the article:* tags; omitted on every non-article page. */
+  article?: ShareArticleInput;
 }
 
 const {
@@ -81,6 +83,7 @@ const {
   lang = 'en',
   alternates,
   switchPath: switchPathProp,
+  article,
 } = Astro.props;
 
 if (canonicalPath && canonicalPath !== '/' && canonicalPath.endsWith('/')) {
@@ -110,6 +113,7 @@ const shareTags = shareMetaTags({
   pageUrl: canonicalHref ?? fallbackPageUrl(Astro.url.pathname, origin),
   alternates: resolvedAlternates,
   siteOrigin: origin,
+  article,
 });
 
 const buildEpoch = Math.floor(new Date(BUILD_TIMESTAMP).getTime() / 1000);

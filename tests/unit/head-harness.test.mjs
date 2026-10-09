@@ -5,6 +5,7 @@
 // This test never substitutes for the live validator checks (07-08): it reads built HTML only.
 // 07-03 extends it from the og:image group to the full og/twitter set, the icon links, attribute
 // escaping of hostile text (T-07-01), build determinism (T-07-10) and asset existence.
+// 07-04 adds the article variants: the article:* block, its order, its body-byline match (D-15/D-18).
 import { test, before } from 'node:test';
 import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';
@@ -66,7 +67,7 @@ function builtMeta(variantName) {
   return parseMetaTags(headOf(builtHtml(variantName)));
 }
 
-// 07-03: the fixed share-tag order (07-UI-SPEC "Head Metadata Contract"); article:* tags join in 07-04.
+// 07-03: the fixed share-tag order (07-UI-SPEC "Head Metadata Contract"); article variants insert the article:* block (ARTICLE_BLOCK) before twitter:card.
 const SHARE_ORDER = [
   'og:title',
   'og:description',
@@ -83,7 +84,20 @@ const SHARE_ORDER = [
   'twitter:card',
   'twitter:image:alt',
 ];
-const isShareKey = (key) => key.startsWith('og:') || key.startsWith('twitter:');
+const isShareKey = (key) => key.startsWith('og:') || key.startsWith('twitter:') || key.startsWith('article:');
+
+// 07-04 (D-15): the exact key sequence an article variant carries, derived from the variant's literal
+// expectMeta (one article:tag per tag, section only when expected).
+function expectedShareOrder(v) {
+  const article = v.expectMeta['article:published_time'] !== undefined;
+  if (!article) return SHARE_ORDER;
+  const block = ['article:published_time', 'article:modified_time'];
+  if (v.expectMeta['article:section'] !== undefined) block.push('article:section');
+  for (const _ of v.expectMeta['article:tag'] ?? []) block.push('article:tag');
+  block.push('article:author');
+  const at = SHARE_ORDER.indexOf('twitter:card');
+  return [...SHARE_ORDER.slice(0, at), ...block, ...SHARE_ORDER.slice(at)];
+}
 
 test('head-harness: every variant carries its literal expected meta tags', () => {
   for (const v of VARIANTS) {
@@ -142,10 +156,22 @@ test('head-harness: every build output is git-ignored and none shows in git stat
   }
 });
 
-test('head-harness: the harness covers all 8 variants', () => {
+test('head-harness: the harness covers all 11 variants', () => {
   assert.deepEqual(
     VARIANTS.map((v) => v.name),
-    ['en-listing', 'es-listing', 'en-home', 'en-self', 'es-noindex', 'en-no-description', 'no-canonical', 'injection']
+    [
+      'en-listing',
+      'es-listing',
+      'en-home',
+      'en-self',
+      'es-noindex',
+      'en-no-description',
+      'no-canonical',
+      'injection',
+      'en-article',
+      'es-article',
+      'en-article-no-tags',
+    ]
   );
 });
 
@@ -154,15 +180,43 @@ test('head-harness (a): every variant carries the share keys in the fixed order,
     const keys = builtMeta(v.name)
       .map((t) => t.key)
       .filter(isShareKey);
-    assert.deepEqual(keys, SHARE_ORDER, v.name);
+    assert.deepEqual(keys, expectedShareOrder(v), v.name);
   }
 });
 
-test('head-harness (a): og:* tags use property and twitter:* tags use name', () => {
+test('head-harness (a): og:* and article:* tags use property and twitter:* tags use name', () => {
   for (const v of VARIANTS) {
     for (const tag of builtMeta(v.name).filter((t) => isShareKey(t.key))) {
       assert.equal(tag.attr, tag.key.startsWith('twitter:') ? 'name' : 'property', `${v.name}: ${tag.key}`);
     }
+  }
+});
+
+test('head-harness (07-04): article variants render og:type article, the literal article:* values, and published_time equals the body <time datetime> (D-15/D-18)', () => {
+  const articleVariants = VARIANTS.filter((v) => v.props.article);
+  assert.deepEqual(articleVariants.map((v) => v.name), ['en-article', 'es-article', 'en-article-no-tags']);
+  for (const v of articleVariants) {
+    const html = builtHtml(v.name);
+    const tags = parseMetaTags(headOf(html));
+    assert.equal(metaContent(tags, 'og:type'), 'article', v.name);
+    const bodyTime = html.slice(html.indexOf('<body')).match(/<time datetime="([^"]*)"/)?.[1];
+    assert.ok(bodyTime, `${v.name}: body carries a <time datetime>`);
+    assert.equal(metaContent(tags, 'article:published_time'), bodyTime, v.name);
+    assert.equal(metaContent(tags, 'article:modified_time'), bodyTime, v.name);
+  }
+  // Tag counts: two tags give two elements, none gives zero (zero-one-many).
+  assert.equal(metaContents(builtMeta('en-article'), 'article:tag').length, 2);
+  assert.equal(metaContents(builtMeta('en-article-no-tags'), 'article:tag').length, 0);
+  // Author is the site's own /about page per language, never a person or an outlet (D-16).
+  assert.equal(metaContent(builtMeta('en-article'), 'article:author'), 'https://915tldr.com/about');
+  assert.equal(metaContent(builtMeta('es-article'), 'article:author'), 'https://915tldr.com/es/about');
+});
+
+test('head-harness (07-04): non-article variants keep og:type website and carry no article: key', () => {
+  for (const v of VARIANTS.filter((x) => !x.props.article)) {
+    const tags = builtMeta(v.name);
+    assert.equal(metaContent(tags, 'og:type'), 'website', v.name);
+    assert.ok(!tags.some((t) => t.key.startsWith('article:')), `${v.name}: no article: key`);
   }
 });
 
