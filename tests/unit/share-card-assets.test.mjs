@@ -8,6 +8,7 @@ import { readFileSync } from 'node:fs';
 import path from 'node:path';
 import { encodeIco } from '../../tools/og-card/ico.mjs';
 import { CATEGORIES } from '../../src/lib/categories.ts';
+import { SHARE_IMAGE_ALT } from '../../src/lib/share-meta.ts';
 
 const REPO_ROOT = path.resolve(import.meta.dirname, '../..');
 const read = (rel) => readFileSync(path.join(REPO_ROOT, rel));
@@ -232,3 +233,17 @@ test('redirect shadowing: no _redirects rule matches the five asset paths (T-07-
     }
   }
 });
+
+// 07-06, D-10: the og:image:alt text describes the card, so it must be the site name plus the exact
+// tagline printed on that language's card. Regex-only parse of the COPY object in card.html.
+function cardTagline(lang) {
+  const block = CARD.match(new RegExp(`\\b${lang}:\\s*\\{[^}]*?tagline:\\s*'([^']+)'`));
+  assert.ok(block, `card.html COPY.${lang}.tagline found`);
+  return block[1];
+}
+
+for (const lang of ['en', 'es']) {
+  test(`alt parity: SHARE_IMAGE_ALT.${lang} is "915 TLDR — " + the ${lang} card tagline (D-10)`, () => {
+    assert.equal(SHARE_IMAGE_ALT[lang], `915 TLDR \u2014 ${cardTagline(lang)}`);
+  });
+}

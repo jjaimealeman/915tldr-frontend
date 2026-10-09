@@ -20,8 +20,17 @@
 // in public/fonts can match.
 //
 // Every self-check fails loudly with the measured value; no threshold is loosened to pass.
+//
+// Review mode (07-06):
+//
+//   node tools/og-card/render.mjs --review <dir>
+//
+// Writes only into <dir>, never into public/. It reads the committed public/og-image.png,
+// public/og-image-es.png, public/favicon.svg and public/apple-touch-icon.png and writes the
+// owner-review renders: both cards at 600, 300 and 150px wide, the 630x630 centre crop of each
+// card, the favicon at 16 and 32px and the apple-touch-icon at 60px.
 
-import { readFileSync, writeFileSync, statSync } from 'node:fs';
+import { readFileSync, writeFileSync, statSync, mkdirSync } from 'node:fs';
 import path from 'node:path';
 import { chromium } from '@playwright/test';
 import { execFileSync } from 'node:child_process';
@@ -304,7 +313,90 @@ async function renderIcons(context) {
   check(Math.min(marginL, marginR, marginT, marginB) >= 16, `apple-touch-icon clear margin is at least 16px (min ${Math.min(marginL, marginR, marginT, marginB)})`);
 }
 
+// ---------------------------------------------------------------------------------------------
+// Review mode (07-06): owner-review renders of the committed public/ files.
+// ---------------------------------------------------------------------------------------------
+
+// Served at /review-scale.html: decodes a committed PNG and returns a scaled or cropped copy.
+const REVIEW_SCALE_PAGE = `<!doctype html><html><head><meta charset="utf-8"></head><body><script>
+window.scaleImage = async (src, job) => {
+  const img = new Image();
+  img.src = src;
+  await img.decode();
+  const canvas = document.createElement('canvas');
+  canvas.width = job.outW;
+  canvas.height = job.outH;
+  const ctx = canvas.getContext('2d');
+  ctx.imageSmoothingEnabled = true;
+  ctx.imageSmoothingQuality = 'high';
+  const [sx, sy, sw, sh] = job.src || [0, 0, img.naturalWidth, img.naturalHeight];
+  ctx.drawImage(img, sx, sy, sw, sh, 0, 0, job.outW, job.outH);
+  return canvas.toDataURL('image/png');
+};
+</script></body></html>`;
+
+// Served at /review-favicon.html?size=N: favicon.svg at N px on white, as a tab would show it.
+const REVIEW_FAVICON_PAGE = `<!doctype html><html><head><meta charset="utf-8"><style>
+html, body { margin: 0; background: #ffffff; }
+img { display: block; }
+</style></head><body><script>
+const size = Number(new URLSearchParams(location.search).get('size'));
+const img = document.createElement('img');
+img.width = size;
+img.height = size;
+img.src = '/favicon.svg';
+document.body.appendChild(img);
+window.faviconReady = img.decode();
+</script></body></html>`;
+
+async function renderReview(context, dir) {
+  console.log(`review -> ${path.relative(REPO_ROOT, dir)}`);
+  mkdirSync(dir, { recursive: true });
+  const page = await context.newPage();
+  await page.goto(`${ORIGIN}/review-scale.html`);
+  const written = [];
+  const write = (name, buffer) => {
+    const out = path.join(dir, name);
+    writeFileSync(out, buffer);
+    written.push([name, statSync(out).size]);
+    console.log(`  wrote ${path.relative(REPO_ROOT, out)} (${statSync(out).size} bytes)`);
+  };
+  const scale = async (src, job) => {
+    const dataUrl = await page.evaluate(([s, j]) => window.scaleImage(s, j), [src, job]);
+    return Buffer.from(dataUrl.slice('data:image/png;base64,'.length), 'base64');
+  };
+
+  for (const lang of ['en', 'es']) {
+    const src = `/committed/${CARD_OUT[lang]}`;
+    for (const width of [600, 300, 150]) {
+      const height = Math.round((630 * width) / 1200);
+      write(`card-${lang}-${width}.png`, await scale(src, { outW: width, outH: height }));
+    }
+    // What a platform shows if it square-crops the 1.91:1 card: the centre 630x630 (x 285..915).
+    write(`card-${lang}-square-crop.png`, await scale(src, { outW: 630, outH: 630, src: [285, 0, 630, 630] }));
+  }
+
+  write('apple-touch-60.png', await scale('/committed/apple-touch-icon.png', { outW: 60, outH: 60 }));
+  await page.close();
+
+  for (const size of [16, 32]) {
+    const fav = await context.newPage();
+    await fav.setViewportSize({ width: size, height: size });
+    await fav.goto(`${ORIGIN}/review-favicon.html?size=${size}`);
+    await fav.evaluate(() => window.faviconReady);
+    write(`favicon-${size}.png`, await fav.screenshot({ type: 'png', omitBackground: false }));
+    await fav.close();
+  }
+  check(written.length === 11, `review wrote ${written.length} files (want 11)`);
+}
+
 const aborted = [];
+const reviewIdx = process.argv.indexOf('--review');
+const reviewDir = reviewIdx >= 0 ? process.argv[reviewIdx + 1] : null;
+if (reviewIdx >= 0 && (!reviewDir || reviewDir.startsWith('--'))) {
+  console.error('usage: node tools/og-card/render.mjs [--review <dir>]');
+  process.exit(2);
+}
 const browser = await chromium.launch();
 try {
   const context = await browser.newContext({ viewport: { width: 1200, height: 630 }, deviceScaleFactor: 1 });
@@ -312,11 +404,20 @@ try {
     '/favicon.svg': () => ({ contentType: 'image/svg+xml', body: readFileSync(path.join(PUBLIC_DIR, 'favicon.svg')) }),
     '/icon-favicon.html': () => ({ contentType: 'text/html', body: FAVICON_PAGE }),
     '/icon-touch.html': () => ({ contentType: 'text/html', body: TOUCH_PAGE }),
+    '/review-scale.html': () => ({ contentType: 'text/html', body: REVIEW_SCALE_PAGE }),
+    '/review-favicon.html': () => ({ contentType: 'text/html', body: REVIEW_FAVICON_PAGE }),
+    '/committed/og-image.png': () => ({ contentType: 'image/png', body: readFileSync(path.join(PUBLIC_DIR, 'og-image.png')) }),
+    '/committed/og-image-es.png': () => ({ contentType: 'image/png', body: readFileSync(path.join(PUBLIC_DIR, 'og-image-es.png')) }),
+    '/committed/apple-touch-icon.png': () => ({ contentType: 'image/png', body: readFileSync(path.join(PUBLIC_DIR, 'apple-touch-icon.png')) }),
   });
-  for (const lang of ['en', 'es']) {
-    await renderCard(context, aborted, lang);
+  if (reviewDir) {
+    await renderReview(context, path.resolve(reviewDir));
+  } else {
+    for (const lang of ['en', 'es']) {
+      await renderCard(context, aborted, lang);
+    }
+    await renderIcons(context);
   }
-  await renderIcons(context);
   check(aborted.length === 0, `aborted (non-allow-listed) requests: ${aborted.length}${aborted.length ? ' -> ' + aborted.join(', ') : ''}`);
 } finally {
   await browser.close();
