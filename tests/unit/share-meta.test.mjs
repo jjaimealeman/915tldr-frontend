@@ -144,6 +144,13 @@ test('fallbackPageUrl: trailing slash removed except at the root', () => {
   assert.equal(fallbackPageUrl('/', 'https://915tldr.com'), 'https://915tldr.com/');
 });
 
+test('fallbackPageUrl: a build.format "file" pathname loses its .html (measured: Astro.url.pathname is /404.html in a static build)', () => {
+  assert.equal(fallbackPageUrl('/404.html', 'https://915tldr.com'), 'https://915tldr.com/404');
+  assert.equal(fallbackPageUrl('/es/404.html', 'https://915tldr.com'), 'https://915tldr.com/es/404');
+  assert.equal(fallbackPageUrl('/index.html', 'https://915tldr.com'), 'https://915tldr.com/');
+  assert.equal(fallbackPageUrl('/es/index.html', 'https://915tldr.com'), 'https://915tldr.com/es');
+});
+
 test('shareImageUrl: absolute card URL for the language on the given origin', () => {
   assert.equal(shareImageUrl('en', 'https://915tldr.com'), 'https://915tldr.com/og-image.png');
   assert.equal(shareImageUrl('es', 'https://915tldr.com'), 'https://915tldr.com/og-image-es.png');

@@ -19,7 +19,7 @@ import { localizedPath, type Language } from '../lib/article-url.ts';
 import { alternateLinks, pairedPath, type AlternateMode } from '../lib/i18n/hreflang.ts';
 import { t } from '../lib/i18n/dictionary.ts';
 import { categoryLabel } from '../lib/i18n/category-labels.ts';
-import { shareMetaTags, fallbackPageUrl } from '../lib/share-meta.ts';
+import { shareMetaTags, fallbackPageUrl, ICON_LINKS } from '../lib/share-meta.ts';
 
 export interface Props {
   page: string;
@@ -146,7 +146,9 @@ const stampDate = stamp === 'commit' ? BUILD_COMMIT_DATE : buildDate;
       ))
     }
     {noindex && <meta name="robots" content="noindex" />}
-    {/* 07-01 (SOC-02): share-card head tags from src/lib/share-meta.ts. Values reach the markup only
+    {/* 07-03 (D-13/D-23): the icon set from src/lib/share-meta.ts. Astro omits undefined attributes. */}
+    {ICON_LINKS.map((icon) => <link rel={icon.rel} href={icon.href} type={icon.type} sizes={icon.sizes} />)}
+    {/* 07-01/07-03 (SOC-01/02/04): share head tags from src/lib/share-meta.ts. Values reach the markup only
         through attribute expressions (Astro escapes them) and are source-derived only, no build
         hash or timestamp (04-11a), so unchanged pages stay byte-identical across rebuilds. */}
     {

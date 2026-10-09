@@ -94,11 +94,16 @@ export function shareImageUrl(lang: Language, imageOrigin: string = SHARE_IMAGE_
 /**
  * Absolute URL of `pathname` against `siteOrigin`, trailing slash removed unless the path is
  * exactly `/` (the project's `trailingSlash: 'never'` contract). Used when a page has no
- * `canonicalPath` of its own.
+ * `canonicalPath` of its own (the 404 pages).
+ *
+ * Under `build.format: 'file'` Astro reports a static page's `Astro.url.pathname` WITH the file
+ * extension (measured in the head harness: `/no-canonical.html`), so a trailing `.html` is removed
+ * and `/index.html` collapses to its directory, giving the extensionless public URL form.
  */
 export function fallbackPageUrl(pathname: string, siteOrigin: string): string {
-  const trimmed = pathname !== '/' && pathname.endsWith('/') ? pathname.replace(/\/+$/, '') : pathname;
-  return new URL(trimmed === '' ? '/' : trimmed, siteOrigin).href;
+  let path = pathname.replace(/\/index\.html$/, '/').replace(/\.html$/, '');
+  if (path !== '/' && path.endsWith('/')) path = path.replace(/\/+$/, '');
+  return new URL(path === '' ? '/' : path, siteOrigin).href;
 }
 
 const ALTERNATE_MODES: readonly AlternateMode[] = ['paired', 'self', 'none'];
