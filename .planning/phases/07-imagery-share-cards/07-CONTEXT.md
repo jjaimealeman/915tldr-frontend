@@ -54,6 +54,11 @@ Phase 7 was cut down by the owner on 2026-10-08. It no longer generates or displ
 - **D-19:** Validate against **`dev.915tldr.com`, all five platforms**: Facebook debugger, X validator, iMessage, WhatsApp, Slack — EN and ES pages. The owner does the pastes; the report records what each showed and **says plainly what was not checked**. Repeat on prod after cutover. Test the card as a small thumbnail too (wordmark + tagline legibility), not only full-size.
 - **D-20:** The dev host is noindex; confirm the Facebook/X scrapers can still fetch it (noindex should not block them, but this is unverified — measure, don't assume).
 
+### Plan-time owner decisions (2026-10-08, answered by the owner during `/gsd-plan-phase`)
+- **D-21:** **og:image origin = a committed constant**, `SHARE_IMAGE_ORIGIN = 'https://dev.915tldr.com'` in `src/lib/share-meta.ts`, enforced by a build guard (`tools/assert-share-origin.mjs`, run by `guard:config` on every `pnpm build`) that requires it to equal the single primary `custom_domain` route in `wrangler.jsonc`. **Supersedes the "built from `Astro.site`" wording of D-07** (D-07's URLs `/og-image.png` / `/og-image-es.png` are unchanged). Deliberate deviation: lets D-19 validate the new cards on the dev host now. Not an environment variable: Astro's incremental build reuses a page when its cacheKey and module dependency hash are unchanged, so an env-var change would not re-render reused pages. At cutover the constant switches to `https://915tldr.com` (the guard fails the build until it does).
+- **D-22:** **`og:locale:alternate` on every page**, including English pages with no Spanish counterpart (hreflang mode `self`) — the literal SOC-01/D-14 reading. Overrides UI-SPEC Open Item 3's default (omit on `self` pages). No toggle.
+- **D-23:** **`favicon.ico` = a 32x32 rasterisation of `favicon.svg`**; v1's `favicon.ico` (measured: a Nuxt logo) is not ported. Amends D-13 (which said to port v1's `.ico`). The owner's wording called favicon.svg "the bubble mark"; measured 2026-10-08, v1's `favicon.svg` is a blue rounded "915" tile and the bubble mark is `logo-light.png` — the identity is re-confirmed at the 07-06 review checkpoint.
+
 ### Claude's Discretion
 - Exact Spanish tagline/credit-line wording (subject to owner confirmation per D-06).
 - `og:type` for non-article pages (`website` is the expected default).
