@@ -177,6 +177,103 @@ export function checkSharePage(html, { lang, kind, siteOrigin = DEFAULT_SITE_ORI
 }
 
 // ---------------------------------------------------------------------------------------------
+// D-20, edge half: crawler reachability
+// ---------------------------------------------------------------------------------------------
+
+/**
+ * REPRESENTATIVE crawler User-Agent strings, not verified against each platform's current
+ * crawler. They let this machine ask the edge "would you serve a request that looks like this?".
+ * 07-09's zone-analytics query (tools/measure-share-fetches.mjs) records the real ones.
+ */
+export const SCRAPER_USER_AGENTS = Object.freeze({
+  facebook: 'facebookexternalhit/1.1 (+http://www.facebook.com/externalhit_uatext.php)',
+  x: 'Twitterbot/1.0',
+  slack: 'Slackbot-LinkExpanding 1.0 (+https://api.slack.com/robots)',
+  whatsapp: 'WhatsApp/2.23.20.0',
+});
+
+/** The robots.txt product token each probe resolves against. */
+export const SCRAPER_ROBOTS_TOKENS = Object.freeze({
+  facebook: 'facebookexternalhit',
+  x: 'Twitterbot',
+  slack: 'Slackbot',
+  whatsapp: 'WhatsApp',
+});
+
+/**
+ * Parses robots.txt into groups and returns the rules that apply to `token`: the group(s) whose
+ * User-agent line equals the token (case-insensitive, exact on the product token, so `FacebookBot`
+ * never matches `facebookexternalhit`), else the `*` group. Returns
+ * `{ group, disallow, allow }`; `group` is the User-agent value as written in the file, or null
+ * when nothing applies.
+ */
+export function robotsRulesFor(text, token) {
+  const groups = [];
+  let current = null;
+  let lastWasAgent = false;
+  for (const raw of String(text).split(/\r?\n/)) {
+    const line = raw.replace(/#.*$/, '').trim();
+    if (line === '') continue;
+    const m = line.match(/^([A-Za-z-]+)\s*:\s*(.*)$/);
+    if (!m) continue;
+    const field = m[1].toLowerCase();
+    const value = m[2].trim();
+    if (field === 'user-agent') {
+      if (!current || !lastWasAgent) {
+        current = { agents: [], disallow: [], allow: [] };
+        groups.push(current);
+      }
+      current.agents.push(value);
+      lastWasAgent = true;
+    } else if (field === 'disallow' || field === 'allow') {
+      lastWasAgent = false;
+      if (current && value !== '') current[field].push(value);
+    } else {
+      lastWasAgent = false;
+    }
+  }
+  const wanted = String(token).toLowerCase();
+  const pick = (name) => groups.filter((g) => g.agents.some((a) => a.toLowerCase() === name));
+  let matched = pick(wanted);
+  let group = null;
+  if (matched.length > 0) {
+    group = matched[0].agents.find((a) => a.toLowerCase() === wanted);
+  } else {
+    matched = pick('*');
+    if (matched.length > 0) group = '*';
+  }
+  return {
+    group,
+    disallow: matched.flatMap((g) => g.disallow),
+    allow: matched.flatMap((g) => g.allow),
+  };
+}
+
+function robotsPatternToRegExp(pattern) {
+  const anchored = pattern.endsWith('$');
+  const body = (anchored ? pattern.slice(0, -1) : pattern)
+    .split('*')
+    .map((part) => part.replace(/[.+?^${}()|[\]\\]/g, '\\$&'))
+    .join('.*');
+  return new RegExp(`^${body}${anchored ? '$' : ''}`);
+}
+
+/** Longest matching rule wins; on a tie, Allow wins; no matching rule means allowed. */
+export function isPathAllowed(rules, path) {
+  let best = { length: -1, allowed: true };
+  const consider = (patterns, allowed) => {
+    for (const p of patterns) {
+      if (robotsPatternToRegExp(p).test(path) && (p.length > best.length || (p.length === best.length && allowed))) {
+        best = { length: p.length, allowed };
+      }
+    }
+  };
+  consider(rules.disallow ?? [], false);
+  consider(rules.allow ?? [], true);
+  return best.allowed;
+}
+
+// ---------------------------------------------------------------------------------------------
 // Live checks
 // ---------------------------------------------------------------------------------------------
 
@@ -327,6 +424,46 @@ export async function runShareChecks({
           ? { type: 'svg' }
           : { nonEmpty: true };
     results.push(...(await assetChecks(fetchImpl, `${base}${icon.href}`, icon.href, { expect })));
+  }
+
+
+  // D-20, edge half: crawler reachability. EDGE-SIDE ONLY: this proves what THIS machine's
+  // requests with these User-Agents receive, not what the platforms' own fetchers or IPs receive.
+  if (articlePath) {
+    results.push(skip('crawler reachability (edge-side only)', "proves this machine's requests with these User-Agents, not the platforms' own fetchers or IPs"));
+    for (const [name, ua] of Object.entries(SCRAPER_USER_AGENTS)) {
+      const article = await get(fetchImpl, `${base}${articlePath}`, { userAgent: ua, binary: true });
+      results.push(
+        article.error
+          ? fail(`UA probe ${name}: article page`, `network error: ${article.error}`)
+          : article.status === 200
+            ? ok(`UA probe ${name}: article page`, `${article.status} ${article.bytes} bytes (${ua.split(' ')[0]})`)
+            : fail(`UA probe ${name}: article page`, `${name} (${ua.split(' ')[0]}) got status ${article.status} for ${articlePath}`)
+      );
+      const card = await get(fetchImpl, shareImageUrl('en'), { userAgent: ua, binary: true });
+      results.push(
+        card.error
+          ? fail(`UA probe ${name}: EN card`, `network error: ${card.error}`)
+          : card.status === 200
+            ? ok(`UA probe ${name}: EN card`, `${card.status} ${card.contentType} ${card.bytes} bytes`)
+            : fail(`UA probe ${name}: EN card`, `${name} (${ua.split(' ')[0]}) got status ${card.status} for ${shareImageUrl('en')}`)
+      );
+    }
+  }
+  const robots = await get(fetchImpl, `${base}/robots.txt`);
+  if (robots.error) {
+    results.push(fail('robots.txt', `network error: ${robots.error}`));
+  } else if (robots.status !== 200 && robots.status !== 404) {
+    results.push(fail('robots.txt', `status ${robots.status}`));
+  } else {
+    const robotsText = robots.status === 200 ? robots.text : '';
+    const probePaths = ['/', ...(articlePath ? [articlePath] : []), '/og-image.png'];
+    for (const token of Object.values(SCRAPER_ROBOTS_TOKENS)) {
+      const rules = robotsRulesFor(robotsText, token);
+      const allowed = probePaths.map((p) => [p, isPathAllowed(rules, p)]);
+      const detail = `matches group ${rules.group ?? '(none: no rules apply)'}; ` + allowed.map(([p, a]) => `${p === articlePath ? 'article' : p} ${a ? 'allowed' : 'DISALLOWED'}`).join(', ');
+      results.push(allowed.every(([, a]) => a) ? ok(`robots.txt ${token}`, detail) : fail(`robots.txt ${token}`, detail));
+    }
   }
 
   return { host, versionCommit, stylesheet, results };
