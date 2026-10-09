@@ -10,6 +10,39 @@ Entries are named `YYYY-MM-DD-HHMM_slug.md` and grouped by month, newest first.
 
 | Date | Entry | Keywords |
 |------|-------|----------|
+| 2026-10-08 | [Phase 7 planning artifacts committed](2026-10-08-2353_phase-07-planning-artifacts.md) | `[DOCUMENTATION]` `[PLANNING]` |
+| 2026-10-08 | [Phase 7 pre-merge deploy record and live "before" snapshot](2026-10-08-2335_pre-merge-deploy-record-live-before-snapshot.md) | `[DOCUMENTATION]` `[DEPLOYMENT]` `[TOOLING]` |
+| 2026-10-08 | [Phase 7 Plan 7 complete: SUMMARY, STATE and ROADMAP](2026-10-08-2332_complete-07-07-plan-summary-state-roadmap.md) | `[DOCUMENTATION]` `[PLANNING]` |
+| 2026-10-08 | [Phase 7 Plan 6 complete: SUMMARY, STATE and ROADMAP](2026-10-08-2330_complete-07-06-plan-summary-state-roadmap.md) | `[DOCUMENTATION]` `[PLANNING]` |
+| 2026-10-08 | [Owner review packet: renderer --review mode, review renders, alt-to-tagline parity test](2026-10-08-2300_review-packet-and-alt-parity-test.md) | `[FEATURE]` `[TOOLING]` `[TESTING]` `[DOCUMENTATION]` |
+| 2026-10-08 | [Phase 7 Plan 5 complete: SUMMARY, STATE and ROADMAP](2026-10-08-2258_complete-07-05-plan-summary-state-roadmap.md) | `[DOCUMENTATION]` `[PLANNING]` |
+| 2026-10-08 | [GREEN: measure-share-fetches reports who fetched the cards, with status and bytes, from zone analytics](2026-10-08-2257_green-measure-share-fetches.md) | `[FEATURE]` `[TOOLING]` `[SECURITY]` `[TESTING]` |
+| 2026-10-08 | [RED: failing tests for the zone-analytics share-fetch measurement](2026-10-08-2254_red-measure-share-fetches-tests.md) | `[TESTING]` `[TOOLING]` |
+| 2026-10-08 | [GREEN: crawler User-Agent probes and robots.txt group resolution in verify-share-meta](2026-10-08-2253_green-crawler-ua-probes-robots-resolution.md) | `[FEATURE]` `[TOOLING]` `[TESTING]` |
+| 2026-10-08 | [RED: failing tests for crawler User-Agent probes and robots.txt group resolution](2026-10-08-2252_red-crawler-ua-probes-robots-tests.md) | `[TESTING]` `[TOOLING]` |
+| 2026-10-08 | [Share-meta tracer: a live checker that fails on the tagless dev host and passes on correct output](2026-10-08-2252_verify-share-meta-live-checker-tracer.md) | `[FEATURE]` `[TESTING]` `[TOOLING]` `[SECURITY]` |
+| 2026-10-08 | [Phase 7 Plan 4 complete: SUMMARY, STATE and ROADMAP](2026-10-08-2248_complete-07-04-plan-summary-state-roadmap.md) | `[DOCUMENTATION]` `[PLANNING]` |
+| 2026-10-08 | [Freshness-gated real-build test for share metadata on built pages](2026-10-08-2248_freshness-gated-share-meta-dist-test.md) | `[TESTING]` `[FRONTEND]` |
+| 2026-10-08 | [Article pages pass article tags into the layout, proven on 3 new harness variants](2026-10-08-2247_article-prop-and-article-variants.md) | `[FEATURE]` `[FRONTEND]` `[TESTING]` |
+| 2026-10-08 | [GREEN: shareMetaTags emits og:type article and the article:* set](2026-10-08-2245_green-share-meta-article-branch.md) | `[FEATURE]` `[FRONTEND]` `[TESTING]` |
+| 2026-10-08 | [RED: failing tests for the article:* tag branch of shareMetaTags](2026-10-08-2245_red-share-meta-article-tests.md) | `[TESTING]` `[FRONTEND]` |
+| 2026-10-08 | [Phase 7 Plan 3 complete: SUMMARY, STATE and ROADMAP](2026-10-08-2244_complete-07-03-plan-summary-state-roadmap.md) | `[DOCUMENTATION]` `[PLANNING]` |
+| 2026-10-08 | [Icon links in every head, full share set proven on 8 harness variants](2026-10-08-2243_icon-links-and-full-head-harness-coverage.md) | `[FEATURE]` `[FRONTEND]` `[TESTING]` `[SECURITY]` |
+| 2026-10-08 | [GREEN: shareMetaTags builds the full ordered og/twitter set with validation](2026-10-08-2241_green-share-meta-full-set.md) | `[FEATURE]` `[FRONTEND]` `[TESTING]` |
+| 2026-10-08 | [RED: failing tests for the full ordered og/twitter share tag set](2026-10-08-2240_red-share-meta-full-set-tests.md) | `[TESTING]` `[FRONTEND]` |
+| 2026-10-08 | [Phase 7 Plan 2 complete: SUMMARY, STATE and ROADMAP](2026-10-08-2239_complete-07-02-plan-summary-state-roadmap.md) | `[DOCUMENTATION]` `[PLANNING]` |
+| 2026-10-08 | [Asset tests pin the share cards and icons (formats, sizes, tokens, copy, redirects)](2026-10-08-2238_share-card-asset-tests.md) | `[TESTING]` `[DESIGN]` `[SECURITY]` |
+| 2026-10-08 | [GREEN: icon set (favicon.svg, 32x32 favicon.ico, apple-touch-icon) and the ICO encoder](2026-10-08-2237_green-icon-set-ico-encoder.md) | `[FEATURE]` `[DESIGN]` `[FRONTEND]` `[TESTING]` |
+| 2026-10-08 | [RED: failing tests for the dependency-free ICO encoder](2026-10-08-2236_red-encode-ico-tests.md) | `[TESTING]` `[FRONTEND]` |
+| 2026-10-08 | [Share cards: EN and ES 1200x630 PNGs rendered offline from one hand-composed source](2026-10-08-2235_og-card-renderer-en-es.md) | `[FEATURE]` `[DESIGN]` `[FRONTEND]` `[TESTING]` |
+| 2026-10-08 | [Phase 7 Plan 1 complete: SUMMARY, STATE and ROADMAP](2026-10-08-2233_complete-07-01-plan-summary-state-roadmap.md) | `[DOCUMENTATION]` `[PLANNING]` |
+| 2026-10-08 | [GREEN: build guard ties the og:image origin to the single custom domain](2026-10-08-2232_green-share-origin-guard.md) | `[FEATURE]` `[SECURITY]` `[CONFIG]` `[TESTING]` |
+| 2026-10-08 | [RED: failing tests for the og:image origin build guard](2026-10-08-2231_red-share-origin-guard-tests.md) | `[TESTING]` `[SECURITY]` `[CONFIG]` |
+| 2026-10-08 | [Share-card tracer: Base.astro emits the og:image group, proven by a zero-D1 head harness](2026-10-08-2230_share-meta-og-image-tracer.md) | `[FEATURE]` `[FRONTEND]` `[TESTING]` `[SECURITY]` |
+| 2026-10-08 | [PROJECT.md and STATE.md synced to the reduced Phase 7](2026-10-08-1358_phase-07-project-state-synced.md) | `[DOCUMENTATION]` `[PLANNING]` |
+| 2026-10-08 | [Roadmap and requirements amended for the reduced Phase 7](2026-10-08-1337_phase-07-roadmap-requirements-amended.md) | `[DOCUMENTATION]` `[PLANNING]` `[SEO]` |
+| 2026-10-08 | [STATE.md records the Phase 7 context session](2026-10-08-1333_phase-07-state-session-record.md) | `[DOCUMENTATION]` `[PLANNING]` |
+| 2026-10-08 | [Phase 7 context captured: share cards and head metadata](2026-10-08-1332_phase-07-context-captured.md) | `[DOCUMENTATION]` `[PLANNING]` `[SEO]` |
 | 2026-10-08 | [Opt-out sentence on both Privacy pages](2026-10-08-0146_privacy-pages-opt-out-sentence.md) | `[FRONTEND]` `[I18N]` `[TESTING]` `[DOCUMENTATION]` |
 | 2026-10-08 | [Noindex the Spanish source pages and drop them from the Spanish sitemap](2026-10-08-0140_noindex-spanish-source-pages-and-drop-from-sitemap.md) | `[SEO]` `[I18N]` `[TESTING]` `[FRONTEND]` |
 | 2026-10-08 | [Privacy pages stop naming the Umami dashboard host](2026-10-08-0136_privacy-pages-stop-naming-the-umami-host.md) | `[FRONTEND]` `[I18N]` `[TESTING]` `[DOCUMENTATION]` |

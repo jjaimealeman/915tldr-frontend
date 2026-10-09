@@ -1,0 +1,96 @@
+<!doctype html>
+<!--
+  07-02, D-05 / D-06: the share card, hand-composed (V1 masthead) from the v2 token values.
+  One source, two languages: ?lang=en | ?lang=es.
+  Geometry, type and colour follow 07-UI-SPEC.md ("Card geometry", "Typography", "Color",
+  "Copywriting Contract").
+  Render with `node tools/og-card/render.mjs`; do not open from disk (the font and logo URLs
+  are root-relative and are served by the renderer).
+  The font families are deliberately named "OG Card ..." so a same-named locally installed
+  font (this machine has Instrument Serif and Source Serif 4) can never win over the woff2.
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>915 TLDR share card</title>
+<style>
+@font-face { font-family: "OG Card Display"; src: url("/fonts/InstrumentSerif-Regular.woff2") format("woff2"); }
+@font-face { font-family: "OG Card Serif"; src: url("/fonts/SourceSerif4-Roman.woff2") format("woff2"); font-weight: 200 900; font-style: normal; }
+@font-face { font-family: "OG Card Serif"; src: url("/fonts/SourceSerif4-Italic.woff2") format("woff2"); font-weight: 200 900; font-style: italic; }
+* { margin: 0; box-sizing: border-box; }
+body {
+  position: relative;
+  width: 1200px;
+  height: 630px;
+  margin: 0;
+  overflow: hidden;
+  background: #FAFAF8;
+  color: #14161A;
+  font-family: "OG Card Serif", serif;
+  font-synthesis: none;
+}
+.logo { position: absolute; left: 78px; top: 70px; width: 150px; }
+h1 {
+  position: absolute;
+  left: 80px;
+  top: 190px;
+  margin: 0;
+  font: 400 188px/1 "OG Card Display", serif;
+  letter-spacing: -2px;
+}
+.tag {
+  position: absolute;
+  left: 86px;
+  top: 392px;
+  font: italic 400 46px/1.2 "OG Card Serif", serif;
+  color: #14161A;
+}
+.rule { position: absolute; left: 86px; right: 86px; top: 500px; border-top: 1.5px solid #DDDEE0; }
+.credit {
+  position: absolute;
+  left: 86px;
+  top: 520px;
+  max-width: 1028px;
+  font: 400 20px/1.4 "OG Card Serif", serif;
+  color: #6D6F71;
+  white-space: nowrap;
+}
+.stripe { display: flex; position: absolute; left: 0; right: 0; bottom: 0; height: 22px; }
+.stripe i { flex: 1; height: 100%; }
+</style>
+</head>
+<body>
+<img class="logo" src="/logo-light.png" alt="">
+<h1>915 TLDR</h1>
+<div class="tag" id="tag"></div>
+<div class="rule"></div>
+<div class="credit" id="credit"></div>
+<div class="stripe">
+  <i style="background: oklch(0.600 0.150 24.7)"></i>
+  <i style="background: oklch(0.600 0.150 269.5)"></i>
+  <i style="background: oklch(0.600 0.150 49.4)"></i>
+  <i style="background: oklch(0.600 0.150 152.1)"></i>
+  <i style="background: oklch(0.600 0.150 295.9)"></i>
+  <i style="background: oklch(0.600 0.150 359.9)"></i>
+  <i style="background: oklch(0.600 0.150 124.7)"></i>
+  <i style="background: oklch(0.600 0.143 242.5)"></i>
+</div>
+<script>
+const COPY = {
+  en: {
+    tagline: 'El Paso news, in brief.',
+    credit: 'Summaries of reporting by KTSM, KVIA and other El Paso outlets — always credited, always linked.',
+  },
+  es: {
+    tagline: 'Noticias de El Paso, en breve.',
+    credit: 'Resúmenes de reportajes de KTSM, KVIA y otros medios de El Paso: siempre con crédito, siempre con enlace.',
+  },
+};
+const lang = new URLSearchParams(location.search).get('lang');
+if (lang !== 'en' && lang !== 'es') throw new Error('card.html needs ?lang=en or ?lang=es, got: ' + lang);
+document.documentElement.lang = lang;
+document.getElementById('tag').textContent = COPY[lang].tagline;
+document.getElementById('credit').textContent = COPY[lang].credit;
+</script>
+</body>
+</html>

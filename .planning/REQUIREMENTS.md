@@ -76,7 +76,6 @@
 - [ ] **A11Y-03**: A working skip link is present and the tab order is logical
 - [ ] **A11Y-04**: Each page has exactly one `h1` with a correct heading hierarchy and landmark regions
 - [ ] **A11Y-05**: Interactive controls are real `<button>`/`<a>` elements, not clickable `div`s
-- [ ] **A11Y-06**: Content images carry meaningful `alt`; decorative images carry `alt=""`; generated imagery derives alt text from the article
 - [ ] **A11Y-07**: `prefers-reduced-motion` is honoured by every transition and animation
 - [ ] **A11Y-08**: Form labels are tied to inputs and errors are announced
 - [ ] **A11Y-09**: The site is usable at 200% zoom and 320px width with no horizontal scroll or content loss
@@ -92,9 +91,6 @@
 - [ ] **PERF-05**: Lighthouse performance is at least 95 across the representative page set
 - [ ] **PERF-06**: Lighthouse CI fails the build below the blocking thresholds
 - [x] **PERF-07**: Fonts are self-hosted, subset including Spanish diacritics, woff2 only, with `size-adjust` metric-compatible fallbacks
-- [ ] **PERF-08**: The LCP image carries `fetchpriority="high"` and is not lazy-loaded
-- [ ] **PERF-09**: Every image has explicit `width`/`height`
-- [ ] **PERF-10**: Responsive images emit `srcset`/`sizes` with AVIF and WebP plus fallback
 
 ### SEO
 
@@ -114,23 +110,10 @@
 - [ ] **SOC-02**: Every page emits `og:image` with explicit `width`, `height`, `alt` and `type`
 - [ ] **SOC-03**: Articles emit `article:published_time`, `article:modified_time`, `article:section`, `article:tag` and `article:author`
 - [ ] **SOC-04**: Twitter card tags are present with `summary_large_image`
-- [ ] **SOC-05**: Every article has a 1200×630 share card under 5MB at an absolute HTTPS URL
-- [ ] **SOC-06**: Share cards are produced by deterministic composition, not AI generation, and no article shares blank or generic
+- [ ] **SOC-05**: One static 1200×630 share card per language (EN and ES), each under 5MB, at an absolute HTTPS URL; every page, articles included, points `og:image` at it
+- [ ] **SOC-06**: The cards are composed by hand from the v2 design tokens, not AI-generated, and no AI-rendered text appears in them
 - [ ] **SOC-07**: Cards are validated by human inspection in the Facebook debugger, X validator, iMessage, WhatsApp and Slack
-- [ ] **SOC-08**: Generated card file size is verified against WhatsApp's real ceiling
-
-### Imagery
-
-- [ ] **IMG-01**: An ingest filter rejects emoji sprites, known generic placeholders and undersized images
-- [ ] **IMG-02**: The filter is applied retroactively, reclassifying the existing 1,098 junk images
-- [ ] **IMG-03**: Zero articles display an emoji sprite or unbranded placeholder
-- [ ] **IMG-04**: Articles without a usable source image receive a generated image via Workers AI Flux-Schnell
-- [ ] **IMG-05**: A 10-image quality test gates the backfill; the decision is made by looking at the images
-- [ ] **IMG-06**: The 15,624-article backfill runs only after explicit approval, with a dry run first
-- [ ] **IMG-07**: Ongoing per-article generation stays inside the free 10,000 neurons/day allocation
-- [ ] **IMG-08**: Eight category hero images share one visual identity, generated via reference images on `gpt-image-2.5-flare`
-- [ ] **IMG-09**: Real per-image cost is measured from `usage.output_tokens` and recorded, not estimated
-- [ ] **IMG-10**: Generated images are stored in R2 and their assignments recorded in D1 so they survive rebuilds
+- [ ] **SOC-08**: The cards' file size is verified against what WhatsApp actually renders, and the outcome is recorded as a number
 
 ### Search
 
@@ -302,7 +285,7 @@ Deferred. Tracked, not in this roadmap.
 | A11Y-03 | Phase 11 | Pending |
 | A11Y-04 | Phase 11 | Pending |
 | A11Y-05 | Phase 11 | Pending |
-| A11Y-06 | Phase 7 | Pending |
+| A11Y-06 | Deferred (v2.x) | Deferred |
 | A11Y-07 | Phase 8 | Pending |
 | A11Y-08 | Phase 10 | Pending |
 | A11Y-09 | Phase 11 | Pending |
@@ -315,9 +298,9 @@ Deferred. Tracked, not in this roadmap.
 | PERF-05 | Phase 11 | Pending |
 | PERF-06 | Phase 11 | Pending |
 | PERF-07 | Phase 1 | Complete |
-| PERF-08 | Phase 7 | Pending |
-| PERF-09 | Phase 7 | Pending |
-| PERF-10 | Phase 7 | Pending |
+| PERF-08 | Deferred (v2.x) | Deferred |
+| PERF-09 | Deferred (v2.x) | Deferred |
+| PERF-10 | Deferred (v2.x) | Deferred |
 | SEO-01 | Phase 4 | Complete |
 | SEO-02 | Phase 4 | Complete |
 | SEO-03 | Phase 4 | Complete |
@@ -335,16 +318,16 @@ Deferred. Tracked, not in this roadmap.
 | SOC-06 | Phase 7 | Pending |
 | SOC-07 | Phase 7 | Pending |
 | SOC-08 | Phase 7 | Pending |
-| IMG-01 | Phase 7 | Pending |
-| IMG-02 | Phase 7 | Pending |
-| IMG-03 | Phase 7 | Pending |
-| IMG-04 | Phase 7 | Pending |
-| IMG-05 | Phase 7 | Pending |
-| IMG-06 | Phase 7 | Pending |
-| IMG-07 | Phase 7 | Pending |
-| IMG-08 | Phase 7 | Pending |
-| IMG-09 | Phase 7 | Pending |
-| IMG-10 | Phase 7 | Pending |
+| IMG-01 | Deferred (v2.x) | Deferred |
+| IMG-02 | Deferred (v2.x) | Deferred |
+| IMG-03 | Deferred (v2.x) | Deferred |
+| IMG-04 | Deferred (v2.x) | Deferred |
+| IMG-05 | Deferred (v2.x) | Deferred |
+| IMG-06 | Deferred (v2.x) | Deferred |
+| IMG-07 | Deferred (v2.x) | Deferred |
+| IMG-08 | Deferred (v2.x) | Deferred |
+| IMG-09 | Deferred (v2.x) | Deferred |
+| IMG-10 | Deferred (v2.x) | Deferred |
 | SRCH-01 | Phase 9 | Pending |
 | SRCH-02 | Phase 9 | Pending |
 | SRCH-03 | Phase 9 | Pending |
@@ -390,12 +373,34 @@ Deferred. Tracked, not in this roadmap.
 **Coverage:**
 
 - v1 requirements: 138 total
-- Mapped to phases: 138
+- Mapped to phases: 124
+- Deferred to v2.x: 14 (A11Y-06, PERF-08..10, IMG-01..10), see "Deferred / v2.x" below
 - Unmapped: 0 ✓
 - Duplicates: 0 ✓
 
-**Phase totals:** Phase 1: 10, Phase 2: 15, Phase 3: 10, Phase 4: 18, Phase 5: 8, Phase 6: 9, Phase 7: 22, Phase 8: 9, Phase 9: 3, Phase 10: 13, Phase 11: 14, Phase 12: 6
+**Phase totals:** Phase 1: 10, Phase 2: 15, Phase 3: 10, Phase 4: 18, Phase 5: 8, Phase 6: 9, Phase 7: 8, Phase 8: 9, Phase 9: 3, Phase 10: 13, Phase 11: 14, Phase 12: 6
+
+## Deferred / v2.x
+
+Moved out of v1 by the owner on 2026-10-08 when Phase 7 was cut to share cards and head metadata. Kept verbatim so the decision is auditable and can be revived. No v2 page shows imagery, so the image-delivery requirements (PERF-08..10, A11Y-06) have nothing to apply to.
+
+**Why:** lower cost, images distract from the summaries, and the site stays true to "AI-generated summaries". Per-article OG images are also out (`nuxt-og-image` is Nuxt-only; v2 is Astro) and are to be revisited later. Rejected options and their estimates are in `.planning/phases/07-imagery-share-cards/07-CONTEXT.md`.
+
+- [ ] **A11Y-06**: Content images carry meaningful `alt`; decorative images carry `alt=""`; generated imagery derives alt text from the article
+- [ ] **PERF-08**: The LCP image carries `fetchpriority="high"` and is not lazy-loaded
+- [ ] **PERF-09**: Every image has explicit `width`/`height`
+- [ ] **PERF-10**: Responsive images emit `srcset`/`sizes` with AVIF and WebP plus fallback
+- [ ] **IMG-01**: An ingest filter rejects emoji sprites, known generic placeholders and undersized images
+- [ ] **IMG-02**: The filter is applied retroactively, reclassifying the existing 1,098 junk images
+- [ ] **IMG-03**: Zero articles display an emoji sprite or unbranded placeholder
+- [ ] **IMG-04**: Articles without a usable source image receive a generated image via Workers AI Flux-Schnell
+- [ ] **IMG-05**: A 10-image quality test gates the backfill; the decision is made by looking at the images
+- [ ] **IMG-06**: The 15,624-article backfill runs only after explicit approval, with a dry run first
+- [ ] **IMG-07**: Ongoing per-article generation stays inside the free 10,000 neurons/day allocation
+- [ ] **IMG-08**: Eight category hero images share one visual identity, generated via reference images on `gpt-image-2.5-flare`
+- [ ] **IMG-09**: Real per-image cost is measured from `usage.output_tokens` and recorded, not estimated
+- [ ] **IMG-10**: Generated images are stored in R2 and their assignments recorded in D1 so they survive rebuilds
 
 ---
 *Requirements defined: 2026-09-16*
-*Last updated: 2026-09-16 after roadmap creation — 137/137 requirements mapped across 12 phases*
+*Last updated: 2026-10-08 — Phase 7 reduced to share cards and head metadata; 14 requirements moved to Deferred / v2.x (124 mapped across 12 phases)*
