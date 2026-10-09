@@ -17,10 +17,11 @@
 // cutover prod pages would keep pointing at the dev host. A constant in module code changes the
 // dependency hash of every page, so changing it re-renders everything.
 //
-// 07-01 emits only the og:image group; 07-03 and 07-04 extend `shareMetaTags()` to the full
-// og/twitter/article set in the fixed order recorded in 07-UI-SPEC "Head Metadata Contract".
+// 07-01 emitted only the og:image group; 07-03 extends `shareMetaTags()` to the full og/twitter set
+// in the fixed order recorded in 07-UI-SPEC "Head Metadata Contract"; 07-04 adds the article:* tags.
 import { assertLanguage, type Language } from './article-url.ts';
 import type { AlternateMode } from './i18n/hreflang.ts';
+import { SITE_NAME } from './structured-data.ts';
 
 /** D-21: where every platform fetches the card from. Switches to `https://915tldr.com` at cutover. */
 export const SHARE_IMAGE_ORIGIN = 'https://dev.915tldr.com';
@@ -100,26 +101,74 @@ export function fallbackPageUrl(pathname: string, siteOrigin: string): string {
   return new URL(trimmed === '' ? '/' : trimmed, siteOrigin).href;
 }
 
+const ALTERNATE_MODES: readonly AlternateMode[] = ['paired', 'self', 'none'];
+
+function requireText(field: 'title' | 'description', value: unknown): string {
+  if (typeof value !== 'string' || value.trim() === '') {
+    throw new Error(`share-meta: ${field} must be a non-empty string`);
+  }
+  return value;
+}
+
+function requireHttpsUrl(field: 'pageUrl' | 'siteOrigin', value: unknown): string {
+  let parsed: URL | undefined;
+  try {
+    parsed = typeof value === 'string' ? new URL(value) : undefined;
+  } catch {
+    parsed = undefined;
+  }
+  if (!parsed || parsed.protocol !== 'https:') {
+    throw new Error(`share-meta: ${field} must be an absolute https URL, got ${JSON.stringify(value)}`);
+  }
+  return value as string;
+}
+
 /**
- * The ordered share tag list for one page. A single ordered list builder: later plans append the
- * rest of the set in the fixed order of 07-UI-SPEC "Head Metadata Contract". Values are plain
+ * The ordered share tag list for one page, in the fixed order of 07-UI-SPEC "Head Metadata
+ * Contract": og:title, og:description, og:url, og:site_name, og:type, og:locale,
+ * og:locale:alternate, the og:image group, then twitter:card and twitter:image:alt. Values are plain
  * strings; escaping is the renderer's job (`Base.astro` renders them through Astro attribute
  * expressions only, never `set:html`).
+ *
+ * D-22: og:locale:alternate is emitted on every page whatever `alternates` says (the literal SOC-01
+ * reading); `alternates` is still validated. D-17: no X site-handle tag exists, and no X
+ * title/description/image tag, because X falls back to the og:* tags. 07-04 switches og:type to
+ * `article` when `input.article` is present.
  */
 export function shareMetaTags(input: ShareMetaInput): MetaTag[] {
   const { lang } = input;
   assertLanguage(lang);
+  if (!ALTERNATE_MODES.includes(input.alternates)) {
+    throw new Error(`share-meta: alternates must be one of ${ALTERNATE_MODES.join(', ')}, got ${JSON.stringify(input.alternates)}`);
+  }
+  const title = requireText('title', input.title);
+  const description = requireText('description', input.description);
+  const pageUrl = requireHttpsUrl('pageUrl', input.pageUrl);
+  requireHttpsUrl('siteOrigin', input.siteOrigin);
+  const otherLang: Language = lang === 'en' ? 'es' : 'en';
 
   const tags: MetaTag[] = [];
   const og = (key: string, content: string): void => {
     tags.push({ attr: 'property', key, content });
   };
+  const twitter = (key: string, content: string): void => {
+    tags.push({ attr: 'name', key, content });
+  };
 
+  og('og:title', title);
+  og('og:description', description);
+  og('og:url', pageUrl);
+  og('og:site_name', SITE_NAME);
+  og('og:type', 'website');
+  og('og:locale', OG_LOCALE[lang]);
+  og('og:locale:alternate', OG_LOCALE[otherLang]);
   og('og:image', shareImageUrl(lang, input.imageOrigin));
   og('og:image:width', String(SHARE_IMAGE_WIDTH));
   og('og:image:height', String(SHARE_IMAGE_HEIGHT));
   og('og:image:type', SHARE_IMAGE_TYPE);
   og('og:image:alt', SHARE_IMAGE_ALT[lang]);
+  twitter('twitter:card', 'summary_large_image');
+  twitter('twitter:image:alt', SHARE_IMAGE_ALT[lang]);
 
   return tags;
 }
