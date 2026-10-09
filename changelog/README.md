@@ -10,6 +10,7 @@ Entries are named `YYYY-MM-DD-HHMM_slug.md` and grouped by month, newest first.
 
 | Date | Entry | Keywords |
 |------|-------|----------|
+| 2026-10-08 | [GREEN: measure-share-fetches reports who fetched the cards, with status and bytes, from zone analytics](2026-10-08-2257_green-measure-share-fetches.md) | `[FEATURE]` `[TOOLING]` `[SECURITY]` `[TESTING]` |
 | 2026-10-08 | [RED: failing tests for the zone-analytics share-fetch measurement](2026-10-08-2254_red-measure-share-fetches-tests.md) | `[TESTING]` `[TOOLING]` |
 | 2026-10-08 | [GREEN: crawler User-Agent probes and robots.txt group resolution in verify-share-meta](2026-10-08-2253_green-crawler-ua-probes-robots-resolution.md) | `[FEATURE]` `[TOOLING]` `[TESTING]` |
 | 2026-10-08 | [RED: failing tests for crawler User-Agent probes and robots.txt group resolution](2026-10-08-2252_red-crawler-ua-probes-robots-tests.md) | `[TESTING]` `[TOOLING]` |

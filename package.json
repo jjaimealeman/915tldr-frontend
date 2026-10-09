@@ -36,6 +36,7 @@
   "guard:archive-synced": "node tools/assert-archive-synced.mjs",
     "verify:edge": "node tools/verify-edge-headers.mjs",
     "verify:share": "node tools/verify-share-meta.mjs",
+    "measure:share": "node tools/measure-share-fetches.mjs",
     "measure:d1": "node tools/measure-d1-pagination.mjs",
     "measure:render": "node tools/measure-render-cost.mjs",
     "measure:cpu": "node tools/cpu-ceiling-probe/run.mjs",
