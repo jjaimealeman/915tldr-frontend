@@ -8,6 +8,9 @@ import path from 'node:path';
 import {
   checkSharePage,
   pngDimensions,
+  robotsRulesFor,
+  isPathAllowed,
+  SCRAPER_USER_AGENTS,
   runShareChecks,
 } from '../../tools/verify-share-meta.mjs';
 import { ICON_LINKS, shareMetaTags } from '../../src/lib/share-meta.ts';
@@ -206,3 +209,71 @@ test('--expect-stylesheet is compared with the homepage stylesheet', async () =>
   assert.ok(failing(bad.results).includes('homepage stylesheet'));
 });
 
+// ---------------------------------------------------------------------------------------------
+// Task 2 (D-20, edge half): crawler User-Agent probes and robots.txt group resolution
+// ---------------------------------------------------------------------------------------------
+
+const REAL_ROBOTS = readFileSync(path.join(REPO_ROOT, 'public/robots.txt'), 'utf8');
+
+test('robotsRulesFor: facebookexternalhit falls under *, not the FacebookBot group', () => {
+  const rules = robotsRulesFor(REAL_ROBOTS, 'facebookexternalhit');
+  assert.equal(rules.group, '*');
+  assert.deepEqual(rules.disallow, ['/admin', '/admin/', '/api/admin/']);
+});
+
+test('robotsRulesFor: FacebookBot matches its own group with Disallow /', () => {
+  const rules = robotsRulesFor(REAL_ROBOTS, 'FacebookBot');
+  assert.equal(rules.group, 'FacebookBot');
+  assert.deepEqual(rules.disallow, ['/']);
+});
+
+test('robotsRulesFor: case-insensitive token, shared groups, no * group means no rules', () => {
+  const text = 'User-agent: AlphaBot\nUser-agent: BetaBot\nDisallow: /x\n\nUser-agent: Other\nDisallow: /y\n';
+  assert.deepEqual(robotsRulesFor(text, 'betabot').disallow, ['/x']);
+  assert.deepEqual(robotsRulesFor(text, 'ALPHABOT').disallow, ['/x']);
+  const none = robotsRulesFor(text, 'Twitterbot');
+  assert.equal(none.group, null);
+  assert.deepEqual(none.disallow, []);
+});
+
+test('isPathAllowed: * group allows /og-image.png, Disallow / blocks it, longest match wins', () => {
+  assert.equal(isPathAllowed(robotsRulesFor(REAL_ROBOTS, 'Twitterbot'), '/og-image.png'), true);
+  assert.equal(isPathAllowed(robotsRulesFor(REAL_ROBOTS, 'Twitterbot'), '/admin/x'), false);
+  assert.equal(isPathAllowed(robotsRulesFor(REAL_ROBOTS, 'FacebookBot'), '/og-image.png'), false);
+  const rules = robotsRulesFor('User-agent: *\nDisallow: /a\nAllow: /a/b\nDisallow:\n', 'x');
+  assert.equal(isPathAllowed(rules, '/a/b/c'), true);
+  assert.equal(isPathAllowed(rules, '/a/c'), false);
+});
+
+test('SCRAPER_USER_AGENTS names the four crawlers', () => {
+  assert.deepEqual(Object.keys(SCRAPER_USER_AGENTS).sort(), ['facebook', 'slack', 'whatsapp', 'x']);
+});
+
+test('UA probes request the article page and the EN card with each crawler User-Agent', async () => {
+  const fetchImpl = fakeFetch({ '/robots.txt': { body: REAL_ROBOTS, type: 'text/plain' } });
+  const report = await runShareChecks({ host: 'dev.example', fetchImpl, discoverArticle: discover });
+  for (const [name, ua] of Object.entries(SCRAPER_USER_AGENTS)) {
+    const seen = fetchImpl.calls.filter((c) => c.userAgent === ua).map((c) => new URL(c.url).pathname);
+    assert.ok(seen.includes(ARTICLE_PATH), `${name} did not request the article`);
+    assert.ok(seen.includes('/og-image.png'), `${name} did not request the card`);
+    assert.ok(report.results.some((r) => r.check === `UA probe ${name}: article page` && r.ok), name);
+    assert.ok(report.results.some((r) => r.check === `UA probe ${name}: EN card` && r.ok), name);
+  }
+  const fb = report.results.find((r) => r.check === 'robots.txt facebookexternalhit');
+  assert.ok(fb && fb.ok && /group \*/.test(fb.detail), fb?.detail);
+});
+
+test('a non-200 for one crawler is a FAIL naming the crawler and status', async () => {
+  const base = fakeFetch();
+  const fetchImpl = async (url, init = {}) => {
+    if (init.headers?.['user-agent'] === SCRAPER_USER_AGENTS.slack && new URL(url).pathname === ARTICLE_PATH) {
+      return new Response('forbidden', { status: 403 });
+    }
+    return base(url, init);
+  };
+  const report = await runShareChecks({ host: 'dev.example', fetchImpl, discoverArticle: discover });
+  const bad = report.results.filter((r) => !r.ok);
+  assert.equal(bad.length, 1, JSON.stringify(bad));
+  assert.equal(bad[0].check, 'UA probe slack: article page');
+  assert.match(bad[0].detail, /403/);
+});

@@ -10,6 +10,7 @@ Entries are named `YYYY-MM-DD-HHMM_slug.md` and grouped by month, newest first.
 
 | Date | Entry | Keywords |
 |------|-------|----------|
+| 2026-10-08 | [RED: failing tests for crawler User-Agent probes and robots.txt group resolution](2026-10-08-2252_red-crawler-ua-probes-robots-tests.md) | `[TESTING]` `[TOOLING]` |
 | 2026-10-08 | [Share-meta tracer: a live checker that fails on the tagless dev host and passes on correct output](2026-10-08-2252_verify-share-meta-live-checker-tracer.md) | `[FEATURE]` `[TESTING]` `[TOOLING]` `[SECURITY]` |
 | 2026-10-08 | [Phase 7 Plan 4 complete: SUMMARY, STATE and ROADMAP](2026-10-08-2248_complete-07-04-plan-summary-state-roadmap.md) | `[DOCUMENTATION]` `[PLANNING]` |
 | 2026-10-08 | [Freshness-gated real-build test for share metadata on built pages](2026-10-08-2248_freshness-gated-share-meta-dist-test.md) | `[TESTING]` `[FRONTEND]` |
