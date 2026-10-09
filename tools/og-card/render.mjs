@@ -24,6 +24,8 @@
 import { readFileSync, writeFileSync, statSync } from 'node:fs';
 import path from 'node:path';
 import { chromium } from '@playwright/test';
+import { execFileSync } from 'node:child_process';
+import { encodeIco } from './ico.mjs';
 
 const REPO_ROOT = path.resolve(import.meta.dirname, '../..');
 const CARD_DIR = path.join(REPO_ROOT, 'tools/og-card');
@@ -210,14 +212,111 @@ async function renderCard(context, aborted, lang) {
   });
 }
 
+// Page served at /icon-favicon.html: the favicon.svg on a transparent body at its native 32x32.
+const FAVICON_PAGE = `<!doctype html><html><head><meta charset="utf-8"><style>
+html, body { margin: 0; background: transparent; }
+img { display: block; width: 32px; height: 32px; }
+</style></head><body><img id="icon" src="/favicon.svg" width="32" height="32" alt=""></body></html>`;
+
+// Page served at /icon-touch.html: crops the bubble mark to its alpha bounding box, scales it to
+// 148px wide and centres it on a 180x180 opaque #FAFAF8 canvas shown full-bleed.
+const TOUCH_PAGE = `<!doctype html><html><head><meta charset="utf-8"><style>
+html, body { margin: 0; background: #FAFAF8; }
+canvas { display: block; }
+</style></head><body><canvas id="c" width="180" height="180"></canvas><script>
+window.touchReady = (async () => {
+  const img = new Image();
+  img.src = '/logo-light.png';
+  await img.decode();
+  const src = document.createElement('canvas');
+  src.width = img.naturalWidth;
+  src.height = img.naturalHeight;
+  const sctx = src.getContext('2d', { willReadFrequently: true });
+  sctx.drawImage(img, 0, 0);
+  const { data } = sctx.getImageData(0, 0, src.width, src.height);
+  let minX = src.width, minY = src.height, maxX = -1, maxY = -1;
+  for (let y = 0; y < src.height; y++) {
+    for (let x = 0; x < src.width; x++) {
+      if (data[(y * src.width + x) * 4 + 3] > 0) {
+        if (x < minX) minX = x;
+        if (x > maxX) maxX = x;
+        if (y < minY) minY = y;
+        if (y > maxY) maxY = y;
+      }
+    }
+  }
+  const bw = maxX - minX + 1;
+  const bh = maxY - minY + 1;
+  const targetW = 148;
+  const targetH = bh * (targetW / bw);
+  const c = document.getElementById('c');
+  const ctx = c.getContext('2d');
+  ctx.fillStyle = '#FAFAF8';
+  ctx.fillRect(0, 0, 180, 180);
+  ctx.imageSmoothingEnabled = true;
+  ctx.imageSmoothingQuality = 'high';
+  ctx.drawImage(img, minX, minY, bw, bh, (180 - targetW) / 2, (180 - targetH) / 2, targetW, targetH);
+  return { bw, bh, targetH };
+})();
+</script></body></html>`;
+
+async function renderIcons(context) {
+  console.log('icons');
+  console.log(`  fc-match Arial -> ${execFileSync('fc-match', ['Arial']).toString().trim()}`);
+
+  // D-23: favicon.ico is a single 32x32 rasterisation of favicon.svg (transparent corners).
+  const fav = await context.newPage();
+  await fav.setViewportSize({ width: 32, height: 32 });
+  await fav.goto(`${ORIGIN}/icon-favicon.html`);
+  await fav.evaluate(() => document.getElementById('icon').decode());
+  const favPng = await fav.screenshot({ type: 'png', omitBackground: true });
+  await fav.close();
+  const icoPath = path.join(PUBLIC_DIR, 'favicon.ico');
+  writeFileSync(icoPath, encodeIco([{ size: 32, png: favPng }]));
+  console.log(`  wrote ${path.relative(REPO_ROOT, icoPath)} (${statSync(icoPath).size} bytes, 1 entry 32x32)`);
+
+  // apple-touch-icon: opaque 180x180, bubble mark at 148px ink width, centred.
+  const touch = await context.newPage();
+  await touch.setViewportSize({ width: 180, height: 180 });
+  await touch.goto(`${ORIGIN}/icon-touch.html`);
+  const crop = await touch.evaluate(() => window.touchReady);
+  console.log(`  logo alpha ink box ${crop.bw}x${crop.bh} -> 148x${crop.targetH.toFixed(1)}`);
+  const touchPng = await touch.screenshot({ type: 'png', omitBackground: false });
+  await touch.close();
+  const touchPath = path.join(PUBLIC_DIR, 'apple-touch-icon.png');
+  writeFileSync(touchPath, touchPng);
+  console.log(`  wrote ${path.relative(REPO_ROOT, touchPath)} (${statSync(touchPath).size} bytes)`);
+
+  const probe = await context.newPage();
+  const pixels = await analysePng(probe, touchPng, { bg: PAPER, inkBox: true });
+  await probe.close();
+  const { minX, minY, maxX, maxY } = pixels.inkBox;
+  const inkW = maxX - minX + 1;
+  const marginL = minX;
+  const marginR = pixels.width - 1 - maxX;
+  const marginT = minY;
+  const marginB = pixels.height - 1 - maxY;
+  console.log(`  apple-touch-icon ink box x ${minX}..${maxX} (width ${inkW}), y ${minY}..${maxY}; margins L${marginL} R${marginR} T${marginT} B${marginB}`);
+  check(pixels.width === 180 && pixels.height === 180, `apple-touch-icon decoded size ${pixels.width}x${pixels.height} is 180x180`);
+  check(inkW >= 147 && inkW <= 149, `apple-touch-icon ink width ${inkW} is 148 +/- 1`);
+  check(Math.abs(marginL - marginR) <= 1, `apple-touch-icon horizontally centred (L${marginL} R${marginR})`);
+  check(Math.abs(marginT - marginB) <= 1, `apple-touch-icon vertically centred (T${marginT} B${marginB})`);
+  check(Math.min(marginL, marginR, marginT, marginB) >= 16, `apple-touch-icon clear margin is at least 16px (min ${Math.min(marginL, marginR, marginT, marginB)})`);
+}
+
 const aborted = [];
 const browser = await chromium.launch();
 try {
   const context = await browser.newContext({ viewport: { width: 1200, height: 630 }, deviceScaleFactor: 1 });
-  await installRoutes(context, aborted);
+  await installRoutes(context, aborted, {
+    '/favicon.svg': () => ({ contentType: 'image/svg+xml', body: readFileSync(path.join(PUBLIC_DIR, 'favicon.svg')) }),
+    '/icon-favicon.html': () => ({ contentType: 'text/html', body: FAVICON_PAGE }),
+    '/icon-touch.html': () => ({ contentType: 'text/html', body: TOUCH_PAGE }),
+  });
   for (const lang of ['en', 'es']) {
     await renderCard(context, aborted, lang);
   }
+  await renderIcons(context);
   check(aborted.length === 0, `aborted (non-allow-listed) requests: ${aborted.length}${aborted.length ? ' -> ' + aborted.join(', ') : ''}`);
 } finally {
   await browser.close();
