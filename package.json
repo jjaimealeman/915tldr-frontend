@@ -32,7 +32,7 @@
     "palette:sample": "node design/scripts/sample-hues.mjs",
     "palette:build": "node design/scripts/build-palette.mjs",
     "palette:swatches": "node design/scripts/render-swatches.mjs",
-    "guard:config": "node tools/check-config-guards.mjs",
+    "guard:config": "node tools/check-config-guards.mjs && node tools/assert-share-origin.mjs",
   "guard:archive-synced": "node tools/assert-archive-synced.mjs",
     "verify:edge": "node tools/verify-edge-headers.mjs",
     "measure:d1": "node tools/measure-d1-pagination.mjs",
