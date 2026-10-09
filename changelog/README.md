@@ -10,6 +10,7 @@ Entries are named `YYYY-MM-DD-HHMM_slug.md` and grouped by month, newest first.
 
 | Date | Entry | Keywords |
 |------|-------|----------|
+| 2026-10-08 | [Phase 7 pre-merge deploy record and live "before" snapshot](2026-10-08-2335_pre-merge-deploy-record-live-before-snapshot.md) | `[DOCUMENTATION]` `[DEPLOYMENT]` `[TOOLING]` |
 | 2026-10-08 | [Phase 7 Plan 7 complete: SUMMARY, STATE and ROADMAP](2026-10-08-2332_complete-07-07-plan-summary-state-roadmap.md) | `[DOCUMENTATION]` `[PLANNING]` |
 | 2026-10-08 | [Phase 7 Plan 6 complete: SUMMARY, STATE and ROADMAP](2026-10-08-2330_complete-07-06-plan-summary-state-roadmap.md) | `[DOCUMENTATION]` `[PLANNING]` |
 | 2026-10-08 | [Owner review packet: renderer --review mode, review renders, alt-to-tagline parity test](2026-10-08-2300_review-packet-and-alt-parity-test.md) | `[FEATURE]` `[TOOLING]` `[TESTING]` `[DOCUMENTATION]` |
