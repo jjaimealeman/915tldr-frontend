@@ -5,15 +5,15 @@ milestone_name: milestone
 current_phase: 07
 current_phase_name: imagery-share-cards
 status: executing
-stopped_at: Completed 07-04-PLAN.md
-last_updated: "2026-10-09T04:48:46.229Z"
+stopped_at: Completed 07-05-PLAN.md
+last_updated: "2026-10-09T04:58:11.682Z"
 last_activity: 2026-10-08
 last_activity_desc: Phase 07 execution started
 progress:
   total_phases: 7
   completed_phases: 6
   total_plans: 99
-  completed_plans: 94
+  completed_plans: 95
 ---
 
 # Project State
@@ -28,11 +28,11 @@ See: .planning/PROJECT.md (updated 2026-09-16)
 ## Current Position
 
 Phase: 07 (imagery-share-cards) — EXECUTING
-Plan: 5 of 9
+Plan: 6 of 9
 Status: Ready to execute
 Last activity: 2026-10-08 — Phase 07 execution started
 
-Progress: [██████████] 95%
+Progress: [██████████] 96%
 
 ## Performance Metrics
 
@@ -128,6 +128,7 @@ Progress: [██████████] 95%
 | Phase 07 P02 | ~20 min | 3 tasks | 12 files |
 | Phase 07 P03 | 12min | 2 tasks | 5 files |
 | Phase 07 P04 | 15min | 3 tasks | 9 files |
+| Phase 07 P05 | 35min | 3 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -311,6 +312,8 @@ Recent decisions affecting current work:
 - [Phase ?]: 07-02: share card copy kept as literal UTF-8 in card.html and font families named OG Card Display/Serif so local same-named fonts cannot win; favicon.ico is one 32x32 entry rasterised from favicon.svg (D-23)
 - [Phase ?]: [Phase 07-03] fallbackPageUrl strips .html: build.format file makes Astro.url.pathname carry the extension (404 pages have no canonicalPath)
 - [Phase ?]: 07-04: article:modified_time equals published_time (one bylineDatetime instant, D-18); publishedIso must carry Z or +-HH:MM offset
+- [Phase ?]: 07-05: robots.txt token match is exact; facebookexternalhit falls under * while FacebookBot is disallowed
+- [Phase ?]: 07-05: dev-host static requests are visible in zone analytics within about 74s, so SOC-08 can be stated from edge data
 
 ### Pending Todos
 
@@ -374,6 +377,6 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-10-09T04:48:46.206Z
-Stopped at: Completed 07-04-PLAN.md
+Last session: 2026-10-09T04:58:11.658Z
+Stopped at: Completed 07-05-PLAN.md
 Resume file: None
