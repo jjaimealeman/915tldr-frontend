@@ -1,0 +1,635 @@
+{
+  "host": "dev.915tldr.com",
+  "versionCommit": "main",
+  "stylesheet": "/_astro/Base.h88la9Hn.css",
+  "results": [
+    {
+      "check": "version.json",
+      "ok": true,
+      "detail": "commit main"
+    },
+    {
+      "check": "live article discovery",
+      "ok": true,
+      "detail": "/community/gabby-garza-cooks-fajitas-as-garzas-great-great-granddaughter-e61a8c45-57e7-45f7-aa28-ea06e605a400"
+    },
+    {
+      "check": "EN home (/): og:title",
+      "ok": false,
+      "detail": "expected \"915 TLDR - El Paso News, Simplified\", observed null"
+    },
+    {
+      "check": "EN home (/): og:description",
+      "ok": false,
+      "detail": "missing or empty"
+    },
+    {
+      "check": "EN home (/): og:url",
+      "ok": false,
+      "detail": "expected \"https://915tldr.com/\", observed null"
+    },
+    {
+      "check": "EN home (/): og:site_name",
+      "ok": false,
+      "detail": "expected \"915 TLDR\", observed null"
+    },
+    {
+      "check": "EN home (/): og:type",
+      "ok": false,
+      "detail": "expected \"website\", observed null"
+    },
+    {
+      "check": "EN home (/): og:locale",
+      "ok": false,
+      "detail": "expected \"en_US\", observed null"
+    },
+    {
+      "check": "EN home (/): og:locale:alternate",
+      "ok": false,
+      "detail": "expected \"es_US\", observed null"
+    },
+    {
+      "check": "EN home (/): og:image",
+      "ok": false,
+      "detail": "expected \"https://dev.915tldr.com/og-image.png\", observed null"
+    },
+    {
+      "check": "EN home (/): og:image:width",
+      "ok": false,
+      "detail": "expected \"1200\", observed null"
+    },
+    {
+      "check": "EN home (/): og:image:height",
+      "ok": false,
+      "detail": "expected \"630\", observed null"
+    },
+    {
+      "check": "EN home (/): og:image:type",
+      "ok": false,
+      "detail": "expected \"image/png\", observed null"
+    },
+    {
+      "check": "EN home (/): og:image:alt",
+      "ok": false,
+      "detail": "expected \"915 TLDR — El Paso news, in brief.\", observed null"
+    },
+    {
+      "check": "EN home (/): twitter:card",
+      "ok": false,
+      "detail": "expected \"summary_large_image\", observed null"
+    },
+    {
+      "check": "EN home (/): twitter:image:alt",
+      "ok": false,
+      "detail": "expected \"915 TLDR — El Paso news, in brief.\", observed null"
+    },
+    {
+      "check": "EN home (/): no forbidden X tags",
+      "ok": true,
+      "detail": "twitter:site, twitter:title, twitter:description, twitter:image absent"
+    },
+    {
+      "check": "EN home (/): icon links",
+      "ok": false,
+      "detail": "expected [\"icon|/favicon.ico||32x32\",\"icon|/favicon.svg|image/svg+xml|\",\"apple-touch-icon|/apple-touch-icon.png||\"], observed []"
+    },
+    {
+      "check": "EN home (/): no empty meta content",
+      "ok": true,
+      "detail": "none"
+    },
+    {
+      "check": "EN home (/): no duplicate meta keys",
+      "ok": true,
+      "detail": "none"
+    },
+    {
+      "check": "EN home (/): no article:* tags on a page",
+      "ok": true,
+      "detail": "none"
+    },
+    {
+      "check": "ES home (/es): og:title",
+      "ok": false,
+      "detail": "expected \"915 TLDR - Noticias de El Paso, simplificadas\", observed null"
+    },
+    {
+      "check": "ES home (/es): og:description",
+      "ok": false,
+      "detail": "missing or empty"
+    },
+    {
+      "check": "ES home (/es): og:url",
+      "ok": false,
+      "detail": "expected \"https://915tldr.com/es\", observed null"
+    },
+    {
+      "check": "ES home (/es): og:site_name",
+      "ok": false,
+      "detail": "expected \"915 TLDR\", observed null"
+    },
+    {
+      "check": "ES home (/es): og:type",
+      "ok": false,
+      "detail": "expected \"website\", observed null"
+    },
+    {
+      "check": "ES home (/es): og:locale",
+      "ok": false,
+      "detail": "expected \"es_US\", observed null"
+    },
+    {
+      "check": "ES home (/es): og:locale:alternate",
+      "ok": false,
+      "detail": "expected \"en_US\", observed null"
+    },
+    {
+      "check": "ES home (/es): og:image",
+      "ok": false,
+      "detail": "expected \"https://dev.915tldr.com/og-image-es.png\", observed null"
+    },
+    {
+      "check": "ES home (/es): og:image:width",
+      "ok": false,
+      "detail": "expected \"1200\", observed null"
+    },
+    {
+      "check": "ES home (/es): og:image:height",
+      "ok": false,
+      "detail": "expected \"630\", observed null"
+    },
+    {
+      "check": "ES home (/es): og:image:type",
+      "ok": false,
+      "detail": "expected \"image/png\", observed null"
+    },
+    {
+      "check": "ES home (/es): og:image:alt",
+      "ok": false,
+      "detail": "expected \"915 TLDR — Noticias de El Paso, en breve.\", observed null"
+    },
+    {
+      "check": "ES home (/es): twitter:card",
+      "ok": false,
+      "detail": "expected \"summary_large_image\", observed null"
+    },
+    {
+      "check": "ES home (/es): twitter:image:alt",
+      "ok": false,
+      "detail": "expected \"915 TLDR — Noticias de El Paso, en breve.\", observed null"
+    },
+    {
+      "check": "ES home (/es): no forbidden X tags",
+      "ok": true,
+      "detail": "twitter:site, twitter:title, twitter:description, twitter:image absent"
+    },
+    {
+      "check": "ES home (/es): icon links",
+      "ok": false,
+      "detail": "expected [\"icon|/favicon.ico||32x32\",\"icon|/favicon.svg|image/svg+xml|\",\"apple-touch-icon|/apple-touch-icon.png||\"], observed []"
+    },
+    {
+      "check": "ES home (/es): no empty meta content",
+      "ok": true,
+      "detail": "none"
+    },
+    {
+      "check": "ES home (/es): no duplicate meta keys",
+      "ok": true,
+      "detail": "none"
+    },
+    {
+      "check": "ES home (/es): no article:* tags on a page",
+      "ok": true,
+      "detail": "none"
+    },
+    {
+      "check": "EN article (/community/gabby-garza-cooks-fajitas-as-garzas-great-great-granddaughter-e61a8c45-57e7-45f7-aa28-ea06e605a400): og:title",
+      "ok": false,
+      "detail": "expected \"Gabby Garza cooks fajitas as Garza’s great-great-granddaughter — 915 TLDR\", observed null"
+    },
+    {
+      "check": "EN article (/community/gabby-garza-cooks-fajitas-as-garzas-great-great-granddaughter-e61a8c45-57e7-45f7-aa28-ea06e605a400): og:description",
+      "ok": false,
+      "detail": "missing or empty"
+    },
+    {
+      "check": "EN article (/community/gabby-garza-cooks-fajitas-as-garzas-great-great-granddaughter-e61a8c45-57e7-45f7-aa28-ea06e605a400): og:url",
+      "ok": false,
+      "detail": "expected \"https://915tldr.com/community/gabby-garza-cooks-fajitas-as-garzas-great-great-granddaughter-e61a8c45-57e7-45f7-aa28-ea06e605a400\", observed null"
+    },
+    {
+      "check": "EN article (/community/gabby-garza-cooks-fajitas-as-garzas-great-great-granddaughter-e61a8c45-57e7-45f7-aa28-ea06e605a400): og:site_name",
+      "ok": false,
+      "detail": "expected \"915 TLDR\", observed null"
+    },
+    {
+      "check": "EN article (/community/gabby-garza-cooks-fajitas-as-garzas-great-great-granddaughter-e61a8c45-57e7-45f7-aa28-ea06e605a400): og:type",
+      "ok": false,
+      "detail": "expected \"article\", observed null"
+    },
+    {
+      "check": "EN article (/community/gabby-garza-cooks-fajitas-as-garzas-great-great-granddaughter-e61a8c45-57e7-45f7-aa28-ea06e605a400): og:locale",
+      "ok": false,
+      "detail": "expected \"en_US\", observed null"
+    },
+    {
+      "check": "EN article (/community/gabby-garza-cooks-fajitas-as-garzas-great-great-granddaughter-e61a8c45-57e7-45f7-aa28-ea06e605a400): og:locale:alternate",
+      "ok": false,
+      "detail": "expected \"es_US\", observed null"
+    },
+    {
+      "check": "EN article (/community/gabby-garza-cooks-fajitas-as-garzas-great-great-granddaughter-e61a8c45-57e7-45f7-aa28-ea06e605a400): og:image",
+      "ok": false,
+      "detail": "expected \"https://dev.915tldr.com/og-image.png\", observed null"
+    },
+    {
+      "check": "EN article (/community/gabby-garza-cooks-fajitas-as-garzas-great-great-granddaughter-e61a8c45-57e7-45f7-aa28-ea06e605a400): og:image:width",
+      "ok": false,
+      "detail": "expected \"1200\", observed null"
+    },
+    {
+      "check": "EN article (/community/gabby-garza-cooks-fajitas-as-garzas-great-great-granddaughter-e61a8c45-57e7-45f7-aa28-ea06e605a400): og:image:height",
+      "ok": false,
+      "detail": "expected \"630\", observed null"
+    },
+    {
+      "check": "EN article (/community/gabby-garza-cooks-fajitas-as-garzas-great-great-granddaughter-e61a8c45-57e7-45f7-aa28-ea06e605a400): og:image:type",
+      "ok": false,
+      "detail": "expected \"image/png\", observed null"
+    },
+    {
+      "check": "EN article (/community/gabby-garza-cooks-fajitas-as-garzas-great-great-granddaughter-e61a8c45-57e7-45f7-aa28-ea06e605a400): og:image:alt",
+      "ok": false,
+      "detail": "expected \"915 TLDR — El Paso news, in brief.\", observed null"
+    },
+    {
+      "check": "EN article (/community/gabby-garza-cooks-fajitas-as-garzas-great-great-granddaughter-e61a8c45-57e7-45f7-aa28-ea06e605a400): twitter:card",
+      "ok": false,
+      "detail": "expected \"summary_large_image\", observed null"
+    },
+    {
+      "check": "EN article (/community/gabby-garza-cooks-fajitas-as-garzas-great-great-granddaughter-e61a8c45-57e7-45f7-aa28-ea06e605a400): twitter:image:alt",
+      "ok": false,
+      "detail": "expected \"915 TLDR — El Paso news, in brief.\", observed null"
+    },
+    {
+      "check": "EN article (/community/gabby-garza-cooks-fajitas-as-garzas-great-great-granddaughter-e61a8c45-57e7-45f7-aa28-ea06e605a400): no forbidden X tags",
+      "ok": true,
+      "detail": "twitter:site, twitter:title, twitter:description, twitter:image absent"
+    },
+    {
+      "check": "EN article (/community/gabby-garza-cooks-fajitas-as-garzas-great-great-granddaughter-e61a8c45-57e7-45f7-aa28-ea06e605a400): icon links",
+      "ok": false,
+      "detail": "expected [\"icon|/favicon.ico||32x32\",\"icon|/favicon.svg|image/svg+xml|\",\"apple-touch-icon|/apple-touch-icon.png||\"], observed []"
+    },
+    {
+      "check": "EN article (/community/gabby-garza-cooks-fajitas-as-garzas-great-great-granddaughter-e61a8c45-57e7-45f7-aa28-ea06e605a400): no empty meta content",
+      "ok": true,
+      "detail": "none"
+    },
+    {
+      "check": "EN article (/community/gabby-garza-cooks-fajitas-as-garzas-great-great-granddaughter-e61a8c45-57e7-45f7-aa28-ea06e605a400): no duplicate meta keys",
+      "ok": true,
+      "detail": "none"
+    },
+    {
+      "check": "EN article (/community/gabby-garza-cooks-fajitas-as-garzas-great-great-granddaughter-e61a8c45-57e7-45f7-aa28-ea06e605a400): article:published_time",
+      "ok": false,
+      "detail": "expected \"2026-10-08T21:19:32-06:00\", observed null"
+    },
+    {
+      "check": "EN article (/community/gabby-garza-cooks-fajitas-as-garzas-great-great-granddaughter-e61a8c45-57e7-45f7-aa28-ea06e605a400): article:modified_time",
+      "ok": false,
+      "detail": "expected \"2026-10-08T21:19:32-06:00\", observed null"
+    },
+    {
+      "check": "EN article (/community/gabby-garza-cooks-fajitas-as-garzas-great-great-granddaughter-e61a8c45-57e7-45f7-aa28-ea06e605a400): article:section",
+      "ok": false,
+      "detail": "missing or empty"
+    },
+    {
+      "check": "EN article (/community/gabby-garza-cooks-fajitas-as-garzas-great-great-granddaughter-e61a8c45-57e7-45f7-aa28-ea06e605a400): article:author",
+      "ok": false,
+      "detail": "expected \"https://915tldr.com/about\", observed null"
+    },
+    {
+      "check": "EN article (/community/gabby-garza-cooks-fajitas-as-garzas-great-great-granddaughter-e61a8c45-57e7-45f7-aa28-ea06e605a400): every article:tag non-empty",
+      "ok": true,
+      "detail": "0 tags"
+    },
+    {
+      "check": "ES article (/es/community/gabby-garza-cooks-fajitas-as-garzas-great-great-granddaughter-e61a8c45-57e7-45f7-aa28-ea06e605a400): og:title",
+      "ok": false,
+      "detail": "expected \"Gabby Garza cocina las fajitas como tataranieta de Garza — 915 TLDR\", observed null"
+    },
+    {
+      "check": "ES article (/es/community/gabby-garza-cooks-fajitas-as-garzas-great-great-granddaughter-e61a8c45-57e7-45f7-aa28-ea06e605a400): og:description",
+      "ok": false,
+      "detail": "missing or empty"
+    },
+    {
+      "check": "ES article (/es/community/gabby-garza-cooks-fajitas-as-garzas-great-great-granddaughter-e61a8c45-57e7-45f7-aa28-ea06e605a400): og:url",
+      "ok": false,
+      "detail": "expected \"https://915tldr.com/es/community/gabby-garza-cooks-fajitas-as-garzas-great-great-granddaughter-e61a8c45-57e7-45f7-aa28-ea06e605a400\", observed null"
+    },
+    {
+      "check": "ES article (/es/community/gabby-garza-cooks-fajitas-as-garzas-great-great-granddaughter-e61a8c45-57e7-45f7-aa28-ea06e605a400): og:site_name",
+      "ok": false,
+      "detail": "expected \"915 TLDR\", observed null"
+    },
+    {
+      "check": "ES article (/es/community/gabby-garza-cooks-fajitas-as-garzas-great-great-granddaughter-e61a8c45-57e7-45f7-aa28-ea06e605a400): og:type",
+      "ok": false,
+      "detail": "expected \"article\", observed null"
+    },
+    {
+      "check": "ES article (/es/community/gabby-garza-cooks-fajitas-as-garzas-great-great-granddaughter-e61a8c45-57e7-45f7-aa28-ea06e605a400): og:locale",
+      "ok": false,
+      "detail": "expected \"es_US\", observed null"
+    },
+    {
+      "check": "ES article (/es/community/gabby-garza-cooks-fajitas-as-garzas-great-great-granddaughter-e61a8c45-57e7-45f7-aa28-ea06e605a400): og:locale:alternate",
+      "ok": false,
+      "detail": "expected \"en_US\", observed null"
+    },
+    {
+      "check": "ES article (/es/community/gabby-garza-cooks-fajitas-as-garzas-great-great-granddaughter-e61a8c45-57e7-45f7-aa28-ea06e605a400): og:image",
+      "ok": false,
+      "detail": "expected \"https://dev.915tldr.com/og-image-es.png\", observed null"
+    },
+    {
+      "check": "ES article (/es/community/gabby-garza-cooks-fajitas-as-garzas-great-great-granddaughter-e61a8c45-57e7-45f7-aa28-ea06e605a400): og:image:width",
+      "ok": false,
+      "detail": "expected \"1200\", observed null"
+    },
+    {
+      "check": "ES article (/es/community/gabby-garza-cooks-fajitas-as-garzas-great-great-granddaughter-e61a8c45-57e7-45f7-aa28-ea06e605a400): og:image:height",
+      "ok": false,
+      "detail": "expected \"630\", observed null"
+    },
+    {
+      "check": "ES article (/es/community/gabby-garza-cooks-fajitas-as-garzas-great-great-granddaughter-e61a8c45-57e7-45f7-aa28-ea06e605a400): og:image:type",
+      "ok": false,
+      "detail": "expected \"image/png\", observed null"
+    },
+    {
+      "check": "ES article (/es/community/gabby-garza-cooks-fajitas-as-garzas-great-great-granddaughter-e61a8c45-57e7-45f7-aa28-ea06e605a400): og:image:alt",
+      "ok": false,
+      "detail": "expected \"915 TLDR — Noticias de El Paso, en breve.\", observed null"
+    },
+    {
+      "check": "ES article (/es/community/gabby-garza-cooks-fajitas-as-garzas-great-great-granddaughter-e61a8c45-57e7-45f7-aa28-ea06e605a400): twitter:card",
+      "ok": false,
+      "detail": "expected \"summary_large_image\", observed null"
+    },
+    {
+      "check": "ES article (/es/community/gabby-garza-cooks-fajitas-as-garzas-great-great-granddaughter-e61a8c45-57e7-45f7-aa28-ea06e605a400): twitter:image:alt",
+      "ok": false,
+      "detail": "expected \"915 TLDR — Noticias de El Paso, en breve.\", observed null"
+    },
+    {
+      "check": "ES article (/es/community/gabby-garza-cooks-fajitas-as-garzas-great-great-granddaughter-e61a8c45-57e7-45f7-aa28-ea06e605a400): no forbidden X tags",
+      "ok": true,
+      "detail": "twitter:site, twitter:title, twitter:description, twitter:image absent"
+    },
+    {
+      "check": "ES article (/es/community/gabby-garza-cooks-fajitas-as-garzas-great-great-granddaughter-e61a8c45-57e7-45f7-aa28-ea06e605a400): icon links",
+      "ok": false,
+      "detail": "expected [\"icon|/favicon.ico||32x32\",\"icon|/favicon.svg|image/svg+xml|\",\"apple-touch-icon|/apple-touch-icon.png||\"], observed []"
+    },
+    {
+      "check": "ES article (/es/community/gabby-garza-cooks-fajitas-as-garzas-great-great-granddaughter-e61a8c45-57e7-45f7-aa28-ea06e605a400): no empty meta content",
+      "ok": true,
+      "detail": "none"
+    },
+    {
+      "check": "ES article (/es/community/gabby-garza-cooks-fajitas-as-garzas-great-great-granddaughter-e61a8c45-57e7-45f7-aa28-ea06e605a400): no duplicate meta keys",
+      "ok": true,
+      "detail": "none"
+    },
+    {
+      "check": "ES article (/es/community/gabby-garza-cooks-fajitas-as-garzas-great-great-granddaughter-e61a8c45-57e7-45f7-aa28-ea06e605a400): article:published_time",
+      "ok": false,
+      "detail": "expected \"2026-10-08T21:19:32-06:00\", observed null"
+    },
+    {
+      "check": "ES article (/es/community/gabby-garza-cooks-fajitas-as-garzas-great-great-granddaughter-e61a8c45-57e7-45f7-aa28-ea06e605a400): article:modified_time",
+      "ok": false,
+      "detail": "expected \"2026-10-08T21:19:32-06:00\", observed null"
+    },
+    {
+      "check": "ES article (/es/community/gabby-garza-cooks-fajitas-as-garzas-great-great-granddaughter-e61a8c45-57e7-45f7-aa28-ea06e605a400): article:section",
+      "ok": false,
+      "detail": "missing or empty"
+    },
+    {
+      "check": "ES article (/es/community/gabby-garza-cooks-fajitas-as-garzas-great-great-granddaughter-e61a8c45-57e7-45f7-aa28-ea06e605a400): article:author",
+      "ok": false,
+      "detail": "expected \"https://915tldr.com/es/about\", observed null"
+    },
+    {
+      "check": "ES article (/es/community/gabby-garza-cooks-fajitas-as-garzas-great-great-granddaughter-e61a8c45-57e7-45f7-aa28-ea06e605a400): every article:tag non-empty",
+      "ok": true,
+      "detail": "0 tags"
+    },
+    {
+      "check": "noindex page (/es/source/ktsm): og:title",
+      "ok": false,
+      "detail": "expected \"KTSM - Noticias de El Paso\", observed null"
+    },
+    {
+      "check": "noindex page (/es/source/ktsm): og:description",
+      "ok": false,
+      "detail": "missing or empty"
+    },
+    {
+      "check": "noindex page (/es/source/ktsm): og:url",
+      "ok": false,
+      "detail": "expected \"https://915tldr.com/es/source/ktsm\", observed null"
+    },
+    {
+      "check": "noindex page (/es/source/ktsm): og:site_name",
+      "ok": false,
+      "detail": "expected \"915 TLDR\", observed null"
+    },
+    {
+      "check": "noindex page (/es/source/ktsm): og:type",
+      "ok": false,
+      "detail": "expected \"website\", observed null"
+    },
+    {
+      "check": "noindex page (/es/source/ktsm): og:locale",
+      "ok": false,
+      "detail": "expected \"es_US\", observed null"
+    },
+    {
+      "check": "noindex page (/es/source/ktsm): og:locale:alternate",
+      "ok": false,
+      "detail": "expected \"en_US\", observed null"
+    },
+    {
+      "check": "noindex page (/es/source/ktsm): og:image",
+      "ok": false,
+      "detail": "expected \"https://dev.915tldr.com/og-image-es.png\", observed null"
+    },
+    {
+      "check": "noindex page (/es/source/ktsm): og:image:width",
+      "ok": false,
+      "detail": "expected \"1200\", observed null"
+    },
+    {
+      "check": "noindex page (/es/source/ktsm): og:image:height",
+      "ok": false,
+      "detail": "expected \"630\", observed null"
+    },
+    {
+      "check": "noindex page (/es/source/ktsm): og:image:type",
+      "ok": false,
+      "detail": "expected \"image/png\", observed null"
+    },
+    {
+      "check": "noindex page (/es/source/ktsm): og:image:alt",
+      "ok": false,
+      "detail": "expected \"915 TLDR — Noticias de El Paso, en breve.\", observed null"
+    },
+    {
+      "check": "noindex page (/es/source/ktsm): twitter:card",
+      "ok": false,
+      "detail": "expected \"summary_large_image\", observed null"
+    },
+    {
+      "check": "noindex page (/es/source/ktsm): twitter:image:alt",
+      "ok": false,
+      "detail": "expected \"915 TLDR — Noticias de El Paso, en breve.\", observed null"
+    },
+    {
+      "check": "noindex page (/es/source/ktsm): no forbidden X tags",
+      "ok": true,
+      "detail": "twitter:site, twitter:title, twitter:description, twitter:image absent"
+    },
+    {
+      "check": "noindex page (/es/source/ktsm): icon links",
+      "ok": false,
+      "detail": "expected [\"icon|/favicon.ico||32x32\",\"icon|/favicon.svg|image/svg+xml|\",\"apple-touch-icon|/apple-touch-icon.png||\"], observed []"
+    },
+    {
+      "check": "noindex page (/es/source/ktsm): no empty meta content",
+      "ok": true,
+      "detail": "none"
+    },
+    {
+      "check": "noindex page (/es/source/ktsm): no duplicate meta keys",
+      "ok": true,
+      "detail": "none"
+    },
+    {
+      "check": "noindex page (/es/source/ktsm): no article:* tags on a page",
+      "ok": true,
+      "detail": "none"
+    },
+    {
+      "check": "page weight (info)",
+      "ok": true,
+      "skipped": true,
+      "detail": "EN home 11945 bytes; ES home 12168 bytes; EN article 14015 bytes; ES article 14249 bytes; noindex page 28433 bytes"
+    },
+    {
+      "check": "homepage stylesheet",
+      "ok": true,
+      "skipped": true,
+      "detail": "/_astro/Base.h88la9Hn.css (no --expect-stylesheet given)"
+    },
+    {
+      "check": "card en status",
+      "ok": false,
+      "detail": "https://dev.915tldr.com/og-image.png -> 404 text/html 10629 bytes x-robots-tag=noindex"
+    },
+    {
+      "check": "card es status",
+      "ok": false,
+      "detail": "https://dev.915tldr.com/og-image-es.png -> 404 text/html 10629 bytes x-robots-tag=noindex"
+    },
+    {
+      "check": "/favicon.ico status",
+      "ok": false,
+      "detail": "https://dev.915tldr.com/favicon.ico -> 404 text/html 10629 bytes x-robots-tag=noindex"
+    },
+    {
+      "check": "/favicon.svg status",
+      "ok": false,
+      "detail": "https://dev.915tldr.com/favicon.svg -> 404 text/html 10629 bytes x-robots-tag=noindex"
+    },
+    {
+      "check": "/apple-touch-icon.png status",
+      "ok": false,
+      "detail": "https://dev.915tldr.com/apple-touch-icon.png -> 404 text/html 10629 bytes x-robots-tag=noindex"
+    },
+    {
+      "check": "crawler reachability (edge-side only)",
+      "ok": true,
+      "skipped": true,
+      "detail": "proves this machine's requests with these User-Agents, not the platforms' own fetchers or IPs"
+    },
+    {
+      "check": "UA probe facebook: article page",
+      "ok": true,
+      "detail": "200 14015 bytes (facebookexternalhit/1.1)"
+    },
+    {
+      "check": "UA probe facebook: EN card",
+      "ok": false,
+      "detail": "facebook (facebookexternalhit/1.1) got status 404 for https://dev.915tldr.com/og-image.png"
+    },
+    {
+      "check": "UA probe x: article page",
+      "ok": true,
+      "detail": "200 14015 bytes (Twitterbot/1.0)"
+    },
+    {
+      "check": "UA probe x: EN card",
+      "ok": false,
+      "detail": "x (Twitterbot/1.0) got status 404 for https://dev.915tldr.com/og-image.png"
+    },
+    {
+      "check": "UA probe slack: article page",
+      "ok": true,
+      "detail": "200 14015 bytes (Slackbot-LinkExpanding)"
+    },
+    {
+      "check": "UA probe slack: EN card",
+      "ok": false,
+      "detail": "slack (Slackbot-LinkExpanding) got status 404 for https://dev.915tldr.com/og-image.png"
+    },
+    {
+      "check": "UA probe whatsapp: article page",
+      "ok": true,
+      "detail": "200 14015 bytes (WhatsApp/2.23.20.0)"
+    },
+    {
+      "check": "UA probe whatsapp: EN card",
+      "ok": false,
+      "detail": "whatsapp (WhatsApp/2.23.20.0) got status 404 for https://dev.915tldr.com/og-image.png"
+    },
+    {
+      "check": "robots.txt facebookexternalhit",
+      "ok": true,
+      "detail": "matches group *; / allowed, article allowed, /og-image.png allowed"
+    },
+    {
+      "check": "robots.txt Twitterbot",
+      "ok": true,
+      "detail": "matches group *; / allowed, article allowed, /og-image.png allowed"
+    },
+    {
+      "check": "robots.txt Slackbot",
+      "ok": true,
+      "detail": "matches group *; / allowed, article allowed, /og-image.png allowed"
+    },
+    {
+      "check": "robots.txt WhatsApp",
+      "ok": true,
+      "detail": "matches group *; / allowed, article allowed, /og-image.png allowed"
+    }
+  ]
+}

@@ -30,7 +30,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [ ] **Phase 4: Static Generation, Templates & SEO** - A fail-loud D1 loader and every public page type generated at build time
 - [x] **Phase 5: Hybrid Archive & Zero-Reads Proof** - R2 archive tier, tag tiering, and the measured proof of zero D1 reads on the public path (completed 2026-10-03)
 - [x] **Phase 6: Bilingual** - Spanish summaries at ingest, `/es` routing, hreflang pairs and per-language feeds (completed 2026-10-07)
-- [ ] **Phase 7: Imagery & Share Cards** - Junk-image filter, generated imagery, and share cards validated on real platforms
+- [ ] **Phase 7: Share Cards & Head Metadata** - One static share card per language, the full Open Graph/Twitter tag set and icons, validated on real platforms
 - [ ] **Phase 8: Server Islands & Interactivity** - Weather, forecast and theme islands that degrade visibly instead of failing silently
 - [ ] **Phase 9: Search** - Backend chosen by measurement, with no quiet exception to the zero-reads guarantee
 - [ ] **Phase 10: Reader Subscription & Trust Surface** - Double opt-in subscription with entity follows, plus a named human and plain-English AI disclosure
@@ -439,20 +439,55 @@ Plans:
 
 **UI hint**: yes
 
-### Phase 7: Imagery & Share Cards
+### Phase 7: Share Cards & Head Metadata
 
-**Goal**: Every article has a real image and a share card that renders correctly on the platforms people actually paste links into.
+**Goal**: A pasted 915 TLDR link renders a correct share card on the platforms people actually use, and every page emits the head metadata and icons v1 does. (Scope cut by the owner 2026-10-08: no page imagery, no per-article OG images; the IMG-* requirements are deferred.)
 **Depends on**: Phase 4
-**Requirements**: IMG-01, IMG-02, IMG-03, IMG-04, IMG-05, IMG-06, IMG-07, IMG-08, IMG-09, IMG-10, SOC-01, SOC-02, SOC-03, SOC-04, SOC-05, SOC-06, SOC-07, SOC-08, PERF-08, PERF-09, PERF-10, A11Y-06
+**Requirements**: SOC-01, SOC-02, SOC-03, SOC-04, SOC-05, SOC-06, SOC-07, SOC-08
+**Context**: `.planning/phases/07-imagery-share-cards/07-CONTEXT.md`
 **Success Criteria** (what must be TRUE):
 
-  1. Zero articles display an emoji sprite, generic placeholder or undersized image: the ingest filter rejects them going forward and the retroactive pass reclassifies all 1,098 existing junk images.
-  2. A 10-image Flux-Schnell quality test is decided by looking at the images, and the 15,624-article backfill runs only after a costed dry run and explicit approval; ongoing per-article generation stays inside the free 10,000 neurons/day allocation.
-  3. Eight category heroes read as one visual system (generated via reference images on `gpt-image-2.5-flare`), and real per-image cost is recorded from `usage.output_tokens` as a measured dollar figure — the flat-rate table is not used.
-  4. Every article has a 1200×630 share card at an absolute HTTPS URL under 5 MB, produced by deterministic composition with no AI-rendered text, verified by pasting real URLs into the Facebook debugger, X validator, iMessage, WhatsApp and Slack; the file size that actually renders on WhatsApp is recorded as a number.
-  5. Generated images live in R2 with assignments recorded in D1 so they survive rebuilds; every image emits explicit `width`/`height`, `srcset`/`sizes` with AVIF and WebP plus fallback, and meaningful `alt` (or `alt=""` when decorative); the LCP image carries `fetchpriority="high"` and is never lazy-loaded; every page emits the full Open Graph, `article:*` and `summary_large_image` Twitter tag set.
+  1. Every page emits `og:title`, `og:description`, `og:url`, `og:site_name`, `og:type`, `og:locale` with `og:locale:alternate`, and `twitter:card` set to `summary_large_image`; articles also emit `article:published_time`, `article:modified_time`, `article:section`, `article:tag` and `article:author`. Verified on `dev.915tldr.com`, where none of these exist today.
+  2. `/og-image.png` (English) and `/og-image-es.png` (Spanish) are 1200×630 static files under 5 MB, served at absolute HTTPS URLs and referenced by `og:image` with explicit `width`, `height`, `type` and `alt`. Spanish pages use the Spanish card. The cards are composed by hand, with no AI-rendered text.
+  3. `/favicon.ico`, `/favicon.svg` and an apple-touch-icon return 200 and are linked from every page's head (all currently 404 on dev).
+  4. The cards are verified by pasting real `dev.915tldr.com` URLs, English and Spanish, into the Facebook debugger, X validator, iMessage, WhatsApp and Slack; the file size that actually renders on WhatsApp is recorded as a number, and anything not checked is stated.
 
-**Plans**: TBD
+**Plans:** 7/9 plans executed
+
+Plans:
+**Wave 1**
+
+- [x] 07-01-PLAN.md — Tracer: share-meta.ts → Base.astro og:image group, proven by a zero-D1 head-harness build; build guard ties the og:image origin to wrangler.jsonc's custom domain
+- [x] 07-02-PLAN.md — EN/ES share cards (V1 masthead) and icon set rendered offline from committed source, with self-checks and an asset test
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
+- [x] 07-03-PLAN.md — Full og/twitter set and icon links on every page (TDD builder; home, self, noindex, no-description, no-canonical, injection, determinism)
+
+**Wave 3** *(blocked on Wave 2 completion)*
+
+- [x] 07-04-PLAN.md — article:* tags via a Base `article` prop fed by both article templates; freshness-gated real-build test
+
+**Wave 4** *(blocked on Wave 3 completion)*
+
+- [x] 07-05-PLAN.md — Live checker (`verify:share`, incl. crawler-UA and robots checks) and zone-analytics fetch measurement (`measure:share`)
+
+**Wave 5** *(blocked on Wave 4 completion)*
+
+- [x] 07-06-PLAN.md — Review packet and owner checkpoint: rendered cards (ES copy), credit-line size, twitter:image:alt, local-build choice, favicon identity confirm (D-21/D-22/D-23 already settled)
+
+**Wave 6** *(blocked on Wave 5 completion)*
+
+- [x] 07-07-PLAN.md — Apply Jaime's 07-06 answers exactly, then the full green gate
+
+**Wave 7** *(blocked on Wave 6 completion)*
+
+- [ ] 07-08-PLAN.md — Jaime merges and pushes; deployed dev host proven by `verify:share` and `verify:edge`, stylesheet unchanged
+
+**Wave 8** *(blocked on Wave 7 completion)*
+
+- [ ] 07-09-PLAN.md — Five-platform validation (EN+ES), WhatsApp outcome as a number with the D-08 JPEG fallback path if it fails, D-20 measured, what was not checked, Phase 12 cutover todo
+
 **UI hint**: yes
 
 ### Phase 8: Server Islands & Interactivity
@@ -554,7 +589,7 @@ Phase 3 and may run alongside Phases 5-7.
 | 4. Static Generation, Templates & SEO | 12/12 | In Progress|  |
 | 5. Hybrid Archive & Zero-Reads Proof | 21/21 | Complete    | 2026-10-03 |
 | 6. Bilingual | 17/17 | Complete    | 2026-10-07 |
-| 7. Imagery & Share Cards | 0/TBD | Not started | - |
+| 7. Share Cards & Head Metadata | 7/9 | In Progress|  |
 | 8. Server Islands & Interactivity | 0/TBD | Not started | - |
 | 9. Search | 0/TBD | Not started | - |
 | 10. Reader Subscription & Trust Surface | 0/TBD | Not started | - |

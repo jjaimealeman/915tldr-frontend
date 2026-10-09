@@ -19,6 +19,7 @@ import { localizedPath, type Language } from '../lib/article-url.ts';
 import { alternateLinks, pairedPath, type AlternateMode } from '../lib/i18n/hreflang.ts';
 import { t } from '../lib/i18n/dictionary.ts';
 import { categoryLabel } from '../lib/i18n/category-labels.ts';
+import { shareMetaTags, fallbackPageUrl, ICON_LINKS, type ShareArticleInput } from '../lib/share-meta.ts';
 
 export interface Props {
   page: string;
@@ -63,6 +64,8 @@ export interface Props {
   /** 06-05 (D-12): override for the language-switch link's target. Defaults to the paired path
    * of `canonicalPath`, or (when there is no `canonicalPath`) the other language's home page. */
   switchPath?: string;
+  /** 07-04 (D-15/D-18): article-only inputs for the article:* tags; omitted on every non-article page. */
+  article?: ShareArticleInput;
 }
 
 const {
@@ -80,6 +83,7 @@ const {
   lang = 'en',
   alternates,
   switchPath: switchPathProp,
+  article,
 } = Astro.props;
 
 if (canonicalPath && canonicalPath !== '/' && canonicalPath.endsWith('/')) {
@@ -101,6 +105,15 @@ const alternateLinkList = alternateLinks({
   lang,
   mode: resolvedAlternates,
   origin,
+});
+const shareTags = shareMetaTags({
+  lang,
+  title,
+  description: description || t('homeDescription', lang),
+  pageUrl: canonicalHref ?? fallbackPageUrl(Astro.url.pathname, origin),
+  alternates: resolvedAlternates,
+  siteOrigin: origin,
+  article,
 });
 
 const buildEpoch = Math.floor(new Date(BUILD_TIMESTAMP).getTime() / 1000);
@@ -137,6 +150,20 @@ const stampDate = stamp === 'commit' ? BUILD_COMMIT_DATE : buildDate;
       ))
     }
     {noindex && <meta name="robots" content="noindex" />}
+    {/* 07-03 (D-13/D-23): the icon set from src/lib/share-meta.ts. Astro omits undefined attributes. */}
+    {ICON_LINKS.map((icon) => <link rel={icon.rel} href={icon.href} type={icon.type} sizes={icon.sizes} />)}
+    {/* 07-01/07-03 (SOC-01/02/04): share head tags from src/lib/share-meta.ts. Values reach the markup only
+        through attribute expressions (Astro escapes them) and are source-derived only, no build
+        hash or timestamp (04-11a), so unchanged pages stay byte-identical across rebuilds. */}
+    {
+      shareTags.map((tag) =>
+        tag.attr === 'property' ? (
+          <meta property={tag.key} content={tag.content} />
+        ) : (
+          <meta name={tag.key} content={tag.content} />
+        )
+      )
+    }
     <link
       rel="alternate"
       type="application/rss+xml"

@@ -64,3 +64,14 @@ export function builtEsSourcePagesAreNoindex() {
   if (!file) return false;
   return /<meta name="robots" content="noindex"\s*\/?>/.test(readFileSync(path.join(dir, file), 'utf8'));
 }
+
+/**
+ * 07-04: true when the built home page already carries the share-card og:image tag, i.e. `dist/` was
+ * built after 07-01 and shows the share metadata at all. Used as the `hasFeature` probe for
+ * tests/unit/share-meta-dist.test.mjs, which stays a visible skip until a real build exists.
+ */
+export function builtPagesHaveShareMeta() {
+  const file = path.join(DIST_CLIENT, 'index.html');
+  if (!existsSync(file)) return false;
+  return readFileSync(file, 'utf8').includes('property="og:image"');
+}

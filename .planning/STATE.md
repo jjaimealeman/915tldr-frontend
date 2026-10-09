@@ -2,18 +2,18 @@
 gsd_state_version: 1.0
 milestone: v1.5
 milestone_name: milestone
-current_phase: 7
-current_phase_name: Imagery & Share Cards
-status: planning
-stopped_at: Phase 6 context gathered
-last_updated: "2026-10-08T03:39:17.554Z"
-last_activity: 2026-10-07
-last_activity_desc: Phase 6 complete, transitioned to Phase 7
+current_phase: 07
+current_phase_name: imagery-share-cards
+status: executing
+stopped_at: Completed 07-07-PLAN.md
+last_updated: "2026-10-09T05:32:32.681Z"
+last_activity: 2026-10-08
+last_activity_desc: Phase 07 execution started
 progress:
-  total_phases: 6
+  total_phases: 7
   completed_phases: 6
-  total_plans: 90
-  completed_plans: 90
+  total_plans: 99
+  completed_plans: 97
 ---
 
 # Project State
@@ -23,16 +23,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-09-16)
 
 **Core value:** Zero D1 reads on the public request path — architecturally zero, enforced structurally at build time.
-**Current focus:** Phase 06 — bilingual
+**Current focus:** Phase 07 — imagery-share-cards
 
 ## Current Position
 
-Phase: 7 — Imagery & Share Cards
-Plan: Not started
-Status: Ready to plan
-Last activity: 2026-10-07 — Phase 6 complete, transitioned to Phase 7
+Phase: 07 (imagery-share-cards) — EXECUTING
+Plan: 8 of 9
+Status: Ready to execute
+Last activity: 2026-10-08 — Phase 07 execution started
 
-Progress: [██████████] 100%
+Progress: [██████████] 98%
 
 ## Performance Metrics
 
@@ -124,6 +124,13 @@ Progress: [██████████] 100%
 | Phase 05 P17 | 27min | 2 tasks | 10 files |
 | Phase 05 P19 | 25min | 1 tasks | 7 files |
 | Phase 05 P21 | ~50min | 3 tasks | 5 files |
+| Phase 07 P01 | ~20min | 2 tasks | 10 files |
+| Phase 07 P02 | ~20 min | 3 tasks | 12 files |
+| Phase 07 P03 | 12min | 2 tasks | 5 files |
+| Phase 07 P04 | 15min | 3 tasks | 9 files |
+| Phase 07 P05 | 35min | 3 tasks | 5 files |
+| Phase 07 P06 | ~20 min | 2 tasks | 3 files |
+| Phase 07 P07 | 10min | 2 tasks | 0 files |
 
 ## Accumulated Context
 
@@ -303,6 +310,13 @@ Recent decisions affecting current work:
 - [Phase ?]: ARCH-08 CPU axis: owner chose option (c) re-measure (05-19); criterion fixed before measuring (p99<5ms AND >=20ms share <0.1%) mechanically MET on a 24h dev.915tldr.com window, but the 3-invocation sample was 100% bot-scan 404 traffic with zero archive-page requests, so ARCH-08's CPU axis remains an open gap (WINDOWS.md #26 not waived) pending 05-21
 - [Phase ?]: Phase 5 gap closure (05-21): ARCH-08 recorded as Gaps Found (not Complete) despite a mechanically MET re-measurement — owner deferred final judgment to Phase 12's 7-day soak after seeing the sample contained zero archive-page traffic
 - [Phase ?]: Phase 5 gap closure (05-21): REND-11 daily report delivery confirmed NOT observed by the owner after searching all 6 ntfy topics; recorded Gaps Found with a dedicated follow-up todo
+- [Phase ?]: 07-01: og:image origin is committed constant SHARE_IMAGE_ORIGIN (D-21), enforced by tools/assert-share-origin.mjs in guard:config; head metadata proven by zero-D1 head harness, never a full build
+- [Phase ?]: 07-02: share card copy kept as literal UTF-8 in card.html and font families named OG Card Display/Serif so local same-named fonts cannot win; favicon.ico is one 32x32 entry rasterised from favicon.svg (D-23)
+- [Phase ?]: [Phase 07-03] fallbackPageUrl strips .html: build.format file makes Astro.url.pathname carry the extension (404 pages have no canonicalPath)
+- [Phase ?]: 07-04: article:modified_time equals published_time (one bylineDatetime instant, D-18); publishedIso must carry Z or +-HH:MM offset
+- [Phase ?]: 07-05: robots.txt token match is exact; facebookexternalhit falls under * while FacebookBot is disallowed
+- [Phase ?]: 07-05: dev-host static requests are visible in zone analytics within about 74s, so SOC-08 can be stated from edge data
+- [Phase ?]: 07-06: Jaime accepted all defaults (1a 2a 3a 4a 5a); 4a means 07-07 must not run test:unit, test:regression or build
 
 ### Pending Todos
 
@@ -366,6 +380,6 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-10-03T08:48:10.225Z
-Stopped at: Phase 6 context gathered
-Resume file: .planning/phases/06-bilingual/06-CONTEXT.md
+Last session: 2026-10-09T05:32:32.658Z
+Stopped at: Completed 07-07-PLAN.md
+Resume file: None
