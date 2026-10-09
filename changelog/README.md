@@ -10,6 +10,7 @@ Entries are named `YYYY-MM-DD-HHMM_slug.md` and grouped by month, newest first.
 
 | Date | Entry | Keywords |
 |------|-------|----------|
+| 2026-10-08 | [Asset tests pin the share cards and icons (formats, sizes, tokens, copy, redirects)](2026-10-08-2238_share-card-asset-tests.md) | `[TESTING]` `[DESIGN]` `[SECURITY]` |
 | 2026-10-08 | [GREEN: icon set (favicon.svg, 32x32 favicon.ico, apple-touch-icon) and the ICO encoder](2026-10-08-2237_green-icon-set-ico-encoder.md) | `[FEATURE]` `[DESIGN]` `[FRONTEND]` `[TESTING]` |
 | 2026-10-08 | [RED: failing tests for the dependency-free ICO encoder](2026-10-08-2236_red-encode-ico-tests.md) | `[TESTING]` `[FRONTEND]` |
 | 2026-10-08 | [Share cards: EN and ES 1200x630 PNGs rendered offline from one hand-composed source](2026-10-08-2235_og-card-renderer-en-es.md) | `[FEATURE]` `[DESIGN]` `[FRONTEND]` `[TESTING]` |
