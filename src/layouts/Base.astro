@@ -19,6 +19,7 @@ import { localizedPath, type Language } from '../lib/article-url.ts';
 import { alternateLinks, pairedPath, type AlternateMode } from '../lib/i18n/hreflang.ts';
 import { t } from '../lib/i18n/dictionary.ts';
 import { categoryLabel } from '../lib/i18n/category-labels.ts';
+import { shareMetaTags, fallbackPageUrl } from '../lib/share-meta.ts';
 
 export interface Props {
   page: string;
@@ -102,6 +103,14 @@ const alternateLinkList = alternateLinks({
   mode: resolvedAlternates,
   origin,
 });
+const shareTags = shareMetaTags({
+  lang,
+  title,
+  description: description || t('homeDescription', lang),
+  pageUrl: canonicalHref ?? fallbackPageUrl(Astro.url.pathname, origin),
+  alternates: resolvedAlternates,
+  siteOrigin: origin,
+});
 
 const buildEpoch = Math.floor(new Date(BUILD_TIMESTAMP).getTime() / 1000);
 const datelineText = formatDateline(datelineEpoch ?? buildEpoch, lang);
@@ -137,6 +146,18 @@ const stampDate = stamp === 'commit' ? BUILD_COMMIT_DATE : buildDate;
       ))
     }
     {noindex && <meta name="robots" content="noindex" />}
+    {/* 07-01 (SOC-02): share-card head tags from src/lib/share-meta.ts. Values reach the markup only
+        through attribute expressions (Astro escapes them) and are source-derived only, no build
+        hash or timestamp (04-11a), so unchanged pages stay byte-identical across rebuilds. */}
+    {
+      shareTags.map((tag) =>
+        tag.attr === 'property' ? (
+          <meta property={tag.key} content={tag.content} />
+        ) : (
+          <meta name={tag.key} content={tag.content} />
+        )
+      )
+    }
     <link
       rel="alternate"
       type="application/rss+xml"

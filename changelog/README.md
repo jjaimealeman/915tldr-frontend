@@ -10,6 +10,7 @@ Entries are named `YYYY-MM-DD-HHMM_slug.md` and grouped by month, newest first.
 
 | Date | Entry | Keywords |
 |------|-------|----------|
+| 2026-10-08 | [Share-card tracer: Base.astro emits the og:image group, proven by a zero-D1 head harness](2026-10-08-2230_share-meta-og-image-tracer.md) | `[FEATURE]` `[FRONTEND]` `[TESTING]` `[SECURITY]` |
 | 2026-10-08 | [PROJECT.md and STATE.md synced to the reduced Phase 7](2026-10-08-1358_phase-07-project-state-synced.md) | `[DOCUMENTATION]` `[PLANNING]` |
 | 2026-10-08 | [Roadmap and requirements amended for the reduced Phase 7](2026-10-08-1337_phase-07-roadmap-requirements-amended.md) | `[DOCUMENTATION]` `[PLANNING]` `[SEO]` |
 | 2026-10-08 | [STATE.md records the Phase 7 context session](2026-10-08-1333_phase-07-state-session-record.md) | `[DOCUMENTATION]` `[PLANNING]` |

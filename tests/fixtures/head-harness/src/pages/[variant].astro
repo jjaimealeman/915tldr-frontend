@@ -1,0 +1,16 @@
+---
+// 07-01: renders the real `Base.astro` once per variant in `../variants.ts`. See the harness
+// astro.config.mjs for why this root exists. No content collections, no D1, no KV.
+import Base from '../../../../../src/layouts/Base.astro';
+import { VARIANTS } from '../variants.ts';
+
+export function getStaticPaths() {
+  return VARIANTS.map((v) => ({ params: { variant: v.name }, props: { v } }));
+}
+
+const { v } = Astro.props;
+---
+
+<Base {...(v.props as any)}>
+  <p>head-harness {v.name}</p>
+</Base>
