@@ -155,3 +155,80 @@ test('shareImageUrl: absolute card URL for the language on the given origin', ()
   assert.equal(shareImageUrl('en', 'https://915tldr.com'), 'https://915tldr.com/og-image.png');
   assert.equal(shareImageUrl('es', 'https://915tldr.com'), 'https://915tldr.com/og-image-es.png');
 });
+
+// 07-04 (SOC-03; D-15, D-16, D-18): the article branch. article:* tags sit between og:image:alt and
+// twitter:card, og:type flips to "article", and the author is the site's own /about URL.
+const ARTICLE = {
+  publishedIso: '2026-09-20T08:15:00-06:00',
+  section: 'Crime',
+  tags: ['El Paso Police', 'Arrest'],
+};
+const ARTICLE_BASE = { ...BASE, pageUrl: 'https://915tldr.com/crime/fixture-story-00000000-0000-0000-0000-000000000002', article: ARTICLE };
+
+test('shareMetaTags (D-15): article keys sit between og:image:alt and twitter:card, in order', () => {
+  const keys = shareMetaTags(ARTICLE_BASE).map((t) => t.key);
+  assert.deepEqual(keys, [
+    ...ORDER.slice(0, 12),
+    'article:published_time',
+    'article:modified_time',
+    'article:section',
+    'article:tag',
+    'article:tag',
+    'article:author',
+    ...ORDER.slice(12),
+  ]);
+});
+
+test('shareMetaTags (D-15/D-16/D-18): article values are the literal expected strings', () => {
+  const tags = shareMetaTags(ARTICLE_BASE);
+  assert.equal(byKey(tags, 'og:type').content, 'article');
+  assert.equal(byKey(tags, 'article:published_time').content, '2026-09-20T08:15:00-06:00');
+  assert.equal(byKey(tags, 'article:modified_time').content, '2026-09-20T08:15:00-06:00');
+  assert.equal(byKey(tags, 'article:section').content, 'Crime');
+  assert.deepEqual(tags.filter((t) => t.key === 'article:tag').map((t) => t.content), ['El Paso Police', 'Arrest']);
+  assert.equal(byKey(tags, 'article:author').content, 'https://915tldr.com/about');
+});
+
+test('shareMetaTags (D-16): Spanish article author is the Spanish /about URL', () => {
+  const tags = shareMetaTags({ ...ARTICLE_BASE, lang: 'es' });
+  assert.equal(byKey(tags, 'article:author').content, 'https://915tldr.com/es/about');
+  assert.equal(byKey(tags, 'og:type').content, 'article');
+});
+
+test('shareMetaTags: article:section omitted when empty or absent; article:tag omitted for no tags', () => {
+  for (const section of ['', '   ', undefined]) {
+    const keys = shareMetaTags({ ...ARTICLE_BASE, article: { ...ARTICLE, section } }).map((t) => t.key);
+    assert.ok(!keys.includes('article:section'), JSON.stringify(section));
+  }
+  const keys = shareMetaTags({ ...ARTICLE_BASE, article: { ...ARTICLE, tags: [] } }).map((t) => t.key);
+  assert.ok(!keys.includes('article:tag'));
+  assert.ok(keys.includes('article:author'));
+});
+
+test('shareMetaTags: whitespace-only tags are skipped, the others kept in input order (not sorted)', () => {
+  const tags = shareMetaTags({ ...ARTICLE_BASE, article: { ...ARTICLE, tags: ['Zeta', '  ', 'Alpha', ''] } });
+  assert.deepEqual(tags.filter((t) => t.key === 'article:tag').map((t) => t.content), ['Zeta', 'Alpha']);
+});
+
+test('shareMetaTags: an unparseable or offset-less publishedIso throws a share-meta: error', () => {
+  for (const publishedIso of ['', 'not a date', '2026-09-20T08:15:00', '2026-09-20', undefined]) {
+    assert.throws(() => shareMetaTags({ ...ARTICLE_BASE, article: { ...ARTICLE, publishedIso } }), (err) => {
+      assert.ok(err instanceof Error);
+      assert.match(err.message, /^share-meta:.*publishedIso/, JSON.stringify(publishedIso));
+      return true;
+    });
+  }
+  // Both accepted offset forms
+  for (const publishedIso of ['2026-09-20T14:15:00Z', '2026-09-20T08:15:00-06:00', '2026-09-20T08:15:00+05:30']) {
+    assert.doesNotThrow(() => shareMetaTags({ ...ARTICLE_BASE, article: { ...ARTICLE, publishedIso } }), publishedIso);
+  }
+});
+
+test('shareMetaTags: all article:* entries use attr "property"; without article none appears and og:type stays website', () => {
+  for (const tag of shareMetaTags(ARTICLE_BASE).filter((t) => t.key.startsWith('article:'))) {
+    assert.equal(tag.attr, 'property', tag.key);
+  }
+  const plain = shareMetaTags(BASE);
+  assert.ok(!plain.some((t) => t.key.startsWith('article:')));
+  assert.equal(byKey(plain, 'og:type').content, 'website');
+});
