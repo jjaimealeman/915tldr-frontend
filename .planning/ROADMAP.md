@@ -452,7 +452,42 @@ Plans:
   3. `/favicon.ico`, `/favicon.svg` and an apple-touch-icon return 200 and are linked from every page's head (all currently 404 on dev).
   4. The cards are verified by pasting real `dev.915tldr.com` URLs, English and Spanish, into the Facebook debugger, X validator, iMessage, WhatsApp and Slack; the file size that actually renders on WhatsApp is recorded as a number, and anything not checked is stated.
 
-**Plans**: TBD
+**Plans:** 1/9 plans executed
+
+Plans:
+**Wave 1**
+
+- [x] 07-01-PLAN.md — Tracer: share-meta.ts → Base.astro og:image group, proven by a zero-D1 head-harness build; build guard ties the og:image origin to wrangler.jsonc's custom domain
+- [ ] 07-02-PLAN.md — EN/ES share cards (V1 masthead) and icon set rendered offline from committed source, with self-checks and an asset test
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
+- [ ] 07-03-PLAN.md — Full og/twitter set and icon links on every page (TDD builder; home, self, noindex, no-description, no-canonical, injection, determinism)
+
+**Wave 3** *(blocked on Wave 2 completion)*
+
+- [ ] 07-04-PLAN.md — article:* tags via a Base `article` prop fed by both article templates; freshness-gated real-build test
+
+**Wave 4** *(blocked on Wave 3 completion)*
+
+- [ ] 07-05-PLAN.md — Live checker (`verify:share`, incl. crawler-UA and robots checks) and zone-analytics fetch measurement (`measure:share`)
+
+**Wave 5** *(blocked on Wave 4 completion)*
+
+- [ ] 07-06-PLAN.md — Review packet and owner checkpoint: rendered cards (ES copy), credit-line size, twitter:image:alt, local-build choice, favicon identity confirm (D-21/D-22/D-23 already settled)
+
+**Wave 6** *(blocked on Wave 5 completion)*
+
+- [ ] 07-07-PLAN.md — Apply Jaime's 07-06 answers exactly, then the full green gate
+
+**Wave 7** *(blocked on Wave 6 completion)*
+
+- [ ] 07-08-PLAN.md — Jaime merges and pushes; deployed dev host proven by `verify:share` and `verify:edge`, stylesheet unchanged
+
+**Wave 8** *(blocked on Wave 7 completion)*
+
+- [ ] 07-09-PLAN.md — Five-platform validation (EN+ES), WhatsApp outcome as a number with the D-08 JPEG fallback path if it fails, D-20 measured, what was not checked, Phase 12 cutover todo
+
 **UI hint**: yes
 
 ### Phase 8: Server Islands & Interactivity
@@ -554,7 +589,7 @@ Phase 3 and may run alongside Phases 5-7.
 | 4. Static Generation, Templates & SEO | 12/12 | In Progress|  |
 | 5. Hybrid Archive & Zero-Reads Proof | 21/21 | Complete    | 2026-10-03 |
 | 6. Bilingual | 17/17 | Complete    | 2026-10-07 |
-| 7. Share Cards & Head Metadata | 0/TBD | Not started | - |
+| 7. Share Cards & Head Metadata | 1/9 | In Progress|  |
 | 8. Server Islands & Interactivity | 0/TBD | Not started | - |
 | 9. Search | 0/TBD | Not started | - |
 | 10. Reader Subscription & Trust Surface | 0/TBD | Not started | - |
