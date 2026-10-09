@@ -19,7 +19,7 @@
 //
 // 07-01 emitted only the og:image group; 07-03 extends `shareMetaTags()` to the full og/twitter set
 // in the fixed order recorded in 07-UI-SPEC "Head Metadata Contract"; 07-04 adds the article:* tags.
-import { assertLanguage, type Language } from './article-url.ts';
+import { assertLanguage, localizedPath, type Language } from './article-url.ts';
 import type { AlternateMode } from './i18n/hreflang.ts';
 import { SITE_NAME } from './structured-data.ts';
 
@@ -106,6 +106,20 @@ export function fallbackPageUrl(pathname: string, siteOrigin: string): string {
   return new URL(path === '' ? '/' : path, siteOrigin).href;
 }
 
+/** An ISO-8601 instant with an explicit `Z` or ±HH:MM offset (a naive local time is ambiguous in a tag). */
+function requireIsoWithOffset(value: unknown): string {
+  if (
+    typeof value !== 'string' ||
+    !/(Z|[+-]\d{2}:\d{2})$/.test(value) ||
+    Number.isNaN(Date.parse(value))
+  ) {
+    throw new Error(
+      `share-meta: article.publishedIso must be an ISO-8601 date with a Z or ±HH:MM offset, got ${JSON.stringify(value)}`
+    );
+  }
+  return value;
+}
+
 const ALTERNATE_MODES: readonly AlternateMode[] = ['paired', 'self', 'none'];
 
 function requireText(field: 'title' | 'description', value: unknown): string {
@@ -137,8 +151,9 @@ function requireHttpsUrl(field: 'pageUrl' | 'siteOrigin', value: unknown): strin
  *
  * D-22: og:locale:alternate is emitted on every page whatever `alternates` says (the literal SOC-01
  * reading); `alternates` is still validated. D-17: no X site-handle tag exists, and no X
- * title/description/image tag, because X falls back to the og:* tags. 07-04 switches og:type to
- * `article` when `input.article` is present.
+ * title/description/image tag, because X falls back to the og:* tags. With `input.article` (07-04) og:type is
+ * `article` and the article:* group (published_time, modified_time, section, one tag per tag, author)
+ * is inserted between og:image:alt and twitter:card.
  */
 export function shareMetaTags(input: ShareMetaInput): MetaTag[] {
   const { lang } = input;
@@ -151,6 +166,8 @@ export function shareMetaTags(input: ShareMetaInput): MetaTag[] {
   const pageUrl = requireHttpsUrl('pageUrl', input.pageUrl);
   requireHttpsUrl('siteOrigin', input.siteOrigin);
   const otherLang: Language = lang === 'en' ? 'es' : 'en';
+  const article = input.article;
+  const publishedIso = article ? requireIsoWithOffset(article.publishedIso) : undefined;
 
   const tags: MetaTag[] = [];
   const og = (key: string, content: string): void => {
@@ -164,7 +181,7 @@ export function shareMetaTags(input: ShareMetaInput): MetaTag[] {
   og('og:description', description);
   og('og:url', pageUrl);
   og('og:site_name', SITE_NAME);
-  og('og:type', 'website');
+  og('og:type', article ? 'article' : 'website');
   og('og:locale', OG_LOCALE[lang]);
   og('og:locale:alternate', OG_LOCALE[otherLang]);
   og('og:image', shareImageUrl(lang, input.imageOrigin));
@@ -172,6 +189,20 @@ export function shareMetaTags(input: ShareMetaInput): MetaTag[] {
   og('og:image:height', String(SHARE_IMAGE_HEIGHT));
   og('og:image:type', SHARE_IMAGE_TYPE);
   og('og:image:alt', SHARE_IMAGE_ALT[lang]);
+  if (article && publishedIso) {
+    // D-15/D-18: both times are the one `bylineDatetime` value (the pipeline records a single instant,
+    // like the NewsArticle JSON-LD's dateModified = datePublished). D-16: the author is the site's
+    // own /about page in the page's language, never a person or an outlet.
+    og('article:published_time', publishedIso);
+    og('article:modified_time', publishedIso);
+    const section = typeof article.section === 'string' ? article.section.trim() : '';
+    if (section !== '') og('article:section', section);
+    for (const tag of article.tags) {
+      const name = typeof tag === 'string' ? tag.trim() : '';
+      if (name !== '') og('article:tag', name);
+    }
+    og('article:author', new URL(localizedPath('/about', lang), input.siteOrigin).href);
+  }
   twitter('twitter:card', 'summary_large_image');
   twitter('twitter:image:alt', SHARE_IMAGE_ALT[lang]);
 
