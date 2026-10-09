@@ -10,6 +10,7 @@ Entries are named `YYYY-MM-DD-HHMM_slug.md` and grouped by month, newest first.
 
 | Date | Entry | Keywords |
 |------|-------|----------|
+| 2026-10-08 | [Phase 7 Plan 6 complete: SUMMARY, STATE and ROADMAP](2026-10-08-2330_complete-07-06-plan-summary-state-roadmap.md) | `[DOCUMENTATION]` `[PLANNING]` |
 | 2026-10-08 | [Owner review packet: renderer --review mode, review renders, alt-to-tagline parity test](2026-10-08-2300_review-packet-and-alt-parity-test.md) | `[FEATURE]` `[TOOLING]` `[TESTING]` `[DOCUMENTATION]` |
 | 2026-10-08 | [Phase 7 Plan 5 complete: SUMMARY, STATE and ROADMAP](2026-10-08-2258_complete-07-05-plan-summary-state-roadmap.md) | `[DOCUMENTATION]` `[PLANNING]` |
 | 2026-10-08 | [GREEN: measure-share-fetches reports who fetched the cards, with status and bytes, from zone analytics](2026-10-08-2257_green-measure-share-fetches.md) | `[FEATURE]` `[TOOLING]` `[SECURITY]` `[TESTING]` |
