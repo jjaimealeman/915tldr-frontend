@@ -10,6 +10,7 @@ Entries are named `YYYY-MM-DD-HHMM_slug.md` and grouped by month, newest first.
 
 | Date | Entry | Keywords |
 |------|-------|----------|
+| 2026-10-08 | [RED: failing tests for the full ordered og/twitter share tag set](2026-10-08-2240_red-share-meta-full-set-tests.md) | `[TESTING]` `[FRONTEND]` |
 | 2026-10-08 | [Phase 7 Plan 2 complete: SUMMARY, STATE and ROADMAP](2026-10-08-2239_complete-07-02-plan-summary-state-roadmap.md) | `[DOCUMENTATION]` `[PLANNING]` |
 | 2026-10-08 | [Asset tests pin the share cards and icons (formats, sizes, tokens, copy, redirects)](2026-10-08-2238_share-card-asset-tests.md) | `[TESTING]` `[DESIGN]` `[SECURITY]` |
 | 2026-10-08 | [GREEN: icon set (favicon.svg, 32x32 favicon.ico, apple-touch-icon) and the ICO encoder](2026-10-08-2237_green-icon-set-ico-encoder.md) | `[FEATURE]` `[DESIGN]` `[FRONTEND]` `[TESTING]` |
