@@ -452,7 +452,7 @@ Plans:
   3. `/favicon.ico`, `/favicon.svg` and an apple-touch-icon return 200 and are linked from every page's head (all currently 404 on dev).
   4. The cards are verified by pasting real `dev.915tldr.com` URLs, English and Spanish, into the Facebook debugger, X validator, iMessage, WhatsApp and Slack; the file size that actually renders on WhatsApp is recorded as a number, and anything not checked is stated.
 
-**Plans:** 3/9 plans executed
+**Plans:** 4/9 plans executed
 
 Plans:
 **Wave 1**
@@ -466,7 +466,7 @@ Plans:
 
 **Wave 3** *(blocked on Wave 2 completion)*
 
-- [ ] 07-04-PLAN.md — article:* tags via a Base `article` prop fed by both article templates; freshness-gated real-build test
+- [x] 07-04-PLAN.md — article:* tags via a Base `article` prop fed by both article templates; freshness-gated real-build test
 
 **Wave 4** *(blocked on Wave 3 completion)*
 
@@ -589,7 +589,7 @@ Phase 3 and may run alongside Phases 5-7.
 | 4. Static Generation, Templates & SEO | 12/12 | In Progress|  |
 | 5. Hybrid Archive & Zero-Reads Proof | 21/21 | Complete    | 2026-10-03 |
 | 6. Bilingual | 17/17 | Complete    | 2026-10-07 |
-| 7. Share Cards & Head Metadata | 3/9 | In Progress|  |
+| 7. Share Cards & Head Metadata | 4/9 | In Progress|  |
 | 8. Server Islands & Interactivity | 0/TBD | Not started | - |
 | 9. Search | 0/TBD | Not started | - |
 | 10. Reader Subscription & Trust Surface | 0/TBD | Not started | - |
